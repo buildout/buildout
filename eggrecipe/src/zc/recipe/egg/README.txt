@@ -1,0 +1,94 @@
+Installation of distributions as eggs
+=====================================
+
+The zc.recipe.egg ewcipe can be used to install various types if
+distutils distributions as eggs.  It takes a number of options:
+
+distribution
+   The distribution specifies the distribution requirement.
+
+   This is a requirement as defined by setuptools.
+
+find_links
+   A list of URLs, files, or directories to search for distributions.
+
+To illustrate this, we've created a directory with some sample eggs:
+
+    >>> ls(sample_eggs)
+    -  demo-0.1-py2.3.egg
+    -  demo-0.2-py2.3.egg
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+
+We have a sample buildout.  Let's update it's configuration file to
+install the demo package. 
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo <0.3
+    ... find_links = %s
+    ... """ % sample_eggs)
+
+In this example, we limited ourself to revisions before 0.3. We also
+specified where to find distributions using the find_links option.
+
+Let's run the buildout:
+
+    >>> import os
+    >>> os.chdir(sample_buildout)
+    >>> runscript = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(runscript),
+    
+Now, if we look at the buildout eggs directory:
+
+    >>> ls(sample_buildout, 'eggs')
+    -  demo-0.2-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+    -  zc.recipe.egg.egg-link
+
+We see that we got an egg for demo that met the requirement, as well
+as the egg for demoneeded, wich demo requires.  (We also see an egg
+link for the recipe.  This egg link was actually created as part of
+the sample buildout setup. Normally, when using the recipe, you'll get
+a regular egg installation.)
+
+The demo egg also defined a script and we see that the script was
+installed as well:
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+    -  demo
+    -  py_demo
+
+Here, in addition to the buildout script, we see the demo script,
+demo, and we see a script, py_demo, for giving us a Python prompt with
+the path for demo and any eggs it depends on included in sys.path.
+This is useful for testing.
+
+If we run the demo script, it prints out some minimal data:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'demo')),
+    2 1
+
+The value it prints out happens to be some values defined in the
+modules installed.
+
+We can also run the py_demo script.  Here we'll just print out
+the bits if the path added to reflect the eggs:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'py_demo'),
+    ... """for p in sys.path[:3]:
+    ...        print p
+    ... """).replace('>>> ', '').replace('... ', ''),
+    ... # doctest: +ELLIPSIS
+    <BLANKLINE>
+    /usr/local/python/2.3.5/lib/python/setuptools-0.6b2-py2.3.egg
+    /tmp/tmpcy8MvGbuildout-tests/eggs/demo-0.2-py2.3.egg
+    /tmp/tmpcy8MvGbuildout-tests/eggs/demoneeded-1.0-py2.3.egg
+    <BLANKLINE>
+

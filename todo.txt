@@ -1,0 +1,40 @@
+- Missing tests. See XXXs
+
+- Buildout command-line options:
+
+  --config -C specify a config files
+
+  --option -O specify options
+
+- Python discovery support
+
+  (Perhaps this is best handled by DEFAULT section.
+
+- Common recipes
+
+  - configure-make-make-install
+
+  - download, checkout
+
+  - Should ot be possible to provide multiple recipies?
+    Or should recipies be combined through inheritence (or
+    composition)?
+
+  - Python
+
+- Need to better understand the way upgrading works in setuptools.
+
+- Multiple setupfiles, 
+
+  o extends, optionally-extends, extended-by, optionally-exteded-by
+
+  o instance.ini
+
+  o ~/buildout/default.ini
+
+- Offline mode
+
+- Local download cache
+
+- Logging
+
