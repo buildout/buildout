@@ -19,7 +19,7 @@ buildout".
 I expect that, for many Zope packages, we'll arrange the package
 projects in subversion as buildouts.  To work on the package, someone
 will check the project out of Subversion and build it.  Building it
-will assemble all of packages and progras needed to work on it.  For
+will assemble all of packages and programs needed to work on it.  For
 example, a buildout for a project to provide a new security policy
 will include the source of the policy and specifications to build the
 application for working on it, including:
@@ -44,7 +44,7 @@ Buildouts are defined using configuration files.  These files are
 based on the Python ConfigParser module with some variable-definition
 and substitution extensions.  
 
-The detailed documentation for the various parts of bukdout can be
+The detailed documentation for the various parts of buildout can be
 found in the following files:
 
 bootstrap.txt 
