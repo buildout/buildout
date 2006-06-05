@@ -1,0 +1,363 @@
+Defining Buildouts
+==================
+
+This document describes how to define buildouts using buildout
+configuation files and recipes.  It doesn't describe how to bootstrap
+a buildout.  To find out how to do that, see bootstrap.txt.  For the
+examples we show here, we've created a sample buildout that already
+contains the mimimal software needed for a buildout. 
+
+Buildouts are defined using configuration files.  These are in the
+format defined by the Python ConfigParser module, with an extension
+that we'll describe later.  When a buildout is run, it looks for 
+the file buildout.cfg in the directory where the buidout is run.  It
+will optionally look for buildout-instance.cfg.  Typically, buidout.cfg
+contains information common to all instances of a buildout and is
+checked in, and buildout-instance.cfg has instance-specific information.
+
+We have a sample buildout that has already been created for us.  It
+has the absolute minimum information.  We have bin, eggs and parts
+directories, and a configuration file:
+    
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    d  bin
+    -  buildout.cfg
+    d  eggs
+    d  parts
+
+The bin directory contains scripts.  A minimal buildout has a build
+script and a py_zc.buildout script:
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+The build script is what we run to build things out.  The
+py_zc.buildout script gives us a Python prompt with the Python path
+set to that needed by the zc.buildout package.
+
+The eggs directory is initially empty.  This is typically the case
+when the zc.buildout and setuptools are installed externally to the
+buildout:
+
+    >>> ls(sample_buildout, 'eggs')
+
+They can also be installed locally in a buildout, in which case they's
+show up as eggs in the eggs directory.
+
+The parts directory is initially empty:
+
+    >>> ls(sample_buildout, 'parts')
+
+The parts directory provides an area where recipies can install
+part data.  For example, if we built a custom Python, we would
+install it in the part directory.  Part data is stored in a
+subdirectory of the parts directory with the same name as the part.
+
+The file .installed.cfg contains information about previously installed
+parts. Because this is a new buildout, this file isn't very
+interesting:
+
+    >>> cat(sample_buildout, '.installed.cfg')
+    [buildout]
+    parts =
+
+
+The minimal configuration file has a buildout section that defines no
+parts:
+
+    >>> cat(sample_buildout, 'buildout.cfg')
+    [buildout]
+    parts =
+
+A part is simply something to be created by a buildout.  It can be
+almost anything, such as a Python package, a program, a directory, or
+a confguration file.  
+
+A part is created by a recipe.  Recipes are always installed as Python
+eggs. They can be downloaded from an package server, such as the
+Python package index, or they can be developed as part of a project.
+Let's create a recipe as part of the sample project.  We'll create a
+recipe for creating directories.  
+
+First, we'll create a recipes directory for
+our local recipes:
+
+    >>> mkdir(sample_buildout, 'recipes')
+
+and then we'll create a source file for our mkdir recipe:
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... """
+    ... import os
+    ...
+    ... class Mkdir:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.buildout = buildout
+    ...         self.name = name
+    ...         self.options = options
+    ...
+    ...     def install(self):
+    ...         path = self.buildout.buildout_path(self.options['path'])
+    ...         if not os.path.isdir(path):
+    ...             print 'Creating directory', os.path.basename(path)
+    ...             os.mkdir(path)
+    ...         return path
+    ... """)
+
+The recipe defines a constructor that takes a buildout object, a part
+name, and an options dictionary. It saves them in instance attributes.
+
+The install method is responsible for creating the part.  In this
+case, we need the path of the directory to create.  We'll use a
+buildout option from our options dictionary.  If the path is relative,
+we'll interpret it relative to the buildout directory.  The buildout
+buildout_path method gives us a path relative to the buildout.  It
+uses os.path.join, so if we pass it an absolute path, we'll get the
+absolute path back. (If no arguments are passed to base_path, then the
+buildout directory is returned.)
+
+We made the method chatty so that we can observe what it's doing.
+
+We return the path that we installed.  If the part is unistalled or
+reinstalled, then the path returned will be removed by the buildout
+machinery.  A recipe install method is expected to return None, a
+string, or an iterable of strings containing paths to be removed if a
+part is uninstalled.
+
+We need to provide packaging information so that our recipe can be
+installed as an egg.  We need to define a setup script for this:
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(
+    ...     name = "recipes",
+    ...     entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
+    ...     )
+    ... """)
+
+Here we've defined a package containing just our module.  We've also
+defined an entry point.  Entry points provide a way for an egg to
+define the services it provides.  Here we've said that we define a
+zc.buildout entry point named default.  Recipe classes must be exposed
+as entry points in the zc.buildout group.  we give entry points names
+within the group.  The name "default" is somewhat special because it
+allows a recipe to be referenced using a package name without naming
+an entry point.
+
+We also need a README.txt for our recipes to avoid a warning:
+
+    >>> write(sample_buildout, 'recipes', 'README.txt', " ")
+
+Now let's update our buildout.cfg:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir
+    ...
+    ... [data_dir]
+    ... recipe = recipes:mkdir
+    ... path = mystuff
+    ... """)
+
+Let's go through the changes one by one::
+
+    develop = recipes
+
+This tells the buildout to install a development egg for our recipes.
+Any number of paths can be listed.  The paths can be relative or
+absolute.  If relative, they are treated as relative to the buidlout
+directory.  They can be directory or file paths.  If a file path is
+given, it should point to a Python setup script.  If a directory path
+is given, it should point to a directory containing a setup.py.
+Development eggs are installed before building any parts, as they may
+provide locally-defined recipes needed by the parts.
+
+::
+
+    parts = data_dir
+
+Here we've named a part to be "built".  We can use any name we want
+except that different part names must be unique and recipes will often
+use the part name to decide what to do.
+
+::
+
+    [data_dir]
+    recipe = recipes:mkdir
+    path = mystuff    
+
+Generally, when we name a part, we also create a section of the same
+name that contains part data.  In this section, we'll usually define
+the recipe to be used to install the part.  In this case, we also
+specify the path to be created.
+
+Let's run the buildout.  We do so by running the build script in the
+buildout:
+
+    >>> import os
+    >>> os.chdir(sample_buildout)
+    >>> runscript = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(runscript),
+    Creating directory mystuff
+
+We see that the recipe created the directory, as expected:
+
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    d  bin
+    -  buildout.cfg
+    d  eggs
+    d  mystuff
+    d  parts
+    d  recipes
+
+In addition, .installed.cfg has been updated to reflect the part we
+installed:
+
+    >>> cat(sample_buildout, '.installed.cfg')
+    [buildout]
+    parts = data_dir
+    <BLANKLINE>
+    [data_dir]
+    path = mystuff
+    recipe = recipes:mkdir
+    __buildout_signature__ = recipes-O3ypTgKOkHMqMwKvMfvHnA==
+    __buildout_installed__ = mystuff
+    <BLANKLINE>
+
+Note that the directory we installed is included in .installed.cfg.
+
+If we change the name of the directory in the configuration file,
+we'll see that the directory gets removed and recreated:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir
+    ...
+    ... [data_dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print system(runscript),
+    Creating directory mydata
+
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    d  bin
+    -  buildout.cfg
+    d  eggs
+    d  mydata
+    d  parts
+    d  recipes
+
+Variable substitutions
+----------------------
+
+Buildout configuration files support two kinds of substitutions,
+standard ConfigParser substitutions, and string-template
+substitutions.  To illustrate this, we'll create an debug recipe to
+allow us to see interactions with the buildout:
+
+    >>> write(sample_buildout, 'recipes', 'debug.py', 
+    ... """
+    ... class Debug:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.buildout = buildout
+    ...         self.name = name
+    ...         self.options = options
+    ...
+    ...     def install(self):
+    ...         items = self.options.items()
+    ...         items.sort()
+    ...         for option, value in items:
+    ...             print option, value
+    ... """)
+
+In this example, we've used a simple base class that provides a
+boilerplate constructor.  This recipe doesn't actually create
+anything. The install method doesn't return anything, because it
+didn't create any files or directories.
+
+We also have to update our setup script:
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... entry_points = (
+    ... '''
+    ... [zc.buildout]
+    ... mkdir = mkdir:Mkdir
+    ... debug = debug:Debug
+    ... ''')
+    ... setup(name="recipes", entry_points=entry_points)
+    ... """)
+
+We've rearranged the script a bit to make the entry points easier to
+edit.
+
+Let's update our configuration to provide variable substitution
+examples:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... file1 = ${data_dir:path}/file
+    ... file2 = %(file1)s.out
+    ... file3 = %(base)s/file3
+    ...
+    ... [data_dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ...
+    ... [DEFAULT]
+    ... base = var
+    ... """)
+
+In this example, we've used ConfigParser substitutions for file2 and
+file3.  This type of substitution uses Python string format syntax.
+Valid names are option in the same section and options defined in the
+DEFAULT section.  We used a string-template substitution for file1.
+This type of substituion uses the string.Template syntax.  Names
+substited are qualified option names, consisting of a section name and
+option name joined by a colon.
+
+Now, if we run the buildout, we'll see the options with the values
+substituted. 
+
+    >>> print system(runscript),
+    Creating directory mydata
+    base var
+    file1 mydata/file
+    file2 mydata/file.out
+    file3 var/file3
+    recipe recipes:debug
+
+It might seem surprising that mydata was created again.  This is
+because we changed our recipes package by adding the debug module.
+The buildout system didn't know if this module could effect the mkdir
+recipe, so it assumed it could and reinstalled mydata.  If we rerun
+the buildout:
+
+    >>> print system(runscript),
+    base var
+    file1 mydata/file
+    file2 mydata/file.out
+    file3 var/file3
+    recipe recipes:debug
+
+We can see that mydata was not recreated.
