@@ -46,17 +46,39 @@ def location(spec, eggss):
     dist = env.best_match(req, pkg_resources.WorkingSet())
     return dist.location    
 
-def scripts(reqs, dest, eggss):
+def scripts(reqs, dest, eggss, scripts=None):
     dists = distributions(reqs, eggss)
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
     projects = [r.project_name for r in reqs]
     path = "',\n  '".join([dist.location for dist in dists])
+    generated = []
 
     for dist in dists:
         if dist.project_name in projects:
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
-                _script(dist, name, path, os.path.join(dest, name))
-            _pyscript(path, os.path.join(dest, 'py_'+dist.project_name))
+                if scripts is not None:
+                    sname = scripts.get(name)
+                    if sname is None:
+                        continue
+                else:
+                    sname = name
+
+                sname = os.path.join(dest, sname)
+                generated.append(sname)
+                _script(dist, name, path, sname)
+
+            name = 'py_'+dist.project_name
+            if scripts is not None:
+                sname = scripts.get(name)
+            else:
+                sname = name
+
+            if sname is not None:
+                sname = os.path.join(dest, sname)
+                generated.append(sname)
+                _pyscript(path, sname)
+
+    return generated
 
 def _script(dist, name, path, dest):
     open(dest, 'w').write(script_template % dict(
