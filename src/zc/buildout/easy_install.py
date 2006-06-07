@@ -22,6 +22,7 @@ $Id$
 
 # XXX needs doctest
 
+import sys
 import setuptools.command.easy_install
 import pkg_resources
 import setuptools.package_index
@@ -44,6 +45,11 @@ def install(spec, dest, links=(), **kw):
         **kw
         )
     easy.finalize_options()
+
+    # hack around easy_install bug 
+    easy.local_index = pkg_resources.Environment(
+        easy.shadow_path + sys.path)
+
 
     old_warn = distutils.log.warn
     distutils.log.warn = lambda *a, **k: None
