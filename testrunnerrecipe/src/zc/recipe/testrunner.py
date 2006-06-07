@@ -19,6 +19,7 @@ $Id$
 # XXX need tests
 
 import os, sys
+import zc.buildout.egglinker
 
 class TestRunner:
 
@@ -30,7 +31,8 @@ class TestRunner:
     def install(self):
         distributions = self.options['distributions'].split()
         path = self.buildout.distributions_path(distributions+['zope.testing'])
-        locations = [self.buildout.distribution_location(distribution)
+        locations = [zc.buildout.egglinker.location(distribution,
+                                                    [self.buildout.eggs])
                      for distribution in distributions]
         script = self.options.get('script', self.name)
         script = self.buildout.buildout_path('bin', script)
