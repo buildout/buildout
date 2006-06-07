@@ -92,3 +92,77 @@ the bits if the path added to reflect the eggs:
     /tmp/tmpcy8MvGbuildout-tests/eggs/demoneeded-1.0-py2.3.egg
     <BLANKLINE>
 
+The recipe gets the most recent distribution that satisfies the
+specification. For example, if we remove the restriction on demo:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo
+    ... find_links = %s
+    ... """ % sample_eggs)
+
+and rerun the buildout:
+
+    >>> print system(runscript),
+
+Then we'll get a new demo egg:
+
+    >>> ls(sample_buildout, 'eggs')
+    -  demo-0.2-py2.3.egg
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+    -  zc.recipe.egg.egg-link
+
+The script is updated too:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'demo')),
+    3 1
+
+You can control which scripts get generated using the scripts option.
+For example, to suppress scripts, use the scripts option without any
+arguments:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo
+    ... find_links = %s
+    ... scripts =
+    ... """ % sample_eggs)
+
+
+    >>> print system(runscript),
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+You can also control the name used for scripts:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo
+    ... find_links = %s
+    ... scripts = demo=foo
+    ... """ % sample_eggs)
+
+    >>> print system(runscript),
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+    -  foo

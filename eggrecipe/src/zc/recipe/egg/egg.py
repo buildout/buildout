@@ -44,7 +44,16 @@ class Egg:
             [buildout.buildout_path(link) for link in links],
             always_copy = True,
             )
-        
-        zc.buildout.egglinker.scripts(
-            [distribution], buildout.bin, [buildout.eggs],
-            )
+
+        scripts = self.options.get('scripts')
+        if scripts or scripts is None:
+            if scripts is not None:
+                scripts = scripts.split()
+                scripts = dict([
+                    ('=' in s) and s.split('=', 1) or (s, s)
+                    for s in scripts
+                    ])
+            return zc.buildout.egglinker.scripts(
+                [distribution], buildout.bin, [buildout.eggs],
+                scripts=scripts)
+            
