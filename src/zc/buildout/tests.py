@@ -16,8 +16,8 @@
 $Id$
 """
 
-import unittest
-from zope.testing import doctest
+import re, unittest
+from zope.testing import doctest, renormalizing
 
 from zc.buildout.testing import buildoutSetUp, buildoutTearDown
 
@@ -27,6 +27,10 @@ def test_suite():
         doctest.DocFileSuite(
             'buildout.txt',
             setUp=buildoutSetUp, tearDown=buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('__buildout_signature__ = recipes-\S+'),
+                '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+               ])
             ),
         ))
 
