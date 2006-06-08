@@ -147,10 +147,6 @@ class Buildout(dict):
     def buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 
-    # XXX test
-    def distributions_path(self, specs):
-        return zc.buildout.egglinker.path(specs, [self.eggs])
-
     def install(self):
         self._develop()
         new_part_options = self._gather_part_info()
