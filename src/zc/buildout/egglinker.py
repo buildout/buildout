@@ -23,6 +23,7 @@ $Id$
 """
 
 # XXX needs doctest
+# XXX need to deal with extras
 
 import os
 import sys
@@ -33,7 +34,6 @@ def distributions(reqs, eggss):
     env = pkg_resources.Environment(eggss)
     ws = pkg_resources.WorkingSet()
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
-    reqs.append(pkg_resources.Requirement.parse('setuptools'))
     return ws.resolve(reqs, env=env)
 
 def path(reqs, eggss):
@@ -65,7 +65,7 @@ def scripts(reqs, dest, eggss, scripts=None):
 
                 sname = os.path.join(dest, sname)
                 generated.append(sname)
-                _script(dist, name, path, sname)
+                _script(dist, 'console_scripts', name, path, sname)
 
             name = 'py_'+dist.project_name
             if scripts is not None:
@@ -80,12 +80,15 @@ def scripts(reqs, dest, eggss, scripts=None):
 
     return generated
 
-def _script(dist, name, path, dest):
+def _script(dist, group, name, path, dest):
+    entry_point = dist.get_entry_info(group, name)
     open(dest, 'w').write(script_template % dict(
         python = sys.executable,
         path = path,
         project = dist.project_name,
         name = name,
+        module_name = entry_point.module_name,
+        attrs = entry_point.attrs,
         ))
     try:
         os.chmod(dest, 0755)
@@ -100,12 +103,19 @@ sys.path[0:0] = [
   '%(path)s'
   ]
 
-from pkg_resources import load_entry_point
 
-sys.exit(
-   load_entry_point('%(project)s', 'console_scripts', '%(name)s')()
-)
+module = __import__(%(module_name)r, globals(),globals(), ['__name__'])
+attrs = %(attrs)r
 
+entry = module
+for attr in attrs:
+    try:
+        entry = getattr(entry, attr)
+    except AttributeError:
+        raise ImportError("%%r has no %%r attribute" %% (module, attrs))
+
+if __name__ == '__main__':
+    entry()
 '''
 
 
