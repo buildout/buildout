@@ -143,7 +143,6 @@ class Buildout(dict):
 
         return ''.join([''.join(v) for v in zip(value[::2], subs)])
 
-    # XXX test
     def buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 
