@@ -15,8 +15,7 @@ The rest-runner recipe has 2 options:
   will be used.
 
 (Note that, at this time, due to limitations in the Zope test runner,
-the distributions cannot be zip files. XXX need to add option to an
-unzip option to the  egg recipe.)
+ the distributions cannot be zip files. TODO: Fix the test runner!)
 
 To illustrate this, we'll create a project in our sample buildout:
 

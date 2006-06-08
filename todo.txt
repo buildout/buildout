@@ -37,3 +37,11 @@
 - Local download cache
 
 - Logging
+
+Issues
+
+- Want to be able to control whether eggs get unzipped when they ae
+  installed. This isn't so hard if you do it from the beginning, but
+  it's hard to change your mind.  easy_install won;t want to reinstall
+  an egg that's already installed, unless it does, at which point it
+  gets rather confused. :)
