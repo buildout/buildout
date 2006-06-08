@@ -82,12 +82,11 @@ We can also run the py_demo script.  Here we'll just print out
 the bits if the path added to reflect the eggs:
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'py_demo'),
-    ... """for p in sys.path[:3]:
+    ... """for p in sys.path[:2]:
     ...        print p
     ... """).replace('>>> ', '').replace('... ', ''),
     ... # doctest: +ELLIPSIS
     <BLANKLINE>
-    /usr/local/python/2.3.5/lib/python/setuptools-0.6b2-py2.3.egg
     /tmp/tmpcy8MvGbuildout-tests/eggs/demo-0.2-py2.3.egg
     /tmp/tmpcy8MvGbuildout-tests/eggs/demoneeded-1.0-py2.3.egg
     <BLANKLINE>
