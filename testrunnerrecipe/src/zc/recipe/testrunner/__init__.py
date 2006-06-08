@@ -16,8 +16,6 @@
 $Id$
 """
 
-# XXX need tests
-
 import os, sys
 import zc.buildout.egglinker
 
@@ -30,7 +28,11 @@ class TestRunner:
 
     def install(self):
         distributions = self.options['distributions'].split()
-        path = self.buildout.distributions_path(distributions+['zope.testing'])
+        path = zc.buildout.egglinker.path(
+            distributions+['zope.testing'],
+            [self.buildout.eggs],
+            )
+        
         locations = [zc.buildout.egglinker.location(distribution,
                                                     [self.buildout.eggs])
                      for distribution in distributions]
@@ -45,6 +47,8 @@ class TestRunner:
             os.chmod(script, 0755)
         except (AttributeError, os.error):
             pass
+
+        return script
 
 
 tests_template = """#!%(PYTHON)s
