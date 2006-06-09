@@ -16,10 +16,10 @@
 $Id$
 """
 
-import re, unittest
+import os, re, shutil, sys, tempfile, unittest
 from zope.testing import doctest, renormalizing
-
-from zc.buildout.testing import buildoutSetUp, buildoutTearDown
+import pkg_resources
+import zc.buildout.testing
 
 def buildout_error_handling():
     r'''Buildout error handling
@@ -64,20 +64,90 @@ It is an error to create a variable-reference cycle:
 
 '''
 
+    
+
+def runsetup(d):
+    here = os.getcwd()
+    try:
+        os.chdir(d)
+        os.spawnle(
+            os.P_WAIT, sys.executable, sys.executable,
+            'setup.py', '-q', 'bdist_egg',
+            {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
+            )
+        shutil.rmtree('build')
+    finally:
+        os.chdir(here)
+
+def dirname(d, level=1):
+    if level == 0:
+        return d
+    return dirname(os.path.dirname(d), level-1)
+
+def linkerSetUp(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    sample = tempfile.mkdtemp('eggtest')
+    test.globs['_sample_eggs_container'] = sample
+    test.globs['sample_eggs'] = os.path.join(sample, 'dist')
+    zc.buildout.testing.write(sample, 'README.txt', '')
+    zc.buildout.testing.write(sample, 'eggrecipedemobeeded.py', 'y=1\n')
+    zc.buildout.testing.write(
+        sample, 'setup.py',
+        "from setuptools import setup\n"
+        "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
+        " zip_safe=True, version='1.0')\n"
+        )
+    runsetup(sample)
+    os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
+    for i in (1, 2, 3):
+        zc.buildout.testing.write(
+            sample, 'eggrecipedemo.py',
+            'import eggrecipedemobeeded\n'
+            'x=%s\n'
+            'def main(): print x, eggrecipedemobeeded.y\n'
+            % i)
+        zc.buildout.testing.write(
+            sample, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='demo', py_modules=['eggrecipedemo'],"
+            " install_requires = 'demoneeded',"
+            " entry_points={'console_scripts': ['demo = eggrecipedemo:main']},"
+            " zip_safe=True, version='0.%s')\n" % i
+            )
+        runsetup(sample)
+        
+def linkerTearDown(test):
+    shutil.rmtree(test.globs['_sample_eggs_container'])
+    zc.buildout.testing.buildoutTearDown(test)
+    
 
 def test_suite():
     return unittest.TestSuite((
         #doctest.DocTestSuite(),
         doctest.DocFileSuite(
             'buildout.txt',
-            setUp=buildoutSetUp, tearDown=buildoutTearDown,
+            setUp=zc.buildout.testing.buildoutSetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                ])
             ),
+        doctest.DocFileSuite(
+            'egglinker.txt',
+            setUp=linkerSetUp, tearDown=linkerTearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('(\S+[/%(sep)s]| )'
+                           '(\\w+-)[^ \t\n%(sep)s/]+.egg'
+                           % dict(sep=os.path.sep)
+                           ),
+                '\\2-VVV-egg'),
+               (re.compile('python2.\d'), 'python2.N')
+               ]),
+            ),
         doctest.DocTestSuite(
-            setUp=buildoutSetUp, tearDown=buildoutTearDown),
+            setUp=zc.buildout.testing.buildoutSetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown),
         ))
 
 if __name__ == '__main__':
