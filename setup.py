@@ -15,5 +15,6 @@ setup(
     license = "ZPL 2.1",
     keywords = "development build",
     install_requires = 'setuptools',
-    entry_points = {'console_scripts': ['buildout = zc.buildout.build:main']}, 
+    entry_points = {'console_scripts':
+                    ['buildout = zc.buildout.buildout:main']}, 
     )
