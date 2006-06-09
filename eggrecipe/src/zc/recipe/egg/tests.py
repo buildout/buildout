@@ -85,11 +85,11 @@ def test_suite():
             'README.txt',
             setUp=setUp, tearDown=tearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('\S+[/%(sep)s]'
+               (re.compile('(\S+[/%(sep)s]| )'
                            '(\\w+-)[^ \t\n%(sep)s/]+.egg'
                            % dict(sep=os.path.sep)
                            ),
-                '\\1-VVV-egg')
+                '\\2-VVV-egg')
                ])
             ),
         
