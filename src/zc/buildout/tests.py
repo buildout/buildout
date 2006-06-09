@@ -21,6 +21,50 @@ from zope.testing import doctest, renormalizing
 
 from zc.buildout.testing import buildoutSetUp, buildoutTearDown
 
+def buildout_error_handling():
+    r'''Buildout error handling
+
+Asking for a section that doesn't exist, yields a key error:
+
+    >>> import os
+    >>> os.chdir(sample_buildout)
+    >>> import zc.buildout.buildout
+    >>> buildout = zc.buildout.buildout.Buildout()
+    >>> buildout['eek']
+    Traceback (most recent call last):
+    ...
+    KeyError: 'eek'
+
+Asking for an option that doesn't exist, a MissingOption error is raised:
+
+    >>> buildout['buildout']['eek']
+    Traceback (most recent call last):
+    ...
+    MissingOption: ('Missing option', 'buildout', 'eek')
+
+It is an error to create a variable-reference cycle:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ... x = ${buildout:y}
+    ... y = ${buildout:z}
+    ... z = ${buildout:x}
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: ('Circular references',
+           [('buildout', 'y'), ('buildout', 'z'), ('buildout', 'x')],
+           ('buildout', 'y'))
+
+'''
+
+
 def test_suite():
     return unittest.TestSuite((
         #doctest.DocTestSuite(),
@@ -32,6 +76,8 @@ def test_suite():
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                ])
             ),
+        doctest.DocTestSuite(
+            setUp=buildoutSetUp, tearDown=buildoutTearDown),
         ))
 
 if __name__ == '__main__':

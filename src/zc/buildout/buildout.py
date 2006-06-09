@@ -44,7 +44,6 @@ class Options(dict):
         try:
             return super(Options, self).__getitem__(option)
         except KeyError:
-            # XXX need test
             raise MissingOption("Missing option", self.section, option)
 
     def copy(self):
@@ -68,8 +67,6 @@ class Buildout(dict):
 
         links = options.get('find_links', '')
         self._links = links and links.split() or ()
-
-        # XXX need tests for alternate directory locations
 
         for name in ('bin', 'parts', 'eggs'):
             d = self.buildout_path(options[name+'_directory'])
@@ -103,8 +100,6 @@ class Buildout(dict):
                     options[option] = value
                 converted[(section, option)] = value
 
-        # XXX need various error tests
-
         return data
 
     def _dosubs(self, section, option, value, data, converted, seen):
@@ -135,7 +130,7 @@ class Buildout(dict):
                 if v is None:
                     raise KeyError("Referenced option does not exist", *s)
                 if '$' in v:
-                    v = _dosubs(s[0], s[1], v, data, converted, seen)
+                    v = self._dosubs(s[0], s[1], v, data, converted, seen)
                     options[s[1]] = v
                 converted[s] = v
             subs.append(v)
