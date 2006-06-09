@@ -46,11 +46,6 @@ def install(spec, dest, links=(), **kw):
         )
     easy.finalize_options()
 
-    # hack around easy_install bug 
-    easy.local_index = pkg_resources.Environment(
-        easy.shadow_path + sys.path)
-
-
     old_warn = distutils.log.warn
     distutils.log.warn = lambda *a, **k: None
 
