@@ -1,4 +1,4 @@
-- Missing tests. See XXXs
+- Windows support
 
 - Buildout command-line options:
 
