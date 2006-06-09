@@ -22,7 +22,6 @@ assist in custom script generation.
 $Id$
 """
 
-# XXX needs doctest
 # XXX need to deal with extras
 
 import os
@@ -88,7 +87,7 @@ def _script(dist, group, name, path, dest):
         project = dist.project_name,
         name = name,
         module_name = entry_point.module_name,
-        attrs = entry_point.attrs,
+        attrs = '.'.join(entry_point.attrs),
         ))
     try:
         os.chmod(dest, 0755)
@@ -103,19 +102,10 @@ sys.path[0:0] = [
   '%(path)s'
   ]
 
-
-module = __import__(%(module_name)r, globals(),globals(), ['__name__'])
-attrs = %(attrs)r
-
-entry = module
-for attr in attrs:
-    try:
-        entry = getattr(entry, attr)
-    except AttributeError:
-        raise ImportError("%%r has no %%r attribute" %% (module, attrs))
+import %(module_name)s
 
 if __name__ == '__main__':
-    entry()
+    %(module_name)s.%(attrs)s()
 '''
 
 
