@@ -27,12 +27,15 @@ class TestRunner:
         self.options = options
 
     def install(self):
-        distributions = self.options['distributions'].split()
+        distributions = [
+            req.strip()
+            for req in self.options['distributions'].split('\n')
+            if req.split()
+            ]
         path = zc.buildout.egglinker.path(
             distributions+['zope.testing'],
             [self.buildout.eggs],
             )
-        
         locations = [zc.buildout.egglinker.location(distribution,
                                                     [self.buildout.eggs])
                      for distribution in distributions]
