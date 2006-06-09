@@ -142,7 +142,7 @@ def test_suite():
                            % dict(sep=os.path.sep)
                            ),
                 '\\2-VVV-egg'),
-               (re.compile('python2.\d'), 'python2.N')
+               (re.compile('python(\d.\d)?'), 'python')
                ]),
             ),
         doctest.DocTestSuite(
