@@ -42,7 +42,6 @@ class Egg:
             distribution,
             buildout.eggs,
             [buildout.buildout_path(link) for link in links],
-            always_copy = True,
             )
 
         scripts = self.options.get('scripts')
