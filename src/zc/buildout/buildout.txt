@@ -202,8 +202,7 @@ buildout:
 
     >>> import os
     >>> os.chdir(sample_buildout)
-    >>> runscript = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(runscript),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     Creating directory mystuff
 
 We see that the recipe created the directory, as expected:
@@ -247,7 +246,7 @@ we'll see that the directory gets removed and recreated:
     ... path = mydata
     ... """)
 
-    >>> print system(runscript),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     Creating directory mydata
 
     >>> ls(sample_buildout)
@@ -339,7 +338,7 @@ option name joined by a colon.
 Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
-    >>> print system(runscript),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     Creating directory mydata
     base var
     file1 mydata/file
@@ -353,7 +352,7 @@ The buildout system didn't know if this module could effect the mkdir
 recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
-    >>> print system(runscript),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     base var
     file1 mydata/file
     file2 mydata/file.out
@@ -361,3 +360,37 @@ the buildout:
     recipe recipes:debug
 
 We can see that mydata was not recreated.
+
+Alternate directory locations
+-----------------------------
+
+The buildout normally puts the bin, eggs, and parts directories in the
+directory it is run from. You can provide alternate locations, and
+even names for these directories.
+
+    >>> import tempfile
+    >>> alt = tempfile.mkdtemp()
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = 
+    ... eggs_directory = %(alt)s/basket
+    ... bin_directory = %(alt)s/scripts
+    ... parts_directory = %(alt)s/work
+    ... """ % dict(alt=alt))
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+
+    >>> ls(alt)
+    d  basket
+    d  scripts
+    d  work
+
+    >>> ls(alt, 'basket')    
+    -  recipes.egg-link
+
+    >>> import shutil
+    >>> shutil.rmtree(alt)
