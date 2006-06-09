@@ -9,6 +9,8 @@ distribution
 
    This is a requirement as defined by setuptools.
 
+   If not specified, the distribution defaults to the part name.
+
 find_links
    A list of URLs, files, or directories to search for distributions.
 
@@ -101,7 +103,6 @@ specification. For example, if we remove the restriction on demo:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo
     ... find_links = %s
     ... """ % sample_eggs)
 
@@ -116,6 +117,9 @@ Then we'll get a new demo egg:
     -  demo-0.3-py2.3.egg
     -  demoneeded-1.0-py2.3.egg
     -  zc.recipe.egg.egg-link
+
+Note that we removed the distribution option, and the distribution
+defaulted to the part name.
 
 The script is updated too:
 
@@ -134,7 +138,6 @@ arguments:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo
     ... find_links = %s
     ... scripts =
     ... """ % sample_eggs)
@@ -155,7 +158,6 @@ You can also control the name used for scripts:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo
     ... find_links = %s
     ... scripts = demo=foo
     ... """ % sample_eggs)
