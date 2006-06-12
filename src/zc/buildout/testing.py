@@ -18,6 +18,7 @@ $Id$
 
 import os, re, shutil, sys, tempfile, unittest
 from zope.testing import doctest, renormalizing
+import pkg_resources
 
 
 def cat(dir, *names):
@@ -50,11 +51,6 @@ def system(command, input=''):
         i.write(input)
     i.close()
     return o.read()
-
-def dirname(path, n=1):
-    if n <= 0:
-        return path
-    return dirname(os.path.dirname(path), n-1)
 
 def buildoutSetUp(test):
     sample = tempfile.mkdtemp('buildout-tests')
@@ -107,3 +103,47 @@ sys.path[0:0] = %(path)r
 from pkg_resources import load_entry_point
 sys.exit(load_entry_point('zc.buildout', 'console_scripts', 'buildout')())
 '''
+
+def runsetup(d):
+    here = os.getcwd()
+    try:
+        os.chdir(d)
+        os.spawnle(
+            os.P_WAIT, sys.executable, sys.executable,
+            'setup.py', '-q', 'bdist_egg',
+            {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
+            )
+        shutil.rmtree('build')
+    finally:
+        os.chdir(here)
+
+def create_sample_eggs(test):
+    sample = tempfile.mkdtemp('eggtest')
+    test.globs['_sample_eggs_container'] = sample
+    test.globs['sample_eggs'] = os.path.join(sample, 'dist')
+    write(sample, 'README.txt', '')
+    write(sample, 'eggrecipedemobeeded.py', 'y=1\n')
+    write(
+        sample, 'setup.py',
+        "from setuptools import setup\n"
+        "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
+        " zip_safe=True, version='1.0')\n"
+        )
+    runsetup(sample)
+    os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
+    for i in (1, 2, 3):
+        write(
+            sample, 'eggrecipedemo.py',
+            'import eggrecipedemobeeded\n'
+            'x=%s\n'
+            'def main(): print x, eggrecipedemobeeded.y\n'
+            % i)
+        write(
+            sample, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='demo', py_modules=['eggrecipedemo'],"
+            " install_requires = 'demoneeded',"
+            " entry_points={'console_scripts': ['demo = eggrecipedemo:main']},"
+            " zip_safe=True, version='0.%s')\n" % i
+            )
+        runsetup(sample)
