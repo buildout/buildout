@@ -12,25 +12,11 @@
 #
 ##############################################################################
 
-import os, re, shutil, sys, tempfile
-import pkg_resources
+import os, re, shutil, sys
 import zc.buildout.testing
 
 import unittest
 from zope.testing import doctest, renormalizing
-
-def runsetup(d):
-    here = os.getcwd()
-    try:
-        os.chdir(d)
-        os.spawnle(
-            os.P_WAIT, sys.executable, sys.executable,
-            'setup.py', '-q', 'bdist_egg',
-            {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
-            )
-        shutil.rmtree('build')
-    finally:
-        os.chdir(here)
 
 def dirname(d, level=1):
     if level == 0:
@@ -42,36 +28,7 @@ def setUp(test):
     open(os.path.join(test.globs['sample_buildout'],
                       'eggs', 'zc.recipe.egg.egg-link'),
          'w').write(dirname(__file__, 4))
-                    
-    sample = tempfile.mkdtemp('eggtest')
-    test.globs['_sample_eggs_container'] = sample
-    test.globs['sample_eggs'] = os.path.join(sample, 'dist')
-    zc.buildout.testing.write(sample, 'README.txt', '')
-    zc.buildout.testing.write(sample, 'eggrecipedemobeeded.py', 'y=1\n')
-    zc.buildout.testing.write(
-        sample, 'setup.py',
-        "from setuptools import setup\n"
-        "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
-        " zip_safe=True, version='1.0')\n"
-        )
-    runsetup(sample)
-    os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
-    for i in (1, 2, 3):
-        zc.buildout.testing.write(
-            sample, 'eggrecipedemo.py',
-            'import eggrecipedemobeeded\n'
-            'x=%s\n'
-            'def main(): print x, eggrecipedemobeeded.y\n'
-            % i)
-        zc.buildout.testing.write(
-            sample, 'setup.py',
-            "from setuptools import setup\n"
-            "setup(name='demo', py_modules=['eggrecipedemo'],"
-            " install_requires = 'demoneeded',"
-            " entry_points={'console_scripts': ['demo = eggrecipedemo:main']},"
-            " zip_safe=True, version='0.%s')\n" % i
-            )
-        runsetup(sample)
+    zc.buildout.testing.create_sample_eggs(test)
         
 def tearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
