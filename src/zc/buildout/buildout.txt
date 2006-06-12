@@ -2,22 +2,22 @@ Defining Buildouts
 ==================
 
 This document describes how to define buildouts using buildout
-configuation files and recipes.  It doesn't describe how to bootstrap
-a buildout.  To find out how to do that, see bootstrap.txt.  For the
-examples we show here, we've created a sample buildout that already
-contains the mimimal software needed for a buildout. 
+configuation files and recipes.  There are two ways to set up the
+buildout software and create a buildout:
 
-Buildouts are defined using configuration files.  These are in the
-format defined by the Python ConfigParser module, with an extension
-that we'll describe later.  When a buildout is run, it looks for 
-the file buildout.cfg in the directory where the buidout is run.  It
-will optionally look for buildout-instance.cfg.  Typically, buidout.cfg
-contains information common to all instances of a buildout and is
-checked in, and buildout-instance.cfg has instance-specific information.
+1. Install the zc.buildout egg with easy_install and use the buildout
+   script installed in a Python scripts area.
+
+2. Use the buildout bootstrap script to install both the setuptools
+   and zc.buildout eggs into your buildout.  This allows you to use
+   the buildout software without modifying a Python install.
+   The buildout script is installed into your buildout local scripts
+   area.
 
 We have a sample buildout that has already been created for us.  It
 has the absolute minimum information.  We have bin, eggs and parts
-directories, and a configuration file:
+directories, a configuration file, and an .installed,cfg that contains
+informatiion about previously-installed parts:
     
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -26,24 +26,20 @@ directories, and a configuration file:
     d  eggs
     d  parts
 
-The bin directory contains scripts.  A minimal buildout has a build
-script and a py_zc.buildout script:
+The bin directory contains scripts.  In the examples shown here, we've
+used a hybrid approach for creating the to ease automated setup.  We
+have a buildout script in our buildout script directory, but the eggs
+actually live elsewhere.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
-The build script is what we run to build things out.  The
-py_zc.buildout script gives us a Python prompt with the Python path
-set to that needed by the zc.buildout package.
-
-The eggs directory is initially empty.  This is typically the case
-when the zc.buildout and setuptools are installed externally to the
-buildout:
-
     >>> ls(sample_buildout, 'eggs')
 
-They can also be installed locally in a buildout, in which case they's
-show up as eggs in the eggs directory.
+Buildouts are defined using configuration files.  These are in the
+format defined by the Python ConfigParser module, with an extension
+that we'll describe later.  When a buildout is run, it looks for the
+file buildout.cfg in the directory where the buidout is run.
 
 The parts directory is initially empty:
 
@@ -62,7 +58,6 @@ interesting:
     [buildout]
     parts =
 
-
 The minimal configuration file has a buildout section that defines no
 parts:
 
@@ -76,7 +71,7 @@ a confguration file.
 
 A part is created by a recipe.  Recipes are always installed as Python
 eggs. They can be downloaded from an package server, such as the
-Python package index, or they can be developed as part of a project.
+Python Package Index, or they can be developed as part of a project.
 Let's create a recipe as part of the sample project.  We'll create a
 recipe for creating directories.  
 
@@ -224,11 +219,10 @@ installed:
     parts = data_dir
     <BLANKLINE>
     [data_dir]
+    __buildout_installed__ = mystuff
+    __buildout_signature__ = recipes-O3ypTgKOkHMqMwKvMfvHnA==
     path = mystuff
     recipe = recipes:mkdir
-    __buildout_signature__ = recipes-O3ypTgKOkHMqMwKvMfvHnA==
-    __buildout_installed__ = mystuff
-    <BLANKLINE>
 
 Note that the directory we installed is included in .installed.cfg.
 
@@ -361,26 +355,454 @@ the buildout:
 
 We can see that mydata was not recreated.
 
+Multiple configuration files
+----------------------------
+
+You can use multiple configuration files.  From your main
+configuration file, you can include other configuration files in 2
+ways:
+
+- Your configuration file can "extend" another configuration file.
+  Option are read from the other configuration file if they aren't
+  already defined by your configuration file.
+
+- Your configuration file can be "extended-by" another configuration
+  file, In this case, the options in the other configuration file
+  override options in your configuration file. 
+
+The configuration files your file extends or is extended by can extend
+or be extended by other configuration files.  The same file may be
+used more than once although, of course, cycles aren't allowed.
+
+To see how this works, we use an example:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op = buldout
+    ... """)
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... op = base
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    op buldout
+    recipe recipes:debug
+
+The example is pretty trivial, but the pattern it illustrates is
+pretty common.  In a more practical example, the base buildout might
+represent a product and the extending buildout might be a
+customization. 
+
+Here is a more eleborate example. 
+
+    >>> import tempfile
+    >>> extensions = tempfile.mkdtemp()
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg
+    ... extended-by = e1.cfg %(e2)s
+    ...
+    ... [debug]
+    ... op = %%(name)s
+    ...
+    ... [DEFAULT]
+    ... name = buildout
+    ... """ % dict(e2=os.path.join(extensions, 'e2.cfg')))
+
+
+    >>> write(sample_buildout, 'b1.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op1 = %(name)s 1
+    ... op2 = %(name)s 2
+    ... op3 = %(name)s 3
+    ...
+    ... [DEFAULT]
+    ... name = b1
+    ... """)
+
+    >>> write(sample_buildout, 'b2.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op3 = %(name)s 3
+    ... op4 = %(name)s 4
+    ... op5 = %(name)s 5
+    ...
+    ... [DEFAULT]
+    ... name = b2
+    ... """)
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = base
+    ... """)
+
+    >>> write(sample_buildout, 'e1.cfg',
+    ... """
+    ... [debug]
+    ... op1 = %(name)s 1
+    ...
+    ... [DEFAULT]
+    ... name = e1
+    ... """)
+
+    >>> write(extensions, 'e2.cfg',
+    ... """
+    ... [buildout]
+    ... extends = eb.cfg
+    ... extended-by = ee.cfg
+    ... """)
+
+    >>> write(extensions, 'eb.cfg',
+    ... """
+    ... [debug]
+    ... op5 = %(name)s 5
+    ...
+    ... [DEFAULT]
+    ... name = eb
+    ... """)
+
+    >>> write(extensions, 'ee.cfg',
+    ... """
+    ... [debug]
+    ... op6 = %(name)s 6
+    ...
+    ... [DEFAULT]
+    ... name = ee
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    name ee
+    op buildout
+    op1 e1 1
+    op2 b1 2
+    op3 b2 3
+    op4 b2 4
+    op5 eb 5
+    op6 ee 6
+    recipe recipes:debug
+
+There are several things to note about this example:
+
+- We can name multiple files in an extends or extended-by option.
+
+- We can reference files recursively.
+
+- DEFAULT sections only directly affect the configuration file they're
+  used in, but they can have secondary effects.  For example, the name
+  option showed up in the debug section because it was defined in the
+  debug sections in several of the input files by virtue of being in
+  their DEFAULT sections.
+
+- Relative file names are determined relative to the directory
+  containing the referencing configuration file.  The files eb.cfg and
+  ee.cfg were found in the extensions directory because they were
+  referenced from a file in that directory.
+
+User defaults
+-------------
+
+If the file $HOME/.buildout/defaults.cfg, exists, it is read before
+reading the configuration file.  ($HOME is the value of the HOME
+enviornment variable. The '/' is replaced by the operating system file
+delimiter.)
+
+    >>> home = tempfile.mkdtemp()
+    >>> mkdir(home, '.buildout')
+    >>> write(home, '.buildout', 'default.cfg',
+    ... """
+    ... [debug]
+    ... op1 = 1
+    ... op7 = 7
+    ... """)
+
+    >>> os.environ['HOME'] = home
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    name ee
+    op buildout
+    op1 e1 1
+    op2 b1 2
+    op3 b2 3
+    op4 b2 4
+    op5 eb 5
+    op6 ee 6
+    op7 7
+    recipe recipes:debug
+
+Command-line usage
+------------------
+
+A number of arguments can be given on the buildout command line.  The
+command usage is::
+
+  buildout [-c file] [options] [command [command arguments]]
+
+The -c option can be used to specify a configuration file, rather than
+buildout.cfg in the current durectory.  Options are of the form::
+
+  section_name:option_name=value
+
+for example, as in:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...     + ' debug:op1=foo'),
+    name ee
+    op buildout
+    op1 foo
+    op2 b1 2
+    op3 b2 3
+    op4 b2 4
+    op5 eb 5
+    op6 ee 6
+    op7 7
+    recipe recipes:debug
+
+Currently, the default and only command is 'install' and it takes a
+list of parts to install. if any parts are specified, then only those
+parts are installed.  To illustrate this, we'll update our
+configuration and run the buildout in the usual way:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug d1 d2 d3
+    ...
+    ... [d1]
+    ... recipe = recipes:mkdir
+    ... path = d1
+    ...
+    ... [d2]
+    ... recipe = recipes:mkdir
+    ... path = d2
+    ...
+    ... [d3]
+    ... recipe = recipes:mkdir
+    ... path = d3
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    op1 1
+    op7 7
+    recipe recipes:debug
+    Creating directory d1
+    Creating directory d2
+    Creating directory d3
+    
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  d1
+    d  d2
+    d  d3
+    -  e1.cfg
+    d  eggs
+    d  parts
+    d  recipes
+
+    >>> cat(sample_buildout, '.installed.cfg')
+    [buildout]
+    parts = debug d1 d2 d3
+    <BLANKLINE>
+    [debug]
+    __buildout_installed__ = 
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    op1 = 1
+    op7 = 7
+    recipe = recipes:debug
+    <BLANKLINE>
+    [d1]
+    __buildout_installed__ = d1
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = d1
+    recipe = recipes:mkdir
+    <BLANKLINE>
+    [d2]
+    __buildout_installed__ = d2
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = d2
+    recipe = recipes:mkdir
+    <BLANKLINE>
+    [d3]
+    __buildout_installed__ = d3
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = d3
+    recipe = recipes:mkdir
+
+Now we'll update our configuration file:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug d2 d3 d4
+    ...
+    ... [d2]
+    ... recipe = recipes:mkdir
+    ... path = data2
+    ...
+    ... [d3]
+    ... recipe = recipes:mkdir
+    ... path = data3
+    ...
+    ... [d4]
+    ... recipe = recipes:mkdir
+    ... path = data4
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... x = 1
+    ... """)
+
+and run the buildout specifying just d2 and d3:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...              + ' install d3 d4'),
+    Creating directory data3
+    Creating directory data4
+    
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  d1
+    d  d2
+    d  data3
+    d  data4
+    -  e1.cfg
+    d  eggs
+    d  parts
+    d  recipes
+    
+Only the d2 and d3 recipes ran.  d2 was removed and data2 and data3
+were created.
+
+The .installed.cfg is only updated for the recipes that ran:
+
+    >>> cat(sample_buildout, '.installed.cfg')
+    [buildout]
+    parts = debug d2 d3 d4 d1
+    <BLANKLINE>
+    [debug]
+    __buildout_installed__ = 
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    op1 = 1
+    op7 = 7
+    recipe = recipes:debug
+    <BLANKLINE>
+    [d2]
+    __buildout_installed__ = d2
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = d2
+    recipe = recipes:mkdir
+    <BLANKLINE>
+    [d3]
+    __buildout_installed__ = data3
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = data3
+    recipe = recipes:mkdir
+    <BLANKLINE>
+    [d4]
+    __buildout_installed__ = data4
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = data4
+    recipe = recipes:mkdir
+    <BLANKLINE>
+    [d1]
+    __buildout_installed__ = d1
+    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    path = d1
+    recipe = recipes:mkdir
+
+Note that the installed data for debug, d1, and d2 haven't changed,
+because we didn't install those parts and that the d1 and d2
+directories are still there.
+
+Now, if we run the buildout without arguments:
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    op1 1
+    op7 7
+    recipe recipes:debug
+    x 1
+    Creating directory data2
+
+We see the output of the debug recipe and that data2 was created.  We
+also see that d1 and d2 have gone away:
+
+    >>> ls(sample_buildout)
+    -  .installed.cfg
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  data2
+    d  data3
+    d  data4
+    -  e1.cfg
+    d  eggs
+    d  parts
+    d  recipes
+
 Alternate directory locations
 -----------------------------
 
 The buildout normally puts the bin, eggs, and parts directories in the
-directory it is run from. You can provide alternate locations, and
-even names for these directories.
+directory in the directory containing the configuration file. You can
+provide alternate locations, and even names for these directories.
 
-    >>> import tempfile
     >>> alt = tempfile.mkdtemp()
-
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
     ... develop = recipes
     ... parts = 
-    ... eggs_directory = %(alt)s/basket
-    ... bin_directory = %(alt)s/scripts
-    ... parts_directory = %(alt)s/work
-    ... """ % dict(alt=alt))
+    ... eggs-directory = %(basket)s
+    ... bin-directory = %(scripts)s
+    ... parts-directory = %(work)s
+    ... """ % dict(
+    ...    basket = os.path.join(alt, 'basket'),
+    ...    scripts = os.path.join(alt, 'scripts'),
+    ...    work = os.path.join(alt, 'work'),
+    ... ))
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
 
@@ -390,6 +812,35 @@ even names for these directories.
     d  work
 
     >>> ls(alt, 'basket')    
+    -  recipes.egg-link
+
+    >>> import shutil
+    >>> shutil.rmtree(alt)
+
+You can also specify an alternate buildout directory:
+
+    >>> alt = tempfile.mkdtemp()
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... directory = %(alt)s
+    ... develop = %(recipes)s
+    ... parts = 
+    ... """ % dict(
+    ...    alt=alt,
+    ...    recipes=os.path.join(sample_buildout, 'recipes'),
+    ...    ))
+ 
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+
+    >>> ls(alt)
+    -  .installed.cfg
+    d  bin
+    d  eggs
+    d  parts
+
+    >>> ls(alt, 'eggs')    
     -  recipes.egg-link
 
     >>> import shutil

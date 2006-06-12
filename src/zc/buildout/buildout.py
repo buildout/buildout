@@ -51,46 +51,40 @@ class Options(dict):
 
 class Buildout(dict):
 
-    def __init__(self):
-        self._buildout_dir = os.path.abspath(os.getcwd())
-        self._config_file = self.buildout_path('buildout.cfg')
-        
-        super(Buildout, self).__init__(self._open(
-            directory = self._buildout_dir,
-            eggs_directory = 'eggs',
-            bin_directory = 'bin',
-            parts_directory = 'parts',
-            installed = '.installed.cfg',
-            ))
+    def __init__(self, config_file, cloptions):
+        config_file = os.path.abspath(config_file)
+        self._config_file = config_file
 
-        options = self['buildout']
+        super(Buildout, self).__init__()
 
-        links = options.get('find_links', '')
-        self._links = links and links.split() or ()
+        # default options
+        data = dict(buildout={'directory': os.path.dirname(config_file),
+                              'eggs-directory': 'eggs',
+                              'bin-directory': 'bin',
+                              'parts-directory': 'parts',
+                              'installed': '.installed.cfg',
+                              },
+                       )
 
-        for name in ('bin', 'parts', 'eggs'):
-            d = self.buildout_path(options[name+'_directory'])
-            setattr(self, name, d)
-            if not os.path.exists(d):
-                os.mkdir(d)
+        # load user defaults, which override defaults
+        if 'HOME' in os.environ:
+            user_config = os.path.join(os.environ['HOME'],
+                                       '.buildout', 'default.cfg')
+            if os.path.exists(user_config):
+                _update(data, _open(os.path.dirname(user_config), user_config,
+                                    []))
 
-    _template_split = re.compile('([$]{\w+:\w+})').split
-    def _open(self, **predefined):
-        # Open configuration files
-        parser = ConfigParser.SafeConfigParser()
-        parser.add_section('buildout')
-        for k, v in predefined.iteritems():
-            parser.set('buildout', k, v)
-        parser.read(self._config_file)
-        
-        data = dict([
-            (section,
-             Options(self, section,
-                     [(k, v.strip()) for (k, v) in parser.items(section)])
-             )
-            for section in parser.sections()
-            ])
-        
+        # load configuration files
+        _update(data, _open(os.path.dirname(config_file), config_file, []))
+
+        # apply command-line options
+        for (section, option, value) in cloptions:
+            options = data.get(section)
+            if options is None:
+                options = self[section] = {}
+            options[option] = value
+
+        # do substitutions
         converted = {}
         for section, options in data.iteritems():
             for option, value in options.iteritems():
@@ -100,7 +94,22 @@ class Buildout(dict):
                     options[option] = value
                 converted[(section, option)] = value
 
-        return data
+        # copy data into self:
+        for section, options in data.iteritems():
+            self[section] = Options(self, section, options)
+        
+        # initialize some attrs and buildout directories.
+        options = self['buildout']
+
+        links = options.get('find-links', '')
+        self._links = links and links.split() or ()
+
+        self._buildout_dir = options['directory']
+        for name in ('bin', 'parts', 'eggs'):
+            d = self.buildout_path(options[name+'-directory'])
+            setattr(self, name, d)
+            if not os.path.exists(d):
+                os.mkdir(d)
 
     def _dosubs(self, section, option, value, data, converted, seen):
         key = section, option
@@ -116,6 +125,7 @@ class Buildout(dict):
         seen.pop()
         return value
 
+    _template_split = re.compile('([$]{\w+:\w+})').split
     def _dosubs_esc(self, value, data, converted, seen):
         value = self._template_split(value)
         subs = []
@@ -141,7 +151,7 @@ class Buildout(dict):
     def buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 
-    def install(self):
+    def install(self, install_parts):
         self._develop()
         new_part_options = self._gather_part_info()
         installed_part_options = self._read_installed_part_options()
@@ -150,6 +160,12 @@ class Buildout(dict):
 
         new_old_parts = []
         for part in old_parts:
+            if install_parts and (part not in install_parts):
+                # We were asked to install specific parts and this
+                # wasn't one of them.  Leave it alone.
+                new_old_parts.append(part)
+                continue
+                
             installed_options = installed_part_options[part].copy()
             installed = installed_options.pop('__buildout_installed__')
             if installed_options != new_part_options.get(part):
@@ -162,10 +178,11 @@ class Buildout(dict):
         new_parts = []
         try:
             for part in new_part_options['buildout']['parts'].split():
-                installed = self._install(part)
-                new_part_options[part]['__buildout_installed__'] = installed
+                if (not install_parts) or (part in install_parts):
+                    installed = self._install(part)
+                    new_part_options[part]['__buildout_installed__'] = installed
+                    installed_part_options[part] = new_part_options[part]
                 new_parts.append(part)
-                installed_part_options[part] = new_part_options[part]
                 new_old_parts = [p for p in new_old_parts if p != part]
         finally:
             new_parts.extend(new_old_parts)
@@ -274,14 +291,62 @@ class Buildout(dict):
                      for d in installed]
         return ' '.join(installed)
 
+
     def _save_installed_options(self, installed_options):
-        parser = ConfigParser.SafeConfigParser()
-        for section in installed_options:
-            parser.add_section(section)
-            for option, value in installed_options[section].iteritems():
-                parser.set(section, option, value)
-        parser.write(open(self._installed_path(), 'w'))
+        f = open(self._installed_path(), 'w')
+        _save_options('buildout', installed_options['buildout'], f)
+        for part in installed_options['buildout']['parts'].split():
+            print >>f
+            _save_options(part, installed_options[part], f)
+        f.close()
+        
+def _save_options(section, options, f):
+    print >>f, '[%s]' % section
+    items = options.items()
+    items.sort()
+    for option, value in items:
+        print >>f, option, '=', str(value).replace('\n', '\n\t')
     
+
+def _open(base, filename, seen):
+    """Open a configuration file and return the result as a dictionary,
+
+    Recursively open other files based on buildout options found.
+    """
+
+    filename = os.path.join(base, filename)
+    if filename in seen:
+        raise ValueError("Recursive file include", seen, filename)
+
+    base = os.path.dirname(filename)
+    seen.append(filename)
+
+    result = {}
+
+    parser = ConfigParser.SafeConfigParser()
+    parser.readfp(open(filename))
+    extends = extended_by = None
+    for section in parser.sections():
+        options = dict(parser.items(section))
+        if section == 'buildout':
+            extends = options.pop('extends', extends)
+            extended_by = options.pop('extended-by', extended_by)
+        result[section] = options
+
+    if extends:
+        extends = extends.split()
+        extends.reverse()
+        for fname in extends:
+            result = _update(_open(base, fname, seen), result)
+
+    if extended_by:
+        for fname in extended_by.split():
+            result = _update(result, _open(base, fname, seen))
+
+    seen.pop()
+    return result
+    
+
 def _dir_hash(dir):
     hash = md5.new()
     for (dirpath, dirnames, filenames) in os.walk(dir):
@@ -306,5 +371,44 @@ def _dists_sig(dists, base):
             result.append(location)
     return result
 
-def main():
-    Buildout().install()
+def _update(d1, d2):
+    for section in d2:
+        if section in d1:
+            d1[section].update(d2[section])
+        else:
+            d1[section] = d2[section]
+    return d1
+
+def _error(*message):
+    sys.syderr.write(' '.join(message) +'\n')
+    sys.exit(1)
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+    if args and args[0] == '-c':
+        args.pop(0)
+        if not args:
+            _error("No configuration file specified,")
+        config_file = args.pop(0)
+    else:
+        config_file = 'buildout.cfg'
+
+    options = []
+    while args and '=' in args[0]:
+        option, value = args.pop(0).split('=', 1)
+        if len(option.split(':')) != 2:
+            _error('Invalid option:', option)
+        section, option = option.split(':')
+        options.append((section.strip(), option.strip(), value.strip()))
+
+    buildout = Buildout(config_file, options)
+
+    if args:
+        command = args.pop(0)
+        if command != 'install':
+            _error('invalid command:', command)
+    else:
+        command = 'install'
+
+    getattr(buildout, command)(args)

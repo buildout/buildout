@@ -29,7 +29,7 @@ Asking for a section that doesn't exist, yields a key error:
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> import zc.buildout.buildout
-    >>> buildout = zc.buildout.buildout.Buildout()
+    >>> buildout = zc.buildout.buildout.Buildout('buildout.cfg', [])
     >>> buildout['eek']
     Traceback (most recent call last):
     ...
@@ -62,9 +62,7 @@ It is an error to create a variable-reference cycle:
            [('buildout', 'y'), ('buildout', 'z'), ('buildout', 'x')],
            ('buildout', 'y'))
 
-'''
-
-    
+'''    
 
 def runsetup(d):
     here = os.getcwd()
@@ -118,6 +116,18 @@ def linkerSetUp(test):
         
 def linkerTearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
+    zc.buildout.testing.buildoutTearDown(test)
+
+def buildoutSetUp(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    test.globs['_oldhome'] = os.environ.get('HOME')
+
+def buildoutTearDoen(test):
+    if test.globs['_oldhome'] is not None:
+        os.environ['HOME'] = test.globs['_oldhome']
+
+    shutil.rmtree(test.globs['extensions'])
+    shutil.rmtree(test.globs['home'])
     zc.buildout.testing.buildoutTearDown(test)
     
 
