@@ -29,8 +29,8 @@ class Egg:
     def install(self):
         distribution = self.options.get('distribution', self.name)
         links = self.options.get(
-            'find_links',
-            self.buildout['buildout'].get('find_links'),
+            'find-links',
+            self.buildout['buildout'].get('find-links'),
             )
         if links:
             links = links.split()

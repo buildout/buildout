@@ -11,7 +11,7 @@ distribution
 
    If not specified, the distribution defaults to the part name.
 
-find_links
+find-links
    A list of URLs, files, or directories to search for distributions.
 
 To illustrate this, we've created a directory with some sample eggs:
@@ -33,11 +33,11 @@ install the demo package.
     ... [demo]
     ... recipe = zc.recipe.egg
     ... distribution = demo <0.3
-    ... find_links = %s
+    ... find-links = %s
     ... """ % sample_eggs)
 
 In this example, we limited ourself to revisions before 0.3. We also
-specified where to find distributions using the find_links option.
+specified where to find distributions using the find-links option.
 
 Let's run the buildout:
 
@@ -103,7 +103,7 @@ specification. For example, if we remove the restriction on demo:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find_links = %s
+    ... find-links = %s
     ... """ % sample_eggs)
 
 and rerun the buildout:
@@ -138,7 +138,7 @@ arguments:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find_links = %s
+    ... find-links = %s
     ... scripts =
     ... """ % sample_eggs)
 
@@ -158,7 +158,7 @@ You can also control the name used for scripts:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find_links = %s
+    ... find-links = %s
     ... scripts = demo=foo
     ... """ % sample_eggs)
 
