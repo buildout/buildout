@@ -20,36 +20,13 @@ installed.
 $Id$
 """
 
-# XXX needs doctest
+import os, sys
 
-import sys
-import setuptools.command.easy_install
-import pkg_resources
-import setuptools.package_index
-import distutils.dist
-import distutils.log
-
-def install(spec, dest, links=(), **kw):
-    index = setuptools.package_index.PackageIndex()
-    index.add_find_links(links)
-    easy = setuptools.command.easy_install.easy_install(
-        distutils.dist.Distribution(),
-        multi_version=True,
-        exclude_scripts=True,
-        sitepy_installed=True,
-        install_dir=dest,
-        outputs=[],
-        verbose = 0,
-        args = [spec],
-        find_links = links,
-        **kw
-        )
-    easy.finalize_options()
-
-    old_warn = distutils.log.warn
-    distutils.log.warn = lambda *a, **k: None
-
-    easy.easy_install(spec, deps=True)
-
-    distutils.log.warn = old_warn
-    
+def install(spec, dest, links, python=sys.executable):
+    prefix = sys.exec_prefix + os.path.sep
+    path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
+    os.spawnle(
+        os.P_WAIT, python, python,
+        '-c', 'from setuptools.command.easy_install import main; main()',
+        '-mqxd', dest, '-f', ' '.join(links), spec,
+        dict(PYTHONPATH=path))

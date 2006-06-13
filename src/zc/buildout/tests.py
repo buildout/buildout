@@ -97,7 +97,7 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
-            'egglinker.txt',
+            'egglinker.txt', 'easy_install.txt', 
             setUp=linkerSetUp, tearDown=linkerTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('(\S+[/%(sep)s]| )'
