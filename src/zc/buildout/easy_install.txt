@@ -1,0 +1,36 @@
+Minimal Python interface to easy_install
+========================================
+
+The easy_install module provides a minimal interface to the setuptools
+easy_install command.  This API is likely to grow, although I hope
+that it will ultimately be replaced by a setuptools-provided API.
+
+The easy_install module provides a single method, install.  The
+install function takes 3 arguments:
+
+- A setuptools requirement specification for a distribution to be
+  installed, 
+
+- A destination egg directory to install to and to satisfy
+  requirements from, and
+
+- a sequence of lications to look for distributions.
+
+For example, given the sample eggs:
+
+    >>> ls(sample_eggs)
+    -  demo-0.1-py2.3.egg
+    -  demo-0.2-py2.3.egg
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+
+let's make directory and install the demo egg to it:
+
+    >>> import tempfile
+    >>> dest = tempfile.mkdtemp()
+    >>> import zc.buildout.easy_install
+    >>> zc.buildout.easy_install.install('demo', dest, [sample_eggs])
+    >>> ls(dest)
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+
