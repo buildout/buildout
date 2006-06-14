@@ -16,6 +16,7 @@
 $Id$
 """
 
+import os
 import zc.buildout.egglinker
 import zc.buildout.easy_install
 
@@ -25,26 +26,27 @@ class Egg:
         self.buildout = buildout
         self.name = name
         self.options = options
-
-    def install(self):
-        distribution = self.options.get('distribution', self.name)
-        links = self.options.get(
-            'find-links',
-            self.buildout['buildout'].get('find-links'),
-            )
+        links = options.get('find-links',
+                            buildout['buildout'].get('find-links'))
         if links:
-            links = links.split()
+            buildout_directory = buildout['buildout']['directory']
+            links = [os.path.join(buildout_directory, link)
+                     for link in links.split()]
+            options['find-links'] = '\n'.join(links)
         else:
             links = ()
+        self.links = links
 
-        buildout = self.buildout
+        options['_b'] = buildout['buildout']['bin-directory']
+        options['_e'] = buildout['buildout']['eggs-directory']
+
+    def install(self):
+        options = self.options
+        distribution = options.get('distribution', self.name)
         zc.buildout.easy_install.install(
-            distribution,
-            buildout.eggs,
-            [buildout.buildout_path(link) for link in links],
-            )
+            distribution, options['_e'], self.links)
 
-        scripts = self.options.get('scripts')
+        scripts = options.get('scripts')
         if scripts or scripts is None:
             if scripts is not None:
                 scripts = scripts.split()
@@ -53,6 +55,6 @@ class Egg:
                     for s in scripts
                     ])
             return zc.buildout.egglinker.scripts(
-                [distribution], buildout.bin, [buildout.eggs],
-                scripts=scripts)
+                [distribution],
+                options['_b'], [options['_e']], scripts=scripts)
             
