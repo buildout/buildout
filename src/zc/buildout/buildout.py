@@ -46,6 +46,12 @@ class Options(dict):
         except KeyError:
             raise MissingOption("Missing option", self.section, option)
 
+    # XXX need test
+    def __setitem__(self, option, value):
+        if not isinstance(value, str):
+            raise TypeError('Option values must be strings', value)
+        super(Options, self).__setitem__(option, value)
+
     def copy(self):
         return Options(self.buildout, self.section, self)
 
@@ -63,6 +69,8 @@ class Buildout(dict):
                               'bin-directory': 'bin',
                               'parts-directory': 'parts',
                               'installed': '.installed.cfg',
+                              'python': 'buildout',
+                              'executable': sys.executable,
                               },
                        )
 
@@ -106,8 +114,8 @@ class Buildout(dict):
 
         self._buildout_dir = options['directory']
         for name in ('bin', 'parts', 'eggs'):
-            d = self.buildout_path(options[name+'-directory'])
-            setattr(self, name, d)
+            d = self._buildout_path(options[name+'-directory'])
+            options[name+'-directory'] = d
             if not os.path.exists(d):
                 os.mkdir(d)
 
@@ -148,45 +156,75 @@ class Buildout(dict):
 
         return ''.join([''.join(v) for v in zip(value[::2], subs)])
 
-    def buildout_path(self, *names):
+    def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 
     def install(self, install_parts):
         self._develop()
-        new_part_options = self._gather_part_info()
+
+        # load installed data
         installed_part_options = self._read_installed_part_options()
-        old_parts = installed_part_options['buildout']['parts'].split()
-        old_parts.reverse()
 
-        new_old_parts = []
-        for part in old_parts:
-            if install_parts and (part not in install_parts):
-                # We were asked to install specific parts and this
-                # wasn't one of them.  Leave it alone.
-                new_old_parts.append(part)
-                continue
-                
-            installed_options = installed_part_options[part].copy()
-            installed = installed_options.pop('__buildout_installed__')
-            if installed_options != new_part_options.get(part):
-                self._uninstall(installed)
-                del installed_part_options[part]
-            else:
-                new_old_parts.append(part)
-        new_old_parts.reverse()
+        # get configured and installed part lists
+        conf_parts = self['buildout']['parts']
+        conf_parts = conf_parts and conf_parts.split() or []
+        installed_parts = installed_part_options['buildout']['parts']
+        installed_parts = installed_parts and installed_parts.split() or []
 
-        new_parts = []
+
+        # If install_parts is given, then they must be listed in parts
+        # and we don't uninstall anything. Otherwise, we install
+        # the configured parts and uninstall anything else.
+        if install_parts:
+            extra = [p for p in install_parts if p not in conf_parts]
+            if extra:
+                error('Invalid install parts:', *extra)
+            uninstall_missing = False
+        else:
+            install_parts = conf_parts
+            uninstall_missing = True
+
+        # load recipes
+        recipes = self._load_recipes(install_parts)
+
+        # compute new part recipe signatures
+        self._compute_part_signatures(install_parts)
+
         try:
-            for part in new_part_options['buildout']['parts'].split():
-                if (not install_parts) or (part in install_parts):
-                    installed = self._install(part)
-                    new_part_options[part]['__buildout_installed__'] = installed
-                    installed_part_options[part] = new_part_options[part]
-                new_parts.append(part)
-                new_old_parts = [p for p in new_old_parts if p != part]
+            # uninstall parts that are no-longer used or who's configs
+            # have changed
+            for part in reversed(installed_parts):
+                if part in install_parts:
+                    old_options = installed_part_options[part].copy()
+                    old_options.pop('__buildout_installed__')
+                    if old_options == self.get(part):
+                        continue
+                elif not uninstall_missing:
+                    continue
+
+                # ununstall part
+                self._uninstall(
+                    installed_part_options[part]['__buildout_installed__'])
+                installed_parts = [p for p in installed_parts if p != part]
+
+            # install new parts
+            for part in install_parts:
+                installed_part_options[part] = self[part].copy()
+                del self[part]['__buildout_signature__']
+                installed_files = recipes[part].install() or ()
+                if isinstance(installed_files, str):
+                    installed_files = [installed_files]
+                installed_part_options[part]['__buildout_installed__'] = (
+                    '\n'.join(installed_files)
+                    )
+                if part not in installed_parts:
+                    installed_parts.append(part)
         finally:
-            new_parts.extend(new_old_parts)
-            installed_part_options['buildout']['parts'] = ' '.join(new_parts)
+            installed_part_options['buildout']['parts'] = ' '.join(
+                [p for p in conf_parts if p in installed_parts]
+                +
+                [p for p in installed_parts if p not in conf_parts] 
+            )
             self._save_installed_options(installed_part_options)
 
     def _develop(self):
@@ -197,7 +235,7 @@ class Buildout(dict):
             here = os.getcwd()
             try:
                 for setup in develop.split():
-                    setup = self.buildout_path(setup)
+                    setup = self._buildout_path(setup)
                     if os.path.isdir(setup):
                         setup = os.path.join(setup, 'setup.py')
 
@@ -206,45 +244,52 @@ class Buildout(dict):
                         os.P_WAIT, sys.executable, sys.executable,
                         setup, '-q', 'develop', '-m', '-x',
                         '-f', ' '.join(self._links),
-                        '-d', self.eggs,
+                        '-d', self['buildout']['eggs-directory'],
                         {'PYTHONPATH':
                          os.path.dirname(pkg_resources.__file__)},
                         )
             finally:
                 os.chdir(os.path.dirname(here))
 
-    def _gather_part_info(self):
-        """Get current part info, including part options and recipe info
-        """
-        parts = self['buildout']['parts']
-        part_info = {'buildout': {'parts': parts}}
+    def _load_recipes(self, parts):
+        recipes = {}
         recipes_requirements = []
-        pkg_resources.working_set.add_entry(self.eggs)
+        pkg_resources.working_set.add_entry(self['buildout']['eggs-directory'])
 
-        parts = parts and parts.split() or []
+        # Install the recipe distros
         for part in parts:
             options = self.get(part)
             if options is None:
                 options = self[part] = {}
-            options = options.copy()
             recipe, entry = self._recipe(part, options)
             zc.buildout.easy_install.install(
-                recipe, self.eggs, self._links)
+                recipe, self['buildout']['eggs-directory'], self._links)
             recipes_requirements.append(recipe)
-            part_info[part] = options
 
-        # Load up the recipe distros
+        # Add the distros to the working set
         pkg_resources.require(recipes_requirements)
 
-        base = self.eggs + os.path.sep
+        # instantiate the recipes
         for part in parts:
-            options = part_info[part]
+            options = self[part]
+            recipe, entry = self._recipe(part, options)
+            recipe_class = pkg_resources.load_entry_point(
+                recipe, 'zc.buildout', entry)
+            recipes[part] = recipe_class(self, part, options)
+        
+        return recipes
+
+    def _compute_part_signatures(self, parts):
+        # Compute recipe signature and add to options
+        base = self['buildout']['eggs-directory'] + os.path.sep
+        for part in parts:
+            options = self.get(part)
+            if options is None:
+                options = self[part] = {}
             recipe, entry = self._recipe(part, options)
             req = pkg_resources.Requirement.parse(recipe)
             sig = _dists_sig(pkg_resources.working_set.resolve([req]), base)
             options['__buildout_signature__'] = ' '.join(sig)
-
-        return part_info
 
     def _recipe(self, part, options):
         recipe = options.get('recipe', part)
@@ -260,17 +305,18 @@ class Buildout(dict):
         if os.path.isfile(old):
             parser = ConfigParser.SafeConfigParser()
             parser.read(old)
-            return dict([(section, dict(parser.items(section)))
-                         for section in parser.sections()])
+            return dict([
+                (section, Options(self, section, parser.items(section)))
+                for section in parser.sections()])
         else:
-            return {'buildout': {'parts': ''}}
+            return {'buildout': Options(self, 'buildout', {'parts': ''})}
 
     def _installed_path(self):        
-        return self.buildout_path(self['buildout']['installed'])
+        return self._buildout_path(self['buildout']['installed'])
 
     def _uninstall(self, installed):
         for f in installed.split():
-            f = self.buildout_path(f)
+            f = self._buildout_path(f)
             if os.path.isdir(f):
                 shutil.rmtree(f)
             elif os.path.isfile(f):
@@ -286,7 +332,7 @@ class Buildout(dict):
             installed = []
         elif isinstance(installed, basestring):
             installed = [installed]
-        base = self.buildout_path('')
+        base = self._buildout_path('')
         installed = [d.startswith(base) and d[len(base):] or d
                      for d in installed]
         return ' '.join(installed)
@@ -412,3 +458,9 @@ def main(args=None):
         command = 'install'
 
     getattr(buildout, command)(args)
+
+if sys.version_info[:2] < (2, 4):
+    def reversed(iterable):
+        result = list(iterable);
+        result.reverse()
+        return result

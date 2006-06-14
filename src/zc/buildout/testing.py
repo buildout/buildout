@@ -53,7 +53,7 @@ def system(command, input=''):
     return o.read()
 
 def buildoutSetUp(test):
-    sample = tempfile.mkdtemp('buildout-tests')
+    sample = tempfile.mkdtemp('sample-buildout')
     for name in ('bin', 'eggs', 'parts'):
         os.mkdir(os.path.join(sample, name))
 
@@ -118,7 +118,7 @@ def runsetup(d):
         os.chdir(here)
 
 def create_sample_eggs(test):
-    sample = tempfile.mkdtemp('eggtest')
+    sample = tempfile.mkdtemp('sample-eggs')
     test.globs['_sample_eggs_container'] = sample
     test.globs['sample_eggs'] = os.path.join(sample, 'dist')
     write(sample, 'README.txt', '')

@@ -92,9 +92,13 @@ and then we'll create a source file for our mkdir recipe:
     ...         self.buildout = buildout
     ...         self.name = name
     ...         self.options = options
+    ...         options['path'] = os.path.join(
+    ...                               buildout['buildout']['directory'],
+    ...                               options['path'],
+    ...                               )
     ...
     ...     def install(self):
-    ...         path = self.buildout.buildout_path(self.options['path'])
+    ...         path = self.options['path']
     ...         if not os.path.isdir(path):
     ...             print 'Creating directory', os.path.basename(path)
     ...             os.mkdir(path)
@@ -104,14 +108,21 @@ and then we'll create a source file for our mkdir recipe:
 The recipe defines a constructor that takes a buildout object, a part
 name, and an options dictionary. It saves them in instance attributes.
 
+If the path is relative, we'll interpret it as relative to the
+buildout directory.  The buildout object passed in is a mapping from
+section name to a mapping of options for that section. The buildout
+directory is available as the directory option of the buildout
+section.  We normalize the path and save it back into the options
+directory.  
+
+**IMPORTANT**: Any time we use data from another section, it is important
+to reflect that data in the recipe options, as this data is used to
+decide if a part configuration has changed and a part needs to be
+reinstalled.
+
 The install method is responsible for creating the part.  In this
 case, we need the path of the directory to create.  We'll use a
-buildout option from our options dictionary.  If the path is relative,
-we'll interpret it relative to the buildout directory.  The buildout
-buildout_path method gives us a path relative to the buildout.  It
-uses os.path.join, so if we pass it an absolute path, we'll get the
-absolute path back. (If no arguments are passed to base_path, then the
-buildout directory is returned.)
+path option from our options dictionary.
 
 We made the method chatty so that we can observe what it's doing.
 
@@ -134,14 +145,13 @@ installed as an egg.  We need to define a setup script for this:
     ...     )
     ... """)
 
-Here we've defined a package containing just our module.  We've also
-defined an entry point.  Entry points provide a way for an egg to
-define the services it provides.  Here we've said that we define a
-zc.buildout entry point named default.  Recipe classes must be exposed
-as entry points in the zc.buildout group.  we give entry points names
-within the group.  The name "default" is somewhat special because it
-allows a recipe to be referenced using a package name without naming
-an entry point.
+Here we've defined a package with an entry_point. Entry points provide
+a way for an egg to define the services it provides.  Here we've said
+that we define a zc.buildout entry point named default.  Recipe
+classes must be exposed as entry points in the zc.buildout group.  we
+give entry points names within the group.  The name "default" is
+somewhat special because it allows a recipe to be referenced using a
+package name without naming an entry point.
 
 We also need a README.txt for our recipes to avoid a warning:
 
@@ -219,12 +229,14 @@ installed:
     parts = data_dir
     <BLANKLINE>
     [data_dir]
-    __buildout_installed__ = mystuff
-    __buildout_signature__ = recipes-O3ypTgKOkHMqMwKvMfvHnA==
-    path = mystuff
+    __buildout_installed__ = /tmp/sample-buildout/mystuff
+    __buildout_signature__ = recipes-c7vHV6ekIDUPy/7fjAaYjg==
+    path = /tmp/sample-buildout/mystuff
     recipe = recipes:mkdir
 
 Note that the directory we installed is included in .installed.cfg.
+In addition, the path option includes the actual destination
+directory. 
 
 If we change the name of the directory in the configuration file,
 we'll see that the directory gets removed and recreated:
@@ -639,27 +651,27 @@ configuration and run the buildout in the usual way:
     <BLANKLINE>
     [debug]
     __buildout_installed__ = 
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     op1 = 1
     op7 = 7
     recipe = recipes:debug
     <BLANKLINE>
     [d1]
-    __buildout_installed__ = d1
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = d1
+    __buildout_installed__ = /tmp/sample-buildout/d1
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/d1
     recipe = recipes:mkdir
     <BLANKLINE>
     [d2]
-    __buildout_installed__ = d2
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = d2
+    __buildout_installed__ = /tmp/sample-buildout/d2
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/d2
     recipe = recipes:mkdir
     <BLANKLINE>
     [d3]
-    __buildout_installed__ = d3
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = d3
+    __buildout_installed__ = /tmp/sample-buildout/d3
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/d3
     recipe = recipes:mkdir
 
 Now we'll update our configuration file:
@@ -721,33 +733,33 @@ The .installed.cfg is only updated for the recipes that ran:
     <BLANKLINE>
     [debug]
     __buildout_installed__ = 
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     op1 = 1
     op7 = 7
     recipe = recipes:debug
     <BLANKLINE>
     [d2]
-    __buildout_installed__ = d2
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = d2
+    __buildout_installed__ = /tmp/sample-buildout/d2
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/d2
     recipe = recipes:mkdir
     <BLANKLINE>
     [d3]
-    __buildout_installed__ = data3
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = data3
+    __buildout_installed__ = /tmp/sample-buildout/data3
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/data3
     recipe = recipes:mkdir
     <BLANKLINE>
     [d4]
-    __buildout_installed__ = data4
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = data4
+    __buildout_installed__ = /tmp/sample-buildout/data4
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/data4
     recipe = recipes:mkdir
     <BLANKLINE>
     [d1]
-    __buildout_installed__ = d1
-    __buildout_signature__ = recipes-IX/o5hMSw90MtZVxRpjz0Q==
-    path = d1
+    __buildout_installed__ = /tmp/sample-buildout/d1
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /tmp/sample-buildout/d1
     recipe = recipes:mkdir
 
 Note that the installed data for debug, d1, and d2 haven't changed,

@@ -25,6 +25,11 @@ class TestRunner:
         self.buildout = buildout
         self.name = name
         self.options = options
+        options['script'] = os.path.join(buildout['buildout']['bin-directory'],
+                                         options.get('script', self.name),
+                                         )
+        options['_e'] = buildout['buildout']['eggs-directory']
+
 
     def install(self):
         distributions = [
@@ -34,13 +39,12 @@ class TestRunner:
             ]
         path = zc.buildout.egglinker.path(
             distributions+['zope.testing'],
-            [self.buildout.eggs],
+            [self.options['_e']],
             )
         locations = [zc.buildout.egglinker.location(distribution,
-                                                    [self.buildout.eggs])
+                                                    [self.options['_e']])
                      for distribution in distributions]
-        script = self.options.get('script', self.name)
-        script = self.buildout.buildout_path('bin', script)
+        script = self.options['script']
         open(script, 'w').write(tests_template % dict(
             PYTHON=sys.executable,
             PATH="',\n  '".join(path),

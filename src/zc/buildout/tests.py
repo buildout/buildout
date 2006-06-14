@@ -94,7 +94,9 @@ def test_suite():
             checker=renormalizing.RENormalizing([
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               ])
+               (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
+                r'/sample-\1/\2'),
+                ])
             ),
         doctest.DocFileSuite(
             'egglinker.txt', 'easy_install.txt', 
