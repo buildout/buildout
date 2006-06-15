@@ -1,18 +1,35 @@
-Defining Buildouts
-==================
+Buildouts
+=========
+
+The word "buildout" refers to a description of a set of parts and the
+software to create and assemble them.  It is often used informally to
+refer to an installed system based on a buildout definition.  For
+example, if we are creating an application named "Foo", then "the Foo
+buildout" is the collection of configuration and application-specific
+software that allows an instance of the application to be created.  We
+may refer to such an instance of the application informally as "a Foo
+buildout".  
 
 This document describes how to define buildouts using buildout
 configuation files and recipes.  There are two ways to set up the
-buildout software and create a buildout:
+buildout software and create a buildout instance:
 
 1. Install the zc.buildout egg with easy_install and use the buildout
    script installed in a Python scripts area.
 
-2. Use the buildout bootstrap script to install both the setuptools
-   and zc.buildout eggs into your buildout.  This allows you to use
-   the buildout software without modifying a Python install.
+2. Use the buildout bootstrap script to create a buildout that
+   includes both the setuptools and zc.buildout eggs.  This allows you
+   to use the buildout software without modifying a Python install.
    The buildout script is installed into your buildout local scripts
    area.
+
+Often, a software project will be managed in a software repository,
+such as a subversion repository, that includes some software source
+directories, buildout configuration files, and a copy of the buildout
+bootstrap script,  To work on the project, one would check out the
+project from the repository and run the bootstrap script which
+installs setuptools and zc.buildout into the checkout as well as any
+parts defined.
 
 We have a sample buildout that has already been created for us.  It
 has the absolute minimum information.  We have bin, eggs and parts
@@ -27,19 +44,14 @@ informatiion about previously-installed parts:
     d  parts
 
 The bin directory contains scripts.  In the examples shown here, we've
-used a hybrid approach for creating the to ease automated setup.  We
-have a buildout script in our buildout script directory, but the eggs
-actually live elsewhere.
+used a hybrid approach for creating the buildout to ease automated
+setup.  We have a buildout script in our buildout script directory,
+but the zc.buildout and setuptools eggs actually live elsewhere.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
     >>> ls(sample_buildout, 'eggs')
-
-Buildouts are defined using configuration files.  These are in the
-format defined by the Python ConfigParser module, with an extension
-that we'll describe later.  When a buildout is run, it looks for the
-file buildout.cfg in the directory where the buidout is run.
 
 The parts directory is initially empty:
 
@@ -50,13 +62,11 @@ part data.  For example, if we built a custom Python, we would
 install it in the part directory.  Part data is stored in a
 subdirectory of the parts directory with the same name as the part.
 
-The file .installed.cfg contains information about previously installed
-parts. Because this is a new buildout, this file isn't very
-interesting:
-
-    >>> cat(sample_buildout, '.installed.cfg')
-    [buildout]
-    parts =
+Buildouts are defined using configuration files.  These are in the
+format defined by the Python ConfigParser module, with extensions
+that we'll describe later.  By default, when a buildout is run, it
+looks for the file buildout.cfg in the directory where the buidout is
+run.
 
 The minimal configuration file has a buildout section that defines no
 parts:
@@ -65,12 +75,20 @@ parts:
     [buildout]
     parts =
 
+The file .installed.cfg contains information about previously installed
+parts. Because this is a new buildout, this file isn't very
+interesting:
+
+    >>> cat(sample_buildout, '.installed.cfg')
+    [buildout]
+    parts =
+
 A part is simply something to be created by a buildout.  It can be
 almost anything, such as a Python package, a program, a directory, or
-a confguration file.  
+even a confguration file.  
 
 A part is created by a recipe.  Recipes are always installed as Python
-eggs. They can be downloaded from an package server, such as the
+eggs. They can be downloaded from a package server, such as the
 Python Package Index, or they can be developed as part of a project.
 Let's create a recipe as part of the sample project.  We'll create a
 recipe for creating directories.  
@@ -115,22 +133,34 @@ directory is available as the directory option of the buildout
 section.  We normalize the path and save it back into the options
 directory.  
 
-**IMPORTANT**: Any time we use data from another section, it is important
-to reflect that data in the recipe options, as this data is used to
-decide if a part configuration has changed and a part needs to be
-reinstalled.
+Any time we use data from another section, it is important to reflect
+that data in the recipe's options when the recipe is constructed.
+When a buildout is run, it compares part-configuration data stored in
+the installed.cfg file and the part-configuration data loaded from the
+configuration files as modified by recipe constructors to decide if
+the configuration of a part has changed. If the configuration has
+changed, or if the recipe has changed, then the part is uninstalled
+before reinstalling it.  The buildout only looks at the part's
+options, so any data used to configure the part needs to be reflected
+in the part's options.  It is the job of a recipe constructor to make
+sure that the options include all relevent data.
+
+Of course, parts are also uninstalled if they are no-longer used.
 
 The install method is responsible for creating the part.  In this
 case, we need the path of the directory to create.  We'll use a
 path option from our options dictionary.
 
 We made the method chatty so that we can observe what it's doing.
+XXX use python logging module!
 
 We return the path that we installed.  If the part is unistalled or
 reinstalled, then the path returned will be removed by the buildout
 machinery.  A recipe install method is expected to return None, a
 string, or an iterable of strings containing paths to be removed if a
-part is uninstalled.
+part is uninstalled.  For most recipes, this is all of the uninstall
+support needed.  A recipe can provide custom uninstall support as will
+be described later.
 
 We need to provide packaging information so that our recipe can be
 installed as an egg.  We need to define a setup script for this:
@@ -145,7 +175,15 @@ installed as an egg.  We need to define a setup script for this:
     ...     )
     ... """)
 
-Here we've defined a package with an entry_point. Entry points provide
+This setup script is incomplete.  It doesn't describe what is to be 
+included in a distribution.  This is fine if we never actually create
+a distribution. If recipes are going to be used only internally in a
+buildout, then we needn't include distribution information.  If we
+wanted to use the same recipes in multiple buildouts, then we'd need
+to include proper distribution data.  To find out more about creating
+distributions, see the setuptools documentation.
+
+Our setup script defines an entry point. Entry points provide
 a way for an egg to define the services it provides.  Here we've said
 that we define a zc.buildout entry point named default.  Recipe
 classes must be exposed as entry points in the zc.buildout group.  we
@@ -153,7 +191,8 @@ give entry points names within the group.  The name "default" is
 somewhat special because it allows a recipe to be referenced using a
 package name without naming an entry point.
 
-We also need a README.txt for our recipes to avoid a warning:
+We also need a README.txt for our recipes to avoid an annoying warning
+from distutils, on which setuptools and zc.buildout are based:
 
     >>> write(sample_buildout, 'recipes', 'README.txt', " ")
 
@@ -179,7 +218,7 @@ Any number of paths can be listed.  The paths can be relative or
 absolute.  If relative, they are treated as relative to the buidlout
 directory.  They can be directory or file paths.  If a file path is
 given, it should point to a Python setup script.  If a directory path
-is given, it should point to a directory containing a setup.py.
+is given, it should point to a directory containing a setup.py file.
 Development eggs are installed before building any parts, as they may
 provide locally-defined recipes needed by the parts.
 
@@ -308,7 +347,8 @@ We also have to update our setup script:
     ... """)
 
 We've rearranged the script a bit to make the entry points easier to
-edit.
+edit.  In particular, entry points are now defined as a configuration
+string, rather than a dictionary.
 
 Let's update our configuration to provide variable substitution
 examples:
@@ -335,11 +375,13 @@ examples:
 
 In this example, we've used ConfigParser substitutions for file2 and
 file3.  This type of substitution uses Python string format syntax.
-Valid names are option in the same section and options defined in the
-DEFAULT section.  We used a string-template substitution for file1.
-This type of substituion uses the string.Template syntax.  Names
-substited are qualified option names, consisting of a section name and
-option name joined by a colon.
+Valid names are options in the same section and options defined in the
+DEFAULT section.  
+
+We used a string-template substitution for file1.  This type of
+substituion uses the string.Template syntax.  Names substited are
+qualified option names, consisting of a section name and option name
+joined by a colon.
 
 Now, if we run the buildout, we'll see the options with the values
 substituted. 
@@ -417,7 +459,7 @@ pretty common.  In a more practical example, the base buildout might
 represent a product and the extending buildout might be a
 customization. 
 
-Here is a more eleborate example. 
+Here is a more elaborate example. 
 
     >>> import tempfile
     >>> extensions = tempfile.mkdtemp()
@@ -434,7 +476,6 @@ Here is a more eleborate example.
     ... [DEFAULT]
     ... name = buildout
     ... """ % dict(e2=os.path.join(extensions, 'e2.cfg')))
-
 
     >>> write(sample_buildout, 'b1.cfg',
     ... """
@@ -532,10 +573,11 @@ There are several things to note about this example:
   debug sections in several of the input files by virtue of being in
   their DEFAULT sections.
 
-- Relative file names are determined relative to the directory
-  containing the referencing configuration file.  The files eb.cfg and
-  ee.cfg were found in the extensions directory because they were
-  referenced from a file in that directory.
+- Relative file names in extended and extended-by options are
+  interpreted relative to the directory containing the referencing
+  configuration file.  The files eb.cfg and ee.cfg were found in the
+  extensions directory because they were referenced from a file in
+  that directory.
 
 User defaults
 -------------
@@ -580,25 +622,38 @@ buildout.cfg in the current durectory.  Options are of the form::
 
   section_name:option_name=value
 
-for example, as in:
+for example:
 
+    >>> write(sample_buildout, 'other.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... installed = .other.cfg
+    ...
+    ... [debug]
+    ... name = other
+    ... recipe = recipes:debug
+    ... """)
+
+Note that we used the installed buildout option to specify an
+alternate file to store information about installed parts.
+    
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
-    ...     + ' debug:op1=foo'),
-    name ee
-    op buildout
+    ...     + ' -c other.cfg debug:op1=foo'),
+    name other
     op1 foo
-    op2 b1 2
-    op3 b2 3
-    op4 b2 4
-    op5 eb 5
-    op6 ee 6
     op7 7
     recipe recipes:debug
 
+    >>> os.remove(os.path.join(sample_buildout, 'other.cfg'))
+    >>> os.remove(os.path.join(sample_buildout, '.other.cfg'))
+
 Currently, the default and only command is 'install' and it takes a
-list of parts to install. if any parts are specified, then only those
-parts are installed.  To illustrate this, we'll update our
-configuration and run the buildout in the usual way:
+list of parts to install. if any parts are specified, then they must
+be listed in the buildout parts option and only those parts are
+installed.  To illustrate this, we'll update our configuration and run
+the buildout in the usual way:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -793,8 +848,8 @@ also see that d1 and d2 have gone away:
     d  parts
     d  recipes
 
-Alternate directory locations
------------------------------
+Alternate directory and file locations
+--------------------------------------
 
 The buildout normally puts the bin, eggs, and parts directories in the
 directory in the directory containing the configuration file. You can

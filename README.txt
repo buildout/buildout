@@ -8,7 +8,7 @@ may actually contain multiple programs, processes, and configuration
 settings.
 
 The word "buildout" refers to a description of a set of parts and the
-software to create ans assemble them.  It is often used informally to
+software to create and assemble them.  It is often used informally to
 refer to an installed system based on a buildout definition.  For
 example, if we are creating an application named "Foo", then "the Foo
 buildout" is the collection of configuration and application-specific

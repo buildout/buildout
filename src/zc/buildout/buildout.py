@@ -119,6 +119,9 @@ class Buildout(dict):
             if not os.path.exists(d):
                 os.mkdir(d)
 
+        options['installed'] = os.path.join(options['directory'],
+                                            options['installed'])
+
     def _dosubs(self, section, option, value, data, converted, seen):
         key = section, option
         r = converted.get(key)
