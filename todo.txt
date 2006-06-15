@@ -26,6 +26,16 @@
 
 - Logging
 
+- Some way to freeze versions so we can have reproducable buildouts.
+
+- Part dependencies
+
+- custom uninstall
+
+- spelling :)
+
+- example using -c.  Example redefining .installed.cfg
+
 Issues
 
 - Want to be able to control whether eggs get unzipped when they ae
