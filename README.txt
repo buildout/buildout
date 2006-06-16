@@ -7,6 +7,47 @@ applications from multiple parts, Python or otherwise.  An application
 may actually contain multiple programs, processes, and configuration
 settings.
 
+Here's an example of such an application that we built with an earlier
+prototype of the buildout system. We have a Zope application consisting of:
+
+- Multiple Zope instances
+
+- 4 ZEO servers
+
+- An ldap server
+
+- Cache-invalidation and Mail delivery servers
+
+- Dozens of add-on packages
+
+- Multiple test runners
+
+- Multiple deployment modes, including dev, stage, and prod, 
+  with prod deployment over multiple servers
+
+Parts installed include:
+
+- Application software installs, including Zope, ZEO and LDAP
+  software
+
+- Add-on packages
+
+- Bundles of configuration that define Zope, ZEO and LDAP instances
+
+- Utility scripts such as test runners, server-control
+  scripts, cron jobs.
+
+This is all defined using configuration files and recipes, which are
+software that build and installs parts based on configuration data.
+The prototype system has minimal documentation and no tests and
+has no egg support.  (It build on earlier make-based systems that had
+no documentation or tests.)  
+
+This project provides a non-prototype implementation of the ideas and
+knowledge gained from earlier efforts and leverages setuptools to make
+recipe management cleaner and to provide better Python package and
+script management.
+
 The word "buildout" refers to a description of a set of parts and the
 software to create and assemble them.  It is often used informally to
 refer to an installed system based on a buildout definition.  For
