@@ -71,26 +71,17 @@ def linkerTearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
 
-def buildoutSetUp(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    test.globs['_oldhome'] = os.environ.get('HOME')
-
-def buildoutTearDoen(test):
-    if test.globs['_oldhome'] is not None:
-        os.environ['HOME'] = test.globs['_oldhome']
-
+def buildoutTearDown(test):
     shutil.rmtree(test.globs['extensions'])
     shutil.rmtree(test.globs['home'])
     zc.buildout.testing.buildoutTearDown(test)
     
-
 def test_suite():
     return unittest.TestSuite((
-        #doctest.DocTestSuite(),
         doctest.DocFileSuite(
             'buildout.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
-            tearDown=zc.buildout.testing.buildoutTearDown,
+            tearDown=buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),

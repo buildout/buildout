@@ -53,6 +53,10 @@ def system(command, input=''):
     return o.read()
 
 def buildoutSetUp(test):
+    # we both need to make sure that HOME isn't set and be prepared
+    # to restore whatever it was after the test.
+    test.globs['_oldhome'] = os.environ.pop('HOME', None)
+
     sample = tempfile.mkdtemp('sample-buildout')
     for name in ('bin', 'eggs', 'develop-eggs', 'parts'):
         os.mkdir(os.path.join(sample, name))
@@ -92,6 +96,8 @@ def buildoutSetUp(test):
 def buildoutTearDown(test):
     shutil.rmtree(test.globs['sample_buildout'])
     os.chdir(test.globs['__original_wd__'])
+    if test.globs['_oldhome'] is not None:
+        os.environ['HOME'] = test.globs['_oldhome']
 
 
 script_template = '''\
