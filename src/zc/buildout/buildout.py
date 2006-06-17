@@ -391,9 +391,17 @@ class Buildout(dict):
             verbosity = int(verbosity)
         except ValueError:
             self._error("Invalid verbosity %s", verbosity)
-        
-        root_logger.setLevel(level-verbosity)
-        
+
+        level -= verbosity
+        root_logger.setLevel(level)
+
+        if level <= logging.DEBUG:
+            sections = list(self)
+            sections.sort()
+            print 'Configuration data:'
+            for section in sections:
+                _save_options(section, self[section], sys.stdout)
+            print    
         
 def _save_options(section, options, f):
     print >>f, '[%s]' % section

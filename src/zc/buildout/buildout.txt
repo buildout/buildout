@@ -647,6 +647,8 @@ delimiter.)
     op7 7
     recipe recipes:debug
 
+    >>> del os.environ['HOME']
+
 Command-line usage
 ------------------
 
@@ -692,7 +694,6 @@ alternate file to store information about installed parts.
     buildout: Installing debug
     name other
     op1 foo
-    op7 7
     recipe recipes:debug
 
 Here we used the -c option to specify an alternate configuration file, 
@@ -707,7 +708,6 @@ Options can also be combined in the usual Unix way, as in:
     buildout: Installing debug
     name other
     op1 foo
-    op7 7
     recipe recipes:debug
 
 Here we combined the -v and -c options with the configuration file
@@ -749,8 +749,6 @@ the buildout in the usual way:
     buildout: Running /sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling debug
     buildout: Installing debug
-    op1 1
-    op7 7
     recipe recipes:debug
     buildout: Installing d1
     d1: Creating directory d1
@@ -782,8 +780,6 @@ the buildout in the usual way:
     [debug]
     __buildout_installed__ = 
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    op1 = 1
-    op7 = 7
     recipe = recipes:debug
     <BLANKLINE>
     [d1]
@@ -869,8 +865,6 @@ The .installed.cfg is only updated for the recipes that ran:
     [debug]
     __buildout_installed__ = 
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    op1 = 1
-    op7 = 7
     recipe = recipes:debug
     <BLANKLINE>
     [d2]
@@ -909,8 +903,6 @@ Now, if we run the buildout without the install command:
     buildout: Uninstalling d2
     buildout: Uninstalling debug
     buildout: Installing debug
-    op1 1
-    op7 7
     recipe recipes:debug
     x 1
     buildout: Installing d2
@@ -1048,7 +1040,8 @@ of changing the format:
     ... """)
  
 Here, we've changed the format to include the log-level name, rather
-than the logger name.  
+than the logger name.  Note that we had to double percent signs,
+because configuration options allow ConfigParser variable substituion.
 
 We've also illustrated, with a contrived example, that the log level
 can be a numeric value and that the verbosity can be specified in the
@@ -1057,4 +1050,99 @@ level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     INFO Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+
+Predefined buildout options
+---------------------------
+
+Buildouts have a number of pre-defined options that recipes can use
+and that users can override in their configuration files.  To see
+these, we'll run a minimal buildout configuration with a debug logging
+level.  One of the features of debug logging is that the configuration
+database is shown.
+         
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') 
+    ...              + ' -vv'),
+    Configuration data:
+    [buildout]
+    bin-directory = /tmp/sample-buildout/bin
+    develop-eggs-directory = /tmp/sample-buildout/develop-eggs
+    directory = /tmp/sample-buildout
+    eggs-directory = /tmp/sample-buildout/eggs
+    executable = /usr/local/bin/python2.3
+    installed = /tmp/sample-buildout/.installed.cfg
+    log-format = %(name)s: %(message)s
+    log-level = WARNING
+    parts = 
+    parts-directory = /tmp/sample-buildout/parts
+    python = buildout
+    verbosity = 20
+    <BLANKLINE>
+
+All of these options can be overridden by configuration files or by
+command-line assignments.  We've discussed most of these options
+already, but let's review them and touch on some we haven't discussed:
+
+bin-directory
+   The directory path where scripts are written.  This can be a
+   relative path, which is interpreted relative to the directory
+   option.
+
+develop-eggs-directory
+   The directory path where development egg links are created for software
+   being craeted in the local project.  This can be a relative path,
+   which is interpreted relative to the directory option.
+
+directory
+   The buildout directory.  This is the base for other buildout file
+   and directory locations, when relative locations are used.
+
+eggs-directory
+   The directory path where downloaded eggs are put.  It is common to share
+   this directory accross buildouts. Eggs in this directory should
+   *never* be modified.  This can be a relative path, which is
+   interpreted relative to the directory option.
+
+executable
+   The Python executable used to run the buildout.  See the python
+   option below.
+
+installed
+   The file path where information about the results of the previous
+   buildout run is written.  This can be a relative path, which is
+   interpreted relative to the directory option.  This file provides
+   an inventory of installed parts with information needed to decide
+   which if any parts need to be uninstalled.
+
+log-format
+   The format used for logging messages.
+
+log-level
+   The log level before verbosity adjustment
+
+parts
+   A whitespace list of parts to be installed.
+
+parts-directory
+   A working directory that parts can used to store data.
+
+python
+   The name of a section containing information about the default
+   Python interpreter.  Recipies that need a installation
+   typically have options to tell them which Python installation to
+   use.  By convention, if a section-specific option isn't used, the
+   option is looked for in the buildout section.  The option must
+   point to a section with an executable option giving the path to a
+   Python executable.  By default, the buildout section defines the
+   default Python as the Python used to run the buildout.
+
+verbosity
+   A log-level adjustment.  Typically, this is set via the -q and -v
+   command-line options.
+
 
