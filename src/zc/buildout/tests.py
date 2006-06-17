@@ -86,7 +86,9 @@ def test_suite():
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
-                r'/sample-\1/\2'),
+                r'/sample-\1/\3'),
+               (re.compile('\S+sample-(\w+)'),
+                r'/sample-\1/\3'),
                 ])
             ),
         doctest.DocFileSuite(
