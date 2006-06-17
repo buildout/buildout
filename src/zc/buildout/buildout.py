@@ -68,6 +68,7 @@ class Buildout(dict):
         data = dict(buildout={
             'directory': os.path.dirname(config_file),
             'eggs-directory': 'eggs',
+            'develop-eggs-directory': 'develop-eggs',
             'bin-directory': 'bin',
             'parts-directory': 'parts',
             'installed': '.installed.cfg',
@@ -116,7 +117,7 @@ class Buildout(dict):
         self._links = links and links.split() or ()
 
         self._buildout_dir = options['directory']
-        for name in ('bin', 'parts', 'eggs'):
+        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
             d = self._buildout_path(options[name+'-directory'])
             options[name+'-directory'] = d
 
@@ -166,11 +167,15 @@ class Buildout(dict):
     def install(self, install_parts):
 
         # Create buildout directories
-        for name in ('bin', 'parts', 'eggs'):
+        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
             d = self['buildout'][name+'-directory']
             if not os.path.exists(d):
                 self._logger.info('Creating directory %s', d)
                 os.mkdir(d)
+
+        # Add develop-eggs directory to path so that it gets searched
+        # for eggs:
+        sys.path.insert(0, self['buildout']['develop-eggs-directory'])
 
         # Build develop eggs
         self._develop()
@@ -259,7 +264,7 @@ class Buildout(dict):
                         os.P_WAIT, sys.executable, sys.executable,
                         setup, '-q', 'develop', '-m', '-x',
                         '-f', ' '.join(self._links),
-                        '-d', self['buildout']['eggs-directory'],
+                        '-d', self['buildout']['develop-eggs-directory'],
                         {'PYTHONPATH':
                          os.path.dirname(pkg_resources.__file__)},
                         )
@@ -269,6 +274,8 @@ class Buildout(dict):
     def _load_recipes(self, parts):
         recipes = {}
         recipes_requirements = []
+        pkg_resources.working_set.add_entry(
+            self['buildout']['develop-eggs-directory'])
         pkg_resources.working_set.add_entry(self['buildout']['eggs-directory'])
 
         # Install the recipe distros

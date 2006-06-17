@@ -39,6 +39,7 @@ class Egg:
 
         options['_b'] = buildout['buildout']['bin-directory']
         options['_e'] = buildout['buildout']['eggs-directory']
+        options['_d'] = buildout['buildout']['develop-eggs-directory']
 
     def install(self):
         options = self.options
@@ -56,5 +57,5 @@ class Egg:
                     ])
             return zc.buildout.egglinker.scripts(
                 [distribution],
-                options['_b'], [options['_e']], scripts=scripts)
+                options['_b'], [options['_d'], options['_e']], scripts=scripts)
             
