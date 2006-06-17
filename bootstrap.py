@@ -34,7 +34,7 @@ import setuptools.package_index
 import distutils.dist
 
 os.spawnle(os.P_WAIT, sys.executable, sys.executable, 'setup.py',
-           '-q', 'develop', '-m', '-x', '-d', 'eggs',
+           '-q', 'develop', '-m', '-x', '-d', 'develop-eggs',
            {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
            )
 
