@@ -16,6 +16,7 @@
 $Id$
 """
 
+import logging
 import md5
 import os
 import pprint
@@ -64,15 +65,17 @@ class Buildout(dict):
         super(Buildout, self).__init__()
 
         # default options
-        data = dict(buildout={'directory': os.path.dirname(config_file),
-                              'eggs-directory': 'eggs',
-                              'bin-directory': 'bin',
-                              'parts-directory': 'parts',
-                              'installed': '.installed.cfg',
-                              'python': 'buildout',
-                              'executable': sys.executable,
-                              },
-                       )
+        data = dict(buildout={
+            'directory': os.path.dirname(config_file),
+            'eggs-directory': 'eggs',
+            'bin-directory': 'bin',
+            'parts-directory': 'parts',
+            'installed': '.installed.cfg',
+            'python': 'buildout',
+            'executable': sys.executable,
+            'log-level': 'WARNING',
+            'log-format': '%(name)s: %(message)s',
+            })
 
         # load user defaults, which override defaults
         if 'HOME' in os.environ:
@@ -116,8 +119,6 @@ class Buildout(dict):
         for name in ('bin', 'parts', 'eggs'):
             d = self._buildout_path(options[name+'-directory'])
             options[name+'-directory'] = d
-            if not os.path.exists(d):
-                os.mkdir(d)
 
         options['installed'] = os.path.join(options['directory'],
                                             options['installed'])
@@ -163,6 +164,15 @@ class Buildout(dict):
         return os.path.join(self._buildout_dir, *names)
 
     def install(self, install_parts):
+
+        # Create buildout directories
+        for name in ('bin', 'parts', 'eggs'):
+            d = self['buildout'][name+'-directory']
+            if not os.path.exists(d):
+                self._logger.info('Creating directory %s', d)
+                os.mkdir(d)
+
+        # Build develop eggs
         self._develop()
 
         # load installed data
@@ -181,7 +191,7 @@ class Buildout(dict):
         if install_parts:
             extra = [p for p in install_parts if p not in conf_parts]
             if extra:
-                error('Invalid install parts:', *extra)
+                self._error('Invalid install parts:', *extra)
             uninstall_missing = False
         else:
             install_parts = conf_parts
@@ -206,12 +216,14 @@ class Buildout(dict):
                     continue
 
                 # ununstall part
+                self._logger.info('Uninstalling %s', part)
                 self._uninstall(
                     installed_part_options[part]['__buildout_installed__'])
                 installed_parts = [p for p in installed_parts if p != part]
 
             # install new parts
             for part in install_parts:
+                self._logger.info('Installing %s', part)
                 installed_part_options[part] = self[part].copy()
                 del self[part]['__buildout_signature__']
                 installed_files = recipes[part].install() or ()
@@ -241,7 +253,7 @@ class Buildout(dict):
                     setup = self._buildout_path(setup)
                     if os.path.isdir(setup):
                         setup = os.path.join(setup, 'setup.py')
-
+                    self._logger.info("Running %s -q develop ...", setup)
                     os.chdir(os.path.dirname(setup))
                     os.spawnle(
                         os.P_WAIT, sys.executable, sys.executable,
@@ -348,6 +360,33 @@ class Buildout(dict):
             print >>f
             _save_options(part, installed_options[part], f)
         f.close()
+
+    def _error(self, message, *args, **kw):
+        self._logger.error(message, *args, **kw)
+        sys.exit(1)
+
+    def _setup_logging(self):
+        root_logger = logging.getLogger()
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter(self['buildout']['log-format']))
+        root_logger.addHandler(handler)
+        self._logger = logging.getLogger('buildout')
+        level = self['buildout']['log-level']
+        if level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'):
+            level = getattr(logging, level)
+        else:
+            try:
+                level = int(level)
+            except ValueError:
+                self._error("Invalid logging level %s", level)
+        verbosity = self['buildout'].get('verbosity', 0)
+        try:
+            verbosity = int(verbosity)
+        except ValueError:
+            self._error("Invalid verbosity %s", verbosity)
+        
+        root_logger.setLevel(level-verbosity)
+        
         
 def _save_options(section, options, f):
     print >>f, '[%s]' % section
@@ -435,23 +474,47 @@ def _error(*message):
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
-    if args and args[0] == '-c':
-        args.pop(0)
-        if not args:
-            _error("No configuration file specified,")
-        config_file = args.pop(0)
-    else:
-        config_file = 'buildout.cfg'
 
+    config_file = 'buildout.cfg'
+    verbosity = 0
     options = []
-    while args and '=' in args[0]:
-        option, value = args.pop(0).split('=', 1)
-        if len(option.split(':')) != 2:
-            _error('Invalid option:', option)
-        section, option = option.split(':')
-        options.append((section.strip(), option.strip(), value.strip()))
+    while args:
+        if args[0][0] == '-':
+            op = orig_op = args.pop(0)
+            op = op[1:]
+            while op and op[0] in 'vq':
+                if op[0] == 'v':
+                    verbosity += 10
+                else:
+                    verbosity -= 10
+                op = op[1:]
+            if op[:1] == 'c':
+                op = op[1:]
+                if op:
+                    config_file = op
+                else:
+                    if args:
+                        config_file = args.pop(0)
+                    else:
+                        _error("No file name specified for option", orig_op)
+            elif op:
+                _error("Invalid option", '-'+op[0])
+        elif '=' in args[0]:
+            option, value = args.pop(0).split('=', 1)
+            if len(option.split(':')) != 2:
+                _error('Invalid option:', option)
+            section, option = option.split(':')
+            options.append((section.strip(), option.strip(), value.strip()))
+        else:
+            # We've run out of command-line options and option assignnemnts
+            # The rest should be commands, so we'll stop here
+            break
+
+    if verbosity:
+        options.append(('buildout', 'verbosity', str(verbosity)))
 
     buildout = Buildout(config_file, options)
+    buildout._setup_logging()
 
     if args:
         command = args.pop(0)
@@ -460,7 +523,10 @@ def main(args=None):
     else:
         command = 'install'
 
-    getattr(buildout, command)(args)
+    try:
+        getattr(buildout, command)(args)
+    finally:
+        logging.shutdown()
 
 if sys.version_info[:2] < (2, 4):
     def reversed(iterable):
