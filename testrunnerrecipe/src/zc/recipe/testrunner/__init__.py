@@ -29,6 +29,7 @@ class TestRunner:
                                          options.get('script', self.name),
                                          )
         options['_e'] = buildout['buildout']['eggs-directory']
+        options['_d'] = buildout['buildout']['develop-eggs-directory']
 
 
     def install(self):
@@ -39,10 +40,11 @@ class TestRunner:
             ]
         path = zc.buildout.egglinker.path(
             distributions+['zope.testing'],
-            [self.options['_e']],
+            [self.options['_d'], self.options['_e']],
             )
-        locations = [zc.buildout.egglinker.location(distribution,
-                                                    [self.options['_e']])
+        locations = [zc.buildout.egglinker.location(
+                        distribution,
+                        [self.options['_d'], self.options['_e']])
                      for distribution in distributions]
         script = self.options['script']
         open(script, 'w').write(tests_template % dict(

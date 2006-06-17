@@ -32,14 +32,15 @@ installs setuptools and zc.buildout into the checkout as well as any
 parts defined.
 
 We have a sample buildout that has already been created for us.  It
-has the absolute minimum information.  We have bin, eggs and parts
-directories, a configuration file, and an .installed,cfg that contains
-informatiion about previously-installed parts:
+has the absolute minimum information.  We have bin, develop-eggs, eggs
+and parts directories, a configuration file, and an .installed,cfg
+that contains informatiion about previously-installed parts:
     
     >>> ls(sample_buildout)
     -  .installed.cfg
     d  bin
     -  buildout.cfg
+    d  develop-eggs
     d  eggs
     d  parts
 
@@ -53,11 +54,20 @@ but the zc.buildout and setuptools eggs actually live elsewhere.
 
     >>> ls(sample_buildout, 'eggs')
 
-The parts directory is initially empty:
+The develop-eggs and parts directories are initially empty:
 
+    >>> ls(sample_buildout, 'develop-eggs')
     >>> ls(sample_buildout, 'parts')
 
-The parts directory provides an area where recipies can install
+The develop-eggs directory holds egg links for software being
+developed in the buildout.  We separate develop-eggs and other eggs to
+allow eggs directories to be shared accross multiple buildouts.  For
+example, a common developer technique is to define a common eggs
+directory in their home that all non-develop eggs are stored in.  This
+allows larger buildouts to be set up much more quickly and saves disk
+space.
+
+The parts directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would
 install it in the part directory.  Part data is stored in a
 subdirectory of the parts directory with the same name as the part.
@@ -266,6 +276,7 @@ We see that the recipe created the directory, as expected:
     -  .installed.cfg
     d  bin
     -  buildout.cfg
+    d  develop-eggs
     d  eggs
     d  mystuff
     d  parts
@@ -313,6 +324,7 @@ we'll see that the directory gets removed and recreated:
     -  .installed.cfg
     d  bin
     -  buildout.cfg
+    d  develop-eggs
     d  eggs
     d  mydata
     d  parts
@@ -757,6 +769,7 @@ the buildout in the usual way:
     d  d1
     d  d2
     d  d3
+    d  develop-eggs
     -  e1.cfg
     d  eggs
     d  parts
@@ -838,6 +851,7 @@ and run the buildout specifying just d2 and d3:
     d  d2
     d  data3
     d  data4
+    d  develop-eggs
     -  e1.cfg
     d  eggs
     d  parts
@@ -917,6 +931,7 @@ also see that d1 and d2 have gone away:
     d  data2
     d  data3
     d  data4
+    d  develop-eggs
     -  e1.cfg
     d  eggs
     d  parts
@@ -936,10 +951,12 @@ provide alternate locations, and even names for these directories.
     ... [buildout]
     ... develop = recipes
     ... parts = 
+    ... develop-eggs-directory = %(developbasket)s
     ... eggs-directory = %(basket)s
     ... bin-directory = %(scripts)s
     ... parts-directory = %(work)s
     ... """ % dict(
+    ...    developbasket = os.path.join(alt, 'developbasket'),
     ...    basket = os.path.join(alt, 'basket'),
     ...    scripts = os.path.join(alt, 'scripts'),
     ...    work = os.path.join(alt, 'work'),
@@ -949,6 +966,7 @@ provide alternate locations, and even names for these directories.
     buildout: Creating directory /tmp/sample-alt/scripts
     buildout: Creating directory /tmp/sample-alt/work
     buildout: Creating directory /tmp/sample-alt/basket
+    buildout: Creating directory /sample-alt/developbasket
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling d4
     buildout: Uninstalling d3
@@ -957,10 +975,11 @@ provide alternate locations, and even names for these directories.
 
     >>> ls(alt)
     d  basket
+    d  developbasket
     d  scripts
     d  work
 
-    >>> ls(alt, 'basket')    
+    >>> ls(alt, 'developbasket')    
     -  recipes.egg-link
 
     >>> import shutil
@@ -985,15 +1004,17 @@ You can also specify an alternate buildout directory:
     buildout: Creating directory /tmp/sample-alt/bin
     buildout: Creating directory /tmp/sample-alt/parts
     buildout: Creating directory /tmp/sample-alt/eggs
+    buildout: Creating directory /tmp/sample-alt/develop-eggs
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
 
     >>> ls(alt)
     -  .installed.cfg
     d  bin
+    d  develop-eggs
     d  eggs
     d  parts
 
-    >>> ls(alt, 'eggs')    
+    >>> ls(alt, 'develop-eggs')    
     -  recipes.egg-link
 
     >>> import shutil

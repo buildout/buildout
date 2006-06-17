@@ -54,7 +54,7 @@ def system(command, input=''):
 
 def buildoutSetUp(test):
     sample = tempfile.mkdtemp('sample-buildout')
-    for name in ('bin', 'eggs', 'parts'):
+    for name in ('bin', 'eggs', 'develop-eggs', 'parts'):
         os.mkdir(os.path.join(sample, name))
 
     # make sure we can import zc.buildout and setuptools
