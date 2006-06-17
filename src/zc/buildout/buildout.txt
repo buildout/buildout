@@ -1057,3 +1057,4 @@ level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     INFO Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+
