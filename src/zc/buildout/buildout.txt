@@ -102,7 +102,7 @@ and then we'll create a source file for our mkdir recipe:
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py', 
     ... """
-    ... import os
+    ... import logging, os
     ...
     ... class Mkdir:
     ...
@@ -118,7 +118,8 @@ and then we'll create a source file for our mkdir recipe:
     ...     def install(self):
     ...         path = self.options['path']
     ...         if not os.path.isdir(path):
-    ...             print 'Creating directory', os.path.basename(path)
+    ...             logging.getLogger(self.name).info(
+    ...                 'Creating directory %s', os.path.basename(path))
     ...             os.mkdir(path)
     ...         return path
     ... """)
@@ -151,8 +152,7 @@ The install method is responsible for creating the part.  In this
 case, we need the path of the directory to create.  We'll use a
 path option from our options dictionary.
 
-We made the method chatty so that we can observe what it's doing.
-XXX use python logging module!
+The install method logs what it's doing using the Python logging call.
 
 We return the path that we installed.  If the part is unistalled or
 reinstalled, then the path returned will be removed by the buildout
@@ -203,6 +203,7 @@ Now let's update our buildout.cfg:
     ... [buildout]
     ... develop = recipes
     ... parts = data_dir
+    ... log-level = INFO
     ...
     ... [data_dir]
     ... recipe = recipes:mkdir
@@ -232,6 +233,14 @@ use the part name to decide what to do.
 
 ::
 
+    log-level = INFO
+
+The default level is WARNING, which is fairly quite.  In this example,
+we set the level to INFO so we can see more details about what the
+buildout and recipes are doing.
+
+::
+
     [data_dir]
     recipe = recipes:mkdir
     path = mystuff    
@@ -247,7 +256,9 @@ buildout:
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
-    Creating directory mystuff
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Installing data_dir
+    data_dir: Creating directory mystuff
 
 We see that the recipe created the directory, as expected:
 
@@ -285,6 +296,7 @@ we'll see that the directory gets removed and recreated:
     ... [buildout]
     ... develop = recipes
     ... parts = data_dir
+    ... log-level = INFO
     ...
     ... [data_dir]
     ... recipe = recipes:mkdir
@@ -292,7 +304,10 @@ we'll see that the directory gets removed and recreated:
     ... """)
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
-    Creating directory mydata
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling data_dir
+    buildout: Installing data_dir
+    data_dir: Creating directory mydata
 
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -358,6 +373,7 @@ examples:
     ... [buildout]
     ... develop = recipes
     ... parts = data_dir debug
+    ... log-level = INFO
     ...
     ... [debug]
     ... recipe = recipes:debug
@@ -387,7 +403,11 @@ Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
-    Creating directory mydata
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling data_dir
+    buildout: Installing data_dir
+    data_dir: Creating directory mydata
+    buildout: Installing debug
     base var
     file1 mydata/file
     file2 mydata/file.out
@@ -401,6 +421,9 @@ recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Installing data_dir
+    buildout: Installing debug
     base var
     file1 mydata/file
     file2 mydata/file.out
@@ -408,6 +431,9 @@ the buildout:
     recipe recipes:debug
 
 We can see that mydata was not recreated.
+
+Note that, in this vase, we didn't specify a log level, so
+we didn't get output about what the buildout was doing.
 
 Multiple configuration files
 ----------------------------
@@ -615,14 +641,23 @@ Command-line usage
 A number of arguments can be given on the buildout command line.  The
 command usage is::
 
-  buildout [-c file] [options] [command [command arguments]]
+  buildout [-c file] [-q] [-v] [assignments] [command [command arguments]]
 
 The -c option can be used to specify a configuration file, rather than
-buildout.cfg in the current durectory.  Options are of the form::
+buildout.cfg in the current durectory.  
+
+The -q and -v decrement and incremement the verbosity by 10.  The
+verbosity is used to adjust the logging level.  The verbosity is
+subtracted from the numeric value of the log-level option specified in
+the configuration file.
+
+Assignments are of the form::
 
   section_name:option_name=value
 
-for example:
+Options and assignments can be given in any order.
+
+Here's an example:
 
     >>> write(sample_buildout, 'other.cfg',
     ... """
@@ -640,11 +675,32 @@ Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
     
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
-    ...     + ' -c other.cfg debug:op1=foo'),
+    ...     + ' -c other.cfg debug:op1=foo -v'),
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Installing debug
     name other
     op1 foo
     op7 7
     recipe recipes:debug
+
+Here we used the -c option to specify an alternate configuration file, 
+and the -v option to increase the level of logging from the default,
+WARNING.
+
+Options can also be combined in the usual Unix way, as in:
+    
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...     + ' -vcother.cfg debug:op1=foo'),
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Installing debug
+    name other
+    op1 foo
+    op7 7
+    recipe recipes:debug
+
+Here we combined the -v and -c options with the configuration file
+name.  Note that the -c option has to be last, because it takes an
+argument.
 
     >>> os.remove(os.path.join(sample_buildout, 'other.cfg'))
     >>> os.remove(os.path.join(sample_buildout, '.other.cfg'))
@@ -677,13 +733,19 @@ the buildout in the usual way:
     ... recipe = recipes:debug
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    buildout: Running /sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling debug
+    buildout: Installing debug
     op1 1
     op7 7
     recipe recipes:debug
-    Creating directory d1
-    Creating directory d2
-    Creating directory d3
+    buildout: Installing d1
+    d1: Creating directory d1
+    buildout: Installing d2
+    d2: Creating directory d2
+    buildout: Installing d3
+    d3: Creating directory d3
     
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -756,10 +818,14 @@ Now we'll update our configuration file:
 
 and run the buildout specifying just d2 and d3:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout' + ' -v')
     ...              + ' install d3 d4'),
-    Creating directory data3
-    Creating directory data4
+    buildout: Running /sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling d3
+    buildout: Installing d3
+    d3: Creating directory data3
+    buildout: Installing d4
+    d4: Creating directory data4
     
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -821,14 +887,22 @@ Note that the installed data for debug, d1, and d2 haven't changed,
 because we didn't install those parts and that the d1 and d2
 directories are still there.
 
-Now, if we run the buildout without arguments:
+Now, if we run the buildout without the install command:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    buildout: Running /sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling d1
+    buildout: Uninstalling d2
+    buildout: Uninstalling debug
+    buildout: Installing debug
     op1 1
     op7 7
     recipe recipes:debug
     x 1
-    Creating directory data2
+    buildout: Installing d2
+    d2: Creating directory data2
+    buildout: Installing d3
+    buildout: Installing d4
 
 We see the output of the debug recipe and that data2 was created.  We
 also see that d1 and d2 have gone away:
@@ -855,7 +929,7 @@ The buildout normally puts the bin, eggs, and parts directories in the
 directory in the directory containing the configuration file. You can
 provide alternate locations, and even names for these directories.
 
-    >>> alt = tempfile.mkdtemp()
+    >>> alt = tempfile.mkdtemp('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -871,7 +945,15 @@ provide alternate locations, and even names for these directories.
     ...    work = os.path.join(alt, 'work'),
     ... ))
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    buildout: Creating directory /tmp/sample-alt/scripts
+    buildout: Creating directory /tmp/sample-alt/work
+    buildout: Creating directory /tmp/sample-alt/basket
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
+    buildout: Uninstalling d4
+    buildout: Uninstalling d3
+    buildout: Uninstalling d2
+    buildout: Uninstalling debug
 
     >>> ls(alt)
     d  basket
@@ -886,7 +968,7 @@ provide alternate locations, and even names for these directories.
 
 You can also specify an alternate buildout directory:
 
-    >>> alt = tempfile.mkdtemp()
+    >>> alt = tempfile.mkdtemp('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -899,7 +981,11 @@ You can also specify an alternate buildout directory:
     ...    recipes=os.path.join(sample_buildout, 'recipes'),
     ...    ))
  
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    buildout: Creating directory /tmp/sample-alt/bin
+    buildout: Creating directory /tmp/sample-alt/parts
+    buildout: Creating directory /tmp/sample-alt/eggs
+    buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
 
     >>> ls(alt)
     -  .installed.cfg
@@ -912,3 +998,41 @@ You can also specify an alternate buildout directory:
 
     >>> import shutil
     >>> shutil.rmtree(alt)
+
+Logging control
+---------------
+
+Three buildout options are used to control logging:
+
+log-level 
+   specifies the log level
+
+verbosity 
+   adjusts the log level
+
+log-format
+   allows an alternate logging for mat to be specified
+
+We've already seen the log level and verbosity.  Let's look at an example
+of changing the format:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts =
+    ... log-level = 25
+    ... verbosity = 5
+    ... log-format = %%(levelname)s %%(message)s
+    ... """)
+ 
+Here, we've changed the format to include the log-level name, rather
+than the logger name.  
+
+We've also illustrated, with a contrived example, that the log level
+can be a numeric value and that the verbosity can be specified in the
+configuration file.  Because the verbosoty is subtracted from the log
+level, we get a final log level of 20, which is the INFO level.
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    INFO Running /tmp/sample-buildout/recipes/setup.py -q develop ...

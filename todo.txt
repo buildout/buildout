@@ -24,8 +24,6 @@
 
 - Local download cache
 
-- Logging
-
 - Some way to freeze versions so we can have reproducable buildouts.
 
 - Part dependencies
