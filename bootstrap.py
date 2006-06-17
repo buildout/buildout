@@ -18,7 +18,7 @@ $Id$
 
 import os, sys, urllib2
 
-for d in 'eggs', 'bin':
+for d in 'eggs', 'develop-eggs', 'bin':
     if not os.path.exists(d):
         os.mkdir(d)
 
@@ -52,7 +52,7 @@ os.spawnle(os.P_WAIT, sys.executable, sys.executable, 'setup.py',
 ## easy.finalize_options()
 ## easy.easy_install('zc.buildout')
 
-env = pkg_resources.Environment(['eggs'])
+env = pkg_resources.Environment(['develop-eggs', 'eggs'])
 
 ws = pkg_resources.WorkingSet()
 sys.path[0:0] = [
