@@ -22,8 +22,6 @@
 
 - Offline mode
 
-- Local download cache
-
 - Some way to freeze versions so we can have reproducable buildouts.
 
 - Part dependencies
