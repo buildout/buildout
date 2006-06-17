@@ -89,7 +89,8 @@ def test_suite():
                 r'/sample-\1/\3'),
                (re.compile('\S+sample-(\w+)'),
                 r'/sample-\1/\3'),
-                ])
+               (re.compile('executable = \S+python\S*'), 'executable = python'),
+               ])
             ),
         doctest.DocFileSuite(
             'egglinker.txt', 'easy_install.txt', 
