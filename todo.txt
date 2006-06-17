@@ -2,10 +2,6 @@
 
 - Load from urls
 
-- Python discovery support
-
-  (Perhaps this is best handled by DEFAULT section.
-
 - Common recipes
 
   - configure-make-make-install
@@ -32,8 +28,7 @@
 
 Issues
 
-- Want to be able to control whether eggs get unzipped when they ae
-  installed. This isn't so hard if you do it from the beginning, but
-  it's hard to change your mind.  easy_install won;t want to reinstall
-  an egg that's already installed, unless it does, at which point it
-  gets rather confused. :)
+- Want to be able to control whether eggs get unzipped when they are
+  installed.  This requires looking at a distribution after it's 
+  installed and unzipping it if it's zipped.
+ 
