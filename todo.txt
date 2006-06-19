@@ -8,7 +8,7 @@
 
   - download, checkout
 
-  - Should ot be possible to provide multiple recipies?
+  - Should it be possible to provide multiple recipies?
     Or should recipies be combined through inheritence (or
     composition)?
 
@@ -20,11 +20,24 @@
 
 - Some way to freeze versions so we can have reproducable buildouts.
 
+  Maybe simple approach:
+
+  - Egg recipe outputs dependency info with debug logging
+
+  - Egg recipe has option to specify dependencies.  When used, 
+    don't automatically fetch newer data.
+
 - Part dependencies
 
 - custom uninstall
 
+- Fix develop so thet ordinary eggs fetched as dependencies end up
+  in eggs directory.
+
 - spelling :)
+
+- document recipe initialization order
+
 
 Issues
 
