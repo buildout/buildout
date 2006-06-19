@@ -17,9 +17,13 @@ We have a directory with some sample eggs in it:
 
     >>> ls(sample_eggs)
     -  demo-0.1-py2.3.egg
+    -  demo-0.1-py2.4.egg
     -  demo-0.2-py2.3.egg
+    -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.3.egg
+    -  demo-0.3-py2.4.egg
     -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.0-py2.4.egg
 
 The demo package depends on the demoneeded package.
 
@@ -66,8 +70,8 @@ The demo script run the entry point defined in the demo egg:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/tmpuR5-n7eggtest/dist/demo-0.1-py2.3.egg',
-      '/tmp/tmpuR5-n7eggtest/dist/demoneeded-1.0-py2.3.egg'
+      '/tmp/xyzsample-eggs/demo-0.1-py2.3.egg',
+      '/tmp/xyzsample-eggs/demoneeded-1.0-py2.3.egg'
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -90,8 +94,8 @@ the path set:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/tmpuR5-n7eggtest/dist/demo-0.1-py2.3.egg',
-      '/tmp/tmpuR5-n7eggtest/dist/demoneeded-1.0-py2.3.egg'
+      '/tmp/xyzsample-eggs/demo-0.1-py2.3.egg',
+      '/tmp/xyzsample-eggs/demoneeded-1.0-py2.3.egg'
       ]
 
 An additional argumnet can be passed to define which scripts to install
@@ -112,8 +116,6 @@ original script names to new script names.
     >>> print system(os.path.join(bin, 'run')),
     1 1
 
-    >>> shutil.rmtree(bin)
-
 Sometimes we need more control over script generation.  Some
 lower-level APIs are available to help us generate scripts ourselves.
 These apis are a little bit higher level than those provided by
@@ -124,15 +126,15 @@ of requirements from a sequence of egg directories:
 
     >>> zc.buildout.egglinker.path(['demo==0.1'], [sample_eggs])
     ... # doctest: +NORMALIZE_WHITESPACE
-    ['/tmp/tmpQeJjpkeggtest/dist/demo-0.1-py2.4.egg', 
-     '/tmp/tmpQeJjpkeggtest/dist/demoneeded-1.0-py2.4.egg']
+    ['/tmp/xyzsample-eggs/demo-0.1-py2.3.egg', 
+     '/tmp/xyzsample-eggs/demoneeded-1.0-py2.3.egg']
 
 
 The location method returns the distribution location for an egg that
 satisfies a requirement:
 
     >>> zc.buildout.egglinker.location('demo==0.1', [sample_eggs])
-    '/tmp/tmpQeJjpkeggtest/dist/demo-0.1-py2.4.egg'
+    '/tmp/xyzsample-eggs/demo-0.1-py2.3.egg'
 
 The distributions function can retrieve a list of distributions found
 ineg directories that match a sequence of requirements:
@@ -140,4 +142,74 @@ ineg directories that match a sequence of requirements:
     >>> [(d.project_name, d.version) for d in 
     ...  zc.buildout.egglinker.distributions(['demo==0.1'], [sample_eggs])]
     [('demo', '0.1'), ('demoneeded', '1.0')]
+
+Using a custom Python interpreter
+---------------------------------
+
+You can pass an executable argument to egglinker methods:
+
+    >>> scripts = zc.buildout.egglinker.scripts(
+    ...      ['demo==0.1'], bin, [sample_eggs], 
+    ...       executable=python2_3_executable)
+
+    >>> f = open(os.path.join(bin, 'demo'))
+    >>> f.readline().strip() == '#!' + python2_3_executable
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/sample-eggs/dist/demo-0.1-py2.3.egg',
+      '/tmp/sample-eggs/dist/demoneeded-1.0-py2.3.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+    >>> zc.buildout.egglinker.path(['demo==0.1'], [sample_eggs], 
+    ...                            python2_3_executable)
+    ... # doctest: +NORMALIZE_WHITESPACE
+    ['/tmp/sample-eggs/dist/demo-0.1-py2.3.egg', 
+     '/tmp/sample-eggs/dist/demoneeded-1.0-py2.3.egg']
+
+
+    >>> zc.buildout.egglinker.location('demo==0.1', [sample_eggs],
+    ...                                python2_3_executable)
+    '/tmp/sample-eggs/demo-0.1-py2.3.egg'
+
+    >>> [(d.project_name, d.version) for d in 
+    ...  zc.buildout.egglinker.distributions(
+    ...      ['demo==0.1'], [sample_eggs], python2_3_executable)]
+    [('demo', '0.1'), ('demoneeded', '1.0')]
+
+
+    >>> scripts = zc.buildout.egglinker.scripts(
+    ...      ['demo==0.1'], bin, [sample_eggs], 
+    ...       executable=python2_4_executable)
+
+    >>> f = open(os.path.join(bin, 'demo'))
+    >>> f.readline().strip() == '#!' + python2_4_executable
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/sample-eggs/dist/demo-0.1-py2.4.egg',
+      '/tmp/sample-eggs/dist/demoneeded-1.0-py2.4.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+    >>> zc.buildout.egglinker.path(['demo==0.1'], [sample_eggs], 
+    ...                            python2_4_executable)
+    ... # doctest: +NORMALIZE_WHITESPACE
+    ['/tmp/sample-eggs/dist/demo-0.1-py2.4.egg', 
+     '/tmp/sample-eggs/dist/demoneeded-1.0-py2.4.egg']
+
+    >>> shutil.rmtree(bin)
 

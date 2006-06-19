@@ -25,28 +25,44 @@ $Id$
 # XXX need to deal with extras
 
 import os
+import re
 import sys
 
 import pkg_resources
 
-def distributions(reqs, eggss):
-    env = pkg_resources.Environment(eggss)
+_versions = {sys.executable: '%d.%d' % sys.version_info[:2]}
+def _get_version(executable):
+    try:
+        return _versions[executable]
+    except KeyError:
+        i, o = os.popen4(executable + ' -V')
+        i.close()
+        version = o.read().strip()
+        o.close()
+        pystring, version = version.split()
+        assert pystring == 'Python'
+        version = re.match('(\d[.]\d)[.]\d$', version).group(1)
+        _versions[executable] = version
+        return version
+
+def distributions(reqs, eggss, executable=sys.executable):
+    env = pkg_resources.Environment(eggss, python=_get_version(executable))
     ws = pkg_resources.WorkingSet()
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
     return ws.resolve(reqs, env=env)
 
-def path(reqs, eggss):
-    dists = distributions(reqs, eggss)
+def path(reqs, eggss, executable=sys.executable):
+    dists = distributions(reqs, eggss, executable)
     return [dist.location for dist in dists]
 
-def location(spec, eggss):
-    env = pkg_resources.Environment(eggss)
+def location(spec, eggss, executable=sys.executable):
+    env = pkg_resources.Environment(eggss, python=_get_version(executable))
     req = pkg_resources.Requirement.parse(spec)
     dist = env.best_match(req, pkg_resources.WorkingSet())
     return dist.location    
 
-def scripts(reqs, dest, eggss, scripts=None):
-    dists = distributions(reqs, eggss)
+def scripts(reqs, dest, eggss, scripts=None, executable=sys.executable):
+    dists = distributions(reqs, eggss, executable)
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
     projects = [r.project_name for r in reqs]
     path = "',\n  '".join([dist.location for dist in dists])
@@ -64,7 +80,7 @@ def scripts(reqs, dest, eggss, scripts=None):
 
                 sname = os.path.join(dest, sname)
                 generated.append(sname)
-                _script(dist, 'console_scripts', name, path, sname)
+                _script(dist, 'console_scripts', name, path, sname, executable)
 
             name = 'py_'+dist.project_name
             if scripts is not None:
@@ -75,14 +91,14 @@ def scripts(reqs, dest, eggss, scripts=None):
             if sname is not None:
                 sname = os.path.join(dest, sname)
                 generated.append(sname)
-                _pyscript(path, sname)
+                _pyscript(path, sname, executable)
 
     return generated
 
-def _script(dist, group, name, path, dest):
+def _script(dist, group, name, path, dest, executable):
     entry_point = dist.get_entry_info(group, name)
     open(dest, 'w').write(script_template % dict(
-        python = sys.executable,
+        python = executable,
         path = path,
         project = dist.project_name,
         name = name,
@@ -109,9 +125,9 @@ if __name__ == '__main__':
 '''
 
 
-def _pyscript(path, dest):
+def _pyscript(path, dest, executable):
     open(dest, 'w').write(py_script_template % dict(
-        python = sys.executable,
+        python = executable,
         path = path,
         ))
     try:
