@@ -11,12 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""XXX short summary goes here.
+"""Various test-support utility functions
 
 $Id$
 """
 
-import os, re, shutil, sys, tempfile, unittest
+import ConfigParser, os, re, shutil, sys, tempfile, unittest
 from zope.testing import doctest, renormalizing
 import pkg_resources
 
@@ -52,10 +52,11 @@ def system(command, input=''):
     i.close()
     return o.read()
 
-def buildoutSetUp(test):
-    # we both need to make sure that HOME isn't set and be prepared
-    # to restore whatever it was after the test.
-    test.globs['_oldhome'] = os.environ.pop('HOME', None)
+def buildoutSetUp(test, clear_home=True):
+    if clear_home:
+        # we both need to make sure that HOME isn't set and be prepared
+        # to restore whatever it was after the test.
+        test.globs['_oldhome'] = os.environ.pop('HOME', None)
 
     sample = tempfile.mkdtemp('sample-buildout')
     for name in ('bin', 'eggs', 'develop-eggs', 'parts'):
@@ -96,7 +97,7 @@ def buildoutSetUp(test):
 def buildoutTearDown(test):
     shutil.rmtree(test.globs['sample_buildout'])
     os.chdir(test.globs['__original_wd__'])
-    if test.globs['_oldhome'] is not None:
+    if test.globs.get('_oldhome') is not None:
         os.environ['HOME'] = test.globs['_oldhome']
 
 
@@ -110,12 +111,12 @@ from pkg_resources import load_entry_point
 sys.exit(load_entry_point('zc.buildout', 'console_scripts', 'buildout')())
 '''
 
-def runsetup(d):
+def runsetup(d, executable):
     here = os.getcwd()
     try:
         os.chdir(d)
         os.spawnle(
-            os.P_WAIT, sys.executable, sys.executable,
+            os.P_WAIT, executable, executable,
             'setup.py', '-q', 'bdist_egg',
             {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
             )
@@ -123,20 +124,25 @@ def runsetup(d):
     finally:
         os.chdir(here)
 
-def create_sample_eggs(test):
-    sample = tempfile.mkdtemp('sample-eggs')
-    test.globs['_sample_eggs_container'] = sample
-    test.globs['sample_eggs'] = os.path.join(sample, 'dist')
-    write(sample, 'README.txt', '')
+def create_sample_eggs(test, executable=sys.executable):
+    if '_sample_eggs_container' in test.globs:
+        sample = test.globs['_sample_eggs_container']
+    else:
+        sample = tempfile.mkdtemp('sample-eggs')
+        test.globs['_sample_eggs_container'] = sample
+        test.globs['sample_eggs'] = os.path.join(sample, 'dist')
+        write(sample, 'README.txt', '')
+
     write(sample, 'eggrecipedemobeeded.py', 'y=1\n')
     write(
         sample, 'setup.py',
         "from setuptools import setup\n"
         "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
         " zip_safe=True, version='1.0')\n"
-        )
-    runsetup(sample)
+        )        
+    runsetup(sample, executable)
     os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
+
     for i in (1, 2, 3):
         write(
             sample, 'eggrecipedemo.py',
@@ -152,4 +158,17 @@ def create_sample_eggs(test):
             " entry_points={'console_scripts': ['demo = eggrecipedemo:main']},"
             " zip_safe=True, version='0.%s')\n" % i
             )
-        runsetup(sample)
+        runsetup(sample, executable)
+
+def multi_python(test):
+    defaults = ConfigParser.RawConfigParser()
+    defaults.readfp(open(os.path.join(os.environ['HOME'],
+                                      '.buildout', 'default.cfg')))
+    p23 = defaults.get('python2.3', 'executable')
+    p24 = defaults.get('python2.4', 'executable')
+    create_sample_eggs(test, executable=p23)
+    create_sample_eggs(test, executable=p24)
+    test.globs['python2_3_executable'] = p23
+    test.globs['python2_4_executable'] = p24
+    
+    

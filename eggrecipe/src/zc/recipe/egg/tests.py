@@ -26,14 +26,22 @@ def dirname(d, level=1):
 def setUp(test):
     zc.buildout.testing.buildoutSetUp(test)
     open(os.path.join(test.globs['sample_buildout'],
-                      'eggs', 'zc.recipe.egg.egg-link'),
+                      'develop-eggs', 'zc.recipe.egg.egg-link'),
          'w').write(dirname(__file__, 4))
     zc.buildout.testing.create_sample_eggs(test)
         
 def tearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
+
+def setUpPython(test):
+    zc.buildout.testing.buildoutSetUp(test, clear_home=False)
     
+    open(os.path.join(test.globs['sample_buildout'],
+                      'develop-eggs', 'zc.recipe.egg.egg-link'),
+         'w').write(dirname(__file__, 4))
+
+    zc.buildout.testing.multi_python(test)
 
 def test_suite():
     return unittest.TestSuite((
@@ -49,7 +57,15 @@ def test_suite():
                 '\\2-VVV-egg')
                ])
             ),
-        
+        doctest.DocFileSuite(
+            'selecting-python.txt',
+            setUp=setUpPython, tearDown=tearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
+                r'/sample-\1/\2'),
+               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
+               ]),
+            ),        
         ))
 
 if __name__ == '__main__':

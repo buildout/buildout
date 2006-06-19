@@ -16,7 +16,7 @@
 $Id$
 """
 
-import os
+import os, zipfile
 import zc.buildout.egglinker
 import zc.buildout.easy_install
 
@@ -41,12 +41,20 @@ class Egg:
         options['_e'] = buildout['buildout']['eggs-directory']
         options['_d'] = buildout['buildout']['develop-eggs-directory']
 
+        assert options.get('unzip') in ('true', 'false', None)
+
+        python = options.get('python', buildout['buildout']['python'])
+        options['executable'] = buildout[python]['executable']
+
     def install(self):
         options = self.options
         distribution = options.get('distribution', self.name)
+        
         zc.buildout.easy_install.install(
-            distribution, options['_e'], self.links)
+            distribution, options['_e'], self.links, options['executable'],
+            always_unzip=options.get('unzip') == 'true')
 
+        eggss = [options['_d'], options['_e']]                    
         scripts = options.get('scripts')
         if scripts or scripts is None:
             if scripts is not None:
@@ -56,6 +64,6 @@ class Egg:
                     for s in scripts
                     ])
             return zc.buildout.egglinker.scripts(
-                [distribution],
-                options['_b'], [options['_d'], options['_e']], scripts=scripts)
-            
+                [distribution], options['_b'], eggss,
+                scripts=scripts, executable=options['executable'])
+

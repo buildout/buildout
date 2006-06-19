@@ -22,11 +22,16 @@ $Id$
 
 import os, sys
 
-def install(spec, dest, links, python=sys.executable):
+def install(spec, dest, links, executable=sys.executable, always_unzip=False):
     prefix = sys.exec_prefix + os.path.sep
     path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
-    os.spawnle(
-        os.P_WAIT, python, python,
+    args = (
         '-c', 'from setuptools.command.easy_install import main; main()',
-        '-mqxd', dest, '-f', ' '.join(links), spec,
-        dict(PYTHONPATH=path))
+        '-mqxd', dest)
+    if links:
+        args += ('-f', ' '.join(links))
+    if always_unzip:
+        args += ('-Z', )
+    args += (spec, dict(PYTHONPATH=path))
+    
+    os.spawnle(os.P_WAIT, executable, executable, *args)

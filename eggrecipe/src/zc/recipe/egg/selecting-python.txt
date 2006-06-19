@@ -1,0 +1,143 @@
+Controlling which Python to use
+-------------------------------
+
+The following assumes that your $HOME/.buildout/default.cfg has
+python2.3 and python2.4 sections that define Python 2.3 and Python 2.4
+executables.
+
+We can specify the python to use by specifying the name of a section
+to read the Python executable from.  The default is the section
+defined by the python buildout option.
+
+We have a directory with some sample eggs:
+
+    >>> ls(sample_eggs)
+    -  demo-0.1-py2.3.egg
+    -  demo-0.1-py2.4.egg
+    -  demo-0.2-py2.3.egg
+    -  demo-0.2-py2.4.egg
+    -  demo-0.3-py2.3.egg
+    -  demo-0.3-py2.4.egg
+    -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.0-py2.4.egg
+
+We have a sample buildout.  Let's update it's configuration file to
+install the demo package using Python 2.3. 
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ... eggs-directory = eggs
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo <0.3
+    ... find-links = %s
+    ... python = python2.3
+    ... """ % sample_eggs)
+
+In our default.cfg file in the .buildout subdirectiry of our
+directory, we have something like::
+
+    [python2.3]
+    executable = /usr/bin/python
+
+    [python2.4]
+    executable = /usr/local/bin/python2.4
+
+(Of course, the paths will vary from system to system.)
+
+Now, if we run the buildout:
+
+    >>> import os
+    >>> os.chdir(sample_buildout)
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(buildout),
+
+we'll get the Python 2.3 eggs for demo and demoneeded:
+
+    >>> ls(sample_buildout, 'eggs')
+    -  demo-0.2-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
+ 
+And the generated scripts invoke Python 2.3:
+
+    >>> f = open(os.path.join(sample_buildout, 'bin', 'demo'))
+    >>> f.readline().strip() == '#!' + python2_3_executable
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.0-py2.3.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+    >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
+    >>> f.readline().strip() == '#!' + python2_3_executable + ' -i'
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/tmpOBTxDMsample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/tmp/tmpOBTxDMsample-buildout/eggs/demoneeded-1.0-py2.3.egg'
+      ]
+
+If we change the Python version to 2.4, we'll use Python 2.4 eggs:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ... eggs-directory = eggs
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... distribution = demo <0.3
+    ... find-links = %s
+    ... python = python2.4
+    ... """ % sample_eggs)
+
+    >>> print system(buildout),
+
+    >>> ls(sample_buildout, 'eggs')
+    -  demo-0.2-py2.3.egg
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.0-py2.4.egg
+
+    >>> f = open(os.path.join(sample_buildout, 'bin', 'demo'))
+    >>> f.readline().strip() == '#!' + python2_4_executable
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.0-py2.4.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+    >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
+    >>> f.readline().strip() == '#!' + python2_4_executable + ' -i'
+    True
+    >>> print f.read(),
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/tmpOBTxDMsample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/tmp/tmpOBTxDMsample-buildout/eggs/demoneeded-1.0-py2.4.egg'
+      ]
+
+

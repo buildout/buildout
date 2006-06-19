@@ -64,8 +64,8 @@ It is an error to create a variable-reference cycle:
 '''    
 
 def linkerSetUp(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    zc.buildout.testing.create_sample_eggs(test)
+    zc.buildout.testing.buildoutSetUp(test, clear_home=False)
+    zc.buildout.testing.multi_python(test)
         
 def linkerTearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
@@ -75,6 +75,61 @@ def buildoutTearDown(test):
     shutil.rmtree(test.globs['extensions'])
     shutil.rmtree(test.globs['home'])
     zc.buildout.testing.buildoutTearDown(test)
+
+
+class PythonNormalizing(renormalizing.RENormalizing):
+
+    def _transform(self, want, got):
+        if '/xyzsample-eggs/' in want:
+            got = got.replace('-py2.4.egg', '-py2.3.egg')
+            firstg = got.split('\n')[0]
+            firstw = want.split('\n')[0]
+            if firstg.startswith('#!') and firstw.startswith('#!'):
+                firstg = ' '.join(firstg.split()[1:])
+                got = firstg + '\n' + '\n'.join(got.split('\n')[1:])
+                firstw = ' '.join(firstw.split()[1:])
+                want = firstw + '\n' + '\n'.join(want.split('\n')[1:])
+        
+        for pattern, repl in self.patterns:
+            want = pattern.sub(repl, want)
+            got = pattern.sub(repl, got)
+
+        return want, got
+
+    def check_output(self, want, got, optionflags):
+        if got == want:
+            return True
+
+        want, got = self._transform(want, got)
+        if got == want:
+            return True
+            
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+    def output_difference(self, example, got, optionflags):
+
+        want = example.want
+
+        # If want is empty, use original outputter. This is useful
+        # when setting up tests for the first time.  In that case, we
+        # generally use the differencer to display output, which we evaluate
+        # by hand.
+        if not want.strip():
+            return doctest.OutputChecker.output_difference(
+                self, example, got, optionflags)
+
+        # Dang, this isn't as easy to override as we might wish
+        original = want
+        want, got = self._transform(want, got)
+
+        # temporarily hack example with normalized want:
+        example.want = want
+        result = doctest.OutputChecker.output_difference(
+            self, example, got, optionflags)
+        example.want = original
+
+        return result
+
     
 def test_suite():
     return unittest.TestSuite((
@@ -86,22 +141,23 @@ def test_suite():
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
-                r'/sample-\1/\3'),
-               (re.compile('\S+sample-(\w+)'),
-                r'/sample-\1/\3'),
-               (re.compile('executable = \S+python\S*'), 'executable = python'),
+                r'/sample-\1/\2'),
+               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
+               (re.compile('executable = \S+python\S*'),
+                'executable = python'),
                ])
             ),
+        
         doctest.DocFileSuite(
             'egglinker.txt', 'easy_install.txt', 
             setUp=linkerSetUp, tearDown=linkerTearDown,
-            checker=renormalizing.RENormalizing([
-               (re.compile('(\S+[/%(sep)s]| )'
-                           '(\\w+-)[^ \t\n%(sep)s/]+.egg'
-                           % dict(sep=os.path.sep)
-                           ),
-                '\\2-VVV-egg'),
-               (re.compile('\S+%spython(\d.\d)?' % os.path.sep), 'python')
+
+            checker=PythonNormalizing([
+               (re.compile("'%(sep)s\S+sample-eggs%(sep)s(dist%(sep)s)?"
+                           % dict(sep=os.path.sep)),
+                '/sample-eggs/'),
+               (re.compile("(-  demo(needed)?-\d[.]\d-py)\d[.]\d[.]egg"),
+                '\\1V.V.egg'),
                ]),
             ),
         doctest.DocTestSuite(

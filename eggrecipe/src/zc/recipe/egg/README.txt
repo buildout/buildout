@@ -1,7 +1,7 @@
 Installation of distributions as eggs
 =====================================
 
-The zc.recipe.egg ewcipe can be used to install various types if
+The zc.recipe.egg recipe can be used to install various types if
 distutils distributions as eggs.  It takes a number of options:
 
 distribution
@@ -13,6 +13,18 @@ distribution
 
 find-links
    A list of URLs, files, or directories to search for distributions.
+
+python
+   The name of a section to get the Python executable from.
+   If not specified, then the buildout python option is used.  The
+   Python executable is found in the executable option of the named
+   section. 
+
+unzip
+   The value of this option must be either true or false. If the value
+   is true, then the installed egg will be unzipped. Note that this is
+   only effective when an egg is installed.  If a zipped egg already 
+   exists in the eggs directory, it will not be unzipped.
 
 To illustrate this, we've created a directory with some sample eggs:
 
@@ -51,7 +63,6 @@ Now, if we look at the buildout eggs directory:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     -  demoneeded-1.0-py2.3.egg
-    -  zc.recipe.egg.egg-link
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, wich demo requires.  (We also see an egg
@@ -94,7 +105,7 @@ the bits if the path added to reflect the eggs:
     <BLANKLINE>
 
 The recipe gets the most recent distribution that satisfies the
-specification. For example, if we remove the restriction on demo:
+specification. For example, We remove the restriction on demo:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -104,9 +115,11 @@ specification. For example, if we remove the restriction on demo:
     ... [demo]
     ... recipe = zc.recipe.egg
     ... find-links = %s
+    ... unzip = true
     ... """ % sample_eggs)
 
-and rerun the buildout:
+We also used the unzip uption to request a directory, rather than
+a zip file.
 
     >>> print system(runscript),
 
@@ -114,9 +127,8 @@ Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
-    -  demo-0.3-py2.3.egg
+    d  demo-0.3-py2.3.egg
     -  demoneeded-1.0-py2.3.egg
-    -  zc.recipe.egg.egg-link
 
 Note that we removed the distribution option, and the distribution
 defaulted to the part name.
@@ -150,7 +162,6 @@ arguments:
 
 You can also control the name used for scripts:
 
-
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
@@ -167,3 +178,4 @@ You can also control the name used for scripts:
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  foo
+
