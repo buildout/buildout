@@ -2,64 +2,263 @@ Minimal Python interface to easy_install
 ========================================
 
 The easy_install module provides a minimal interface to the setuptools
-easy_install command.  This API is likely to grow, although I hope
-that it will ultimately be replaced by a setuptools-provided API.
+easy_install command that provides some additional semantics:
+
+- By default, we look for new packages *and* the packages that
+  they depend on.  This is somewhat like (and uses) the --upgrade
+  option of easy_install, except that we also upgrade required
+  packages. 
+
+- If the highest-revision package satisfying a specification is
+  already present, then we don't try to get another one.  This saves a
+  lot of search time in the common case that packages are pegged to
+  specific versions.
+
+- If there is a develop egg that satisfies a requirement, we don't
+  look for additional distributions.  We always give preference to
+  develop eggs.
 
 The easy_install module provides a single method, install.  The
-install function takes 3 arguments:
+install function takes 2 positional arguments:
 
-- A setuptools requirement specification for a distribution to be
-  installed, 
+- An iterable of setuptools requirement strings for the distributions
+  to be installed, and
 
-- A destination egg directory to install to and to satisfy
-  requirements from, and
+- A destination directory to install to and to satisfy
+  requirements from.
 
-- a sequence of lications to look for distributions.
+It supports a number of optional keyword arguments:
 
-For example, given the sample eggs:
+links
+   a sequence of URLs, file names, or directories to look for
+   links to distributions,
 
-    >>> ls(sample_eggs)
-    -  demo-0.1-py2.3.egg
-    -  demo-0.1-py2.4.egg
-    -  demo-0.2-py2.3.egg
-    -  demo-0.2-py2.4.egg
-    -  demo-0.3-py2.3.egg
-    -  demo-0.3-py2.4.egg
-    -  demoneeded-1.0-py2.3.egg
-    -  demoneeded-1.0-py2.4.egg
+index
+   The URL of an index server, or almost any other valid URL. :)
 
-let's make directory and install the demo egg to it:
+   If not specified, the Python Package Index,
+   http://cheeseshop.python.org/pypi, is used.  You can specify an
+   alternate index with this option.  If you use the links option and
+   if the links point to the needed distributions, then the index can
+   be anything and will be largely ignored.  In the examples, here,
+   we'll just point to an empty directory on our link server.  This 
+   will make our examples run a little bit faster.
+
+executable
+   A path to a Python executable.  Distributions will ne installed
+   using this executable and will be for the matching Python version.
+
+path
+   A list of additional directories to search for locally-installed
+   distributions.
+
+always_unzip
+   A flag indicating that newly-downloaded distributions should be
+   directories even if they could be installed as zip files.
+
+The install method returns a working set containing the distributions
+needed to meet the given requirements.
+
+We have a link server that has a number of eggs:
+
+    >>> print get(link_server),
+    <html><body>
+    <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
+    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
+    <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
+    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
+    <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
+    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
+    <a href="demoneeded-1.0-py2.3.egg">demoneeded-1.0-py2.3.egg</a><br>
+    <a href="demoneeded-1.0-py2.4.egg">demoneeded-1.0-py2.4.egg</a><br>
+    <a href="demoneeded-1.1-py2.3.egg">demoneeded-1.1-py2.3.egg</a><br>
+    <a href="demoneeded-1.1-py2.4.egg">demoneeded-1.1-py2.4.egg</a><br>
+    <a href="index/">index/</a><br>
+    <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
+    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    </body></html>
+
+let's make directory and install the demo egg to it, using the demo:
 
     >>> import tempfile
-    >>> dest = tempfile.mkdtemp()
+    >>> dest = tempfile.mkdtemp('sample-install')
     >>> import zc.buildout.easy_install
-    >>> zc.buildout.easy_install.install('demo', dest, [sample_eggs])
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], dest,
+    ...     links=[link_server], index=link_server+'index/')
+    
+We requested version 0.2 of the demo distribution to be installed into
+the destination server.  We specified that we should search for links
+on the link server and that we should use the (empty) link server 
+index directory as a package index.
+
+The working set contains the distributions we retrieved.
+
+    >>> for dist in ws:
+    ...     print dist
+    demo 0.2
+    demoneeded 1.1
+
+And the actual eggs were added to the eggs directory.
+
     >>> ls(dest)
+    -  demo-0.2-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
+
+If we ask for the demo distribution without a version restriction,
+we'll get the newer version:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
+    >>> ls(dest)
+    -  demo-0.2-py2.3.egg
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
+
+We can supply additional distributions.  We can also supply
+specifications for distributions that would normally be found via
+dependencies.  We might do this to specify a sprcific version.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo', 'other', 'demoneeded==1.0'], dest,
+    ...     links=[link_server], index=link_server+'index/')
+
+    >>> for dist in ws:
+    ...     print dist
+    demo 0.3
+    other 1.0
+    demoneeded 1.0
+
+    >>> ls(dest)
+    -  demo-0.2-py2.3.egg
     -  demo-0.3-py2.3.egg
     -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
+    -  other-1.0-py2.3.egg
 
 We can specify an alternate Python executable, and we can specify
 that, when we retrieve (or create) an egg, it should be unzipped.
 
     >>> import shutil
     >>> shutil.rmtree(dest)
-    >>> dest = tempfile.mkdtemp()
-    >>> zc.buildout.easy_install.install(
-    ...     'demo', dest, [sample_eggs],
+    >>> dest = tempfile.mkdtemp('sample-install')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     always_unzip=True, executable= python2_3_executable)
 
     >>> ls(dest)
     d  demo-0.3-py2.3.egg
-    d  demoneeded-1.0-py2.3.egg
+    d  demoneeded-1.1-py2.3.egg
 
     >>> shutil.rmtree(dest)
-    >>> dest = tempfile.mkdtemp()
-    >>> zc.buildout.easy_install.install(
-    ...     'demo', dest, [sample_eggs],
-    ...     always_unzip=True, executable= python2_4_executable)
+    >>> dest = tempfile.mkdtemp('sample-install')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     always_unzip=True, executable=python2_4_executable)
 
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
-    d  demoneeded-1.0-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
+Script generation
+-----------------
 
+The easy_install module provides support for creating scripts from
+eggs.  It provides a function similar to setuptools except that it
+provides facilities for baking a script's path into the script.  This
+has two advantages:
+
+- The eggs to be used by a script are not chosen at run time, making
+  startup faster and, more importantly, deterministic.
+
+- The script doesn't have to import pkg_resources because the logic
+  that pkg_resources would execute at run time is executed at
+  script-creation time.
+
+The scripts method can be used to generate scripts. Let's create a
+destination directory for it to place them in:
+
+    >>> import tempfile
+    >>> bin = tempfile.mkdtemp()
+
+Now, we'll use the scripts method to generate scripts in this directory
+from the demo egg:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['demo==0.1'], ws, python2_4_executable, bin)
+
+the four arguments we passed were:
+
+1. A sequence of distribution requirements.  These are of the same
+   form as setuptools requirements.  Here we passed a single
+   requirement, for the version 0.1 demo distribution.
+
+2. A working set,
+
+3. The Python executable to use, and 
+
+3. The destination directory.
+
+The bin directory now contains 2 generated scripts:
+
+    >>> ls(bin)
+    -  demo
+    -  py_demo
+
+The return value is a list of the scripts generated:
+    
+    >>> import os
+    >>> scripts == [os.path.join(bin, 'demo'), os.path.join(bin, 'py_demo')]
+    True
+
+The demo script run the entry point defined in the demo egg:
+
+    >>> cat(bin, 'demo')
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+Some things to note:
+
+- The demo and demoneeded eggs are added to the beginning of sys.path.
+
+- The module for the script entry point is imported and the entry
+  point, in this case, 'main', is run.
+
+The py_demo script simply run the Python interactive interpreter with
+the path set:
+
+    >>> cat(bin, 'py_demo')
+    #!/usr/local/bin/python2.3 -i
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      ]
+
+An additional argumnet can be passed to define which scripts to install
+and to provie script names. The argument is a dictionary mapping
+original script names to new script names.
+
+    >>> import shutil
+    >>> shutil.rmtree(bin)
+    >>> bin = tempfile.mkdtemp()
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'))
+    >>> scripts == [os.path.join(bin, 'run')]
+    True
+    >>> ls(bin)
+    -  run
+
+    >>> print system(os.path.join(bin, 'run')),
+    3 1

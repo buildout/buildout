@@ -11,8 +11,22 @@ distribution
 
    If not specified, the distribution defaults to the part name.
 
+   Multiple requirements can be given, separated by newlines.  Each
+   requirement has to be on a separate line.
+
 find-links
    A list of URLs, files, or directories to search for distributions.
+
+index
+   The URL of an index server, or almost any other valid URL. :)
+
+   If not specified, the Python Package Index,
+   http://cheeseshop.python.org/pypi, is used.  You can specify an
+   alternate index with this option.  If you use the links option and
+   if the links point to the needed distributions, then the index can
+   be anything and will be largely ignored.  In the examples, here,
+   we'll just point to an empty directory on our link server.  This 
+   will make our examples run a little bit faster.
 
 python
    The name of a section to get the Python executable from.
@@ -26,13 +40,20 @@ unzip
    only effective when an egg is installed.  If a zipped egg already 
    exists in the eggs directory, it will not be unzipped.
 
-To illustrate this, we've created a directory with some sample eggs:
 
-    >>> ls(sample_eggs)
-    -  demo-0.1-py2.3.egg
-    -  demo-0.2-py2.3.egg
-    -  demo-0.3-py2.3.egg
-    -  demoneeded-1.0-py2.3.egg
+We have a link server that has a number of eggs:
+
+    >>> print get(link_server),
+    <html><body>
+    <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
+    <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
+    <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
+    <a href="demoneeded-1.0-py2.3.egg">demoneeded-1.0-py2.3.egg</a><br>
+    <a href="demoneeded-1.1-py2.3.egg">demoneeded-1.1-py2.3.egg</a><br>
+    <a href="index/">index/</a><br>
+    <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
+    </body></html>
+
 
 We have a sample buildout.  Let's update it's configuration file to
 install the demo package. 
@@ -44,9 +65,10 @@ install the demo package.
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo <0.3
-    ... find-links = %s
-    ... """ % sample_eggs)
+    ... distribution = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server))
 
 In this example, we limited ourself to revisions before 0.3. We also
 specified where to find distributions using the find-links option.
@@ -55,14 +77,14 @@ Let's run the buildout:
 
     >>> import os
     >>> os.chdir(sample_buildout)
-    >>> runscript = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(runscript),
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(buildout),
     
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
-    -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, wich demo requires.  (We also see an egg
@@ -114,21 +136,22 @@ specification. For example, We remove the restriction on demo:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find-links = %s
+    ... find-links = %(server)s
+    ... index = %(server)s/index
     ... unzip = true
-    ... """ % sample_eggs)
+    ... """ % dict(server=link_server))
 
 We also used the unzip uption to request a directory, rather than
 a zip file.
 
-    >>> print system(runscript),
+    >>> print system(buildout),
 
 Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     d  demo-0.3-py2.3.egg
-    -  demoneeded-1.0-py2.3.egg
+    d  demoneeded-1.0-py2.3.egg
 
 Note that we removed the distribution option, and the distribution
 defaulted to the part name.
@@ -150,12 +173,13 @@ arguments:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find-links = %s
+    ... find-links = %(server)s
+    ... index = %(server)s/index
     ... scripts =
-    ... """ % sample_eggs)
+    ... """ % dict(server=link_server))
 
 
-    >>> print system(runscript),
+    >>> print system(buildout),
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -169,11 +193,12 @@ You can also control the name used for scripts:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... find-links = %s
+    ... find-links = %(server)s
+    ... index = %(server)s/index
     ... scripts = demo=foo
-    ... """ % sample_eggs)
+    ... """ % dict(server=link_server))
 
-    >>> print system(runscript),
+    >>> print system(buildout),
 
     >>> ls(sample_buildout, 'bin')
     -  buildout

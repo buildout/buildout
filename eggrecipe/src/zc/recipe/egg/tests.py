@@ -29,10 +29,16 @@ def setUp(test):
                       'develop-eggs', 'zc.recipe.egg.egg-link'),
          'w').write(dirname(__file__, 4))
     zc.buildout.testing.create_sample_eggs(test)
+    test.globs['link_server'] = (
+        'http://localhost:%s/'
+        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
+        )
+
         
 def tearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
+    zc.buildout.testing.stop_server(test.globs['link_server'])
 
 def setUpPython(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
@@ -42,6 +48,10 @@ def setUpPython(test):
          'w').write(dirname(__file__, 4))
 
     zc.buildout.testing.multi_python(test)
+    test.globs['link_server'] = (
+        'http://localhost:%s/'
+        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
+        )
 
 def test_suite():
     return unittest.TestSuite((
@@ -54,7 +64,8 @@ def test_suite():
                            '(\\w+-)[^ \t\n%(sep)s/]+.egg'
                            % dict(sep=os.path.sep)
                            ),
-                '\\2-VVV-egg')
+                '\\2-VVV-egg'),
+               (re.compile('-py\d[.]\d.egg'), '-py2.4.egg'),
                ])
             ),
         doctest.DocFileSuite(

@@ -66,21 +66,26 @@ It is an error to create a variable-reference cycle:
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
     zc.buildout.testing.multi_python(test)
+    test.globs['link_server'] = (
+        'http://localhost:%s/'
+        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
+        )
         
 def linkerTearDown(test):
     shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
+    zc.buildout.testing.stop_server(test.globs['link_server'])
+    
 
 def buildoutTearDown(test):
     shutil.rmtree(test.globs['extensions'])
     shutil.rmtree(test.globs['home'])
     zc.buildout.testing.buildoutTearDown(test)
 
-
 class PythonNormalizing(renormalizing.RENormalizing):
 
     def _transform(self, want, got):
-        if '/xyzsample-eggs/' in want:
+        if '/xyzsample-install/' in want:
             got = got.replace('-py2.4.egg', '-py2.3.egg')
             firstg = got.split('\n')[0]
             firstw = want.split('\n')[0]
@@ -149,14 +154,15 @@ def test_suite():
             ),
         
         doctest.DocFileSuite(
-            'egglinker.txt', 'easy_install.txt', 
+            'easy_install.txt', 
             setUp=linkerSetUp, tearDown=linkerTearDown,
 
             checker=PythonNormalizing([
-               (re.compile("'%(sep)s\S+sample-eggs%(sep)s(dist%(sep)s)?"
+               (re.compile("'%(sep)s\S+sample-install%(sep)s(dist%(sep)s)?"
                            % dict(sep=os.path.sep)),
                 '/sample-eggs/'),
-               (re.compile("(-  demo(needed)?-\d[.]\d-py)\d[.]\d[.]egg"),
+               (re.compile("(-  (demo(needed)?|other)"
+                           "-\d[.]\d-py)\d[.]\d[.]egg"),
                 '\\1V.V.egg'),
                ]),
             ),

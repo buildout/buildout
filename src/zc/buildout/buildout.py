@@ -28,7 +28,6 @@ import ConfigParser
 import zc.buildout.easy_install
 import pkg_resources
 import zc.buildout.easy_install
-import zc.buildout.egglinker
 
 class MissingOption(KeyError):
     """A required option was missing
@@ -262,32 +261,50 @@ class Buildout(dict):
                     os.chdir(os.path.dirname(setup))
                     os.spawnle(
                         os.P_WAIT, sys.executable, sys.executable,
-                        setup, '-q', 'develop', '-m', '-x',
+                        setup, '-q', 'develop', '-m', '-x', '-N',
                         '-f', ' '.join(self._links),
                         '-d', self['buildout']['develop-eggs-directory'],
                         {'PYTHONPATH':
                          os.path.dirname(pkg_resources.__file__)},
                         )
             finally:
-                os.chdir(os.path.dirname(here))
+                os.chdir(here)
 
     def _load_recipes(self, parts):
         recipes = {}
+        if not parts:
+            return recipes
+        
         recipes_requirements = []
         pkg_resources.working_set.add_entry(
             self['buildout']['develop-eggs-directory'])
         pkg_resources.working_set.add_entry(self['buildout']['eggs-directory'])
 
-        # Install the recipe distros
+        # Gather requirements
         for part in parts:
             options = self.get(part)
             if options is None:
                 options = self[part] = {}
             recipe, entry = self._recipe(part, options)
-            zc.buildout.easy_install.install(
-                recipe, self['buildout']['eggs-directory'], self._links)
             recipes_requirements.append(recipe)
 
+        # Install the recipe distros
+        offline = self['buildout'].get('offline', 'false')
+        if offline not in ('true', 'false'):
+            self._error('Invalif value for offline option: %s', offline)
+        if offline == 'true':
+            ws = zc.buildout.easy_install.working_set(
+                recipes_requirements, sys.executable,
+                [self['buildout']['eggs-directory'],
+                 self['buildout']['develop-eggs-directory'],
+                 ],
+                )
+        else:
+            ws = zc.buildout.easy_install.install(
+                recipes_requirements, self['buildout']['eggs-directory'],
+                links=self._links, index=self['buildout'].get('index'),
+                path=[self['buildout']['develop-eggs-directory']])
+            
         # Add the distros to the working set
         pkg_resources.require(recipes_requirements)
 
@@ -503,6 +520,10 @@ def main(args=None):
                 else:
                     verbosity -= 10
                 op = op[1:]
+            if op == 'd':
+                op = op[1:]
+                import pdb; pdb.set_trace()
+                
             if op[:1] == 'c':
                 op = op[1:]
                 if op:

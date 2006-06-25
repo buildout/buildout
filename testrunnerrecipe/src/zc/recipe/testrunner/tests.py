@@ -17,7 +17,8 @@ import pkg_resources
 import zc.buildout.testing
 
 import unittest
-from zope.testing import doctest, renormalizing
+import zope.testing
+from zope.testing import doctest
 
 def dirname(d, level=1):
     if level == 0:
@@ -29,6 +30,11 @@ def setUp(test):
     open(os.path.join(test.globs['sample_buildout'],
                       'eggs', 'zc.recipe.testrunner.egg-link'),
          'w').write(dirname(__file__, 4))
+
+    # XXX assumes that zope.testing egg is a directory
+    open(os.path.join(test.globs['sample_buildout'],
+                      'eggs', 'zope.testing.egg-link'),
+         'w').write(dirname(zope.testing.__file__, 3))
         
 def tearDown(test):
     zc.buildout.testing.buildoutTearDown(test)

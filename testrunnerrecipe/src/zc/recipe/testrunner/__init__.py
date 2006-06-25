@@ -17,7 +17,8 @@ $Id$
 """
 
 import os, sys
-import zc.buildout.egglinker
+import pkg_resources
+import zc.buildout.easy_install
 
 class TestRunner:
 
@@ -30,25 +31,28 @@ class TestRunner:
                                          )
         options['_e'] = buildout['buildout']['eggs-directory']
         options['_d'] = buildout['buildout']['develop-eggs-directory']
+        python = options.get('python', buildout['buildout']['python'])
+        options['executable'] = buildout[python]['executable']
 
 
     def install(self):
-        distributions = [
-            req.strip()
-            for req in self.options['distributions'].split('\n')
-            if req.split()
-            ]
-        path = zc.buildout.egglinker.path(
-            distributions+['zope.testing'],
-            [self.options['_d'], self.options['_e']],
+        options = self.options
+        requirements = [r.strip()
+                        for r in options['distributions'].split('\n')
+                        if r.strip()]
+        
+        ws = zc.buildout.easy_install.working_set(
+            requirements+['zope.testing'],
+            executable = options['executable'],
+            path=[options['_d'], options['_e']]
             )
-        locations = [zc.buildout.egglinker.location(
-                        distribution,
-                        [self.options['_d'], self.options['_e']])
-                     for distribution in distributions]
-        script = self.options['script']
+        path = [dist.location for dist in ws]
+        locations = [dist.location for dist in ws
+                     if dist.project_name != 'zope.testing']
+
+        script = options['script']
         open(script, 'w').write(tests_template % dict(
-            PYTHON=sys.executable,
+            PYTHON=options['executable'],
             PATH="',\n  '".join(path),
             TESTPATH="',\n  '--test-path', '".join(locations),
             ))
