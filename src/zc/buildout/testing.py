@@ -16,10 +16,12 @@
 $Id$
 """
 
-import ConfigParser, os, re, shutil, sys, tempfile, unittest
+
+import BaseHTTPServer, ConfigParser, os, random, re, shutil, socket, sys
+import tempfile, threading, time, urllib2, unittest
+
 from zope.testing import doctest, renormalizing
 import pkg_resources
-
 
 def cat(dir, *names):
     path = os.path.join(dir, *names)
@@ -51,6 +53,9 @@ def system(command, input=''):
         i.write(input)
     i.close()
     return o.read()
+
+def get(url):
+    return urllib2.urlopen(url).read()
 
 def buildoutSetUp(test, clear_home=True):
     if clear_home:
@@ -91,6 +96,7 @@ def buildoutSetUp(test, clear_home=True):
         mkdir = mkdir,
         write = write,
         system = system,
+        get = get,
         __original_wd__ = os.getcwd(),
         ))
 
@@ -133,14 +139,25 @@ def create_sample_eggs(test, executable=sys.executable):
         test.globs['sample_eggs'] = os.path.join(sample, 'dist')
         write(sample, 'README.txt', '')
 
-    write(sample, 'eggrecipedemobeeded.py', 'y=1\n')
+    for i in (0, 1):
+        write(sample, 'eggrecipedemobeeded.py', 'y=%s\n' % i)
+        write(
+            sample, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
+            " zip_safe=True, version='1.%s')\n"
+            % i
+            )
+        runsetup(sample, executable)
+
     write(
         sample, 'setup.py',
         "from setuptools import setup\n"
-        "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
-        " zip_safe=True, version='1.0')\n"
-        )        
+        "setup(name='other', zip_safe=True, version='1.0', "
+        "py_modules=['eggrecipedemobeeded'])\n"
+        )
     runsetup(sample, executable)
+
     os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
 
     for i in (1, 2, 3):
@@ -170,5 +187,131 @@ def multi_python(test):
     create_sample_eggs(test, executable=p24)
     test.globs['python2_3_executable'] = p23
     test.globs['python2_4_executable'] = p24
+
+
+def make_tree(test):
+    sample_eggs = test.globs['sample_eggs']
+    tree = dict(
+        [(n, open(os.path.join(sample_eggs, n), 'rb').read())
+         for n in os.listdir(sample_eggs)
+         ])
+    tree['index'] = {}
+    return tree
     
-    
+class Server(BaseHTTPServer.HTTPServer):
+
+    def __init__(self, tree, *args):
+        BaseHTTPServer.HTTPServer.__init__(self, *args)
+        self.tree = tree
+
+    __run = True
+    def serve_forever(self):
+        while self.__run:
+            self.handle_request()
+
+    def handle_error(self, *_):
+        self.__run = False
+
+class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+    def __init__(self, request, address, server):
+        self.tree = server.tree
+        BaseHTTPServer.BaseHTTPRequestHandler.__init__(
+            self, request, address, server)
+
+    def do_GET(self):
+        if '__stop__' in self.path:
+           raise SystemExit
+       
+        tree = self.tree
+        for name in self.path.split('/'):
+            if not name:
+                continue
+            tree = tree.get(name)
+            if tree is None:
+                self.send_response(404, 'Not Found')
+                out = '<html><body>Not Found</body></html>'
+                self.send_header('Content-Length', str(len(out)))
+                self.send_header('Content-Type', 'text/html')
+                self.end_headers()
+                self.wfile.write(out)
+                return
+
+        self.send_response(200)
+        if isinstance(tree, dict):
+            out = ['<html><body>\n']
+            items = tree.items()
+            items.sort()
+            for name, v in items:
+                if isinstance(v, dict):
+                    name += '/'
+                out.append('<a href="%s">%s</a><br>\n' % (name, name))
+            out.append('</body></html>\n')
+            out = ''.join(out)
+            self.send_header('Content-Length', str(len(out)))
+            self.send_header('Content-Type', 'text/html')
+        else:
+            out = tree
+            self.send_header('Content-Length', len(out))
+            if name.endswith('.egg'):
+                self.send_header('Content-Type', 'application/zip')
+            else:
+                self.send_header('Content-Type', 'text/html')
+        self.end_headers()
+
+        self.wfile.write(out)
+                
+    def log_request(*s):
+        pass
+
+def _run(tree, port):
+    server_address = ('localhost', port)
+    httpd = Server(tree, server_address, Handler)
+    httpd.serve_forever()
+
+def get_port():
+    for i in range(10):
+        port = random.randrange(20000, 30000)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            try:
+                s.connect(('localhost', port))
+            except socket.error:
+                return port
+        finally:
+            s.close()
+    raise RuntimeError, "Can't find port"
+
+def start_server(tree):
+    port = get_port()
+    threading.Thread(target=_run, args=(tree, port)).start()
+    wait(port, up=True)
+    return port
+
+def stop_server(url):
+    try:
+        urllib2.urlopen(url+'__stop__')
+    except Exception:
+        pass
+
+def wait(port, up):
+    addr = 'localhost', port
+    for i in range(120):
+        time.sleep(0.25)
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(addr)
+            s.close()
+            if up:
+                break
+        except socket.error, e:
+            if e[0] not in (errno.ECONNREFUSED, errno.ECONNRESET):
+                raise
+            s.close()
+            if not up:
+                break
+    else:
+        if up:
+            raise
+        else:
+            raise SystemError("Couln't stop server")

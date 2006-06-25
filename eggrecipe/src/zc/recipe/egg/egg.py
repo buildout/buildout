@@ -16,8 +16,7 @@
 $Id$
 """
 
-import os, zipfile
-import zc.buildout.egglinker
+import os, re, zipfile
 import zc.buildout.easy_install
 
 class Egg:
@@ -29,13 +28,16 @@ class Egg:
         links = options.get('find-links',
                             buildout['buildout'].get('find-links'))
         if links:
-            buildout_directory = buildout['buildout']['directory']
-            links = [os.path.join(buildout_directory, link)
-                     for link in links.split()]
+            links = links.split()
             options['find-links'] = '\n'.join(links)
         else:
             links = ()
         self.links = links
+
+        index = options.get('index', buildout['buildout'].get('index'))
+        if index is not None:
+            options['index'] = index
+        self.index = index
 
         options['_b'] = buildout['buildout']['bin-directory']
         options['_e'] = buildout['buildout']['eggs-directory']
@@ -48,13 +50,20 @@ class Egg:
 
     def install(self):
         options = self.options
-        distribution = options.get('distribution', self.name)
+        distributions = [
+            r.strip()
+            for r in options.get('distribution', self.name).split('\n')
+            if r.strip()]
         
-        zc.buildout.easy_install.install(
-            distribution, options['_e'], self.links, options['executable'],
-            always_unzip=options.get('unzip') == 'true')
+        ws = zc.buildout.easy_install.install(
+            distributions, options['_e'],
+            links = self.links,
+            index = self.index, 
+            executable = options['executable'],
+            always_unzip=options.get('unzip') == 'true',
+            path=[options['_d']]
+            )
 
-        eggss = [options['_d'], options['_e']]                    
         scripts = options.get('scripts')
         if scripts or scripts is None:
             if scripts is not None:
@@ -63,7 +72,7 @@ class Egg:
                     ('=' in s) and s.split('=', 1) or (s, s)
                     for s in scripts
                     ])
-            return zc.buildout.egglinker.scripts(
-                [distribution], options['_b'], eggss,
-                scripts=scripts, executable=options['executable'])
+            return zc.buildout.easy_install.scripts(
+                distributions, ws, options['executable'],
+                options['_b'], scripts=scripts)
 

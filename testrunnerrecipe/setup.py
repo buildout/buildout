@@ -7,7 +7,7 @@ setup(
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout', 'zope.testing'],
+    install_requires = ['zc.buildout', 'zope.testing', 'setuptools'],
     dependency_links = ['http://download.zope.org/distribution/'],
     test_suite = 'zc.recipe.testrunner.tests.test_suite',
     author = "Jim Fulton",

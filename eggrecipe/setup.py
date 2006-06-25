@@ -7,7 +7,7 @@ setup(
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout'],
+    install_requires = ['zc.buildout', 'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = 'zc.recipe.eggs.tests.test_suite',
     author = "Jim Fulton",

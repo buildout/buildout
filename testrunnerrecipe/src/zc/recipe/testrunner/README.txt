@@ -75,6 +75,7 @@ develop egg and to create the test script:
     ... [buildout]
     ... develop = demo demo2
     ... parts = testdemo
+    ... offline = true
     ...
     ... [testdemo]
     ... recipe = zc.recipe.testrunner
@@ -86,6 +87,8 @@ develop egg and to create the test script:
 
 Note that we specified both demo and demo2 in the distributions
 section and that we put them on separate lines.
+
+We also specified the offline option to run the buildout in offline mode.
 
 Now when we run the buildout:
 
@@ -113,6 +116,7 @@ script will get it's name from the part:
     ... [buildout]
     ... develop = demo
     ... parts = testdemo
+    ... offline = true
     ...
     ... [testdemo]
     ... recipe = zc.recipe.testrunner
