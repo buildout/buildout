@@ -265,7 +265,8 @@ buildout:
 
     >>> import os
     >>> os.chdir(sample_buildout)
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Installing data_dir
     data_dir: Creating directory mystuff
@@ -314,7 +315,7 @@ we'll see that the directory gets removed and recreated:
     ... path = mydata
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling data_dir
     buildout: Installing data_dir
@@ -414,7 +415,7 @@ joined by a colon.
 Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling data_dir
     buildout: Installing data_dir
@@ -432,7 +433,7 @@ The buildout system didn't know if this module could effect the mkdir
 recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Installing data_dir
     buildout: Installing debug
@@ -488,7 +489,7 @@ To see how this works, we use an example:
     ... op = base
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     op buldout
     recipe recipes:debug
 
@@ -588,7 +589,7 @@ Here is a more elaborate example.
     ... name = ee
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     name ee
     op buildout
     op1 e1 1
@@ -635,7 +636,7 @@ delimiter.)
     ... """)
 
     >>> os.environ['HOME'] = home
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     name ee
     op buildout
     op1 e1 1
@@ -688,8 +689,7 @@ Here's an example:
 Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
     
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
-    ...     + ' -c other.cfg debug:op1=foo -v'),
+    >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Installing debug
     name other
@@ -702,8 +702,7 @@ WARNING.
 
 Options can also be combined in the usual Unix way, as in:
     
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
-    ...     + ' -vcother.cfg debug:op1=foo'),
+    >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
     buildout: Installing debug
     name other
@@ -717,7 +716,7 @@ argument.
     >>> os.remove(os.path.join(sample_buildout, 'other.cfg'))
     >>> os.remove(os.path.join(sample_buildout, '.other.cfg'))
 
-Currently, the default and only command is 'install' and it takes a
+The most commonly used command is 'install' and it takes a
 list of parts to install. if any parts are specified, then they must
 be listed in the buildout parts option and only those parts are
 installed.  To illustrate this, we'll update our configuration and run
@@ -745,7 +744,7 @@ the buildout in the usual way:
     ... recipe = recipes:debug
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    >>> print system(buildout+' -v'),
     buildout: Running /sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling debug
     buildout: Installing debug
@@ -827,8 +826,7 @@ Now we'll update our configuration file:
 
 and run the buildout specifying just d2 and d3:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout' + ' -v')
-    ...              + ' install d3 d4'),
+    >>> print system(buildout+' -v install d3 d4'),
     buildout: Running /sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling d3
     buildout: Installing d3
@@ -897,7 +895,7 @@ directories are still there.
 
 Now, if we run the buildout without the install command:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    >>> print system(buildout+' -v'),
     buildout: Running /sample-buildout/recipes/setup.py -q develop ...
     buildout: Uninstalling d1
     buildout: Uninstalling d2
@@ -954,7 +952,7 @@ provide alternate locations, and even names for these directories.
     ...    work = os.path.join(alt, 'work'),
     ... ))
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    >>> print system(buildout+' -v'),
     buildout: Creating directory /tmp/sample-alt/scripts
     buildout: Creating directory /tmp/sample-alt/work
     buildout: Creating directory /tmp/sample-alt/basket
@@ -992,7 +990,7 @@ You can also specify an alternate buildout directory:
     ...    recipes=os.path.join(sample_buildout, 'recipes'),
     ...    ))
  
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -v'),
+    >>> print system(buildout+' -v'),
     buildout: Creating directory /tmp/sample-alt/bin
     buildout: Creating directory /tmp/sample-alt/parts
     buildout: Creating directory /tmp/sample-alt/eggs
@@ -1048,7 +1046,7 @@ can be a numeric value and that the verbosity can be specified in the
 configuration file.  Because the verbosoty is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(buildout),
     INFO Running /tmp/sample-buildout/recipes/setup.py -q develop ...
 
 Predefined buildout options
@@ -1066,8 +1064,7 @@ database is shown.
     ... parts =
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') 
-    ...              + ' -vv'),
+    >>> print system(buildout+' -vv'),
     Configuration data:
     [buildout]
     bin-directory = /tmp/sample-buildout/bin
@@ -1146,3 +1143,41 @@ verbosity
    command-line options.
 
 
+Bootstrapping
+-------------
+
+If zc.buildout is installed, you can use it to create a new buildout
+with it's own local copies of zc.buildout and setuptools and with
+local buildout scripts.  There must be an existing setup.cfg:
+
+    >>> sample_bootstrapped = tempfile.mkdtemp('sample-bootstrapped')
+    >>> write(sample_bootstrapped, 'setup.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' bootstrap'),
+
+    >>> ls(sample_bootstrapped)
+    -  .installed.cfg
+    d  bin
+    d  develop-eggs
+    d  eggs
+    d  parts
+    -  setup.cfg
+
+    >>> ls(sample_bootstrapped, 'bin')
+    -  buildout
+    -  py_zc.buildout
+
+    >>> ls(sample_bootstrapped, 'eggs')
+    -  setuptools-0.6b3-py2.3.egg
+
+    >>> ls(sample_bootstrapped, 'develop-eggs')
+    -  zc.buildout.egg-link
+
+Note that, in this example, we were using a development egg for the
+buildout, and the ac.buildout egg ended up as an egg link.

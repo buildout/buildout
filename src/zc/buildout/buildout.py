@@ -94,6 +94,7 @@ class Buildout(dict):
             if options is None:
                 options = self[section] = {}
             options[option] = value
+                # The egg dire
 
         # do substitutions
         converted = {}
@@ -162,6 +163,35 @@ class Buildout(dict):
 
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
+
+    def bootstrap(self, args):
+        # Set up the actual buildout
+        self.install(args)
+
+        # Now copy buildout and setuptools eggs, amd record destination eggs:
+        entries = []
+        for name in 'setuptools', 'zc.buildout':
+            r = pkg_resources.Requirement.parse(name)
+            dist = pkg_resources.working_set.find(r)
+            if dist.precedence == pkg_resources.DEVELOP_DIST:
+                dest = os.path.join(self['buildout']['develop-eggs-directory'],
+                                    name+'.egg-link')
+                open(dest, 'w').write(dist.location)
+                entries.append(dist.location)
+            else:
+                dest = os.path.join(self['buildout']['eggs-directory'],
+                                    os.path.basename(dist.location))
+                entries.append(dest)
+                if not os.path.exists(dest):
+                    shutil.copy2(dist.location, dest)
+
+        # Create buildout script
+        ws = pkg_resources.WorkingSet(entries)
+        ws.require('zc.buildout')
+        zc.buildout.easy_install.scripts(
+            ['zc.buildout'], ws, sys.executable,
+            self['buildout']['bin-directory'])
+
 
     def install(self, install_parts):
 
@@ -554,7 +584,7 @@ def main(args=None):
 
     if args:
         command = args.pop(0)
-        if command != 'install':
+        if command not in ('install', 'bootstrap'):
             _error('invalid command:', command)
     else:
         command = 'install'
