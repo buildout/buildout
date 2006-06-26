@@ -88,15 +88,24 @@ And the generated scripts invoke Python 2.3:
         eggrecipedemo.main()
 
     >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
-    >>> f.readline().strip() == '#!' + python2_3_executable + ' -i'
+    >>> f.readline().strip() == '#!' + python2_3_executable
     True
     >>> print f.read(),
-    <BLANKLINE>
     import sys
+    <BLANKLINE>
+    if len(sys.argv) == 1:
+        import os
+        # Restart with -i
+        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
+    <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmpOBTxDMsample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/tmp/tmpOBTxDMsample-buildout/eggs/demoneeded-1.1-py2.3.egg'
+      '/tmp/tmpiIJY3Ysample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/tmp/tmpiIJY3Ysample-buildout/eggs/demoneeded-1.1-py2.3.egg'
       ]
+    <BLANKLINE>
+    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
+        sys.argv[:] = sys.argv[1:]
+        execfile(sys.argv[0])
 
 If we change the Python version to 2.4, we'll use Python 2.4 eggs:
 
@@ -139,14 +148,21 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
         eggrecipedemo.main()
 
     >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
-    >>> f.readline().strip() == '#!' + python2_4_executable + ' -i'
+    >>> f.readline().strip() == '#!' + python2_4_executable
     True
     >>> print f.read(),
-    <BLANKLINE>
     import sys
+    <BLANKLINE>
+    if len(sys.argv) == 1:
+        import os
+        # Restart with -i
+        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
+    <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmpOBTxDMsample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/tmp/tmpOBTxDMsample-buildout/eggs/demoneeded-1.1-py2.4.egg'
+      '/tmp/tmpiIJY3Ysample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/tmp/tmpiIJY3Ysample-buildout/eggs/demoneeded-1.1-py2.4.egg'
       ]
-
-
+    <BLANKLINE>
+    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
+        sys.argv[:] = sys.argv[1:]
+        execfile(sys.argv[0])

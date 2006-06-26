@@ -150,6 +150,7 @@ def test_suite():
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
+               (re.compile('setuptools-\S+[.]egg'), 'setuptools.egg'),
                ])
             ),
         
