@@ -11,7 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Bootstrap a buildout
+"""Bootstrap the buildout project itself.
+
+This is different from a normal boostrapping process because the
+buildout egg itself is installed as a develop egg.
 
 $Id$
 """
