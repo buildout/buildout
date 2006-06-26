@@ -93,5 +93,5 @@ buildout.txt
    to write recipes.
 
 easy_install.txt
-   Describes an Python APIs for invoking easy_install for for
-   generation of scripts with paths baked into them.
+   Describes an Python APIs for invoking easy_install for generation
+   of scripts with paths baked into them.
