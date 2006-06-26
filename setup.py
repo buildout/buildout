@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "zc.buildout",
-    version = "0.1",
+    version = "1.0",
     packages = ['zc.buildout'],
     package_dir = {'':'src'},
     namespace_packages = ['zc'],
