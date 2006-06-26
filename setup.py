@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name = "zc.buildout",
     version = "1.0",
-    packages = ['zc.buildout'],
-    package_dir = {'':'src'},
+    packages = ['zc', 'zc.buildout'],
+    package_dir = {'': 'src'},
     namespace_packages = ['zc'],
     include_package_data = True,
     tests_require = ['zope.testing'],
