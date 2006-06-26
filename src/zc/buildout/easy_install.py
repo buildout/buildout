@@ -309,10 +309,19 @@ def _pyscript(path, dest, executable):
         pass
 
 py_script_template = '''\
-#!%(python)s -i
-
+#!%(python)s
 import sys
+
+if len(sys.argv) == 1:
+    import os
+    # Restart with -i
+    os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
+    
 sys.path[0:0] = [
   '%(path)s'
   ]
+
+if len(sys.argv) > 1 and sys.argv[1:] != ['']:
+    sys.argv[:] = sys.argv[1:]
+    execfile(sys.argv[0])
 '''

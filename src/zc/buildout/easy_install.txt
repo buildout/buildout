@@ -238,13 +238,24 @@ The py_demo script simply run the Python interactive interpreter with
 the path set:
 
     >>> cat(bin, 'py_demo')
-    #!/usr/local/bin/python2.3 -i
-    <BLANKLINE>
+    #!/usr/local/bin/python2.4
     import sys
+    <BLANKLINE>
+    if len(sys.argv) == 1:
+        import os
+        # Restart with -i
+        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
+    <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      '/tmp/tmp5zS2Afsample-install/demo-0.3-py2.4.egg',
+      '/tmp/tmp5zS2Afsample-install/demoneeded-1.1-py2.4.egg'
       ]
+    <BLANKLINE>
+    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
+        sys.argv[:] = sys.argv[1:]
+        execfile(sys.argv[0])
+
+If invoked with a script name and arguments, it will run that script, instead.
 
 An additional argumnet can be passed to define which scripts to install
 and to provie script names. The argument is a dictionary mapping
