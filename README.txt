@@ -88,12 +88,10 @@ and substitution extensions.
 The detailed documentation for the various parts of buildout can be
 found in the following files:
 
-bootstrap.txt 
-   Describes how to use the bootstrapping script
-
 buildout.txt
    Describes how to define and run buildouts.  It also describes how
    to write recipes.
 
-recipes.txt
-   Documents the few built-in recipes.
+easy_install.txt
+   Describes an Python APIs for invoking easy_install for for
+   generation of scripts with paths baked into them.
