@@ -500,8 +500,7 @@ customization.
 
 Here is a more elaborate example. 
 
-    >>> import tempfile
-    >>> extensions = tempfile.mkdtemp()
+    >>> extensions = mkdtemp()
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -626,7 +625,7 @@ reading the configuration file.  ($HOME is the value of the HOME
 enviornment variable. The '/' is replaced by the operating system file
 delimiter.)
 
-    >>> home = tempfile.mkdtemp()
+    >>> home = mkdtemp()
     >>> mkdir(home, '.buildout')
     >>> write(home, '.buildout', 'default.cfg',
     ... """
@@ -934,7 +933,7 @@ The buildout normally puts the bin, eggs, and parts directories in the
 directory in the directory containing the configuration file. You can
 provide alternate locations, and even names for these directories.
 
-    >>> alt = tempfile.mkdtemp('sample-alt')
+    >>> alt = mkdtemp('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -972,12 +971,9 @@ provide alternate locations, and even names for these directories.
     >>> ls(alt, 'developbasket')    
     -  recipes.egg-link
 
-    >>> import shutil
-    >>> shutil.rmtree(alt)
-
 You can also specify an alternate buildout directory:
 
-    >>> alt = tempfile.mkdtemp('sample-alt')
+    >>> alt = mkdtemp('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1006,9 +1002,6 @@ You can also specify an alternate buildout directory:
 
     >>> ls(alt, 'develop-eggs')    
     -  recipes.egg-link
-
-    >>> import shutil
-    >>> shutil.rmtree(alt)
 
 Logging control
 ---------------
@@ -1150,7 +1143,7 @@ If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
 local buildout scripts.  There must be an existing setup.cfg:
 
-    >>> sample_bootstrapped = tempfile.mkdtemp('sample-bootstrapped')
+    >>> sample_bootstrapped = mkdtemp('sample-bootstrapped')
     >>> write(sample_bootstrapped, 'setup.cfg',
     ... '''
     ... [buildout]

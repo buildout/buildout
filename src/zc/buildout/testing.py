@@ -63,7 +63,13 @@ def buildoutSetUp(test, clear_home=True):
         # to restore whatever it was after the test.
         test.globs['_oldhome'] = os.environ.pop('HOME', None)
 
-    sample = tempfile.mkdtemp('sample-buildout')
+    temporary_directories = []
+    def mkdtemp(*args):
+        d = tempfile.mkdtemp(*args)
+        temporary_directories.append(d)
+        return d
+
+    sample = mkdtemp('sample-buildout')
     for name in ('bin', 'eggs', 'develop-eggs', 'parts'):
         os.mkdir(os.path.join(sample, name))
 
@@ -98,10 +104,13 @@ def buildoutSetUp(test, clear_home=True):
         system = system,
         get = get,
         __original_wd__ = os.getcwd(),
+        __temporary_directories__ = temporary_directories,
+        mkdtemp = mkdtemp,
         ))
 
 def buildoutTearDown(test):
-    shutil.rmtree(test.globs['sample_buildout'])
+    for d in test.globs['__temporary_directories__']:
+        shutil.rmtree(d)
     os.chdir(test.globs['__original_wd__'])
     if test.globs.get('_oldhome') is not None:
         os.environ['HOME'] = test.globs['_oldhome']
@@ -131,11 +140,10 @@ def runsetup(d, executable):
         os.chdir(here)
 
 def create_sample_eggs(test, executable=sys.executable):
-    if '_sample_eggs_container' in test.globs:
-        sample = test.globs['_sample_eggs_container']
+    if 'sample_eggs' in test.globs:
+        sample = os.path.dirname(test.globs['sample_eggs'])
     else:
-        sample = tempfile.mkdtemp('sample-eggs')
-        test.globs['_sample_eggs_container'] = sample
+        sample = test.globs['mkdtemp']('sample-eggs')
         test.globs['sample_eggs'] = os.path.join(sample, 'dist')
         write(sample, 'README.txt', '')
 

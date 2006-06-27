@@ -36,7 +36,6 @@ def setUp(test):
 
         
 def tearDown(test):
-    shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
     zc.buildout.testing.stop_server(test.globs['link_server'])
 

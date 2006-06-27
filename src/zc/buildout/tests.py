@@ -72,15 +72,8 @@ def linkerSetUp(test):
         )
         
 def linkerTearDown(test):
-    shutil.rmtree(test.globs['_sample_eggs_container'])
     zc.buildout.testing.buildoutTearDown(test)
     zc.buildout.testing.stop_server(test.globs['link_server'])
-    
-
-def buildoutTearDown(test):
-    shutil.rmtree(test.globs['extensions'])
-    shutil.rmtree(test.globs['home'])
-    zc.buildout.testing.buildoutTearDown(test)
 
 class PythonNormalizing(renormalizing.RENormalizing):
 
@@ -141,7 +134,7 @@ def test_suite():
         doctest.DocFileSuite(
             'buildout.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
-            tearDown=buildoutTearDown,
+            tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
