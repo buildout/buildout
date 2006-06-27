@@ -80,8 +80,7 @@ We have a link server that has a number of eggs:
 
 let's make directory and install the demo egg to it, using the demo:
 
-    >>> import tempfile
-    >>> dest = tempfile.mkdtemp('sample-install')
+    >>> dest = mkdtemp('sample-install')
     >>> import zc.buildout.easy_install
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
@@ -139,9 +138,7 @@ dependencies.  We might do this to specify a sprcific version.
 We can specify an alternate Python executable, and we can specify
 that, when we retrieve (or create) an egg, it should be unzipped.
 
-    >>> import shutil
-    >>> shutil.rmtree(dest)
-    >>> dest = tempfile.mkdtemp('sample-install')
+    >>> dest = mkdtemp('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     always_unzip=True, executable= python2_3_executable)
@@ -150,8 +147,7 @@ that, when we retrieve (or create) an egg, it should be unzipped.
     d  demo-0.3-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
 
-    >>> shutil.rmtree(dest)
-    >>> dest = tempfile.mkdtemp('sample-install')
+    >>> dest = mkdtemp('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     always_unzip=True, executable=python2_4_executable)
@@ -179,7 +175,7 @@ The scripts method can be used to generate scripts. Let's create a
 destination directory for it to place them in:
 
     >>> import tempfile
-    >>> bin = tempfile.mkdtemp()
+    >>> bin = mkdtemp()
 
 Now, we'll use the scripts method to generate scripts in this directory
 from the demo egg:
@@ -261,9 +257,7 @@ An additional argumnet can be passed to define which scripts to install
 and to provie script names. The argument is a dictionary mapping
 original script names to new script names.
 
-    >>> import shutil
-    >>> shutil.rmtree(bin)
-    >>> bin = tempfile.mkdtemp()
+    >>> bin = mkdtemp()
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'))
     >>> scripts == [os.path.join(bin, 'run')]
