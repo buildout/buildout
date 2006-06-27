@@ -183,7 +183,10 @@ class Buildout(dict):
                                     os.path.basename(dist.location))
                 entries.append(dest)
                 if not os.path.exists(dest):
-                    shutil.copy2(dist.location, dest)
+                    if os.path.isdir(dist.location):
+                        shutil.copytree(dist.location, dest)
+                    else:
+                        shutil.copy2(dist.location, dest)
 
         # Create buildout script
         ws = pkg_resources.WorkingSet(entries)
