@@ -40,15 +40,19 @@ class TestRunner:
         requirements = [r.strip()
                         for r in options['distributions'].split('\n')
                         if r.strip()]
-        
         ws = zc.buildout.easy_install.working_set(
             requirements+['zope.testing'],
             executable = options['executable'],
             path=[options['_d'], options['_e']]
             )
         path = [dist.location for dist in ws]
+        project_names = [
+            pkg_resources.Requirement.parse(r).project_name
+            for r in requirements
+            ]
+        
         locations = [dist.location for dist in ws
-                     if dist.project_name != 'zope.testing']
+                     if dist.project_name in project_names]
 
         script = options['script']
         open(script, 'w').write(tests_template % dict(

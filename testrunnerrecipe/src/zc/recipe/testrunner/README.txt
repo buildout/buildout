@@ -24,16 +24,18 @@ To illustrate this, we'll create a pair of projects in our sample
 buildout:
 
     >>> mkdir(sample_buildout, 'demo')
-    >>> write(sample_buildout, 'demo', 'tests.py',
+    >>> mkdir(sample_buildout, 'demo', 'demo')
+    >>> write(sample_buildout, 'demo', 'demo', '__init__.py', '')
+    >>> write(sample_buildout, 'demo', 'demo', 'tests.py',
     ... '''
     ... import unittest
     ...
-    ... class TestSomething(unittest.TestCase):
-    ...    def test_something(self):
+    ... class TestDemo(unittest.TestCase):
+    ...    def test(self):
     ...        pass
     ...
     ... def test_suite():
-    ...     return unittest.makeSuite(TestSomething)
+    ...     return unittest.makeSuite(TestDemo)
     ... ''')
 
     >>> write(sample_buildout, 'demo', 'setup.py',
@@ -46,26 +48,54 @@ buildout:
     >>> write(sample_buildout, 'demo', 'README.txt', '')
 
     >>> mkdir(sample_buildout, 'demo2')
-    >>> write(sample_buildout, 'demo2', 'tests.py',
+    >>> mkdir(sample_buildout, 'demo2', 'demo2')
+    >>> write(sample_buildout, 'demo2', 'demo2', '__init__.py', '')
+    >>> write(sample_buildout, 'demo2', 'demo2', 'tests.py',
     ... '''
     ... import unittest
     ...
-    ... class TestSomething(unittest.TestCase):
-    ...    def test_something(self):
+    ... class Demo2Tests(unittest.TestCase):
+    ...    def test2(self):
     ...        pass
     ...
     ... def test_suite():
-    ...     return unittest.makeSuite(TestSomething)
+    ...     return unittest.makeSuite(Demo2Tests)
     ... ''')
 
     >>> write(sample_buildout, 'demo2', 'setup.py',
     ... """
     ... from setuptools import setup
     ... 
-    ... setup(name = "demo2")
+    ... setup(name = "demo2", install_requires= ['demoneeded'])
     ... """)
 
     >>> write(sample_buildout, 'demo2', 'README.txt', '')
+
+Demo 2 depends on demoneeded:
+
+    >>> mkdir(sample_buildout, 'demoneeded')
+    >>> mkdir(sample_buildout, 'demoneeded', 'demoneeded')
+    >>> write(sample_buildout, 'demoneeded', 'demoneeded', '__init__.py', '')
+    >>> write(sample_buildout, 'demoneeded', 'demoneeded', 'tests.py',
+    ... '''
+    ... import unittest
+    ...
+    ... class TestNeeded(unittest.TestCase):
+    ...    def test_needed(self):
+    ...        pass
+    ...
+    ... def test_suite():
+    ...     return unittest.makeSuite(TestNeeded)
+    ... ''')
+
+    >>> write(sample_buildout, 'demoneeded', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(name = "demoneeded")
+    ... """)
+
+    >>> write(sample_buildout, 'demoneeded', 'README.txt', '')
 
 We'll update our buildout to install the demo project as a
 develop egg and to create the test script:
@@ -73,7 +103,7 @@ develop egg and to create the test script:
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
-    ... develop = demo demo2
+    ... develop = demo demoneeded demo2
     ... parts = testdemo
     ... offline = true
     ...
@@ -104,9 +134,16 @@ We get a test script installed in our bin directory:
 
 We can run the test script to run our demo test:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'test')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'test') + ' -vv'),
+    Running tests at level 1
     Running unit tests:
+      Running:
+     test (demo.tests.TestDemo)
+     test2 (demo2.tests.Demo2Tests)
       Ran 2 tests with 0 failures and 0 errors in 0.000 seconds.
+
+Note that we didn't run the demoneeded tests.  Tests are only run for
+the distributions listed, not for their dependencies.
 
 If we leave the script option out of the configuration, then the test
 script will get it's name from the part:
