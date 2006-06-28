@@ -9,6 +9,7 @@ setup(
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
+    download_url='http://download.zope.org/distribution',
 
     packages = find_packages('src'),
     include_package_data = True,
