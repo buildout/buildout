@@ -2,13 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name = "zc.buildout",
-    version = "1.0",
+    version = "1.0.dev",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
+    download_url='http://download.zope.org/distribution',
     long_description=open('README.txt').read(),
 
 
