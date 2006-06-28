@@ -171,6 +171,9 @@ def _get_dist(requirement, env, ws,
             
         dist = env.best_match(requirement, ws)
 
+    if dist is None:
+        raise ValueError("Couldn't find", requirement)
+
     # XXX Need test for this
     if dist.has_metadata('dependency_links.txt'):
         for link in dist.get_metadata_lines('dependency_links.txt'):
