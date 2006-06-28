@@ -2,13 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name = "zc.recipe.egg",
-    version = "1.0",
+    version = "1.0.dev",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
+    download_url='http://download.zope.org/distribution',
 
     packages = find_packages('src'),
     include_package_data = True,
