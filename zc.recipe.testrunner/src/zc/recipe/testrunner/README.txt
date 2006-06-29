@@ -6,7 +6,6 @@ for a project.
 
 The test-runner recipe has 2 options:
 
-
 eggs
     The eggs option specified a list of eggs to test given as one ore
     more setuptools requirement strings.  Each string must be given on

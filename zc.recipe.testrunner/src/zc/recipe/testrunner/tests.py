@@ -15,6 +15,7 @@
 import os, re, shutil, sys, tempfile
 import pkg_resources
 import zc.buildout.testing
+import zc.recipe.egg
 
 import unittest
 import zope.testing
@@ -30,6 +31,9 @@ def setUp(test):
     open(os.path.join(test.globs['sample_buildout'],
                       'eggs', 'zc.recipe.testrunner.egg-link'),
          'w').write(dirname(__file__, 4))
+    open(os.path.join(test.globs['sample_buildout'],
+                      'eggs', 'zc.recipe.egg.egg-link'),
+         'w').write(dirname(zc.recipe.egg.__file__, 4))
 
     # XXX assumes that zope.testing egg is a directory
     open(os.path.join(test.globs['sample_buildout'],
