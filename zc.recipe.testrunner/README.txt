@@ -18,14 +18,8 @@ The test-runner recipe has 2 options:
   buildout bin directory.  Of the option isn't used, the part name
   will be used.
 
-
 To do
 -----
-
-- Don't require eggs to be installed by the egg recipe.  Go ahead
-  and try to install them.
-
-- Let the egg recipe do more of the heavy lifting internally.
 
 - Support specifying testrunner defaults (e.g. verbosity, test file 
   patterns, etc.)
