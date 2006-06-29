@@ -42,3 +42,11 @@ To do
 
 - More control over script generation.  In particular, some way to 
   specify data t be recored in the script.
+
+- Honor the buildout offline option.
+
+- Windows suppprt
+
+  - Generate exe files
+
+  - Make sure tests work under windows

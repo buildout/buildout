@@ -53,6 +53,8 @@ class Egg:
 
         This is intended for reuse by similar recipes.
         """
+        options = self.options
+
         distributions = [
             r.strip()
             for r in options.get('eggs', self.name).split('\n')
@@ -67,8 +69,10 @@ class Egg:
             path=[options['_d']]
             )
 
+        return distributions, ws
+
     def install(self):
-        ws = self.working_set()
+        distributions, ws = self.working_set()
         options = self.options
 
         scripts = options.get('scripts')

@@ -39,7 +39,7 @@ install the demo package using Python 2.3.
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo <0.3
+    ... eggs = demo <0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.3
@@ -117,7 +117,7 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo <0.3
+    ... eggs = demo <0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.4
