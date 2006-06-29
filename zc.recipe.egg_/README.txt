@@ -33,6 +33,14 @@ unzip
    only effective when an egg is installed.  If a zipped egg already 
    exists in the eggs directory, it will not be unzipped.
 
+scripts
+   Control which scripts are generated.  The value should be a list of
+   zero or more tokens.  Each tokem is either a name, or a name,
+   followed by an '=' and a new name.  Only the named scripts are
+   generated. If no tokens are given, then script generation is
+   disabled.  If the option isn't given at all, then all scripts
+   defined by the named eggs will be generated.
+
 To do
 -----
 
