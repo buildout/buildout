@@ -4,18 +4,18 @@ Test-Runner Recipe
 The test-runner recipe, zc.recipe.testrunner, creates a test runner
 for a project.
 
-The rest-runner recipe has 2 options:
+The test-runner recipe has 2 options:
 
-- The distributions option takes the names of the distributions to be
-  tested.  These are not installed by the recipe. They must be
-  installed by some other recipe (or using the buildout develop
-  option).  The distributions are in the form os setuptools
-  requirements.  Multiple distributions must be listed on separate
-  lines. This option is required.
 
-- The script option gives the name of the script to generate, in the
-  buildout bin directory.  Of the option isn't used, the part name
-  will be used.
+eggs
+    The eggs option specified a list of eggs to test given as one ore
+    more setuptools requirement strings.  Each string must be given on
+    a separate line.
+
+script
+    The script option gives the name of the script to generate, in the
+    buildout bin directory.  Of the option isn't used, the part name
+    will be used.
 
 (Note that, at this time, due to limitations in the Zope test runner,
  the distributions cannot be zip files. TODO: Fix the test runner!)
@@ -109,14 +109,14 @@ develop egg and to create the test script:
     ...
     ... [testdemo]
     ... recipe = zc.recipe.testrunner
-    ... distributions = 
+    ... eggs = 
     ...    demo
     ...    demo2
     ... script = test
     ... """)
 
-Note that we specified both demo and demo2 in the distributions
-section and that we put them on separate lines.
+Note that we specified both demo and demo2 in the eggs
+option and that we put them on separate lines.
 
 We also specified the offline option to run the buildout in offline mode.
 
@@ -143,7 +143,7 @@ We can run the test script to run our demo test:
       Ran 2 tests with 0 failures and 0 errors in 0.000 seconds.
 
 Note that we didn't run the demoneeded tests.  Tests are only run for
-the distributions listed, not for their dependencies.
+the eggs listed, not for their dependencies.
 
 If we leave the script option out of the configuration, then the test
 script will get it's name from the part:
@@ -157,7 +157,7 @@ script will get it's name from the part:
     ...
     ... [testdemo]
     ... recipe = zc.recipe.testrunner
-    ... distributions = demo
+    ... eggs = demo
     ... """)
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),

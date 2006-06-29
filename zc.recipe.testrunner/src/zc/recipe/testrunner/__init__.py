@@ -38,7 +38,7 @@ class TestRunner:
     def install(self):
         options = self.options
         requirements = [r.strip()
-                        for r in options['distributions'].split('\n')
+                        for r in options['eggs'].split('\n')
                         if r.strip()]
         ws = zc.buildout.easy_install.working_set(
             requirements+['zope.testing'],
