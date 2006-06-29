@@ -66,14 +66,7 @@ It is an error to create a variable-reference cycle:
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
     zc.buildout.testing.multi_python(test)
-    test.globs['link_server'] = (
-        'http://localhost:%s/'
-        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
-        )
-        
-def linkerTearDown(test):
-    zc.buildout.testing.buildoutTearDown(test)
-    zc.buildout.testing.stop_server(test.globs['link_server'])
+    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
 
 class PythonNormalizing(renormalizing.RENormalizing):
 
@@ -149,7 +142,7 @@ def test_suite():
         
         doctest.DocFileSuite(
             'easy_install.txt', 
-            setUp=linkerSetUp, tearDown=linkerTearDown,
+            setUp=linkerSetUp, tearDown=zc.buildout.testing.buildoutTearDown,
 
             checker=PythonNormalizing([
                (re.compile("'%(sep)s\S+sample-install%(sep)s(dist%(sep)s)?"
