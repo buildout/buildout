@@ -29,15 +29,8 @@ def setUp(test):
                       'develop-eggs', 'zc.recipe.egg.egg-link'),
          'w').write(dirname(__file__, 4))
     zc.buildout.testing.create_sample_eggs(test)
-    test.globs['link_server'] = (
-        'http://localhost:%s/'
-        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
-        )
+    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
 
-        
-def tearDown(test):
-    zc.buildout.testing.buildoutTearDown(test)
-    zc.buildout.testing.stop_server(test.globs['link_server'])
 
 def setUpPython(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
@@ -47,17 +40,14 @@ def setUpPython(test):
          'w').write(dirname(__file__, 4))
 
     zc.buildout.testing.multi_python(test)
-    test.globs['link_server'] = (
-        'http://localhost:%s/'
-        % zc.buildout.testing.start_server(zc.buildout.testing.make_tree(test))
-        )
-
+    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+    
 def test_suite():
     return unittest.TestSuite((
         #doctest.DocTestSuite(),
         doctest.DocFileSuite(
             'README.txt',
-            setUp=setUp, tearDown=tearDown,
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('(\S+[/%(sep)s]| )'
                            '(\\w+-)[^ \t\n%(sep)s/]+.egg'
@@ -68,8 +58,30 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
+            'api.txt',
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('_b = \S+sample-buildout.bin'),
+                '_b = sample-buildout/bin'),
+               (re.compile('__buildout_signature__ = \S+'),
+                '__buildout_signature__ = sample-6aWMvV2EJ9Ijq+bR8ugArQ=='),
+               (re.compile('_d = \S+sample-buildout.develop-eggs'),
+                '_d = sample-buildout/develop-eggs'),
+               (re.compile('_e = \S+sample-buildout.eggs'),
+                '_e = sample-buildout/eggs'),
+               (re.compile('executable = \S+python\S+'),
+                'executable = python'),
+               (re.compile('index = \S+python\S+'),
+                'executable = python'),
+               (re.compile('find-links = http://localhost:\d+/'),
+                'find-links = http://localhost:8080/'),
+               (re.compile('index = http://localhost:\d+/index'),
+                'index = http://localhost:8080/index'),
+               ])
+            ),
+        doctest.DocFileSuite(
             'selecting-python.txt',
-            setUp=setUpPython, tearDown=tearDown,
+            setUp=setUpPython, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
                 r'/sample-\1/\2'),

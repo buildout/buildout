@@ -35,6 +35,14 @@ unzip
    only effective when an egg is installed.  If a zipped egg already 
    exists in the eggs directory, it will not be unzipped.
 
+scripts
+   Control which scripts are generated.  The value should be a list of
+   zero or more tokens.  Each tokem is either a name, or a name,
+   followed by an '=' and a new name.  Only the named scripts are
+   generated. If no tokens are given, then script generation is
+   disabled.  If the option isn't given at all, then all scripts
+   defined by the named eggs will be generated.
+
 
 We have a link server that has a number of eggs:
 
@@ -199,3 +207,23 @@ You can also control the name used for scripts:
     -  buildout
     -  foo
 
+Offline mode
+------------
+
+If the buildout offline option is set to "true", then no attempt will
+be made to contact an index server:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ... offline = true
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... index = eek!
+    ... scripts = demo=foo
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
