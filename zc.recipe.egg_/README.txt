@@ -35,9 +35,9 @@ unzip
 
 scripts
    Control which scripts are generated.  The value should be a list of
-   zero or more tokens.  Each tokem is either a name, or a name,
+   zero or more tokens.  Each token is either a name, or a name
    followed by an '=' and a new name.  Only the named scripts are
-   generated. If no tokens are given, then script generation is
+   generated.  If no tokens are given, then script generation is
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
 
