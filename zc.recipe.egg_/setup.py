@@ -1,9 +1,8 @@
 from setuptools import setup, find_packages
 
-name = "zc.recipe.egg",
-
+name = "zc.recipe.egg"
 setup(
-    name = "name",
+    name = name,
     version = "1.0.0a1",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
@@ -19,5 +18,7 @@ setup(
     namespace_packages = ['zc', 'zc.recipe'],
     install_requires = ['zc.buildout', 'setuptools'],
     tests_require = ['zope.testing'],
+    test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Egg' % name]},    
+    dependency_links = ['http://download.zope.org/distribution/'],
     )
