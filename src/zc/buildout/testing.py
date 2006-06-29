@@ -105,12 +105,15 @@ def buildoutSetUp(test, clear_home=True):
         get = get,
         __original_wd__ = os.getcwd(),
         __temporary_directories__ = temporary_directories,
+        __tearDown__ = [],
         mkdtemp = mkdtemp,
         ))
 
 def buildoutTearDown(test):
     for d in test.globs['__temporary_directories__']:
         shutil.rmtree(d)
+    for f in test.globs['__tearDown__']:
+        f()
     os.chdir(test.globs['__original_wd__'])
     if test.globs.get('_oldhome') is not None:
         os.environ['HOME'] = test.globs['_oldhome']
@@ -290,17 +293,31 @@ def get_port():
             s.close()
     raise RuntimeError, "Can't find port"
 
-def start_server(tree):
+def _start_server(tree, name=''):
     port = get_port()
-    threading.Thread(target=_run, args=(tree, port)).start()
+    thread = threading.Thread(target=_run, args=(tree, port), name=name)
+    thread.setDaemon(True)
+    thread.start()
     wait(port, up=True)
-    return port
+    return port, thread
 
-def stop_server(url):
+def start_server(tree):
+    return _start_server(tree)[0]
+
+def stop_server(url, thread=None):
     try:
         urllib2.urlopen(url+'__stop__')
     except Exception:
         pass
+    if thread is not None:
+        thread.join() # wait for thread to stop
+
+def setUpServer(test, tree):
+    port, thread = _start_server(tree, name=test.name)
+    link_server = 'http://localhost:%s/' % port
+    test.globs['link_server'] = link_server
+    test.globs['__tearDown__'].append(lambda: stop_server(link_server, thread))
+        
 
 def wait(port, up):
     addr = 'localhost', port
