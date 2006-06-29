@@ -48,7 +48,7 @@ class Egg:
         python = options.get('python', buildout['buildout']['python'])
         options['executable'] = buildout[python]['executable']
 
-    def working_set(self):
+    def working_set(self, extra=()):
         """Separate method to just get the working set
 
         This is intended for reuse by similar recipes.
@@ -59,17 +59,25 @@ class Egg:
             r.strip()
             for r in options.get('eggs', self.name).split('\n')
             if r.strip()]
-        
-        ws = zc.buildout.easy_install.install(
-            distributions, options['_e'],
-            links = self.links,
-            index = self.index, 
-            executable = options['executable'],
-            always_unzip=options.get('unzip') == 'true',
-            path=[options['_d']]
-            )
+        orig_distributions = distributions[:]
+        distributions.extend(extra)
 
-        return distributions, ws
+        if self.buildout['buildout'].get('offline') == 'true':
+            ws = zc.buildout.easy_install.working_set(
+                distributions, options['executable'],
+                [options['_d'], options['_e']]
+                )
+        else:
+            ws = zc.buildout.easy_install.install(
+                distributions, options['_e'],
+                links = self.links,
+                index = self.index, 
+                executable = options['executable'],
+                always_unzip=options.get('unzip') == 'true',
+                path=[options['_d']]
+                )
+
+        return orig_distributions, ws
 
     def install(self):
         distributions, ws = self.working_set()
