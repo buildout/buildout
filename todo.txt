@@ -10,6 +10,8 @@
 
 - control python for develop (probbaly a new recipe)
 
+- Better error reporting.
+
 - proper handling of extras
 
 - Common recipes
