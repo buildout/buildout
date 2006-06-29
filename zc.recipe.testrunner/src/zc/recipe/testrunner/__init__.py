@@ -19,6 +19,7 @@ $Id$
 import os, sys
 import pkg_resources
 import zc.buildout.easy_install
+import zc.recipe.egg
 
 class TestRunner:
 
@@ -29,22 +30,13 @@ class TestRunner:
         options['script'] = os.path.join(buildout['buildout']['bin-directory'],
                                          options.get('script', self.name),
                                          )
-        options['_e'] = buildout['buildout']['eggs-directory']
-        options['_d'] = buildout['buildout']['develop-eggs-directory']
-        python = options.get('python', buildout['buildout']['python'])
-        options['executable'] = buildout[python]['executable']
+        self.egg = zc.recipe.egg.Egg(buildout, name, options)
 
 
     def install(self):
         options = self.options
-        requirements = [r.strip()
-                        for r in options['eggs'].split('\n')
-                        if r.strip()]
-        ws = zc.buildout.easy_install.working_set(
-            requirements+['zope.testing'],
-            executable = options['executable'],
-            path=[options['_d'], options['_e']]
-            )
+        requirements, ws = self.egg.working_set(('zope.testing', ))
+
         path = [dist.location for dist in ws]
         project_names = [
             pkg_resources.Requirement.parse(r).project_name
