@@ -4,15 +4,10 @@ Installation of distributions as eggs
 The zc.recipe.egg recipe can be used to install various types if
 distutils distributions as eggs.  It takes a number of options:
 
-distribution
-   The distribution specifies the distribution requirement.
-
-   This is a requirement as defined by setuptools.
-
-   If not specified, the distribution defaults to the part name.
-
-   Multiple requirements can be given, separated by newlines.  Each
-   requirement has to be on a separate line.
+eggs
+    A list of eggs to install given as one ore more setuptools
+    requirement strings.  Each string must be given on a separate
+    line.
 
 find-links
    A list of URLs, files, or directories to search for distributions.
@@ -65,7 +60,7 @@ install the demo package.
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... distribution = demo<0.3
+    ... eggs = demo<0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... """ % dict(server=link_server))
@@ -153,7 +148,7 @@ Then we'll get a new demo egg:
     d  demo-0.3-py2.3.egg
     d  demoneeded-1.0-py2.3.egg
 
-Note that we removed the distribution option, and the distribution
+Note that we removed the eggs option, and the eggs
 defaulted to the part name.
 
 The script is updated too:
