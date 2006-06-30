@@ -69,7 +69,7 @@ def test_suite():
                 '_d = sample-buildout/develop-eggs'),
                (re.compile('_e = \S+sample-buildout.eggs'),
                 '_e = sample-buildout/eggs'),
-               (re.compile('executable = \S+python\S+'),
+               (re.compile('executable = \S+python\S*'),
                 'executable = python'),
                (re.compile('index = \S+python\S+'),
                 'executable = python'),
