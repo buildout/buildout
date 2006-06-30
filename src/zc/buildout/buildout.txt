@@ -226,7 +226,7 @@ Let's go through the changes one by one::
 
 This tells the buildout to install a development egg for our recipes.
 Any number of paths can be listed.  The paths can be relative or
-absolute.  If relative, they are treated as relative to the buidlout
+absolute.  If relative, they are treated as relative to the buildout
 directory.  They can be directory or file paths.  If a file path is
 given, it should point to a Python setup script.  If a directory path
 is given, it should point to a directory containing a setup.py file.
