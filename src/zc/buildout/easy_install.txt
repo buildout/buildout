@@ -78,7 +78,7 @@ We have a link server that has a number of eggs:
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 
-let's make directory and install the demo egg to it, using the demo:
+Let's make a directory and install the demo egg to it, using the demo:
 
     >>> dest = mkdtemp('sample-install')
     >>> import zc.buildout.easy_install
