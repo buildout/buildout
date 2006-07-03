@@ -165,8 +165,7 @@ class Buildout(dict):
         return os.path.join(self._buildout_dir, *names)
 
     def bootstrap(self, args):
-        # Set up the actual buildout
-        self.install(args)
+        self._setup_directories()
 
         # Now copy buildout and setuptools eggs, amd record destination eggs:
         entries = []
@@ -195,15 +194,8 @@ class Buildout(dict):
             ['zc.buildout'], ws, sys.executable,
             self['buildout']['bin-directory'])
 
-
     def install(self, install_parts):
-
-        # Create buildout directories
-        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
-            d = self['buildout'][name+'-directory']
-            if not os.path.exists(d):
-                self._logger.info('Creating directory %s', d)
-                os.mkdir(d)
+        self._setup_directories()
 
         # Add develop-eggs directory to path so that it gets searched
         # for eggs:
@@ -278,6 +270,15 @@ class Buildout(dict):
                 [p for p in installed_parts if p not in conf_parts] 
             )
             self._save_installed_options(installed_part_options)
+
+    def _setup_directories(self):
+
+        # Create buildout directories
+        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
+            d = self['buildout'][name+'-directory']
+            if not os.path.exists(d):
+                self._logger.info('Creating directory %s', d)
+                os.mkdir(d)
 
     def _develop(self):
         """Install sources by running setup.py develop on them
