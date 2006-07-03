@@ -21,7 +21,7 @@ from zope.testing import doctest, renormalizing
 import zc.buildout.testing
 
 def buildout_error_handling():
-    r'''Buildout error handling
+    r"""Buildout error handling
 
 Asking for a section that doesn't exist, yields a key error:
 
@@ -44,14 +44,14 @@ Asking for an option that doesn't exist, a MissingOption error is raised:
 It is an error to create a variable-reference cycle:
 
     >>> write(sample_buildout, 'buildout.cfg',
-    ... """
+    ... '''
     ... [buildout]
     ... develop = recipes
     ... parts = data_dir debug
     ... x = ${buildout:y}
     ... y = ${buildout:z}
     ... z = ${buildout:x}
-    ... """)
+    ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
@@ -60,8 +60,7 @@ It is an error to create a variable-reference cycle:
     ValueError: ('Circular references',
            [('buildout', 'y'), ('buildout', 'z'), ('buildout', 'x')],
            ('buildout', 'y'))
-
-'''    
+"""
 
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
