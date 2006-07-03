@@ -11,7 +11,7 @@ may refer to such an instance of the application informally as "a Foo
 buildout".  
 
 This document describes how to define buildouts using buildout
-configuation files and recipes.  There are two ways to set up the
+configuration files and recipes.  There are two ways to set up the
 buildout software and create a buildout instance:
 
 1. Install the zc.buildout egg with easy_install and use the buildout
@@ -33,8 +33,8 @@ parts defined.
 
 We have a sample buildout that has already been created for us.  It
 has the absolute minimum information.  We have bin, develop-eggs, eggs
-and parts directories, a configuration file, and an .installed,cfg
-that contains informatiion about previously-installed parts:
+and parts directories, a configuration file, and an .installed.cfg
+that contains information about previously-installed parts:
     
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -61,7 +61,7 @@ The develop-eggs and parts directories are initially empty:
 
 The develop-eggs directory holds egg links for software being
 developed in the buildout.  We separate develop-eggs and other eggs to
-allow eggs directories to be shared accross multiple buildouts.  For
+allow eggs directories to be shared across multiple buildouts.  For
 example, a common developer technique is to define a common eggs
 directory in their home that all non-develop eggs are stored in.  This
 allows larger buildouts to be set up much more quickly and saves disk
@@ -70,12 +70,12 @@ space.
 The parts directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would
 install it in the part directory.  Part data is stored in a
-subdirectory of the parts directory with the same name as the part.
+sub-directory of the parts directory with the same name as the part.
 
 Buildouts are defined using configuration files.  These are in the
 format defined by the Python ConfigParser module, with extensions
 that we'll describe later.  By default, when a buildout is run, it
-looks for the file buildout.cfg in the directory where the buidout is
+looks for the file buildout.cfg in the directory where the buildout is
 run.
 
 The minimal configuration file has a buildout section that defines no
@@ -95,7 +95,7 @@ interesting:
 
 A part is simply something to be created by a buildout.  It can be
 almost anything, such as a Python package, a program, a directory, or
-even a confguration file.  
+even a configuration file.  
 
 A part is created by a recipe.  Recipes are always installed as Python
 eggs. They can be downloaded from a package server, such as the
@@ -154,7 +154,7 @@ changed, or if the recipe has changed, then the part is uninstalled
 before reinstalling it.  The buildout only looks at the part's
 options, so any data used to configure the part needs to be reflected
 in the part's options.  It is the job of a recipe constructor to make
-sure that the options include all relevent data.
+sure that the options include all rel event data.
 
 Of course, parts are also uninstalled if they are no-longer used.
 
@@ -164,7 +164,7 @@ path option from our options dictionary.
 
 The install method logs what it's doing using the Python logging call.
 
-We return the path that we installed.  If the part is unistalled or
+We return the path that we installed.  If the part is uninstalled or
 reinstalled, then the path returned will be removed by the buildout
 machinery.  A recipe install method is expected to return None, a
 string, or an iterable of strings containing paths to be removed if a
@@ -408,7 +408,7 @@ Valid names are options in the same section and options defined in the
 DEFAULT section.  
 
 We used a string-template substitution for file1.  This type of
-substituion uses the string.Template syntax.  Names substited are
+substitution uses the string.Template syntax.  Names substituted are
 qualified option names, consisting of a section name and option name
 joined by a colon.
 
@@ -445,7 +445,7 @@ the buildout:
 
 We can see that mydata was not recreated.
 
-Note that, in this vase, we didn't specify a log level, so
+Note that, in this case, we didn't specify a log level, so
 we didn't get output about what the buildout was doing.
 
 Multiple configuration files
@@ -475,7 +475,7 @@ To see how this works, we use an example:
     ... extends = base.cfg
     ...
     ... [debug]
-    ... op = buldout
+    ... op = buildout
     ... """)
 
     >>> write(sample_buildout, 'base.cfg',
@@ -490,7 +490,7 @@ To see how this works, we use an example:
     ... """)
 
     >>> print system(buildout),
-    op buldout
+    op buildout
     recipe recipes:debug
 
 The example is pretty trivial, but the pattern it illustrates is
@@ -622,7 +622,7 @@ User defaults
 
 If the file $HOME/.buildout/defaults.cfg, exists, it is read before
 reading the configuration file.  ($HOME is the value of the HOME
-enviornment variable. The '/' is replaced by the operating system file
+environment variable. The '/' is replaced by the operating system file
 delimiter.)
 
     >>> home = mkdtemp()
@@ -658,9 +658,9 @@ command usage is::
   buildout [-c file] [-q] [-v] [assignments] [command [command arguments]]
 
 The -c option can be used to specify a configuration file, rather than
-buildout.cfg in the current durectory.  
+buildout.cfg in the current directory.  
 
-The -q and -v decrement and incremement the verbosity by 10.  The
+The -q and -v decrement and increment the verbosity by 10.  The
 verbosity is used to adjust the logging level.  The verbosity is
 subtracted from the numeric value of the log-level option specified in
 the configuration file.
@@ -823,7 +823,7 @@ Now we'll update our configuration file:
     ... x = 1
     ... """)
 
-and run the buildout specifying just d2 and d3:
+and run the buildout specifying just d3 and d4:
 
     >>> print system(buildout+' -v install d3 d4'),
     buildout: Running /sample-buildout/recipes/setup.py -q develop ...
@@ -850,7 +850,7 @@ and run the buildout specifying just d2 and d3:
     d  parts
     d  recipes
     
-Only the d2 and d3 recipes ran.  d2 was removed and data2 and data3
+Only the d3 and d4 recipes ran.  d3 was removed and data3 and data4
 were created.
 
 The .installed.cfg is only updated for the recipes that ran:
@@ -1032,11 +1032,11 @@ of changing the format:
  
 Here, we've changed the format to include the log-level name, rather
 than the logger name.  Note that we had to double percent signs,
-because configuration options allow ConfigParser variable substituion.
+because configuration options allow ConfigParser variable substitution.
 
 We've also illustrated, with a contrived example, that the log level
 can be a numeric value and that the verbosity can be specified in the
-configuration file.  Because the verbosoty is subtracted from the log
+configuration file.  Because the verbosity is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(buildout),
@@ -1045,7 +1045,7 @@ level, we get a final log level of 20, which is the INFO level.
 Predefined buildout options
 ---------------------------
 
-Buildouts have a number of pre-defined options that recipes can use
+Buildouts have a number of predefined options that recipes can use
 and that users can override in their configuration files.  To see
 these, we'll run a minimal buildout configuration with a debug logging
 level.  One of the features of debug logging is that the configuration
@@ -1085,7 +1085,7 @@ bin-directory
 
 develop-eggs-directory
    The directory path where development egg links are created for software
-   being craeted in the local project.  This can be a relative path,
+   being created in the local project.  This can be a relative path,
    which is interpreted relative to the directory option.
 
 directory
@@ -1094,7 +1094,7 @@ directory
 
 eggs-directory
    The directory path where downloaded eggs are put.  It is common to share
-   this directory accross buildouts. Eggs in this directory should
+   this directory across buildouts. Eggs in this directory should
    *never* be modified.  This can be a relative path, which is
    interpreted relative to the directory option.
 
@@ -1116,14 +1116,14 @@ log-level
    The log level before verbosity adjustment
 
 parts
-   A whitespace list of parts to be installed.
+   A white space separated list of parts to be installed.
 
 parts-directory
    A working directory that parts can used to store data.
 
 python
    The name of a section containing information about the default
-   Python interpreter.  Recipies that need a installation
+   Python interpreter.  Recipes that need a installation
    typically have options to tell them which Python installation to
    use.  By convention, if a section-specific option isn't used, the
    option is looked for in the buildout section.  The option must
@@ -1147,7 +1147,7 @@ local buildout scripts.  There must be an existing setup.cfg:
     >>> write(sample_bootstrapped, 'setup.cfg',
     ... '''
     ... [buildout]
-    ... parts =
+    ... parts = foo this will not be read :)
     ... ''')
 
     >>> print system(buildout
@@ -1155,7 +1155,6 @@ local buildout scripts.  There must be an existing setup.cfg:
     ...              +' bootstrap'),
 
     >>> ls(sample_bootstrapped)
-    -  .installed.cfg
     d  bin
     d  develop-eggs
     d  eggs
@@ -1172,5 +1171,9 @@ local buildout scripts.  There must be an existing setup.cfg:
     >>> ls(sample_bootstrapped, 'develop-eggs')
     -  zc.buildout.egg-link
 
+
 Note that, in this example, we were using a development egg for the
 buildout, and the ac.buildout egg ended up as an egg link.
+
+Also not that the buildout script was installed but not run.  To run
+the buildout, we'd have to run the installed buildout script.
