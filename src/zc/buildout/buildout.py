@@ -60,6 +60,9 @@ class Buildout(dict):
     def __init__(self, config_file, cloptions):
         config_file = os.path.abspath(config_file)
         self._config_file = config_file
+        if not os.path.exists(config_file):
+            print 'Warning: creating', config_file
+            open(config_file, 'w').write('[buildout]\nparts = \n')
 
         super(Buildout, self).__init__()
 
@@ -376,10 +379,15 @@ class Buildout(dict):
     def _read_installed_part_options(self):
         old = self._installed_path()
         if os.path.isfile(old):
-            parser = ConfigParser.SafeConfigParser()
+            parser = ConfigParser.SafeConfigParser(_spacey_defaults)
             parser.read(old)
             return dict([
-                (section, Options(self, section, parser.items(section)))
+                (section,
+                 Options(self, section,
+                         [item for item in parser.items(section)
+                          if item[0] not in _spacey_defaults]
+                         )
+                 )
                 for section in parser.sections()])
         else:
             return {'buildout': Options(self, 'buildout', {'parts': ''})}
@@ -453,13 +461,44 @@ class Buildout(dict):
             for section in sections:
                 _save_options(section, self[section], sys.stdout)
             print    
-        
+
+_spacey_nl = re.compile('^[ \t\r\f\v]+'
+                        '|''[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
+                        '|'
+                        '[ \t\r\f\v]+$'
+                        )
+
+def _quote_spacey_nl(match):
+    match = match.group(0).split('\n', 1)
+    result = '\n\t'.join(
+        [(s
+          .replace(' ', '%(__buildout_space__)s')
+          .replace('\r', '%(__buildout_space_r__)s')
+          .replace('\f', '%(__buildout_space_f__)s')
+          .replace('\v', '%(__buildout_space_v__)s')
+          .replace('\n', '%(__buildout_space_n__)s')
+          )
+         for s in match]
+        )
+    return result
+
+_spacey_defaults = dict(
+    __buildout_space__   = ' ',
+    __buildout_space_r__ = '\r',
+    __buildout_space_f__ = '\f',
+    __buildout_space_v__ = '\v',
+    __buildout_space_n__ = '\n',
+    )
+
 def _save_options(section, options, f):
     print >>f, '[%s]' % section
     items = options.items()
     items.sort()
     for option, value in items:
-        print >>f, option, '=', str(value).replace('\n', '\n\t')
+        value = value.replace('%', '%%')
+        value = _spacey_nl.sub(_quote_spacey_nl, value)
+        print >>f, option, '=', value
+            
     
 
 def _open(base, filename, seen):

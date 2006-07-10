@@ -1066,7 +1066,7 @@ database is shown.
     eggs-directory = /tmp/sample-buildout/eggs
     executable = /usr/local/bin/python2.3
     installed = /tmp/sample-buildout/.installed.cfg
-    log-format = %(name)s: %(message)s
+    log-format = %%(name)s: %%(message)s
     log-level = WARNING
     parts = 
     parts-directory = /tmp/sample-buildout/parts
@@ -1141,18 +1141,16 @@ Bootstrapping
 
 If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
-local buildout scripts.  There must be an existing setup.cfg:
+local buildout scripts. 
 
     >>> sample_bootstrapped = mkdtemp('sample-bootstrapped')
-    >>> write(sample_bootstrapped, 'setup.cfg',
-    ... '''
-    ... [buildout]
-    ... parts = foo this will not be read :)
-    ... ''')
 
     >>> print system(buildout
     ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
     ...              +' bootstrap'),
+    Warning: creating /sample-bootstrapped/setup.cfg
+
+Note that a basic setup.cfg was created for us.
 
     >>> ls(sample_bootstrapped)
     d  bin
@@ -1173,7 +1171,7 @@ local buildout scripts.  There must be an existing setup.cfg:
 
 
 Note that, in this example, we were using a development egg for the
-buildout, and the ac.buildout egg ended up as an egg link.
+buildout, and the zc.buildout egg ended up as an egg link.
 
 Also not that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
