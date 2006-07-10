@@ -242,8 +242,22 @@ class Buildout(dict):
                 if part in install_parts:
                     old_options = installed_part_options[part].copy()
                     old_options.pop('__buildout_installed__')
-                    if old_options == self.get(part):
+                    new_options = self.get(part)
+                    if old_options == new_options:
                         continue
+                    for k in old_options:
+                        if k not in new_options:
+                            self._logger.debug("Part: %s, dropped option %s",
+                                               part, k)
+                        elif old_options[k] != new_options[k]:
+                            self._logger.debug(
+                                "Part: %s, option %s, %r != %r",
+                                part, k, new_options[k], old_options[k],
+                                )
+                    for k in new_options:
+                        if k not in old_options:
+                            self._logger.debug("Part: %s, new option %s",
+                                               part, k)
                 elif not uninstall_missing:
                     continue
 
@@ -462,8 +476,9 @@ class Buildout(dict):
                 _save_options(section, self[section], sys.stdout)
             print    
 
-_spacey_nl = re.compile('^[ \t\r\f\v]+'
-                        '|''[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
+_spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
+                        '|'
+                        '^[ \t\r\f\v]+'
                         '|'
                         '[ \t\r\f\v]+$'
                         )
@@ -497,6 +512,10 @@ def _save_options(section, options, f):
     for option, value in items:
         value = value.replace('%', '%%')
         value = _spacey_nl.sub(_quote_spacey_nl, value)
+        if value.startswith('\n\t'):
+            value = '%(__buildout_space_n__)s' + value[2:]
+        if value.endswith('\n\t'):
+            value = value[:-2] + '%(__buildout_space_n__)s'
         print >>f, option, '=', value
             
     
