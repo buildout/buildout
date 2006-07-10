@@ -61,6 +61,71 @@ It is an error to create a variable-reference cycle:
            [('buildout', 'y'), ('buildout', 'z'), ('buildout', 'x')],
            ('buildout', 'y'))
 """
+ 
+def test_comparing_saved_options_with_funny_characters():
+    """
+    If an option has newlines, extra/odd spaces or a %, we need to make
+    sure the comparison with the saved value works correctly.
+
+    >>> mkdir(sample_buildout, 'recipes')
+    >>> write(sample_buildout, 'recipes', 'debug.py', 
+    ... '''
+    ... class Debug:
+    ...     def __init__(self, buildout, name, options):
+    ...         options['debug'] = \"\"\"  <zodb>
+    ...
+    ...   <filestorage>
+    ...     path foo
+    ...   </filestorage>
+    ...
+    ... </zodb>  
+    ...      \"\"\"
+    ...         options['debug2'] = '  x  '
+    ...         options['debug3'] = '42'
+    ...         options['format'] = '%3d'
+    ...
+    ...     def install(self):
+    ...         open('t', 'w').write('t')
+    ...         return 't'
+    ... ''')
+
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(
+    ...     name = "recipes",
+    ...     entry_points = {'zc.buildout': ['default = debug:Debug']},
+    ...     )
+    ... ''')
+
+    >>> write(sample_buildout, 'recipes', 'README.txt', " ")
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes
+    ... ''')
+
+    >>> os.chdir(sample_buildout)
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    buildout: Running ...setup.py -q develop ...
+    buildout: Installing debug
+
+If we run the buildout again, we shoudn't get a message about
+uninstalling anything because the configuration hasn't changed.
+
+    >>> print system(buildout+' -v'),
+    buildout: Running setup.py -q develop ...
+    buildout: Installing debug
+"""
+
 
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
@@ -136,6 +201,7 @@ def test_suite():
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
                (re.compile('setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
                ])
             ),
         
@@ -154,7 +220,13 @@ def test_suite():
             ),
         doctest.DocTestSuite(
             setUp=zc.buildout.testing.buildoutSetUp,
-            tearDown=zc.buildout.testing.buildoutTearDown),
+            tearDown=zc.buildout.testing.buildoutTearDown,
+
+            checker=PythonNormalizing([
+               (re.compile("buildout: Running \S*setup.py"),
+                'buildout: Running setup.py'),
+               ]),
+            )
         ))
 
 if __name__ == '__main__':
