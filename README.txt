@@ -1,3 +1,4 @@
+=============
 Zope Buildout
 =============
 
@@ -88,7 +89,7 @@ based on the Python ConfigParser module with some variable-definition
 and substitution extensions.  
 
 Installation
-------------
+============
 
 There are two ways to install zc,buildout
 
@@ -105,7 +106,7 @@ There are two ways to install zc,buildout
    running the bootstrap script.
 
 More information
-----------------
+================
 
 The detailed documentation for the various parts of buildout can be
 found in the following files:
@@ -118,14 +119,15 @@ found in the following files:
    Describes an Python APIs for invoking easy_install for generation
    of scripts with paths baked into them.
 
+
 Download
---------
+========
 
 You can download zc.buildout and many buildout recipes from the
 `Python Package Index <http://www.python.org/pypi>`_.
 
 Recipes
--------
+=======
 
 Existing recipes include:
 
@@ -150,7 +152,7 @@ Existing recipes include:
    Zope 3 instance creayed by the zope3instance recipe.
 
 Buildout examples
------------------
+=================
 
 Some simple buildout examples:
 
@@ -165,9 +167,8 @@ Some simple buildout examples:
    specified everything needed to create a Zope 3 installation with
    the zc.sharing package installed in development mode.
 
-
 Status
-------
+======
 
 The buildout system is under active development. Some near term
 priorities include:
@@ -181,6 +182,29 @@ priorities include:
 - More recipes
 
 Questions
----------
+=========
 
 You can send questions to jim@zope.com.
+
+Change History
+==============
+
+1.0.0b1
+-------
+
+- Changed the bootstrapping code to only install setuptools and
+  zc.buildout. The bootstrap code no-longer runs the buildout itself.
+  This was to fix a bug that caused parts to be recreated
+  unnecessarily because the recipe signature in the initial buildout
+  reflected temporary locations for setuptools and zc.buildout.
+
+- Now create a minimal setup.py if it doesn't exist and issue a
+  warning that it is being created.
+
+- Fixed bug in saving installed configuration data.  %'s and extra
+  spaces weren't quoted.
+
+1.0.0a1
+-------
+
+Initial public version
