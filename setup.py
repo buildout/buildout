@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0a1",
+    version = "1.0.0b1",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
@@ -12,6 +12,7 @@ setup(
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
 
+    data_files = [('.', ['README.txt'])],
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
