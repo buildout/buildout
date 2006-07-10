@@ -80,6 +80,15 @@ def test_comparing_saved_options_with_funny_characters():
     ...
     ... </zodb>  
     ...      \"\"\"
+    ...         options['debug1'] = \"\"\"
+    ... <zodb>
+    ...
+    ...   <filestorage>
+    ...     path foo
+    ...   </filestorage>
+    ...
+    ... </zodb>  
+    ... \"\"\"
     ...         options['debug2'] = '  x  '
     ...         options['debug3'] = '42'
     ...         options['format'] = '%3d'
