@@ -592,7 +592,7 @@ def _update(d1, d2):
     return d1
 
 def _error(*message):
-    sys.syderr.write(' '.join(message) +'\n')
+    sys.stderr.write(' '.join(message) +'\n')
     sys.exit(1)
 
 def main(args=None):
