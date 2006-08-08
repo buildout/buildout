@@ -26,12 +26,6 @@ index
 python
     The name of a section defining the Python executable to use.
     This defaults to buildout.
-    
-unzip
-   The value of this option must be either true or false. If the value
-   is true, then the installed egg will be unzipped. Note that this is
-   only effective when an egg is installed.  If a zipped egg already 
-   exists in the eggs directory, it will not be unzipped.
 
 scripts
    Control which scripts are generated.  The value should be a list of

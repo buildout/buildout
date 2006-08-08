@@ -29,12 +29,6 @@ python
    Python executable is found in the executable option of the named
    section. 
 
-unzip
-   The value of this option must be either true or false. If the value
-   is true, then the installed egg will be unzipped. Note that this is
-   only effective when an egg is installed.  If a zipped egg already 
-   exists in the eggs directory, it will not be unzipped.
-
 scripts
    Control which scripts are generated.  The value should be a list of
    zero or more tokens.  Each token is either a name, or a name
@@ -141,11 +135,7 @@ specification. For example, We remove the restriction on demo:
     ... recipe = zc.recipe.egg
     ... find-links = %(server)s
     ... index = %(server)s/index
-    ... unzip = true
     ... """ % dict(server=link_server))
-
-We also used the unzip uption to request a directory, rather than
-a zip file.
 
     >>> print system(buildout),
 
@@ -153,8 +143,8 @@ Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
-    d  demo-0.3-py2.3.egg
-    d  demoneeded-1.0-py2.3.egg
+    -  demo-0.3-py2.3.egg
+    -  demoneeded-1.0-py2.3.egg
 
 Note that we removed the eggs option, and the eggs
 defaulted to the part name.
