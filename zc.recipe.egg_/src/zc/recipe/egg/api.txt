@@ -6,7 +6,7 @@ and generate scripts based on the resulting working sets.  The egg
 recipe provides an API that other recipes can use.
 
 A recipe can reuse the egg recipe, supporting the eggs, find-links,
-index, python, and unzip options.  This is done by creating an egg
+index, and pythonoptions.  This is done by creating an egg
 recipe instance in a recipes's contructor.  In the recipe's install
 script, the egg-recipe instance's working_set method to collect the
 requested eggs and working set. 
