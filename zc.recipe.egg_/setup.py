@@ -19,6 +19,9 @@ setup(
     install_requires = ['zc.buildout', 'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
-    entry_points = {'zc.buildout': ['default = %s:Egg' % name]},    
+    entry_points = {'zc.buildout': ['default = %s:Egg' % name,
+                                    'custom = %s:Custom' % name,
+                                    ]
+                    },    
     dependency_links = ['http://download.zope.org/distribution/'],
     )

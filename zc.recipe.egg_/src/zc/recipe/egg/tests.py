@@ -41,6 +41,16 @@ def setUpPython(test):
 
     zc.buildout.testing.multi_python(test)
     zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+
+def setUpCustom(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    open(os.path.join(test.globs['sample_buildout'],
+                      'develop-eggs', 'zc.recipe.egg.egg-link'),
+         'w').write(dirname(__file__, 4))
+    zc.buildout.testing.create_sample_eggs(test)
+    zc.buildout.testing.add_source_dist(test)
+    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+
     
 def test_suite():
     return unittest.TestSuite((
@@ -87,7 +97,17 @@ def test_suite():
                 r'/sample-\1/\2'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                ]),
-            ),        
+            ),
+        doctest.DocFileSuite(
+            'custom.txt',
+            setUp=setUpCustom, tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile("(d  ((ext)?demo(needed)?|other)"
+                           "-\d[.]\d-py)\d[.]\d(-[^. \t\n]+)?[.]egg"),
+                '\\1V.V.egg'),
+               ]),
+            ),
+        
         ))
 
 if __name__ == '__main__':

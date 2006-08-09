@@ -18,7 +18,10 @@ easy_install command that provides some additional semantics:
   look for additional distributions.  We always give preference to
   develop eggs.
 
-The easy_install module provides a single method, install.  The
+- Distutils options for building extensions can be passed.
+
+The easy_install module provides a method, install, for installing one
+or more packages and their dependencies.  The
 install function takes 2 positional arguments:
 
 - An iterable of setuptools requirement strings for the distributions
@@ -73,6 +76,7 @@ We have a link server that has a number of eggs:
     <a href="demoneeded-1.0-py2.4.egg">demoneeded-1.0-py2.4.egg</a><br>
     <a href="demoneeded-1.1-py2.3.egg">demoneeded-1.1-py2.3.egg</a><br>
     <a href="demoneeded-1.1-py2.4.egg">demoneeded-1.1-py2.4.egg</a><br>
+    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
@@ -267,3 +271,94 @@ original script names to new script names.
 
     >>> print system(os.path.join(bin, 'run')),
     3 1
+
+Handling custom build options for extensions
+--------------------------------------------
+
+Sometimes, we need to control how extension modules are built.  The
+build method provides this level of control.  It takes a single
+package specification, downloads a source distribution, and builds it
+with specified custom build options.
+
+The build method takes 3 positional arguments:
+
+spec
+   A package specification
+
+dest
+   A destination directory
+
+build_ext
+   A dictionary of options to be passed to the distutils build_ext
+   command when building extensions.
+
+It supports a number of optional keyword arguments:
+
+links
+   a sequence of URLs, file names, or directories to look for
+   links to distributions,
+
+index
+   The URL of an index server, or almost any other valid URL. :)
+
+   If not specified, the Python Package Index,
+   http://cheeseshop.python.org/pypi, is used.  You can specify an
+   alternate index with this option.  If you use the links option and
+   if the links point to the needed distributions, then the index can
+   be anything and will be largely ignored.  In the examples, here,
+   we'll just point to an empty directory on our link server.  This 
+   will make our examples run a little bit faster.
+
+executable
+   A path to a Python executable.  Distributions will ne installed
+   using this executable and will be for the matching Python version.
+
+path
+   A list of additional directories to search for locally-installed
+   distributions.
+
+always_unzip
+   A flag indicating that newly-downloaded distributions should be
+   directories even if they could be installed as zip files.
+
+Our link server included a source distribution that includes a simple
+extension, extdemo.c::
+
+  #include <Python.h>
+  #include <extdemo.h>
+
+  static PyMethodDef methods[] = {};
+
+  PyMODINIT_FUNC
+  initextdemo(void)
+  {
+      PyObject *d;
+      d = Py_InitModule3("extdemo", methods, "");
+      PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
+  }
+
+The extension depends on a system-dependnt include file, extdemo.h,
+that defines a constant, EXTDEMO, that is exposed by the extension.
+
+We'll add an include directory to our sample buildout and add the
+needed include file to it:
+
+    >>> mkdir(sample_buildout, 'include')
+    >>> open(os.path.join(sample_buildout, 'include', 'extdemo.h'), 'w').write(
+    ...    "#define EXTDEMO 42\n")
+
+Now, we can use the build function to create an egg from the source
+distribution:
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/')
+
+Now if we look in our destination directory, we see we have an extdemo egg:
+
+    >>> ls(dest)
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.4-py2.3-unix-i686.egg
+

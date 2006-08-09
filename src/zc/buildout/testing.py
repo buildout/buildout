@@ -200,6 +200,49 @@ def multi_python(test):
     test.globs['python2_4_executable'] = p24
 
 
+
+extdemo_c = """
+#include <Python.h>
+#include <extdemo.h>
+
+static PyMethodDef methods[] = {};
+
+PyMODINIT_FUNC
+initextdemo(void)
+{
+    PyObject *d;
+    d = Py_InitModule3("extdemo", methods, "");
+    PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
+}
+"""
+
+extdemo_setup_py = """
+from distutils.core import setup, Extension
+
+setup(name = "extdemo", version = "1.4", url="http://www.zope.org",
+      author="Demo", author_email="demo@demo.com",
+      ext_modules = [Extension('extdemo', ['extdemo.c'])],
+      )
+"""
+
+def add_source_dist(test):
+    import tarfile
+    tmp = tempfile.mkdtemp('test-sdist')
+    open(os.path.join(tmp, 'extdemo.c'), 'w').write(extdemo_c);
+    open(os.path.join(tmp, 'setup.py'), 'w').write(extdemo_setup_py);
+    open(os.path.join(tmp, 'README'), 'w').write("");
+    open(os.path.join(tmp, 'MANIFEST.in'), 'w').write("include *.c\n");
+    here = os.getcwd()
+    os.chdir(tmp)
+    status = os.spawnl(os.P_WAIT, sys.executable, sys.executable,
+                       os.path.join(tmp, 'setup.py'), '-q', 'sdist')
+    os.chdir(here)
+    assert status == 0
+    shutil.move(
+        os.path.join(tmp, 'dist', 'extdemo-1.4.tar.gz'),
+        os.path.join(test.globs['sample_eggs'], 'extdemo-1.4.tar.gz'),
+        )
+    
 def make_tree(test):
     sample_eggs = test.globs['sample_eggs']
     tree = dict(
@@ -266,6 +309,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header('Content-Length', len(out))
             if name.endswith('.egg'):
                 self.send_header('Content-Type', 'application/zip')
+            elif name.endswith('.gz'):
+                self.send_header('Content-Type', 'application/x-gzip')
             else:
                 self.send_header('Content-Type', 'text/html')
         self.end_headers()

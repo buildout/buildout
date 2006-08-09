@@ -141,6 +141,12 @@ def linkerSetUp(test):
     zc.buildout.testing.multi_python(test)
     zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
 
+def easy_install_SetUp(test):
+    zc.buildout.testing.buildoutSetUp(test, clear_home=False)
+    zc.buildout.testing.multi_python(test)
+    zc.buildout.testing.add_source_dist(test)
+    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+
 class PythonNormalizing(renormalizing.RENormalizing):
 
     def _transform(self, want, got):
@@ -216,14 +222,15 @@ def test_suite():
         
         doctest.DocFileSuite(
             'easy_install.txt', 
-            setUp=linkerSetUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            setUp=easy_install_SetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
 
             checker=PythonNormalizing([
                (re.compile("'%(sep)s\S+sample-install%(sep)s(dist%(sep)s)?"
                            % dict(sep=os.path.sep)),
                 '/sample-eggs/'),
-               (re.compile("(-  (demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d[.]egg"),
+               (re.compile("([d-]  ((ext)?demo(needed)?|other)"
+                           "-\d[.]\d-py)\d[.]\d(-[^. \t\n]+)?[.]egg"),
                 '\\1V.V.egg'),
                ]),
             ),
