@@ -20,9 +20,14 @@ installed.
 $Id$
 """
 
-import logging, os, re, sys
-import pkg_resources
+import logging, os, re, tempfile, sys
+import pkg_resources, setuptools.command.setopt
 import zc.buildout
+
+# XXX we could potentially speed this up quite a bit by keeping our
+# own PackageIndex to analyse whether there are newer dists.  A hitch
+# is that the package index seems to go out of its way to only handle
+# one Python version at a time. :(
 
 logger = logging.getLogger('zc.buildout.easy_install')
 
@@ -131,15 +136,15 @@ def _call_easy_install(spec, dest, links=(),
         logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
                      executable, '" "'.join(args), path)
     
-    args += (dict(PYTHONPATH=path), )
+    args += (dict(os.environ, PYTHONPATH=path), )
     sys.stdout.flush() # We want any pending output first
     exit_code = os.spawnle(os.P_WAIT, executable, executable, *args)
+    assert exit_code == 0
 
     # We may overwrite distributions, so clear importer
     # cache.
     sys.path_importer_cache.clear()
 
-    assert exit_code == 0
 
 
 def _get_dist(requirement, env, ws,
@@ -234,6 +239,77 @@ def install(specs, dest,
             break
             
     return ws
+
+
+def _editable(spec, dest, links=(), index = None, executable=sys.executable):
+    prefix = sys.exec_prefix + os.path.sep
+    path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
+    args = (
+        '-c', 'from setuptools.command.easy_install import main; main()',
+        '-eb', dest)
+    if links:
+        args += ('-f', ' '.join(links))
+    if index:
+        args += ('-i', index)
+    level = logger.getEffectiveLevel()
+    if level > logging.DEBUG:
+        args += ('-q', )
+    elif level < logging.DEBUG:
+        args += ('-v', )
+    
+    args += (spec, )
+
+    if level <= logging.DEBUG:
+        logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
+                     executable, '" "'.join(args), path)
+    
+    args += (dict(os.environ, PYTHONPATH=path), )
+    sys.stdout.flush() # We want any pending output first
+    exit_code = os.spawnle(os.P_WAIT, executable, executable, *args)
+    assert exit_code == 0
+
+def build(spec, dest, build_ext,
+          links=(), index=None,
+          executable=sys.executable,
+          path=None):
+
+    # XXX we're going to download and build the egg every stinking time.
+    # We need to not do that.
+
+    logger.debug('Building %r', spec)
+
+    path = path and path[:] or []
+    if dest is not None:
+        path.insert(0, dest)
+
+    path += buildout_and_setuptools_path
+
+    links = list(links) # make copy, because we may need to mutate
+    
+    # For each spec, see if it is already installed.  We create a working
+    # set to keep track of what we've collected and to make sue than the
+    # distributions assembled are consistent.
+    env = pkg_resources.Environment(path, python=_get_version(executable))
+    requirement = pkg_resources.Requirement.parse(spec)
+
+    dist = _satisfied(requirement, env)
+    if dist is not None:
+        return dist
+
+    # Get an editable version of the package to a temporary directory:
+    tmp = tempfile.mkdtemp('editable')
+    _editable(spec, tmp, links, index, executable)
+
+    setup_cfg = os.path.join(tmp, requirement.key, 'setup.cfg')
+    if not os.path.exists(setup_cfg):
+        f = open(setup_cfg, 'w')
+        f.close()
+    setuptools.command.setopt.edit_config(setup_cfg, dict(build_ext=build_ext))
+
+    # Now run easy_install for real:
+    _call_easy_install(
+        os.path.join(tmp, requirement.key),
+        dest, links, index, executable, True)
 
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)

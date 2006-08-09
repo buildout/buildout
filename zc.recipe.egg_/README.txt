@@ -35,6 +35,12 @@ scripts
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
 
+Custom eggs
+-----------
+
+The zc.recipe.egg:custom recipe supports building custom eggs,
+currently with specialized options for building extensions.
+
 To do
 -----
 
