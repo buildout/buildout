@@ -189,6 +189,12 @@ You can send questions to jim@zope.com.
 Change History
 ==============
 
+1.0.0b2
+-------
+
+Added support for specifying some build_ext options when installing eggs
+from source distributions.
+
 1.0.0b1
 -------
 
