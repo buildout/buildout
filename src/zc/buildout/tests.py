@@ -39,7 +39,7 @@ Asking for an option that doesn't exist, a MissingOption error is raised:
     >>> buildout['buildout']['eek']
     Traceback (most recent call last):
     ...
-    MissingOption: ('Missing option', 'buildout', 'eek')
+    MissingOption: Missing option: buildout:eek
 
 It is an error to create a variable-reference cycle:
 
@@ -55,11 +55,36 @@ It is an error to create a variable-reference cycle:
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-    Traceback (most recent call last):
+    Error: Circular reference in substitutions.
+    We're evaluating buildout:y, buildout:z, buildout:x
+    and are referencing: buildout:y.
+
+Al parts have to have a section:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: No section was specified for part x
+
+and all parts have to have a specified recipe:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
     ...
-    ValueError: ('Circular references',
-           [('buildout', 'y'), ('buildout', 'z'), ('buildout', 'x')],
-           ('buildout', 'y'))
+    ... [x]
+    ... foo = 1
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: Missing option: x:recipe
+
 """
  
 def test_comparing_saved_options_with_funny_characters():

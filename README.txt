@@ -189,6 +189,13 @@ You can send questions to jim@zope.com.
 Change History
 ==============
 
+1.0.0b3
+-------
+
+- Improved error handling.  No longer show tracebacks for user errors.
+
+- Now require a recipe option (and therefore a section) for every part.
+
 1.0.0b2
 -------
 

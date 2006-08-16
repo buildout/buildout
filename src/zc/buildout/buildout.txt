@@ -255,8 +255,9 @@ buildout and recipes are doing.
     recipe = recipes:mkdir
     path = mystuff    
 
-Generally, when we name a part, we also create a section of the same
-name that contains part data.  In this section, we'll usually define
+
+When we name a part, we also create a section of the same
+name that contains part data.  In this section, we'll define
 the recipe to be used to install the part.  In this case, we also
 specify the path to be created.
 
