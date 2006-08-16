@@ -29,8 +29,19 @@ import zc.buildout.easy_install
 import pkg_resources
 import zc.buildout.easy_install
 
-class MissingOption(KeyError):
+class UserError(Exception):
+    """Errors made by a user 
+    """
+
+    def __str__(self):
+        return " ".join(map(str, self))
+
+class MissingOption(UserError, KeyError):
     """A required option was missing
+    """
+
+class MissingSection(UserError, KeyError):
+    """A required section is missinh
     """
 
 class Options(dict):
@@ -44,7 +55,8 @@ class Options(dict):
         try:
             return super(Options, self).__getitem__(option)
         except KeyError:
-            raise MissingOption("Missing option", self.section, option)
+            raise MissingOption("Missing option: %s:%s"
+                                % (self.section, option))
 
     # XXX need test
     def __setitem__(self, option, value):
@@ -133,7 +145,12 @@ class Buildout(dict):
         if r is not None:
             return r
         if key in seen:
-            raise ValueError('Circular references', seen, key)
+            raise UserError("Circular reference in substitutions.\n"
+                            "We're evaluating %s\nand are referencing: %s.\n"
+                            % (", ".join([":".join(k) for k in seen]),
+                               ":".join(key)
+                               )
+                            )
         seen.append(key)
         value = '$$'.join([self._dosubs_esc(s, data, converted, seen)
                            for s in value.split('$$')
@@ -151,10 +168,12 @@ class Buildout(dict):
             if v is None:
                 options = data.get(s[0])
                 if options is None:
-                    raise KeyError("Referenced section does not exist", s[0])
+                    raise MissingSection(
+                        "Referenced section does not exist", s[0])
                 v = options.get(s[1])
                 if v is None:
-                    raise KeyError("Referenced option does not exist", *s)
+                    raise MissingOption("Referenced option does not exist:",
+                                        *s)
                 if '$' in v:
                     v = self._dosubs(s[0], s[1], v, data, converted, seen)
                     options[s[1]] = v
@@ -335,7 +354,8 @@ class Buildout(dict):
         for part in parts:
             options = self.get(part)
             if options is None:
-                options = self[part] = {}
+                raise MissingSection("No section was specified for part", part)
+
             recipe, entry = self._recipe(part, options)
             recipes_requirements.append(recipe)
 
@@ -382,7 +402,7 @@ class Buildout(dict):
             options['__buildout_signature__'] = ' '.join(sig)
 
     def _recipe(self, part, options):
-        recipe = options.get('recipe', part)
+        recipe = options['recipe']
         if ':' in recipe:
             recipe, entry = recipe.split(':')
         else:
@@ -528,7 +548,7 @@ def _open(base, filename, seen):
 
     filename = os.path.join(base, filename)
     if filename in seen:
-        raise ValueError("Recursive file include", seen, filename)
+        raise UserError("Recursive file include", seen, filename)
 
     base = os.path.dirname(filename)
     seen.append(filename)
@@ -592,7 +612,7 @@ def _update(d1, d2):
     return d1
 
 def _error(*message):
-    sys.stderr.write(' '.join(message) +'\n')
+    sys.stderr.write('Error: ' + ' '.join(message) +'\n')
     sys.exit(1)
 
 def main(args=None):
@@ -612,9 +632,6 @@ def main(args=None):
                 else:
                     verbosity -= 10
                 op = op[1:]
-            if op == 'd':
-                op = op[1:]
-                import pdb; pdb.set_trace()
                 
             if op[:1] == 'c':
                 op = op[1:]
@@ -641,8 +658,11 @@ def main(args=None):
     if verbosity:
         options.append(('buildout', 'verbosity', str(verbosity)))
 
-    buildout = Buildout(config_file, options)
-    buildout._setup_logging()
+    try:
+        buildout = Buildout(config_file, options)
+        buildout._setup_logging()
+    except UserError, v:
+        _error(str(v))
 
     if args:
         command = args.pop(0)
@@ -652,9 +672,13 @@ def main(args=None):
         command = 'install'
 
     try:
-        getattr(buildout, command)(args)
+        try:
+            getattr(buildout, command)(args)
+        except UserError, v:
+            _error(str(v))
+            
     finally:
-        logging.shutdown()
+            logging.shutdown()
 
 if sys.version_info[:2] < (2, 4):
     def reversed(iterable):
