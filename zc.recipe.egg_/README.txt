@@ -58,3 +58,17 @@ To do
   - Generate exe files
 
   - Make sure tests work under windows
+
+Change History
+==============
+
+1.0.0a2
+-------
+
+Added a new recipe for building custom eggs from source distributions,
+specifying custom distutils build_ext options.
+
+1.0.0a1
+-------
+
+Initial public version
