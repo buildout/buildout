@@ -192,6 +192,14 @@ Change History
 1.0.0b3
 -------
 
+- Fixed some bugs in variable substitutions.  
+
+  The characters "-", "." and " ", weren't allowed in section or
+  option names.
+
+  Substitutions with invalid names were ignored, which caused
+  missleading failures downstream.
+
 - Improved error handling.  No longer show tracebacks for user errors.
 
 - Now require a recipe option (and therefore a section) for every part.

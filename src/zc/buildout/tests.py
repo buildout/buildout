@@ -59,6 +59,58 @@ It is an error to create a variable-reference cycle:
     We're evaluating buildout:y, buildout:z, buildout:x
     and are referencing: buildout:y.
 
+It is an error to use funny characters in variable refereces:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ... x = ${bui$ldout:y}
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: The section name in substitution, ${bui$ldout:y},
+    has invalid characters.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ... x = ${buildout:y{z}
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: The option name in substitution, ${buildout:y{z},
+    has invalid characters.
+
+and too have too many or too few colons:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ... x = ${parts}
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: The substitution, ${parts},
+    doesn't contain a colon.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data_dir debug
+    ... x = ${buildout:y:z}
+    ... ''')
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Error: The substitution, ${buildout:y:z},
+    has too many colons.
+
 Al parts have to have a section:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -159,7 +211,6 @@ uninstalling anything because the configuration hasn't changed.
     buildout: Running setup.py -q develop ...
     buildout: Installing debug
 """
-
 
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
