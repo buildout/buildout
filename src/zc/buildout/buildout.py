@@ -158,12 +158,32 @@ class Buildout(dict):
         seen.pop()
         return value
 
-    _template_split = re.compile('([$]{\w+:\w+})').split
+    _template_split = re.compile('([$]{[^}]*})').split
+    _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
+    _valid = re.compile('[-a-zA-Z0-9 ._]+:[-a-zA-Z0-9 ._]+$').match
     def _dosubs_esc(self, value, data, converted, seen):
         value = self._template_split(value)
         subs = []
-        for s in value[1::2]:
-            s = tuple(s[2:-1].split(':'))
+        for ref in value[1::2]:
+            s = tuple(ref[2:-1].split(':'))
+            if not self._valid(ref):
+                if len(s) < 2:
+                    raise UserError("The substitution, %s,\n"
+                                    "doesn't contain a colon."
+                                    % ref)
+                if len(s) > 2:
+                    raise UserError("The substitution, %s,\n"
+                                    "has too many colons."
+                                    % ref)
+                if not self._simple(s[0]):
+                    raise UserError("The section name in substitution, %s,\n"
+                                    "has invalid characters."
+                                    % ref)
+                if not self._simple(s[1]):
+                    raise UserError("The option name in substitution, %s,\n"
+                                    "has invalid characters."
+                                    % ref)
+                
             v = converted.get(s)
             if v is None:
                 options = data.get(s[0])
@@ -414,6 +434,7 @@ class Buildout(dict):
         old = self._installed_path()
         if os.path.isfile(old):
             parser = ConfigParser.SafeConfigParser(_spacey_defaults)
+            parser.optionxform = lambda s: s
             parser.read(old)
             return dict([
                 (section,
@@ -556,6 +577,7 @@ def _open(base, filename, seen):
     result = {}
 
     parser = ConfigParser.SafeConfigParser()
+    parser.optionxform = lambda s: s
     parser.readfp(open(filename))
     extends = extended_by = None
     for section in parser.sections():

@@ -212,10 +212,10 @@ Now let's update our buildout.cfg:
     ... """
     ... [buildout]
     ... develop = recipes
-    ... parts = data_dir
+    ... parts = data-dir
     ... log-level = INFO
     ...
-    ... [data_dir]
+    ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mystuff
     ... """)
@@ -235,7 +235,7 @@ provide locally-defined recipes needed by the parts.
 
 ::
 
-    parts = data_dir
+    parts = data-dir
 
 Here we've named a part to be "built".  We can use any name we want
 except that different part names must be unique and recipes will often
@@ -251,7 +251,7 @@ buildout and recipes are doing.
 
 ::
 
-    [data_dir]
+    [data-dir]
     recipe = recipes:mkdir
     path = mystuff    
 
@@ -269,8 +269,8 @@ buildout:
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
-    buildout: Installing data_dir
-    data_dir: Creating directory mystuff
+    buildout: Installing data-dir
+    data-dir: Creating directory mystuff
 
 We see that the recipe created the directory, as expected:
 
@@ -289,9 +289,9 @@ installed:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
-    parts = data_dir
+    parts = data-dir
     <BLANKLINE>
-    [data_dir]
+    [data-dir]
     __buildout_installed__ = /tmp/sample-buildout/mystuff
     __buildout_signature__ = recipes-c7vHV6ekIDUPy/7fjAaYjg==
     path = /tmp/sample-buildout/mystuff
@@ -308,19 +308,19 @@ we'll see that the directory gets removed and recreated:
     ... """
     ... [buildout]
     ... develop = recipes
-    ... parts = data_dir
+    ... parts = data-dir
     ... log-level = INFO
     ...
-    ... [data_dir]
+    ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mydata
     ... """)
 
     >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
-    buildout: Uninstalling data_dir
-    buildout: Installing data_dir
-    data_dir: Creating directory mydata
+    buildout: Uninstalling data-dir
+    buildout: Installing data-dir
+    data-dir: Creating directory mydata
 
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -331,6 +331,30 @@ we'll see that the directory gets removed and recreated:
     d  mydata
     d  parts
     d  recipes
+
+Configuration file syntax
+-------------------------
+
+As mentioned earlier, buildout configuration files use the format
+defined by the Python ConfigParser module with extensions.  The
+extensions are:
+
+- option names are case sensitive
+
+- option values can ue a substitution syntax, described below, to
+  refer to option values in specific sections.
+
+The ConfigParser syntax is very flexible.  Section names can contain
+any characters other than newlines and right square braces ("]").
+Option names can contain any characters other than newlines, colons,
+and equal signs, can not start with a space, and don't include
+trailing spaces.
+
+It is likely that, in the future, some characters will be given
+special buildout-defined meanings.  This is already true of the
+characters ":", "$", "%", "(", and ")".  For now, it is a good idea to
+keep section and option names simple, sticking to alphanumeric
+characters, hyphens, and periods.
 
 Variable substitutions
 ----------------------
@@ -386,16 +410,17 @@ examples:
     ... """
     ... [buildout]
     ... develop = recipes
-    ... parts = data_dir debug
+    ... parts = data-dir debug
     ... log-level = INFO
     ...
     ... [debug]
     ... recipe = recipes:debug
-    ... file1 = ${data_dir:path}/file
-    ... file2 = %(file1)s.out
-    ... file3 = %(base)s/file3
+    ... File 1 = ${data-dir:path}/file
+    ... File 2 = %(File 1)s.out
+    ... File 3 = %(base)s/file3
+    ... File 4 = ${debug:File 3}/log
     ...
-    ... [data_dir]
+    ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mydata
     ...
@@ -418,14 +443,15 @@ substituted.
 
     >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
-    buildout: Uninstalling data_dir
-    buildout: Installing data_dir
-    data_dir: Creating directory mydata
+    buildout: Uninstalling data-dir
+    buildout: Installing data-dir
+    data-dir: Creating directory mydata
     buildout: Installing debug
+    File 1 mydata/file
+    File 2 mydata/file.out
+    File 3 var/file3
+    File 4 var/file3/log
     base var
-    file1 mydata/file
-    file2 mydata/file.out
-    file3 var/file3
     recipe recipes:debug
 
 It might seem surprising that mydata was created again.  This is
@@ -436,18 +462,23 @@ the buildout:
 
     >>> print system(buildout),
     buildout: Running /tmp/sample-buildout/recipes/setup.py -q develop ...
-    buildout: Installing data_dir
+    buildout: Installing data-dir
     buildout: Installing debug
+    File 1 mydata/file
+    File 2 mydata/file.out
+    File 3 var/file3
+    File 4 var/file3/log
     base var
-    file1 mydata/file
-    file2 mydata/file.out
-    file3 var/file3
     recipe recipes:debug
 
 We can see that mydata was not recreated.
 
 Note that, in this case, we didn't specify a log level, so
 we didn't get output about what the buildout was doing.
+
+Section and option names in variable substitutions are only allowed to
+contain alphanumeric characters, hyphens, periods and spaces. This
+restriction might be relaxed in future releases.
 
 Multiple configuration files
 ----------------------------
