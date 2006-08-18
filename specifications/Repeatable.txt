@@ -1,10 +1,10 @@
-Reproduceable (taggable) buildouts
-==================================
+Repeatable (taggable) buildouts
+===============================
 
 It's important to be able to tag a buildout in a software repository
 in such a way that, months, or even years later, the buildout tag can
 be checked out and used to construct the same collection of parts,
-with the same versions. (Note that parts could still nehave
+with the same versions. (Note that parts could still behave
 differently due to changes in parts of the environment, such as system
 libraries, not controlled by the buildout.)
 
@@ -12,11 +12,12 @@ A feature of the buildout is it's use of eggs and the automatic
 resolution of dependencies.  The latest versions of dependencies are
 automatically downloaded and installed.  This is great during
 development or when using the buildout for casual software
-development, but it doesn't work very well for repoduceablity.
+development, but it doesn't work very well for reproducing an old
+buildout.
 
 What's needed is some way to, when needed, record information about
-the versions of eggs (and any other bits) whos versions are determined
-dynamically. 
+the versions of eggs (and any other bits) who's versions are
+determined dynamically.
 
 Proposal
 --------
@@ -25,7 +26,7 @@ We'll add a buildout option, create-repeatable. The option will
 specify a file into which option information should be saved to create
 a repeatable buildout.  The data will be saved in a form that can be
 used by the buildout or recipes in a later run.  To make a tagged
-buildout, a user would run the buildout with the record-versions
+buildout, a user would run the buildout with the create-repeatable
 option set to a file name and then modify the buildout to be
 extended-by this file.
 
