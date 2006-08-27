@@ -1,3 +1,8 @@
+
+- Use setuptools PackageIndex objects to improve performance by
+  deciding whether we need to download anything without using
+  easy_install.
+
 - tests
 
   - distribution dependency links
@@ -5,13 +10,9 @@
   - offline mode (there is an indirect test in the testrunner tests)
 
 
-- Windows support
-
 - Load from urls
 
 - control python for develop (probbaly a new recipe)
-
-- Better error reporting.
 
 - proper handling of extras
 

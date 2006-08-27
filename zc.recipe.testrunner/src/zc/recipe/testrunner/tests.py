@@ -19,7 +19,7 @@ import zc.recipe.egg
 
 import unittest
 import zope.testing
-from zope.testing import doctest
+from zope.testing import doctest, renormalizing
 
 def dirname(d, level=1):
     if level == 0:
@@ -50,6 +50,10 @@ def test_suite():
         doctest.DocFileSuite(
             'README.txt',
             setUp=setUp, tearDown=tearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
+                '\\1-  \\2\n'),
+               ])
             ),
         
         ))

@@ -23,6 +23,8 @@ import tempfile, threading, time, urllib2, unittest
 from zope.testing import doctest, renormalizing
 import pkg_resources
 
+import zc.buildout.buildout
+
 def cat(dir, *names):
     path = os.path.join(dir, *names)
     print open(path).read(),
@@ -57,11 +59,10 @@ def system(command, input=''):
 def get(url):
     return urllib2.urlopen(url).read()
 
-def buildoutSetUp(test, clear_home=True):
-    if clear_home:
-        # we both need to make sure that HOME isn't set and be prepared
-        # to restore whatever it was after the test.
-        test.globs['_oldhome'] = os.environ.pop('HOME', None)
+def buildoutSetUp(test):
+    # we both need to make sure that HOME isn't set and be prepared
+    # to restore whatever it was after the test.
+    test.globs['_oldhome'] = os.environ.pop('HOME', None)
 
     temporary_directories = []
     def mkdtemp(*args):
@@ -70,29 +71,15 @@ def buildoutSetUp(test, clear_home=True):
         return d
 
     sample = mkdtemp('sample-buildout')
-    for name in ('bin', 'eggs', 'develop-eggs', 'parts'):
-        os.mkdir(os.path.join(sample, name))
 
-    # make sure we can import zc.buildout and setuptools
-    import zc.buildout, setuptools
-
-    # Generate buildout script
-    dest = os.path.join(sample, 'bin', 'buildout')
-    open(dest, 'w').write(
-        script_template % dict(python=sys.executable, path=sys.path)
-        )
-    try:
-        os.chmod(dest, 0755)
-    except (AttributeError, os.error):
-        pass
-
-
+    # Create a basic buildout.cfg to avoid a warning from buildout:
     open(os.path.join(sample, 'buildout.cfg'), 'w').write(
         "[buildout]\nparts =\n"
         )
-    open(os.path.join(sample, '.installed.cfg'), 'w').write(
-        "[buildout]\nparts =\n"
-        )
+
+    # Use the buildout bootstrap command to create a buildout
+    zc.buildout.buildout.Buildout(os.path.join(sample, 'buildout.cfg'), ()
+                                  ).bootstrap([])
 
     test.globs.update(dict(
         __here = os.getcwd(),
@@ -103,18 +90,17 @@ def buildoutSetUp(test, clear_home=True):
         write = write,
         system = system,
         get = get,
-        __original_wd__ = os.getcwd(),
         __temporary_directories__ = temporary_directories,
         __tearDown__ = [],
         mkdtemp = mkdtemp,
         ))
 
 def buildoutTearDown(test):
+    os.chdir(test.globs['__here'])
     for d in test.globs['__temporary_directories__']:
         shutil.rmtree(d)
     for f in test.globs['__tearDown__']:
         f()
-    os.chdir(test.globs['__original_wd__'])
     if test.globs.get('_oldhome') is not None:
         os.environ['HOME'] = test.globs['_oldhome']
 
@@ -188,12 +174,45 @@ def create_sample_eggs(test, executable=sys.executable):
             )
         runsetup(sample, executable)
 
+def find_python(version):
+    e = os.environ.get('PYTHON%s' % version)
+    if e is not None:
+        return e
+    if sys.platform == 'win32':
+        e = '\Python%s%s\python.exe' % tuple(version.split('.'))
+        if os.path.exists(e):
+            return e
+    else:
+        i, o = os.popen4('python%s -c "import sys; print sys.executable"'
+                         % version)
+        i.close()
+        e = o.read().strip()
+        o.close()
+        if os.path.exists(e):
+            return e
+        i, o = os.popen4(
+            'python -c "import sys; print \'%s.%s\' % sys.version_info[:2]"'
+            )
+        i.close()
+        e = o.read().strip()
+        o.close()
+        if e == version:
+            i, o = os.popen4('python -c "import sys; print sys.executable"')
+            i.close()
+            e = o.read().strip()
+            o.close()
+            if os.path.exists(e):
+                return e
+        
+    raise ValueError(
+        "Couldn't figure out the exectable for Python %(version)s.\n"
+        "Set the environment variable PYTHON%(version)s to the location\n"
+        "of the Python %(version)s executable before running the tests."
+        )
+
 def multi_python(test):
-    defaults = ConfigParser.RawConfigParser()
-    defaults.readfp(open(os.path.join(os.environ['HOME'],
-                                      '.buildout', 'default.cfg')))
-    p23 = defaults.get('python2.3', 'executable')
-    p24 = defaults.get('python2.4', 'executable')
+    p23 = find_python('2.3')
+    p24 = find_python('2.4')
     create_sample_eggs(test, executable=p23)
     create_sample_eggs(test, executable=p24)
     test.globs['python2_3_executable'] = p23
@@ -205,7 +224,7 @@ extdemo_c = """
 #include <Python.h>
 #include <extdemo.h>
 
-static PyMethodDef methods[] = {};
+static PyMethodDef methods[] = {{NULL}};
 
 PyMODINIT_FUNC
 initextdemo(void)
@@ -238,9 +257,14 @@ def add_source_dist(test):
                        os.path.join(tmp, 'setup.py'), '-q', 'sdist')
     os.chdir(here)
     assert status == 0
+    if sys.platform == 'win32':
+        sname = 'extdemo-1.4.zip'
+    else:
+        sname = 'extdemo-1.4.tar.gz'
+
     shutil.move(
-        os.path.join(tmp, 'dist', 'extdemo-1.4.tar.gz'),
-        os.path.join(test.globs['sample_eggs'], 'extdemo-1.4.tar.gz'),
+        os.path.join(tmp, 'dist', sname),
+        os.path.join(test.globs['sample_eggs'], sname),
         )
     
 def make_tree(test):
@@ -310,6 +334,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             if name.endswith('.egg'):
                 self.send_header('Content-Type', 'application/zip')
             elif name.endswith('.gz'):
+                self.send_header('Content-Type', 'application/x-gzip')
+            elif name.endswith('.zip'):
                 self.send_header('Content-Type', 'application/x-gzip')
             else:
                 self.send_header('Content-Type', 'text/html')

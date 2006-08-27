@@ -82,6 +82,8 @@ Now, if we look at the buildout eggs directory:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     -  demoneeded-1.1-py2.3.egg
+    -  setuptools-0.6-py2.3.egg
+    -  zc.buildout-1.0-py2.3.egg
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, wich demo requires.  (We also see an egg
@@ -95,12 +97,13 @@ installed as well:
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  demo
-    -  py_demo
+    -  py-demo
+    -  py-zc.buildout
 
 Here, in addition to the buildout script, we see the demo script,
-demo, and we see a script, py_demo, for giving us a Python prompt with
+demo, and we see a script, py-demo, for giving us a Python prompt with
 the path for demo and any eggs it depends on included in sys.path.
-This is useful for testing.
+This is useful for debugging and testing.
 
 If we run the demo script, it prints out some minimal data:
 
@@ -113,15 +116,16 @@ modules installed.
 We can also run the py_demo script.  Here we'll just print out
 the bits if the path added to reflect the eggs:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'py_demo'),
-    ... """for p in sys.path[:2]:
-    ...        print p
+    >>> print system(os.path.join(sample_buildout, 'bin', 'py-demo'),
+    ... """import os, sys
+    ... for p in sys.path:
+    ...     if 'demo' in p:
+    ...         print os.path.basename(p)
+    ...
     ... """).replace('>>> ', '').replace('... ', ''),
-    ... # doctest: +ELLIPSIS
-    <BLANKLINE>
-    /tmp/tmpcy8MvGbuildout-tests/eggs/demo-0.2-py2.3.egg
-    /tmp/tmpcy8MvGbuildout-tests/eggs/demoneeded-1.0-py2.3.egg
-    <BLANKLINE>
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    demo-0.2-py2.4.egg
+    demoneeded-1.1-py2.4.egg
 
 The recipe gets the most recent distribution that satisfies the
 specification. For example, We remove the restriction on demo:
@@ -145,6 +149,8 @@ Then we'll get a new demo egg:
     -  demo-0.2-py2.3.egg
     -  demo-0.3-py2.3.egg
     -  demoneeded-1.0-py2.3.egg
+    -  setuptools-0.6-py2.4.egg
+    -  zc.buildout-1.0-py2.4.egg
 
 Note that we removed the eggs option, and the eggs
 defaulted to the part name.
@@ -176,6 +182,7 @@ arguments:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
+    -  py-zc.buildout
 
 You can also control the name used for scripts:
 
@@ -196,6 +203,7 @@ You can also control the name used for scripts:
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  foo
+    -  py-zc.buildout
 
 Offline mode
 ------------

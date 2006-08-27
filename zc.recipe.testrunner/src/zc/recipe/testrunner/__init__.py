@@ -32,7 +32,6 @@ class TestRunner:
                                          )
         self.egg = zc.recipe.egg.Egg(buildout, name, options)
 
-
     def install(self):
         options = self.options
         requirements, ws = self.egg.working_set(('zope.testing', ))
@@ -46,31 +45,43 @@ class TestRunner:
         locations = [dist.location for dist in ws
                      if dist.project_name in project_names]
 
+        result = []
         script = options['script']
+        if sys.platform == 'win32':
+            # generate exe file and give the script a magic name:
+            open(script+'.exe', 'wb').write(
+                pkg_resources.resource_string('setuptools', 'cli.exe')
+                )
+            result.append(script+'.exe')
+            script += '-script.py'
+
         open(script, 'w').write(tests_template % dict(
             PYTHON=options['executable'],
-            PATH="',\n  '".join(path),
-            TESTPATH="',\n  '--test-path', '".join(locations),
+            PATH=repr(path)[1:-1].replace(', ', ',\n  '),
+            TESTPATH=repr(locations)[1:-1].replace(
+                ', ', ",\n  '--test-path', "),
             ))
         try:
             os.chmod(script, 0755)
         except (AttributeError, os.error):
             pass
 
-        return script
+        result.append(script)
+
+        return result
 
 
 tests_template = """#!%(PYTHON)s
 
 import sys
 sys.path[0:0] = [
-  '%(PATH)s',
+  %(PATH)s,
   ]
 
 from zope.testing import testrunner
 
 defaults = [
-  '--test-path', '%(TESTPATH)s',
+  '--test-path', %(TESTPATH)s,
   ]
 
 sys.exit(testrunner.run(defaults))

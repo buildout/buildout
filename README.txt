@@ -192,6 +192,8 @@ Change History
 1.0.0b3
 -------
 
+- Added Windows support.
+
 - Fixed some bugs in variable substitutions.  
 
   The characters "-", "." and " ", weren't allowed in section or

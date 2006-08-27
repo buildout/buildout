@@ -37,24 +37,16 @@ install the demo package using Python 2.3.
     ... parts = demo
     ... eggs-directory = eggs
     ...
+    ... [python2.3]
+    ... executable = %(python23)s
+    ...
     ... [demo]
     ... recipe = zc.recipe.egg
     ... eggs = demo <0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.3
-    ... """ % dict(server=link_server))
-
-In our default.cfg file in the .buildout subdirectiry of our
-directory, we have something like::
-
-    [python2.3]
-    executable = /usr/bin/python
-
-    [python2.4]
-    executable = /usr/local/bin/python2.4
-
-(Of course, the paths will vary from system to system.)
+    ... """ % dict(server=link_server, python23=python2_3_executable))
 
 Now, if we run the buildout:
 
@@ -68,13 +60,20 @@ we'll get the Python 2.3 eggs for demo and demoneeded:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     -  demoneeded-1.1-py2.3.egg
+    -  setuptools-0.6-py2.4.egg
+    -  zc.buildout-1.0-py2.4.egg
  
 And the generated scripts invoke Python 2.3:
 
-    >>> f = open(os.path.join(sample_buildout, 'bin', 'demo'))
+    >>> import sys
+    >>> if sys.platform == 'win32':
+    ...    script_name = 'demo-script.py'
+    ... else:
+    ...    script_name = 'demo'
+    >>> f = open(os.path.join(sample_buildout, 'bin', script_name))
     >>> f.readline().strip() == '#!' + python2_3_executable
     True
-    >>> print f.read(),
+    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -87,25 +86,40 @@ And the generated scripts invoke Python 2.3:
     if __name__ == '__main__':
         eggrecipedemo.main()
 
-    >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
+    >>> if sys.platform == 'win32':
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo-script.py'))
+    ... else:
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo'))
     >>> f.readline().strip() == '#!' + python2_3_executable
     True
-    >>> print f.read(),
+    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     import sys
     <BLANKLINE>
-    if len(sys.argv) == 1:
-        import os
-        # Restart with -i
-        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
-    <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmpiIJY3Ysample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/tmp/tmpiIJY3Ysample-buildout/eggs/demoneeded-1.1-py2.3.egg'
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.3.egg'
       ]
     <BLANKLINE>
-    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
-        sys.argv[:] = sys.argv[1:]
-        execfile(sys.argv[0])
+    _interactive = True
+    if len(sys.argv) > 1:
+        import getopt
+        _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+        _interactive = False
+        for (_opt, _val) in _options:
+            if _opt == '-i':
+                _interactive = True
+            elif _opt == '-c':
+                exec _val
+    <BLANKLINE>
+        if _args:
+            sys.argv[:] = _args
+            execfile(sys.argv[0])
+    <BLANKLINE>
+    if _interactive:
+        import code
+        code.interact(banner="", local=globals())
+
+    >>> f.close()
 
 If we change the Python version to 2.4, we'll use Python 2.4 eggs:
 
@@ -121,7 +135,11 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.4
-    ... """ % dict(server=link_server))
+    ...
+    ... [python2.4]
+    ... executable = %(python24)s
+    ...
+    ... """ % dict(server=link_server, python24=python2_4_executable))
 
     >>> print system(buildout),
 
@@ -130,11 +148,16 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     -  demo-0.2-py2.4.egg
     -  demoneeded-1.1-py2.3.egg
     -  demoneeded-1.1-py2.4.egg
+    -  setuptools-0.6-py2.4.egg
+    -  zc.buildout-1.0-py2.4.egg
 
-    >>> f = open(os.path.join(sample_buildout, 'bin', 'demo'))
+    >>> if sys.platform == 'win32':
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'demo-script.py'))
+    ... else:
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'demo'))
     >>> f.readline().strip() == '#!' + python2_4_executable
     True
-    >>> print f.read(),
+    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -147,22 +170,39 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     if __name__ == '__main__':
         eggrecipedemo.main()
 
-    >>> f = open(os.path.join(sample_buildout, 'bin', 'py_demo'))
+    >>> f.close()
+
+    >>> if sys.platform == 'win32':
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo-script.py'))
+    ... else:
+    ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo'))
     >>> f.readline().strip() == '#!' + python2_4_executable
     True
-    >>> print f.read(),
+    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     import sys
     <BLANKLINE>
-    if len(sys.argv) == 1:
-        import os
-        # Restart with -i
-        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
-    <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmpiIJY3Ysample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/tmp/tmpiIJY3Ysample-buildout/eggs/demoneeded-1.1-py2.4.egg'
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.4.egg'
       ]
     <BLANKLINE>
-    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
-        sys.argv[:] = sys.argv[1:]
-        execfile(sys.argv[0])
+    _interactive = True
+    if len(sys.argv) > 1:
+        import getopt
+        _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+        _interactive = False
+        for (_opt, _val) in _options:
+            if _opt == '-i':
+                _interactive = True
+            elif _opt == '-c':
+                exec _val
+    <BLANKLINE>
+        if _args:
+            sys.argv[:] = _args
+            execfile(sys.argv[0])
+    <BLANKLINE>
+    if _interactive:
+        import code
+        code.interact(banner="", local=globals())
+
+    >>> f.close()

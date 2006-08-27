@@ -20,6 +20,10 @@ import os, re, shutil, sys, unittest
 from zope.testing import doctest, renormalizing
 import zc.buildout.testing
 
+os_path_sep = os.path.sep
+if os_path_sep == '\\':
+    os_path_sep *= 2
+
 def buildout_error_handling():
     r"""Buildout error handling
 
@@ -218,7 +222,7 @@ def linkerSetUp(test):
     zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
 
 def easy_install_SetUp(test):
-    zc.buildout.testing.buildoutSetUp(test, clear_home=False)
+    zc.buildout.testing.buildoutSetUp(test)
     zc.buildout.testing.multi_python(test)
     zc.buildout.testing.add_source_dist(test)
     zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
@@ -286,13 +290,18 @@ def test_suite():
             checker=renormalizing.RENormalizing([
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('\S+sample-(\w+)%s(\S+)' % os.path.sep),
+               (re.compile('\S+sample-(\w+)%s(\S+)' % os_path_sep),
                 r'/sample-\1/\2'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
                (re.compile('setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
+                '\\1-  \\2\n'),
+               (re.compile("(\w)%s(\w)" % os_path_sep), r"\1/\2"),
                ])
             ),
         
@@ -302,12 +311,20 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
 
             checker=PythonNormalizing([
-               (re.compile("'%(sep)s\S+sample-install%(sep)s(dist%(sep)s)?"
-                           % dict(sep=os.path.sep)),
+               (re.compile("'"
+                           "(\w:)?"
+                           "[%(sep)s/]\S+sample-install[%(sep)s/]"
+                           "[%(sep)s/]?(dist"
+                           "[%(sep)s/])?"
+                           % dict(sep=os_path_sep)),
                 '/sample-eggs/'),
                (re.compile("([d-]  ((ext)?demo(needed)?|other)"
                            "-\d[.]\d-py)\d[.]\d(-[^. \t\n]+)?[.]egg"),
                 '\\1V.V.egg'),
+               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
+                '\\1-  \\2\n'),
+               (re.compile('extdemo-1[.]4[.]tar[.]gz'), 'extdemo-1.4.zip'),
+               (re.compile('#!\S+python\S+'), '#!python'),
                ]),
             ),
         doctest.DocTestSuite(
