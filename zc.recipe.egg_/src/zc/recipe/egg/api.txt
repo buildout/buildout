@@ -6,10 +6,10 @@ and generate scripts based on the resulting working sets.  The egg
 recipe provides an API that other recipes can use.
 
 A recipe can reuse the egg recipe, supporting the eggs, find-links,
-index, and pythonoptions.  This is done by creating an egg
-recipe instance in a recipes's contructor.  In the recipe's install
-script, the egg-recipe instance's working_set method to collect the
-requested eggs and working set. 
+index, and python options.  This is done by creating an egg recipe
+instance in a recipes's contructor.  In the recipe's install script,
+the egg-recipe instance's working_set method is used to collect the
+requested eggs and working set.
 
 To illustrate, we create a sample recipe that is a very thin layer
 around the egg recipe:
@@ -53,6 +53,7 @@ of extra requirements to be included in the working set.
     ... setup(
     ...     name = "sample",
     ...     entry_points = {'zc.buildout': ['default = sample:Sample']},
+    ...     install_requires = 'zc.recipe.egg',
     ...     )
     ... """)
 
@@ -95,6 +96,9 @@ computed by the egg recipe by looking at .installed.cfg:
     [sample-part]
     __buildout_installed__ = 
     __buildout_signature__ = sample-6aWMvV2EJ9Ijq+bR8ugArQ==
+            zc.recipe.egg-cAsnudgkduAa/Fd+WJIM6Q==
+            setuptools-0.6-py2.4.egg
+            zc.buildout-+rYeCcmFuD1K/aB77XTj5A==
     _b = /tmp/tmpb7kP9bsample-buildout/bin
     _d = /tmp/tmpb7kP9bsample-buildout/develop-eggs
     _e = /tmp/tmpb7kP9bsample-buildout/eggs
