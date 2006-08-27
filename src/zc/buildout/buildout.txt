@@ -11,7 +11,7 @@ may refer to such an instance of the application informally as "a Foo
 buildout".  
 
 This document describes how to define buildouts using buildout
-configuration files and recipes.  There are two ways to set up the
+configuration files and recipes.  There are three ways to set up the
 buildout software and create a buildout instance:
 
 1. Install the zc.buildout egg with easy_install and use the buildout
@@ -23,6 +23,10 @@ buildout software and create a buildout instance:
    The buildout script is installed into your buildout local scripts
    area.
 
+3. Use a buildoput command from an already installed buildout to 
+   bootstrap a new buildout.  (See the section on bootstraping later
+   in this document.)
+
 Often, a software project will be managed in a software repository,
 such as a subversion repository, that includes some software source
 directories, buildout configuration files, and a copy of the buildout
@@ -31,28 +35,27 @@ project from the repository and run the bootstrap script which
 installs setuptools and zc.buildout into the checkout as well as any
 parts defined.
 
-We have a sample buildout that has already been created for us.  It
-has the absolute minimum information.  We have bin, develop-eggs, eggs
-and parts directories, a configuration file, and an .installed.cfg
-that contains information about previously-installed parts:
+We have a sample buildout that we created using the bootstrap command
+of an existing buildout (method 3 above).  It has the absolute minimum
+information.  We have bin, develop-eggs, eggs and parts directories,
+and a configuration file:
     
     >>> ls(sample_buildout)
-    -  .installed.cfg
     d  bin
     -  buildout.cfg
     d  develop-eggs
     d  eggs
     d  parts
 
-The bin directory contains scripts.  In the examples shown here, we've
-used a hybrid approach for creating the buildout to ease automated
-setup.  We have a buildout script in our buildout script directory,
-but the zc.buildout and setuptools eggs actually live elsewhere.
+The bin directory contains scripts.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
+    -  py-zc.buildout
 
     >>> ls(sample_buildout, 'eggs')
+    -  setuptools-0.6-py2.4.egg
+    -  zc.buildout-1.0-py2.4.egg
 
 The develop-eggs and parts directories are initially empty:
 
@@ -82,14 +85,6 @@ The minimal configuration file has a buildout section that defines no
 parts:
 
     >>> cat(sample_buildout, 'buildout.cfg')
-    [buildout]
-    parts =
-
-The file .installed.cfg contains information about previously installed
-parts. Because this is a new buildout, this file isn't very
-interesting:
-
-    >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
     parts =
 
@@ -146,15 +141,18 @@ directory.
 
 Any time we use data from another section, it is important to reflect
 that data in the recipe's options when the recipe is constructed.
-When a buildout is run, it compares part-configuration data stored in
-the installed.cfg file and the part-configuration data loaded from the
-configuration files as modified by recipe constructors to decide if
-the configuration of a part has changed. If the configuration has
-changed, or if the recipe has changed, then the part is uninstalled
-before reinstalling it.  The buildout only looks at the part's
-options, so any data used to configure the part needs to be reflected
-in the part's options.  It is the job of a recipe constructor to make
-sure that the options include all rel event data.
+
+When buildout is run, it saves configuration data for installed parts
+in a file named installed.cfg.  In subsequent runs, it compares
+part-configuration data stored in the installed.cfg file and the
+part-configuration data loaded from the configuration files as
+modified by recipe constructors to decide if the configuration of a
+part has changed. If the configuration has changed, or if the recipe
+has changed, then the part is uninstalled before reinstalling it.  The
+buildout only looks at the part's options, so any data used to
+configure the part needs to be reflected in the part's options.  It is
+the job of a recipe constructor to make sure that the options include
+all rel event data.
 
 Of course, parts are also uninstalled if they are no-longer used.
 
@@ -284,8 +282,8 @@ We see that the recipe created the directory, as expected:
     d  parts
     d  recipes
 
-In addition, .installed.cfg has been updated to reflect the part we
-installed:
+In addition, .installed.cfg has been created containing information
+about the part we installed:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
@@ -1193,17 +1191,11 @@ Note that a basic setup.cfg was created for us.
 
     >>> ls(sample_bootstrapped, 'bin')
     -  buildout
-    -  py_zc.buildout
+    -  py-zc.buildout
 
     >>> ls(sample_bootstrapped, 'eggs')
-    -  setuptools-0.6b3-py2.3.egg
+    -  setuptools-0.6-py2.3.egg
+    -  zc.buildout-1.0-py2.3.egg
 
-    >>> ls(sample_bootstrapped, 'develop-eggs')
-    -  zc.buildout.egg-link
-
-
-Note that, in this example, we were using a development egg for the
-buildout, and the zc.buildout egg ended up as an egg link.
-
-Also not that the buildout script was installed but not run.  To run
+Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.

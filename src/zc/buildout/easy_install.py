@@ -108,6 +108,19 @@ def _satisfied(req, env):
 
     return None
 
+
+if sys.platform == 'win32':
+    # work around spawn lamosity on windows
+    # XXX need safe quoting (see the subproces.list2cmdline) and test
+    def _safe_arg(arg):
+        return '"%s"' % arg
+else:
+    _safe_arg = str
+
+_easy_install_cmd = _safe_arg(
+    'from setuptools.command.easy_install import main; main()'
+    )
+
 def _call_easy_install(spec, dest, links=(),
                        index = None,
                        executable=sys.executable,
@@ -115,11 +128,10 @@ def _call_easy_install(spec, dest, links=(),
                        ):
     prefix = sys.exec_prefix + os.path.sep
     path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
-    args = (
-        '-c', 'from setuptools.command.easy_install import main; main()',
-        '-mUNxd', dest)
+
+    args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(dest))
     if links:
-        args += ('-f', ' '.join(links))
+        args += ('-f', _safe_arg(' '.join(links)))
     if index:
         args += ('-i', index)
     if always_unzip:
@@ -135,7 +147,7 @@ def _call_easy_install(spec, dest, links=(),
     if level <= logging.DEBUG:
         logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
                      executable, '" "'.join(args), path)
-    
+
     args += (dict(os.environ, PYTHONPATH=path), )
     sys.stdout.flush() # We want any pending output first
     exit_code = os.spawnle(os.P_WAIT, executable, executable, *args)
@@ -244,9 +256,7 @@ def install(specs, dest,
 def _editable(spec, dest, links=(), index = None, executable=sys.executable):
     prefix = sys.exec_prefix + os.path.sep
     path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
-    args = (
-        '-c', 'from setuptools.command.easy_install import main; main()',
-        '-eb', dest)
+    args = ('-c', _easy_install_cmd, '-eb', _safe_arg(dest))
     if links:
         args += ('-f', ' '.join(links))
     if index:
@@ -317,7 +327,8 @@ def working_set(specs, executable, path):
 def scripts(reqs, working_set, executable, dest, scripts=None):
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
     projects = [r.project_name for r in reqs]
-    path = "',\n  '".join([dist.location for dist in working_set])
+    path = repr([dist.location for dist in working_set])
+    path = path[1:-1].replace(',', ',\n  ')
     generated = []
 
     for dist in working_set:
@@ -331,10 +342,12 @@ def scripts(reqs, working_set, executable, dest, scripts=None):
                     sname = name
 
                 sname = os.path.join(dest, sname)
-                generated.append(sname)
-                _script(dist, 'console_scripts', name, path, sname, executable)
+                generated.extend(
+                    _script(dist, 'console_scripts', name, path, sname,
+                            executable)
+                    )
 
-            name = 'py_'+dist.project_name
+            name = 'py-'+dist.project_name
             if scripts is not None:
                 sname = scripts.get(name)
             else:
@@ -342,13 +355,23 @@ def scripts(reqs, working_set, executable, dest, scripts=None):
 
             if sname is not None:
                 sname = os.path.join(dest, sname)
-                generated.append(sname)
-                _pyscript(path, sname, executable)
+                generated.extend(
+                    _pyscript(path, sname, executable)
+                    )
 
     return generated
 
 def _script(dist, group, name, path, dest, executable):
     entry_point = dist.get_entry_info(group, name)
+    generated = []
+    if sys.platform == 'win32':
+        # generate exe file and give the script a magic name:
+        open(dest+'.exe', 'wb').write(
+            pkg_resources.resource_string('setuptools', 'cli.exe')
+            )
+        generated.append(dest+'.exe')
+        dest += '-script.py'
+        
     open(dest, 'w').write(script_template % dict(
         python = executable,
         path = path,
@@ -361,13 +384,15 @@ def _script(dist, group, name, path, dest, executable):
         os.chmod(dest, 0755)
     except (AttributeError, os.error):
         pass
+    generated.append(dest)
+    return generated
 
 script_template = '''\
 #!%(python)s
 
 import sys
 sys.path[0:0] = [
-  '%(path)s'
+  %(path)s
   ]
 
 import %(module_name)s
@@ -378,6 +403,15 @@ if __name__ == '__main__':
 
 
 def _pyscript(path, dest, executable):
+    generated = []
+    if sys.platform == 'win32':
+        # generate exe file and give the script a magic name:
+        open(dest+'.exe', 'wb').write(
+            pkg_resources.resource_string('setuptools', 'cli.exe')
+            )
+        generated.append(dest+'.exe')
+        dest += '-script.py'
+
     open(dest, 'w').write(py_script_template % dict(
         python = executable,
         path = path,
@@ -386,21 +420,36 @@ def _pyscript(path, dest, executable):
         os.chmod(dest,0755)
     except (AttributeError, os.error):
         pass
+    generated.append(dest)
+    return generated
 
 py_script_template = '''\
 #!%(python)s
 import sys
-
-if len(sys.argv) == 1:
-    import os
-    # Restart with -i
-    os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
     
 sys.path[0:0] = [
-  '%(path)s'
+  %(path)s
   ]
 
-if len(sys.argv) > 1 and sys.argv[1:] != ['']:
-    sys.argv[:] = sys.argv[1:]
-    execfile(sys.argv[0])
+_interactive = True
+if len(sys.argv) > 1:
+    import getopt
+    _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+    _interactive = False
+    for (_opt, _val) in _options:
+        if _opt == '-i':
+            _interactive = True
+        elif _opt == '-c':
+            exec _val
+            
+    if _args:
+        sys.argv[:] = _args
+        execfile(sys.argv[0])
+
+if _interactive:
+    import code
+    code.interact(banner="", local=globals())
 '''
+
+
+

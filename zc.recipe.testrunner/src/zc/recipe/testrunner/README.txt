@@ -129,6 +129,7 @@ We get a test script installed in our bin directory:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
+    -  py-zc.buildout
     -  test
 
 We can run the test script to run our demo test:
@@ -163,6 +164,7 @@ script will get it's name from the part:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
+    -  py-zc.buildout
     -  testdemo
 
 We can run the test script to run our demo test:

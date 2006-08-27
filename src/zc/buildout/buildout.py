@@ -1,4 +1,4 @@
-##############################################################################
+#############################################################################
 #
 # Copyright (c) 2005 Zope Corporation and Contributors.
 # All Rights Reserved.
@@ -139,6 +139,8 @@ class Buildout(dict):
         options['installed'] = os.path.join(options['directory'],
                                             options['installed'])
 
+        self._setup_logging()
+
     def _dosubs(self, section, option, value, data, converted, seen):
         key = section, option
         r = converted.get(key)
@@ -215,7 +217,7 @@ class Buildout(dict):
             r = pkg_resources.Requirement.parse(name)
             dist = pkg_resources.working_set.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
-                dest = os.path.join(self['buildout']['develop-eggs-directory'],
+                dest = os.path.join(self['buildout']['eggs-directory'],
                                     name+'.egg-link')
                 open(dest, 'w').write(dist.location)
                 entries.append(dist.location)
@@ -351,9 +353,14 @@ class Buildout(dict):
                     os.chdir(os.path.dirname(setup))
                     os.spawnle(
                         os.P_WAIT, sys.executable, sys.executable,
-                        setup, '-q', 'develop', '-m', '-x', '-N',
-                        '-f', ' '.join(self._links),
-                        '-d', self['buildout']['develop-eggs-directory'],
+                        zc.buildout.easy_install._safe_arg(setup),
+                        '-q', 'develop', '-m', '-x', '-N',
+                        '-f', zc.buildout.easy_install._safe_arg(
+                                  ' '.join(self._links)
+                                  ),
+                        '-d', zc.buildout.easy_install._safe_arg(
+                                  self['buildout']['develop-eggs-directory']
+                                  ),
                         {'PYTHONPATH':
                          os.path.dirname(pkg_resources.__file__)},
                         )
@@ -680,12 +687,6 @@ def main(args=None):
     if verbosity:
         options.append(('buildout', 'verbosity', str(verbosity)))
 
-    try:
-        buildout = Buildout(config_file, options)
-        buildout._setup_logging()
-    except UserError, v:
-        _error(str(v))
-
     if args:
         command = args.pop(0)
         if command not in ('install', 'bootstrap'):
@@ -695,6 +696,7 @@ def main(args=None):
 
     try:
         try:
+            buildout = Buildout(config_file, options)
             getattr(buildout, command)(args)
         except UserError, v:
             _error(str(v))

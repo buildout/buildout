@@ -203,17 +203,28 @@ The bin directory now contains 2 generated scripts:
 
     >>> ls(bin)
     -  demo
-    -  py_demo
+    -  py-demo
 
 The return value is a list of the scripts generated:
     
-    >>> import os
-    >>> scripts == [os.path.join(bin, 'demo'), os.path.join(bin, 'py_demo')]
+    >>> import os, sys
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(bin, 'demo.exe'), 
+    ...                 os.path.join(bin, 'demo-script.py'), 
+    ...                 os.path.join(bin, 'py-demo.exe'),
+    ...                 os.path.join(bin, 'py-demo-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(bin, 'demo'), 
+    ...                 os.path.join(bin, 'py-demo')]
     True
 
 The demo script run the entry point defined in the demo egg:
 
-    >>> cat(bin, 'demo')
+    >>> if sys.platform == 'win32':
+    ...     cat(bin, 'demo-script.py')
+    ... else:
+    ...     cat(bin, 'demo')
+    ... # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.3
     <BLANKLINE>
     import sys
@@ -234,26 +245,40 @@ Some things to note:
 - The module for the script entry point is imported and the entry
   point, in this case, 'main', is run.
 
-The py_demo script simply run the Python interactive interpreter with
+The py-demo script simply run the Python interactive interpreter with
 the path set:
 
-    >>> cat(bin, 'py_demo')
+    >>> if sys.platform == 'win32':
+    ...     cat(bin, 'py-demo-script.py')
+    ... else:
+    ...     cat(bin, 'py-demo')
+    ... # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     import sys
-    <BLANKLINE>
-    if len(sys.argv) == 1:
-        import os
-        # Restart with -i
-        os.execl(sys.executable, sys.executable, '-i', sys.argv[0], '')
     <BLANKLINE>
     sys.path[0:0] = [
       '/tmp/tmp5zS2Afsample-install/demo-0.3-py2.4.egg',
       '/tmp/tmp5zS2Afsample-install/demoneeded-1.1-py2.4.egg'
       ]
     <BLANKLINE>
-    if len(sys.argv) > 1 and sys.argv[1:] != ['']:
-        sys.argv[:] = sys.argv[1:]
-        execfile(sys.argv[0])
+    _interactive = True
+    if len(sys.argv) > 1:
+        import getopt
+        _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+        _interactive = False
+        for (_opt, _val) in _options:
+            if _opt == '-i':
+                _interactive = True
+            elif _opt == '-c':
+                exec _val
+    <BLANKLINE>
+        if _args:
+            sys.argv[:] = _args
+            execfile(sys.argv[0])
+    <BLANKLINE>
+    if _interactive:
+        import code
+        code.interact(banner="", local=globals())
 
 If invoked with a script name and arguments, it will run that script, instead.
 
@@ -264,7 +289,12 @@ original script names to new script names.
     >>> bin = mkdtemp()
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'))
-    >>> scripts == [os.path.join(bin, 'run')]
+
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(bin, 'run.exe'),
+    ...                 os.path.join(bin, 'run-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(bin, 'run')]
     True
     >>> ls(bin)
     -  run
