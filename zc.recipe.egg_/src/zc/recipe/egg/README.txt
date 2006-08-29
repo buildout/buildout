@@ -37,6 +37,8 @@ scripts
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
 
+extra-paths
+   Extra paths to include in a generates script.
 
 We have a link server that has a number of eggs:
 
@@ -113,7 +115,7 @@ If we run the demo script, it prints out some minimal data:
 The value it prints out happens to be some values defined in the
 modules installed.
 
-We can also run the py_demo script.  Here we'll just print out
+We can also run the py-demo script.  Here we'll just print out
 the bits if the path added to reflect the eggs:
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'py-demo'),
@@ -204,6 +206,46 @@ You can also control the name used for scripts:
     -  buildout
     -  foo
     -  py-zc.buildout
+
+If we need to include extra paths in a script, we can use the
+extra-paths option:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = demo=foo
+    ... extra-paths = 
+    ...    /foo/bar
+    ...    /spam/eggs
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+
+Let's look at the script that was generated:
+
+    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/foo/bar',
+      '/spam/eggs'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+
 
 Offline mode
 ------------
