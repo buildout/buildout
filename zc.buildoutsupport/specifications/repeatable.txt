@@ -1,0 +1,100 @@
+Repeatable (taggable) buildouts
+===============================
+
+It's important to be able to tag a buildout in a software repository
+in such a way that, months, or even years later, the buildout tag can
+be checked out and used to construct the same collection of parts,
+with the same versions. (Note that parts could still behave
+differently due to changes in parts of the environment, such as system
+libraries, not controlled by the buildout.)
+
+A feature of the buildout is it's use of eggs and the automatic
+resolution of dependencies.  The latest versions of dependencies are
+automatically downloaded and installed.  This is great during
+development or when using the buildout for casual software
+development, but it doesn't work very well for reproducing an old
+buildout.
+
+What's needed is some way to, when needed, record information about
+the versions of eggs (and any other bits) who's versions are
+determined dynamically.
+
+Proposal
+--------
+
+We'll add a buildout option, create-repeatable. The option will
+specify a file into which option information should be saved to create
+a repeatable buildout.  The data will be saved in a form that can be
+used by the buildout or recipes in a later run.  To make a tagged
+buildout, a user would run the buildout with the create-repeatable
+option set to a file name and then modify the buildout to be
+extended-by this file.
+
+Consider the following example buildout.cfg::
+
+  [buildout]
+  parts = foo
+
+  [foo]
+  recipe = zc.recipe.eggs
+  eggs = foo 
+         eek
+
+Now assume that:
+
+- The current version of foo is 1.1
+
+- Foo depends on bar =, which depends on baz.  The current versions of
+  bar and bas are 1.1 and 2.1.
+
+- The current version of eek is 1.5
+
+- eek depends on ook, which is as version 1.3.
+
+- zc.recipe.egg is at version 1.0b5
+
+If we run the buildout with the command-line option::
+
+  buildout:create-repeatable=reapeatable.cfg
+
+we'll get a repeatable.cfg file that looks something like::
+
+  [foo]
+  recipe = zc.recipe.eggs ==1.0b5
+  static = true
+  eggs = foo ==1.1
+         bar ==1.1
+         baz ==2.1
+         eek ==1.5
+         ook ==1.3
+
+The file contains options for the foo part.  The buildout software
+itself added an entry for the recipe that fixes the recipe version
+at the version used by the buildout.
+
+The zc.recipe.eggs recipe added the eggs option that lists the
+specifoc releases that were assembled.
+
+Finally the buildout.cfg file can be modified to use the
+repeatable.cfg file::
+
+  [buildout]
+  parts = foo
+  extended-by: repeatable.cfg
+
+  [foo]
+  recipe = zc.recipe.eggs
+  eggs = foo 
+         eek
+
+When the buildout is run, the options in repeatable.cfg will override
+the onces in buildout.cfg, providing a repeatable buildout
+
+Python API
+----------
+
+The recipe API will grow a repeatable method that is called after the
+install method and is passed a dictionary that a recipe can store
+option data in.  A recipe instance will only be able to provide repeatable data
+for it's part.
+
