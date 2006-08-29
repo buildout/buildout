@@ -39,6 +39,14 @@ class Egg:
             options['index'] = index
         self.index = index
 
+        self.extra_paths = [
+            os.path.join(buildout['buildout']['directory'], p.strip())
+            for p in options.get('extra-paths', '').split('\n')
+            if p.strip()
+            ]
+        if self.extra_paths:
+            options['extra-paths'] = '\n'.join(self.extra_paths)
+
         options['_b'] = buildout['buildout']['bin-directory']
         options['_e'] = buildout['buildout']['eggs-directory']
         options['_d'] = buildout['buildout']['develop-eggs-directory']
@@ -93,5 +101,7 @@ class Egg:
                     ])
             return zc.buildout.easy_install.scripts(
                 distributions, ws, options['executable'],
-                options['_b'], scripts=scripts)
+                options['_b'],
+                scripts=scripts,
+                extra_paths=self.extra_paths)
 

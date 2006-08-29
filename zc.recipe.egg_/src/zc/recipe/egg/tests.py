@@ -73,6 +73,7 @@ def test_suite():
                 'zc.buildout.egg'),
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
+               (re.compile('#![^\n]+python[^\n]*\n'), '#!python\n'),
                ])
             ),
         doctest.DocFileSuite(

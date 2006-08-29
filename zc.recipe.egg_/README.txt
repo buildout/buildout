@@ -41,6 +41,9 @@ Custom eggs
 The zc.recipe.egg:custom recipe supports building custom eggs,
 currently with specialized options for building extensions.
 
+extra-paths
+   Extra paths to include in a generates script.
+
 To do
 -----
 
@@ -50,14 +53,6 @@ To do
 
 - More control over script generation.  In particular, some way to 
   specify data t be recored in the script.
-
-- Honor the buildout offline option.
-
-- Windows suppprt
-
-  - Generate exe files
-
-  - Make sure tests work under windows
 
 Change History
 ==============
