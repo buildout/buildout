@@ -324,11 +324,16 @@ def build(spec, dest, build_ext,
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)
 
-def scripts(reqs, working_set, executable, dest, scripts=None):
+def scripts(reqs, working_set, executable, dest,
+            scripts=None,
+            extra_paths=(),
+            arguments='',
+            ):
     reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
     projects = [r.project_name for r in reqs]
-    path = repr([dist.location for dist in working_set])
-    path = path[1:-1].replace(',', ',\n  ')
+    path = [dist.location for dist in working_set]
+    path.extend(extra_paths)
+    path = repr(path)[1:-1].replace(',', ',\n  ')
     generated = []
 
     for dist in working_set:
@@ -344,7 +349,7 @@ def scripts(reqs, working_set, executable, dest, scripts=None):
                 sname = os.path.join(dest, sname)
                 generated.extend(
                     _script(dist, 'console_scripts', name, path, sname,
-                            executable)
+                            executable, arguments)
                     )
 
             name = 'py-'+dist.project_name
@@ -361,7 +366,7 @@ def scripts(reqs, working_set, executable, dest, scripts=None):
 
     return generated
 
-def _script(dist, group, name, path, dest, executable):
+def _script(dist, group, name, path, dest, executable, arguments):
     entry_point = dist.get_entry_info(group, name)
     generated = []
     if sys.platform == 'win32':
@@ -379,6 +384,7 @@ def _script(dist, group, name, path, dest, executable):
         name = name,
         module_name = entry_point.module_name,
         attrs = '.'.join(entry_point.attrs),
+        arguments = arguments,
         ))
     try:
         os.chmod(dest, 0755)
@@ -398,7 +404,7 @@ sys.path[0:0] = [
 import %(module_name)s
 
 if __name__ == '__main__':
-    %(module_name)s.%(attrs)s()
+    %(module_name)s.%(attrs)s(%(arguments)s)
 '''
 
 
