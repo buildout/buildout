@@ -32,9 +32,9 @@ install function takes 2 positional arguments:
 
 It supports a number of optional keyword arguments:
 
-links
-   a sequence of URLs, file names, or directories to look for
-   links to distributions,
+find-links
+   A sequence of URLs, file names, or directories to look for
+   links to distributions.
 
 index
    The URL of an index server, or almost any other valid URL. :)
