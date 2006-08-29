@@ -27,6 +27,11 @@ import zc.buildout.buildout
 
 def cat(dir, *names):
     path = os.path.join(dir, *names)
+    if (not os.path.exists(path)
+        and sys.platform == 'win32'
+        and os.path.exists(path+'-script.py')
+        ):
+        path = path+'-script.py'
     print open(path).read(),
 
 def ls(dir, *subs):

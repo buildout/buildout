@@ -59,6 +59,9 @@ always_unzip
    A flag indicating that newly-downloaded distributions should be
    directories even if they could be installed as zip files.
 
+arguments
+   Source code to be used to pass arguments when calling a script entry point.
+
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -220,11 +223,7 @@ The return value is a list of the scripts generated:
 
 The demo script run the entry point defined in the demo egg:
 
-    >>> if sys.platform == 'win32':
-    ...     cat(bin, 'demo-script.py')
-    ... else:
-    ...     cat(bin, 'demo')
-    ... # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.3
     <BLANKLINE>
     import sys
@@ -248,11 +247,7 @@ Some things to note:
 The py-demo script simply run the Python interactive interpreter with
 the path set:
 
-    >>> if sys.platform == 'win32':
-    ...     cat(bin, 'py-demo-script.py')
-    ... else:
-    ...     cat(bin, 'py-demo')
-    ... # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bin, 'py-demo') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     import sys
     <BLANKLINE>
@@ -301,6 +296,57 @@ original script names to new script names.
 
     >>> print system(os.path.join(bin, 'run')),
     3 1
+
+Including extra paths in scripts
+--------------------------------
+
+We can pass a keyword argument, extra paths, to caue additional paths
+to be included in the a generated script:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    extra_paths=['/foo/bar'])
+
+    >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/foo/bar'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+Providing script arguments
+--------------------------
+
+A n "argument" keyword argument can be used to pass arguments to an
+entry point.  The value passed source string to be placed between the
+parentheses in the call:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    arguments='1, 2')
+
+    >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.3
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main(1, 2)
+
+
 
 Handling custom build options for extensions
 --------------------------------------------
