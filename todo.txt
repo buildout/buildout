@@ -21,7 +21,7 @@
 
 - Load from urls
 
-- control python for develop (probbaly a new recipe)
+- control python for develop (probably a new recipe)
 
 - proper handling of extras
 
