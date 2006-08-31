@@ -40,7 +40,7 @@ assert os.spawnle(
     os.P_WAIT, sys.executable, sys.executable,
     '-c', cmd, '-mqNxd', tmpeggs, 'zc.buildout',
     dict(os.environ,
-         'PYTHONPATH'=
+         PYTHONPATH=
          ws.find(pkg_resources.Requirement.parse('setuptools')).location
          ),
     ) == 0
