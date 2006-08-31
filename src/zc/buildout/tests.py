@@ -216,6 +216,47 @@ uninstalling anything because the configuration hasn't changed.
     buildout: Installing debug
 """
 
+
+bootstrap_py = os.path.join(
+       os.path.dirname(
+          os.path.dirname(
+             os.path.dirname(
+                os.path.dirname(zc.buildout.__file__)
+                )
+             )
+          ),
+       'bootstrap', 'bootstrap.py')
+if os.path.exists(bootstrap_py):
+    def test_bootstrap_py():
+        """Make sure the bootstrap script actually works
+
+    >>> sample_buildout = mkdtemp()
+    >>> os.chdir(sample_buildout)
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print system(sys.executable+' '+'bootstrap.py'), # doctest: +ELLIPSIS
+    Downloading ...
+    Warning: creating ...buildout.cfg
+    
+    >>> ls(sample_buildout)
+    d  bin
+    -  bootstrap.py
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+    -  py-zc.buildout
+
+    >>> ls(sample_buildout, 'eggs')
+    -  setuptools-0.6-py2.4.egg
+    d  zc.buildout-1.0-py2.4.egg
+
+    """
+
+
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
     zc.buildout.testing.multi_python(test)
@@ -334,6 +375,11 @@ def test_suite():
             checker=PythonNormalizing([
                (re.compile("buildout: Running \S*setup.py"),
                 'buildout: Running setup.py'),
+               (re.compile('py_zc'), 'py-zc'), # XXX get rid of after next rel
+               (re.compile('setuptools-\S+-py\d.\d.egg'),
+                'setuptools.egg'),
+               (re.compile('zc.buildout-\S+-py\d.\d.egg'),
+                'zc.buildout.egg'),
                ]),
             )
         ))
