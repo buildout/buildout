@@ -21,7 +21,7 @@ $Id$
 """
 
 import logging, os, re, tempfile, sys
-import pkg_resources, setuptools.command.setopt
+import pkg_resources, setuptools.command.setopt, setuptools.package_index
 import zc.buildout
 
 # XXX we could potentially speed this up quite a bit by keeping our
@@ -62,19 +62,43 @@ def _get_version(executable):
         _versions[executable] = version
         return version
 
-def _satisfied(req, env):
-    dists = env[req.project_name]
+_indexes = {}
+def _get_index(executable, index_url, find_links):
+    key = executable, index_url, tuple(find_links)
+    index = _indexes.get(key)
+    if index is not None:
+        return index
 
-    best = None
+    if index_url is None:
+        index = setuptools.package_index.PackageIndex(
+            python=_get_version(executable)
+            )
+    else:
+        index = setuptools.package_index.PackageIndex(
+            index_url, python=_get_version(executable)
+            )
+        
+    if find_links:
+        index.add_find_links(find_links)
+
+    _indexes[key] = index
+    return index
+
+def _satisfied(req, env, dest, executable, index, links):
+    dists = [dist for dist in env[req.project_name] if dist in req]
+    if not dists:
+        logger.debug('We have no distributions for %s', req.project_name)
+        return None
+
+    # Note that dists are sorted from best to worst, as promised by
+    # env.__getitem__
+
     for dist in dists:
-        if (dist.precedence == pkg_resources.DEVELOP_DIST) and (dist in req):
-            if best is not None and best.location != dist.location:
-                raise ValueError('Multiple devel eggs for', req)
-            best = dist
+        if (dist.precedence == pkg_resources.DEVELOP_DIST):
+            logger.debug('We have a develop egg for %s', req)
+            return dist
 
-    if best is not None:
-        return best
-    
+    # Find an upprt limit in the specs, if there is one:
     specs = [(pkg_resources.parse_version(v), op) for (op, v) in req.specs]
     specs.sort()
     maxv = None
@@ -101,10 +125,36 @@ def _satisfied(req, env):
         else:
             lastv = v
 
-    if maxv is not None:
-        for dist in dists:
-            if dist.parsed_version == maxv:
-                return dist
+    best_we_have = dists[0] # Because dists are sorted from best to worst
+
+    # Check if we have the upper limit
+    if maxv is not None and best_we_have.version == maxv:
+        logger.debug('We have the best distributon that satisfies %s',
+                     req)
+        return best_we_have
+
+    # We have some installed distros.  There might, theoretically, be
+    # newer ones.  Let's find out which ones are available and see if
+    # any are newer.  We only do this if we're willing to install
+    # something, which is only true if dest is not None:
+
+    if dest is not None:
+        best_available = _get_index(executable, index, links).obtain(req)
+    else:
+        best_available = None
+
+    if best_available is None:
+        # That's a bit odd.  There aren't any distros available.
+        # We should use the best one we have that meets the requirement.
+        logger.debug(
+            'There are no distros vailable that meet %s. Using our best.', req)
+        return best_we_have
+    else:
+        # Let's find out if we already have the best available:
+        if best_we_have >= best_available:
+            # Yup. Use it.
+            logger.debug('We have the best distributon that satisfies %s', req)
+            return best_we_have
 
     return None
 
@@ -122,7 +172,7 @@ _easy_install_cmd = _safe_arg(
     )
 
 def _call_easy_install(spec, dest, links=(),
-                       index = None,
+                       index=None,
                        executable=sys.executable,
                        always_unzip=False,
                        ):
@@ -161,17 +211,10 @@ def _call_easy_install(spec, dest, links=(),
 
 def _get_dist(requirement, env, ws,
               dest, links, index, executable, always_unzip):
+    
     # Maybe an existing dist is already the best dist that satisfies the
     # requirement
-    dist = _satisfied(requirement, env)
-
-    # XXX Special case setuptools because:
-    # 1. Almost everything depends on it and
-    # 2. It is expensive to checl for.
-    # Need to think of a cleaner way to handle this.
-    # If we already have a satisfactory version, use it.
-    if dist is None and requirement.project_name == 'setuptools':
-        dist = env.best_match(requirement, ws)
+    dist = _satisfied(requirement, env, dest, executable, index, links)
 
     if dist is None:
         if dest is not None:
@@ -283,9 +326,6 @@ def build(spec, dest, build_ext,
           executable=sys.executable,
           path=None):
 
-    # XXX we're going to download and build the egg every stinking time.
-    # We need to not do that.
-
     logger.debug('Building %r', spec)
 
     path = path and path[:] or []
@@ -302,7 +342,7 @@ def build(spec, dest, build_ext,
     env = pkg_resources.Environment(path, python=_get_version(executable))
     requirement = pkg_resources.Requirement.parse(spec)
 
-    dist = _satisfied(requirement, env)
+    dist = _satisfied(requirement, env, dest, executable, index, links)
     if dist is not None:
         return dist
 
