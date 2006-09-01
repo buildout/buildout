@@ -129,7 +129,7 @@ def _satisfied(req, env, dest, executable, index, links):
 
     # Check if we have the upper limit
     if maxv is not None and best_we_have.version == maxv:
-        logger.debug('We have the best distributon that satisfies %s',
+        logger.debug('We have the best distributon that satisfies\n%s',
                      req)
         return best_we_have
 
@@ -153,7 +153,7 @@ def _satisfied(req, env, dest, executable, index, links):
         # Let's find out if we already have the best available:
         if best_we_have >= best_available:
             # Yup. Use it.
-            logger.debug('We have the best distributon that satisfies %s', req)
+            logger.debug('We have the best distributon that satisfies\n%s', req)
             return best_we_have
 
     return None
@@ -373,7 +373,7 @@ def scripts(reqs, working_set, executable, dest,
     projects = [r.project_name for r in reqs]
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    path = repr(path)[1:-1].replace(',', ',\n  ')
+    path = repr(path)[1:-1].replace(', ', ',\n  ')
     generated = []
 
     for dist in working_set:
