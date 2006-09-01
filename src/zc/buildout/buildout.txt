@@ -1103,6 +1103,10 @@ database is shown.
     python = buildout
     verbosity = 20
     <BLANKLINE>
+    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
+    zc.buildout.easy_install: We have a develop egg for zc.buildout
+    zc.buildout.easy_install: We have the best distributon that satisfies
+    setuptools
 
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
