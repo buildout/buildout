@@ -1,0 +1,84 @@
+Automatic Buildout Updates
+==========================
+
+When a buildout is run, one of the first steps performed is to check
+for updates to either zc.buildout or setuptools.  To demonstrate this,
+we've creates some "new releases" of buildout and setuptools in a
+new_releases folder:
+
+    >>> ls(new_releases)
+    d  setuptools
+    -  setuptools-99.99-py2.3.egg
+    d  zc.buildout
+    -  zc.buildout-99.99-py2.3.egg
+
+Let's update the sample buildout.cfg to look in this area:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ... 
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+We'll also include a recipe that echos the version sof setuptools and
+zc.buildout used:
+
+    >>> mkdir(sample_buildout, 'showversions')
+
+    >>> write(sample_buildout, 'showversions', 'showversions.py', 
+    ... """
+    ... import pkg_resources
+    ...
+    ... class Recipe:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         pass
+    ...
+    ...     def install(self):
+    ...         for project in 'zc.buildout', 'setuptools':
+    ...             req = pkg_resources.Requirement.parse(project)
+    ...             print project, pkg_resources.working_set.find(req).version
+    ... """)
+
+
+    >>> write(sample_buildout, 'showversions', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(
+    ...     name = "showversions",
+    ...     entry_points = {'zc.buildout': ['default = showversions:Recipe']},
+    ...     )
+    ... """)
+
+Now if we run the buildout, the buildout will upgrade itself to the
+new versions found in new releases:
+
+    >>> import os
+    >>> os.chdir(sample_buildout)
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print system(buildout),
+    zc.buildout 99.99
+    setuptools 99.99
+
+Our buildout script has been updated to use the new eggs:
+
+    >>> cat(sample_buildout, 'bin', 'buildout') 
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/tmpc4avO6sample-buildout/eggs/zc.buildout-99.99-py2.3.egg',
+      '/tmp/tmpc4avO6sample-buildout/eggs/setuptools-99.99-py2.3.egg'
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()

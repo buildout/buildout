@@ -25,7 +25,6 @@ import shutil
 import sys
 import ConfigParser
 
-import zc.buildout.easy_install
 import pkg_resources
 import zc.buildout.easy_install
 
@@ -244,6 +243,9 @@ class Buildout(dict):
         # Add develop-eggs directory to path so that it gets searched
         # for eggs:
         sys.path.insert(0, self['buildout']['develop-eggs-directory'])
+
+        # Check for updates. This could cause the process to be rstarted
+        self._maybe_upgrade()
 
         # Build develop eggs
         self._develop()
@@ -523,6 +525,54 @@ class Buildout(dict):
             for section in sections:
                 _save_options(section, self[section], sys.stdout)
             print    
+
+    def _maybe_upgrade(self):
+        # See if buildout or setuptools need to be upgraded.
+        # If they do, do the upgrade and return true.
+        # Otherwise, return False.
+        ws = zc.buildout.easy_install.install(
+            [
+            (spec + ' ' + self['buildout'].get(spec+'-version', '')).strip()
+            for spec in ('zc.buildout', 'setuptools')
+            ],
+            self['buildout']['eggs-directory'],
+            links = self['buildout'].get('find-links', '').split(),
+            index = self['buildout'].get('index'),
+            path = [self['buildout']['develop-eggs-directory']],
+            )
+
+        upgraded = []
+        for project in 'zc.buildout', 'setuptools':
+            req = pkg_resources.Requirement.parse(project)
+            if ws.find(req) != pkg_resources.working_set.find(req):
+                upgraded.append(ws.find(req))
+
+        if not upgraded:
+            return
+        
+        self._logger.info("Upgraded: %s, restarting.",
+                          ",  ".join([("%s version %s"
+                                       % (dist.project_name, dist.version)
+                                       )
+                                      for dist in upgraded
+                                      ]
+                                     ),
+                          )
+                
+        # the new dist is different, so we've upgraded.
+        # Update the scripts and return True
+        zc.buildout.easy_install.scripts(
+            ['zc.buildout'], ws, sys.executable,
+            self['buildout']['bin-directory'],
+            )
+
+        # Restart
+        args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+        if not __debug__:
+            args.insert(0, '-O')
+        args.insert(0, sys.executable)
+        sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'

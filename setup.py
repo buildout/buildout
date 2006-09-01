@@ -23,4 +23,5 @@ setup(
     entry_points = {'console_scripts':
                     ['buildout = %s.buildout:main' % name]}, 
     dependency_links = ['http://download.zope.org/distribution/'],
+    zip_safe=False,
     )

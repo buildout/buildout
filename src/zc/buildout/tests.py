@@ -16,9 +16,10 @@
 $Id$
 """
 
-import os, re, shutil, sys, unittest
+import os, re, shutil, sys, unittest, zipfile
 from zope.testing import doctest, renormalizing
-import zc.buildout.testing
+import pkg_resources
+import zc.buildout.testing, zc.buildout.easy_install
 
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
@@ -321,6 +322,75 @@ class PythonNormalizing(renormalizing.RENormalizing):
 
         return result
 
+        
+
+egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
+                       ).match
+def makeNewRelease(project, ws, dest):
+    dist = ws.find(pkg_resources.Requirement.parse(project))
+    eggname, oldver, pyver = egg_parse(
+        os.path.basename(dist.location)
+        ).groups()
+    dest = os.path.join(dest, "%s-99.99-py%s.egg" % (eggname, pyver)) 
+    if os.path.isfile(dist.location):
+        shutil.copy(dist.location, dest)
+        zip = zipfile.ZipFile(dest, 'a')
+        zip.writestr(
+            'EGG-INFO/PKG-INFO',
+            zip.read('EGG-INFO/PKG-INFO').replace("Version: %s" % oldver, 
+                                                  "Version: 99.99")
+            )
+        zip.close()
+    else:
+        shutil.copy(dist.location, dest)
+        info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
+        info = open(info_path).read().replace("Version: %s" % oldver, 
+                                              "Version: 99.99")
+        open(info_path, 'w').write(info)
+
+
+def updateSetup(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    test.globs['new_releases'] = new_releases = test.globs['mkdtemp']()
+    sample_buildout = test.globs['sample_buildout']
+    eggs = os.path.join(sample_buildout, 'eggs')
+
+    # If the zc.buildout dist is a develo dist, convert it to a
+    # regular egg in the sample buildout
+    req = pkg_resources.Requirement.parse('zc.buildout')
+    dist = pkg_resources.working_set.find(req)
+    if dist.precedence == pkg_resources.DEVELOP_DIST:
+        # We have a develop egg, create a real egg for it:
+        here = os.getcwd()
+        os.chdir(os.path.dirname(dist.location))
+        assert os.spawnle(
+            os.P_WAIT, sys.executable, sys.executable,
+            os.path.join(os.path.dirname(dist.location), 'setup.py'),
+            '-q', 'bdist_egg', '-d', eggs,
+            dict(os.environ,
+                 PYTHONPATH=pkg_resources.working_set.find(
+                               pkg_resources.Requirement.parse('setuptools')
+                               ).location,
+                 ),
+            ) == 0
+        os.chdir(here)
+        os.remove(os.path.join(eggs, 'zc.buildout.egg-link'))
+
+        # Rebuild the buildout script
+        ws = pkg_resources.WorkingSet([eggs])
+        ws.require('zc.buildout')
+        zc.buildout.easy_install.scripts(
+            ['zc.buildout'], ws, sys.executable,
+            os.path.join(sample_buildout, 'bin'))
+    else:
+        ws = pkg_resources.working_set
+
+    # now let's make the new releases
+    makeNewRelease('zc.buildout', ws, new_releases)
+    makeNewRelease('setuptools', ws, new_releases)
+
+    os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+    os.mkdir(os.path.join(new_releases, 'setuptools'))
     
 def test_suite():
     return unittest.TestSuite((
@@ -343,6 +413,17 @@ def test_suite():
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
                (re.compile("(\w)%s(\w)" % os_path_sep), r"\1/\2"),
+               ])
+            ),
+
+        doctest.DocFileSuite(
+            'update.txt',
+            setUp=updateSetup,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               (re.compile('#!\S+python\S+'), '#!python'),
+               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
+               (re.compile('-py\d[.]\d.egg'), r'-py2.3.egg'),
                ])
             ),
         
