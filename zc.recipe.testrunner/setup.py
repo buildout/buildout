@@ -21,5 +21,4 @@ setup(
                         ],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:TestRunner' % name]},
-    dependency_links = ['http://download.zope.org/distribution/'],
     )

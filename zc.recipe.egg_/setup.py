@@ -23,5 +23,4 @@ setup(
                                     'custom = %s:Custom' % name,
                                     ]
                     },    
-    dependency_links = ['http://download.zope.org/distribution/'],
     )

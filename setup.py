@@ -22,6 +22,6 @@ setup(
     test_suite = name+'.tests.test_suite',
     entry_points = {'console_scripts':
                     ['buildout = %s.buildout:main' % name]}, 
-    dependency_links = ['http://download.zope.org/distribution/'],
+#    dependency_links = ['http://download.zope.org/distribution/'],
     zip_safe=False,
     )
