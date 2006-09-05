@@ -16,6 +16,10 @@ script
     buildout bin directory.  Of the option isn't used, the part name
     will be used.
 
+extra-paths
+    One or more extra paths to include in the generated test script.
+
+
 (Note that, at this time, due to limitations in the Zope test runner,
  the distributions cannot be zip files. TODO: Fix the test runner!)
 
@@ -123,13 +127,12 @@ Now when we run the buildout:
 
     >>> import os
     >>> os.chdir(sample_buildout)
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -q'),
 
 We get a test script installed in our bin directory:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
-    -  py-zc.buildout
     -  test
 
 We can run the test script to run our demo test:
@@ -160,15 +163,49 @@ script will get it's name from the part:
     ... eggs = demo
     ... """)
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -q'),
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
-    -  py-zc.buildout
     -  testdemo
 
 We can run the test script to run our demo test:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'testdemo')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'testdemo') + ' -q'),
     Running unit tests:
       Ran 1 tests with 0 failures and 0 errors in 0.000 seconds.
+
+If we need to include other paths in our test script, we can use the
+extra-paths option to specify them:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts = testdemo
+    ... offline = true
+    ...
+    ... [testdemo]
+    ... recipe = zc.recipe.testrunner
+    ... eggs = demo
+    ... extra-paths = /usr/local/zope/lib/python
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -q'),
+
+    >>> cat(sample_buildout, 'bin', 'testdemo')
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample-buildout/demo',
+      '/sample-buildout/eggs/zope.testing-3.0-py2.3.egg',
+      '/usr/local/zope/lib/python',
+      ]
+    <BLANKLINE>
+    import zope.testing.testrunner
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zope.testing.testrunner.run([
+      '--test-path', '/private/tmp/tmppoToJzsample-buildout/demo',
+      ])
