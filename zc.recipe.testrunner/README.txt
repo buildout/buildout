@@ -24,3 +24,20 @@ To do
 - Support specifying testrunner defaults (e.g. verbosity, test file 
   patterns, etc.)
 
+
+
+Change History
+==============
+
+1.0.0a2
+-------
+
+Now provide a extra-paths option for including extra paths in test
+scripts. This is useful when eggs depend on Python packages not
+packaged as eggs.
+
+
+1.0.0a1
+-------
+
+Initial public version

@@ -192,7 +192,18 @@ Change History
 1.0.0b3
 -------
 
+- Added a help option (-h, --help)
+
+- Increased the default level of verbosity.
+
+- Buildouts now automatically update themselves to new versions of
+  zc.buildout and setuptools.
+
 - Added Windows support.
+
+- Added a recipe API for generating user errors.
+
+- No-longer generate a py_zc.buildout script.
 
 - Fixed some bugs in variable substitutions.  
 
@@ -205,6 +216,14 @@ Change History
 - Improved error handling.  No longer show tracebacks for user errors.
 
 - Now require a recipe option (and therefore a section) for every part.
+
+- Expanded the easy_install module API to:
+
+  - Allow extra paths to be provided
+
+  - Specify explicit entry points
+
+  - Specify entry-point arguments
 
 1.0.0b2
 -------

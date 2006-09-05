@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 name = "zc.recipe.egg"
 setup(
     name = name,
-    version = "1.0.0a2",
+    version = "1.0.0a3",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
@@ -16,7 +16,7 @@ setup(
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout', 'setuptools'],
+    install_requires = ['zc.buildout >=1.1.0b3', 'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Egg' % name,

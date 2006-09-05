@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b2",
+    version = "1.0.0b3",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",

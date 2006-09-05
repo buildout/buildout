@@ -63,6 +63,27 @@ Change History
 Added a new recipe for building custom eggs from source distributions,
 specifying custom distutils build_ext options.
 
+1.0.0a3
+-------
+
+- Added Windows support.
+
+- Now-longer implicitly generate "py_" scripts for each egg.  You can
+  now generate a script for launching a Python interpreter or for
+  running scripts based on the eggs defined for an egg part.
+
+- You can now specify custom entry points for packages that don't
+  declare their entry points.
+
+- You can now specify extra-paths to be included in generated scripts.
+
+
+1.0.0a2
+-------
+
+Added a custom recipe for building custom eggs using custom distrutils
+build_ext arguments.
+
 1.0.0a1
 -------
 
