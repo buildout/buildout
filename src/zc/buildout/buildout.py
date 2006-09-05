@@ -26,20 +26,18 @@ import sys
 import ConfigParser
 
 import pkg_resources
+import zc.buildout
 import zc.buildout.easy_install
 
-class UserError(Exception):
-    """Errors made by a user 
-    """
+pkg_resources_loc = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('setuptools')).location
 
-    def __str__(self):
-        return " ".join(map(str, self))
 
-class MissingOption(UserError, KeyError):
+class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing
     """
 
-class MissingSection(UserError, KeyError):
+class MissingSection(zc.buildout.UserError, KeyError):
     """A required section is missinh
     """
 
@@ -87,7 +85,7 @@ class Buildout(dict):
             'installed': '.installed.cfg',
             'python': 'buildout',
             'executable': sys.executable,
-            'log-level': 'WARNING',
+            'log-level': 'INFO',
             'log-format': '%(name)s: %(message)s',
             })
 
@@ -146,12 +144,13 @@ class Buildout(dict):
         if r is not None:
             return r
         if key in seen:
-            raise UserError("Circular reference in substitutions.\n"
-                            "We're evaluating %s\nand are referencing: %s.\n"
-                            % (", ".join([":".join(k) for k in seen]),
-                               ":".join(key)
-                               )
-                            )
+            raise zc.buildout.UserError(
+                "Circular reference in substitutions.\n"
+                "We're evaluating %s\nand are referencing: %s.\n"
+                % (", ".join([":".join(k) for k in seen]),
+                   ":".join(key)
+                   )
+                )
         seen.append(key)
         value = '$$'.join([self._dosubs_esc(s, data, converted, seen)
                            for s in value.split('$$')
@@ -169,21 +168,23 @@ class Buildout(dict):
             s = tuple(ref[2:-1].split(':'))
             if not self._valid(ref):
                 if len(s) < 2:
-                    raise UserError("The substitution, %s,\n"
-                                    "doesn't contain a colon."
-                                    % ref)
+                    raise zc.buildout.UserError("The substitution, %s,\n"
+                                                "doesn't contain a colon."
+                                                % ref)
                 if len(s) > 2:
-                    raise UserError("The substitution, %s,\n"
-                                    "has too many colons."
-                                    % ref)
+                    raise zc.buildout.UserError("The substitution, %s,\n"
+                                                "has too many colons."
+                                                % ref)
                 if not self._simple(s[0]):
-                    raise UserError("The section name in substitution, %s,\n"
-                                    "has invalid characters."
-                                    % ref)
+                    raise zc.buildout.UserError(
+                        "The section name in substitution, %s,\n"
+                        "has invalid characters."
+                        % ref)
                 if not self._simple(s[1]):
-                    raise UserError("The option name in substitution, %s,\n"
-                                    "has invalid characters."
-                                    % ref)
+                    raise zc.buildout.UserError(
+                        "The option name in substitution, %s,\n"
+                        "has invalid characters."
+                        % ref)
                 
             v = converted.get(s)
             if v is None:
@@ -345,27 +346,38 @@ class Buildout(dict):
         """
         develop = self['buildout'].get('develop')
         if develop:
+            env = dict(os.environ, PYTHONPATH=pkg_resources_loc)
             here = os.getcwd()
             try:
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
                     if os.path.isdir(setup):
                         setup = os.path.join(setup, 'setup.py')
-                    self._logger.info("Running %s -q develop ...", setup)
+
+                    self._logger.info("Develop: %s", setup)
                     os.chdir(os.path.dirname(setup))
-                    os.spawnle(
-                        os.P_WAIT, sys.executable, sys.executable,
+
+                    args = [
                         zc.buildout.easy_install._safe_arg(setup),
-                        '-q', 'develop', '-m', '-x', '-N',
+                        '-q', 'develop', '-mxN',
                         '-f', zc.buildout.easy_install._safe_arg(
-                                  ' '.join(self._links)
+                            ' '.join(self._links)
                                   ),
                         '-d', zc.buildout.easy_install._safe_arg(
                                   self['buildout']['develop-eggs-directory']
                                   ),
-                        {'PYTHONPATH':
-                         os.path.dirname(pkg_resources.__file__)},
-                        )
+                        ]
+
+                    if self._log_level <= logging.DEBUG:
+                        if self._log_level == logging.DEBUG:
+                            del args[1]
+                        else:
+                            args[1] == '-v'
+                        self._logger.debug("in: %s\n%r",
+                                           os.path.dirname(setup), args)
+                        
+                    args.append(env)
+                    os.spawnle(os.P_WAIT, sys.executable, sys.executable, *args)
             finally:
                 os.chdir(here)
 
@@ -386,27 +398,28 @@ class Buildout(dict):
                 raise MissingSection("No section was specified for part", part)
 
             recipe, entry = self._recipe(part, options)
-            recipes_requirements.append(recipe)
+            if recipe not in recipes_requirements:
+                recipes_requirements.append(recipe)
 
         # Install the recipe distros
         offline = self['buildout'].get('offline', 'false')
         if offline not in ('true', 'false'):
             self._error('Invalif value for offline option: %s', offline)
-        if offline == 'true':
-            ws = zc.buildout.easy_install.working_set(
-                recipes_requirements, sys.executable,
-                [self['buildout']['eggs-directory'],
-                 self['buildout']['develop-eggs-directory'],
-                 ],
-                )
-        else:
-            ws = zc.buildout.easy_install.install(
-                recipes_requirements, self['buildout']['eggs-directory'],
-                links=self._links, index=self['buildout'].get('index'),
-                path=[self['buildout']['develop-eggs-directory']])
             
-        # Add the distros to the working set
-        pkg_resources.require(recipes_requirements)
+        if offline == 'false':
+            dest = self['buildout']['eggs-directory']
+        else:
+            dest = None
+
+        ws = zc.buildout.easy_install.install(
+            recipes_requirements, dest,
+            links=self._links,
+            index=self['buildout'].get('index'),
+            path=[self['buildout']['develop-eggs-directory'],
+                  self['buildout']['eggs-directory'],
+                  ],
+            working_set=pkg_resources.working_set,
+            )
 
         # instantiate the recipes
         for part in parts:
@@ -517,6 +530,7 @@ class Buildout(dict):
 
         level -= verbosity
         root_logger.setLevel(level)
+        self._log_level = level
 
         if level <= logging.DEBUG:
             sections = list(self)
@@ -528,8 +542,11 @@ class Buildout(dict):
 
     def _maybe_upgrade(self):
         # See if buildout or setuptools need to be upgraded.
-        # If they do, do the upgrade and return true.
-        # Otherwise, return False.
+        # If they do, do the upgrade and restart the buildout process.
+
+        if self['buildout'].get('offline') == 'true':
+            return # skip upgrade in offline mode:
+        
         ws = zc.buildout.easy_install.install(
             [
             (spec + ' ' + self['buildout'].get(spec+'-version', '')).strip()
@@ -550,8 +567,8 @@ class Buildout(dict):
         if not upgraded:
             return
         
-        self._logger.info("Upgraded: %s, restarting.",
-                          ",  ".join([("%s version %s"
+        self._logger.info("Upgraded:\n  %s;\nrestarting.",
+                          ",\n  ".join([("%s version %s"
                                        % (dist.project_name, dist.version)
                                        )
                                       for dist in upgraded
@@ -626,7 +643,7 @@ def _open(base, filename, seen):
 
     filename = os.path.join(base, filename)
     if filename in seen:
-        raise UserError("Recursive file include", seen, filename)
+        raise zc.buildout.UserError("Recursive file include", seen, filename)
 
     base = os.path.dirname(filename)
     seen.append(filename)
@@ -694,6 +711,55 @@ def _error(*message):
     sys.stderr.write('Error: ' + ' '.join(message) +'\n')
     sys.exit(1)
 
+_usage = """\
+Usage: buildout [options] [assignments] [command [command arguments]]
+
+Options:
+
+  -h, --help
+
+     Print this message and exit.
+
+  -v
+
+     Increase the level of verbosity.  This option can be used multiple times.
+
+  -q
+
+     Deccreaae the level of verbosity.  This option can be used multiple times.
+
+  -c config_file
+
+     Specify the path to the buildout configuration file to be used.
+     This defaults to the file named"buildout.cfg" in the current
+     working directory. 
+
+Assignments are of the form: section:option=value and are used to
+provide configuration options that override those givem in the
+configuration file.  For example, to run the buildout in offline mode,
+use buildout:offline=true.
+
+Options and assignments can be interspersed.
+
+Commmonds:
+
+  install [parts]
+
+    Install parts.  If no command arguments are given, then the parts
+    definition from the configuration file is used.  Otherwise, the
+    arguments specify the parts to be installed.
+
+  bootstrap
+
+    Create a new buildout in the current working directory, copying
+    the buildout and setuptools eggs and, creating a basic directory
+    structure and a buildout-local buildout script.
+
+"""
+def _help():
+    print _usage
+    sys.exit(0)
+
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
@@ -705,11 +771,13 @@ def main(args=None):
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vq':
+            while op and op[0] in 'vqh':
                 if op[0] == 'v':
                     verbosity += 10
-                else:
+                elif op[0] == 'q':
                     verbosity -= 10
+                else:
+                    _help()
                 op = op[1:]
                 
             if op[:1] == 'c':
@@ -722,6 +790,8 @@ def main(args=None):
                     else:
                         _error("No file name specified for option", orig_op)
             elif op:
+                if orig_op == '--help':
+                    _help()
                 _error("Invalid option", '-'+op[0])
         elif '=' in args[0]:
             option, value = args.pop(0).split('=', 1)
@@ -748,7 +818,7 @@ def main(args=None):
         try:
             buildout = Buildout(config_file, options)
             getattr(buildout, command)(args)
-        except UserError, v:
+        except zc.buildout.UserError, v:
             _error(str(v))
             
     finally:
