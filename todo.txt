@@ -1,16 +1,6 @@
 
-- Need a better way to handle buildout updates.  If I update buildout
-  and new versions of recipes depend on that, people will have to use
-  the bootstrap script to get a newer version of buildout or the
-  recipes won't load correctly.
+- Report error if repeated parts
 
-  I either need a more clever recipe loader that can load older
-  recipes when newer recipes aren't compatible with the existing
-  buildout version, or I need to make the buildout self updating.
-
-- Use setuptools PackageIndex objects to improve performance by
-  deciding whether we need to download anything without using
-  easy_install.
 
 - tests
 
