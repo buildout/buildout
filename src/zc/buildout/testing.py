@@ -67,13 +67,16 @@ def get(url):
 def buildoutSetUp(test):
     # we both need to make sure that HOME isn't set and be prepared
     # to restore whatever it was after the test.
-    test.globs['_oldhome'] = os.environ.pop('HOME', None)
+    test.globs['_oldhome'] = os.environ['HOME']
+    del os.environ['HOME'] # pop doesn't truly remove it :(
 
     temporary_directories = []
     def mkdtemp(*args):
         d = tempfile.mkdtemp(*args)
         temporary_directories.append(d)
         return d
+
+    os.environ['buildout-testing-index-url'] = 'file://'+mkdtemp()
 
     sample = mkdtemp('sample-buildout')
 
@@ -83,8 +86,10 @@ def buildoutSetUp(test):
         )
 
     # Use the buildout bootstrap command to create a buildout
-    zc.buildout.buildout.Buildout(os.path.join(sample, 'buildout.cfg'), ()
-                                  ).bootstrap([])
+    zc.buildout.buildout.Buildout(
+        os.path.join(sample, 'buildout.cfg'),
+        [('buildout', 'log-level', 'WARNING')]
+        ).bootstrap([])
 
     test.globs.update(dict(
         __here = os.getcwd(),
