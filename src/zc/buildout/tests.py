@@ -205,15 +205,15 @@ def test_comparing_saved_options_with_funny_characters():
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
 
-    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    buildout: Running ...setup.py -q develop ...
+    >>> print system(buildout), # doctest: +ELLIPSIS
+    buildout: Develop: ...setup.py
     buildout: Installing debug
 
 If we run the buildout again, we shoudn't get a message about
 uninstalling anything because the configuration hasn't changed.
 
-    >>> print system(buildout+' -v'),
-    buildout: Running setup.py -q develop ...
+    >>> print system(buildout), # doctest: +ELLIPSIS
+    buildout: Develop: ...setup.py
     buildout: Installing debug
 """
 
@@ -257,6 +257,101 @@ if os.path.exists(bootstrap_py):
 
     """
 
+def test_help():
+    """
+>>> print system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'),
+Usage: buildout [options] [assignments] [command [command arguments]]
+<BLANKLINE>
+Options:
+<BLANKLINE>
+  -h, --help
+<BLANKLINE>
+     Print this message and exit.
+<BLANKLINE>
+  -v
+<BLANKLINE>
+     Increase the level of verbosity.  This option can be used multiple times.
+<BLANKLINE>
+  -q
+<BLANKLINE>
+     Deccreaae the level of verbosity.  This option can be used multiple times.
+<BLANKLINE>
+  -c config_file
+<BLANKLINE>
+     Specify the path to the buildout configuration file to be used.
+     This defaults to the file named"buildout.cfg" in the current
+     working directory. 
+<BLANKLINE>
+Assignments are of the form: section:option=value and are used to
+provide configuration options that override those givem in the
+configuration file.  For example, to run the buildout in offline mode,
+use buildout:offline=true.
+<BLANKLINE>
+Options and assignments can be interspersed.
+<BLANKLINE>
+Commmonds:
+<BLANKLINE>
+  install [parts]
+<BLANKLINE>
+    Install parts.  If no command arguments are given, then the parts
+    definition from the configuration file is used.  Otherwise, the
+    arguments specify the parts to be installed.
+<BLANKLINE>
+  bootstrap
+<BLANKLINE>
+    Create a new buildout in the current working directory, copying
+    the buildout and setuptools eggs and, creating a basic directory
+    structure and a buildout-local buildout script.
+<BLANKLINE>
+<BLANKLINE>
+
+>>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+...              +' --help'),
+Usage: buildout [options] [assignments] [command [command arguments]]
+<BLANKLINE>
+Options:
+<BLANKLINE>
+  -h, --help
+<BLANKLINE>
+     Print this message and exit.
+<BLANKLINE>
+  -v
+<BLANKLINE>
+     Increase the level of verbosity.  This option can be used multiple times.
+<BLANKLINE>
+  -q
+<BLANKLINE>
+     Deccreaae the level of verbosity.  This option can be used multiple times.
+<BLANKLINE>
+  -c config_file
+<BLANKLINE>
+     Specify the path to the buildout configuration file to be used.
+     This defaults to the file named"buildout.cfg" in the current
+     working directory. 
+<BLANKLINE>
+Assignments are of the form: section:option=value and are used to
+provide configuration options that override those givem in the
+configuration file.  For example, to run the buildout in offline mode,
+use buildout:offline=true.
+<BLANKLINE>
+Options and assignments can be interspersed.
+<BLANKLINE>
+Commmonds:
+<BLANKLINE>
+  install [parts]
+<BLANKLINE>
+    Install parts.  If no command arguments are given, then the parts
+    definition from the configuration file is used.  Otherwise, the
+    arguments specify the parts to be installed.
+<BLANKLINE>
+  bootstrap
+<BLANKLINE>
+    Create a new buildout in the current working directory, copying
+    the buildout and setuptools eggs and, creating a basic directory
+    structure and a buildout-local buildout script.
+<BLANKLINE>
+<BLANKLINE>
+    """
 
 def linkerSetUp(test):
     zc.buildout.testing.buildoutSetUp(test, clear_home=False)
@@ -421,7 +516,7 @@ def test_suite():
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('#!\S+python\S+'), '#!python'),
+               (re.compile('#!\S+python\S*'), '#!python'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('-py\d[.]\d.egg'), r'-py2.3.egg'),
                ])
@@ -441,7 +536,7 @@ def test_suite():
                            % dict(sep=os_path_sep)),
                 '/sample-eggs/'),
                (re.compile("([d-]  ((ext)?demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d(-[^. \t\n]+)?[.]egg"),
+                           "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                 '\\1V.V.egg'),
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
