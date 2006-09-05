@@ -24,10 +24,7 @@ import logging, os, re, tempfile, sys
 import pkg_resources, setuptools.command.setopt, setuptools.package_index
 import zc.buildout
 
-# XXX we could potentially speed this up quite a bit by keeping our
-# own PackageIndex to analyse whether there are newer dists.  A hitch
-# is that the package index seems to go out of its way to only handle
-# one Python version at a time. :(
+default_index_url = os.environ.get('buildout-testing-index-url')
 
 logger = logging.getLogger('zc.buildout.easy_install')
 
@@ -68,6 +65,9 @@ def _get_index(executable, index_url, find_links):
     index = _indexes.get(key)
     if index is not None:
         return index
+
+    if index_url is None:
+        index_url = default_index_url
 
     if index_url is None:
         index = setuptools.package_index.PackageIndex(
@@ -151,7 +151,7 @@ def _satisfied(req, env, dest, executable, index, links):
         return best_we_have
     else:
         # Let's find out if we already have the best available:
-        if best_we_have >= best_available:
+        if best_we_have.parsed_version >= best_available.parsed_version:
             # Yup. Use it.
             logger.debug('We have the best distributon that satisfies\n%s', req)
             return best_we_have
@@ -218,6 +218,8 @@ def _get_dist(requirement, env, ws,
 
     if dist is None:
         if dest is not None:
+            logger.info("Getting new distribution for %s", requirement)
+
             # May need a new one.  Call easy_install
             _call_easy_install(str(requirement), dest, links, index,
                                executable, always_unzip)
@@ -228,8 +230,10 @@ def _get_dist(requirement, env, ws,
             # and either firgure out the distribution added, or
             # only rescan if any files have been added.
             env.scan([dest])
-            
-        dist = env.best_match(requirement, ws)
+            dist = env.best_match(requirement, ws)
+            logger.info("Got %s", dist)            
+        else:
+            dist = env.best_match(requirement, ws)
 
     if dist is None:
         raise ValueError("Couldn't find", requirement)
@@ -246,12 +250,12 @@ def _get_dist(requirement, env, ws,
 def install(specs, dest,
             links=(), index=None,
             executable=sys.executable, always_unzip=False,
-            path=None):
+            path=None, working_set=None):
 
     logger.debug('Installing %r', specs)
 
     path = path and path[:] or []
-    if dest is not None:
+    if dest is not None and dest not in path:
         path.insert(0, dest)
 
     path += buildout_and_setuptools_path
@@ -265,7 +269,10 @@ def install(specs, dest,
     env = pkg_resources.Environment(path, python=_get_version(executable))
     requirements = [pkg_resources.Requirement.parse(spec) for spec in specs]
 
-    ws = pkg_resources.WorkingSet([])
+    if working_set is None:
+        ws = pkg_resources.WorkingSet([])
+    else:
+        ws = working_set
 
     for requirement in requirements:
         ws.add(_get_dist(requirement, env, ws,
@@ -368,46 +375,51 @@ def scripts(reqs, working_set, executable, dest,
             scripts=None,
             extra_paths=(),
             arguments='',
+            interpreter=None,
             ):
-    reqs = [pkg_resources.Requirement.parse(r) for r in reqs]
-    projects = [r.project_name for r in reqs]
+    
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
     path = repr(path)[1:-1].replace(', ', ',\n  ')
     generated = []
 
-    for dist in working_set:
-        if dist.project_name in projects:
+    if isinstance(reqs, str):
+        raise TypeError('Expected iterable of requirements or entry points,'
+                        ' got string.')
+
+    entry_points = []
+    for req in reqs:
+        if isinstance(req, str):
+            req = pkg_resources.Requirement.parse(req)
+            dist = working_set.find(req)
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
-                if scripts is not None:
-                    sname = scripts.get(name)
-                    if sname is None:
-                        continue
-                else:
-                    sname = name
-
-                sname = os.path.join(dest, sname)
-                generated.extend(
-                    _script(dist, 'console_scripts', name, path, sname,
-                            executable, arguments)
+                entry_point = dist.get_entry_info('console_scripts', name)
+                entry_points.append(
+                    (name, entry_point.module_name, '.'.join(entry_point.attrs))
                     )
+        else:
+            entry_points.append(req)
+                
+    for name, module_name, attrs in entry_points:
+        if scripts is not None:
+            sname = scripts.get(name)
+            if sname is None:
+                continue
+        else:
+            sname = name
 
-            name = 'py-'+dist.project_name
-            if scripts is not None:
-                sname = scripts.get(name)
-            else:
-                sname = name
+        sname = os.path.join(dest, sname)
+        generated.extend(
+            _script(module_name, attrs, path, sname, executable, arguments)
+            )
 
-            if sname is not None:
-                sname = os.path.join(dest, sname)
-                generated.extend(
-                    _pyscript(path, sname, executable)
-                    )
+    if interpreter:
+        sname = os.path.join(dest, interpreter)
+        generated.extend(_pyscript(path, sname, executable))
 
     return generated
 
-def _script(dist, group, name, path, dest, executable, arguments):
-    entry_point = dist.get_entry_info(group, name)
+def _script(module_name, attrs, path, dest, executable, arguments):
     generated = []
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
@@ -420,10 +432,8 @@ def _script(dist, group, name, path, dest, executable, arguments):
     open(dest, 'w').write(script_template % dict(
         python = executable,
         path = path,
-        project = dist.project_name,
-        name = name,
-        module_name = entry_point.module_name,
-        attrs = '.'.join(entry_point.attrs),
+        module_name = module_name,
+        attrs = attrs,
         arguments = arguments,
         ))
     try:
@@ -438,7 +448,7 @@ script_template = '''\
 
 import sys
 sys.path[0:0] = [
-  %(path)s
+  %(path)s,
   ]
 
 import %(module_name)s
@@ -474,7 +484,7 @@ py_script_template = '''\
 import sys
     
 sys.path[0:0] = [
-  %(path)s
+  %(path)s,
   ]
 
 _interactive = True

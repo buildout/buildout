@@ -188,7 +188,7 @@ Now, we'll use the scripts method to generate scripts in this directory
 from the demo egg:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['demo==0.1'], ws, python2_4_executable, bin)
+    ...     ['demo'], ws, python2_4_executable, bin)
 
 the four arguments we passed were:
 
@@ -202,24 +202,25 @@ the four arguments we passed were:
 
 3. The destination directory.
 
-The bin directory now contains 2 generated scripts:
+The bin directory now contains a generated script:
 
     >>> ls(bin)
     -  demo
-    -  py-demo
 
 The return value is a list of the scripts generated:
     
     >>> import os, sys
     >>> if sys.platform == 'win32':
     ...     scripts == [os.path.join(bin, 'demo.exe'), 
-    ...                 os.path.join(bin, 'demo-script.py'), 
-    ...                 os.path.join(bin, 'py-demo.exe'),
-    ...                 os.path.join(bin, 'py-demo-script.py')]
+    ...                 os.path.join(bin, 'demo-script.py')]
     ... else:
-    ...     scripts == [os.path.join(bin, 'demo'), 
-    ...                 os.path.join(bin, 'py-demo')]
+    ...     scripts == [os.path.join(bin, 'demo')]
     True
+
+Note that in Windows, 2 files are generated for each script.  A script
+file, ending in '-script.py', and an exe file that allows the script
+to be invoked directly without having to specify the Python
+interpreter and without having to provide a '.py' suffix.
 
 The demo script run the entry point defined in the demo egg:
 
@@ -229,7 +230,7 @@ The demo script run the entry point defined in the demo egg:
     import sys
     sys.path[0:0] = [
       '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -244,16 +245,73 @@ Some things to note:
 - The module for the script entry point is imported and the entry
   point, in this case, 'main', is run.
 
-The py-demo script simply run the Python interactive interpreter with
+Rather than requirement strings, you can pass tuples containing 3
+strings:
+
+  - A script name,
+
+  - A module,
+
+  - An attribute expression for an entry point within the module.
+
+For example, we could have passed antry point information directly
+rather than passing a requirement:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     [('demo', 'eggrecipedemo', 'main')],
+    ...     ws, python2_4_executable, bin)
+
+    >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+Passing entry-point information directly is handy when using eggs (or
+distributions) that don't declare their entry points, such as
+distributions that aren't based on setuptools.
+
+The interpreter keyword argument can be used to generate a script that can
+be used to invoke the Python interactive interpreter with the path set
+based on the working set.  This generated script can also be used to
+run other scripts with the path set on the working set:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['demo'], ws, python2_4_executable, bin, interpreter='py')
+
+
+    >>> ls(bin)
+    -  demo
+    -  py
+
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(bin, 'demo.exe'),
+    ...                 os.path.join(bin, 'demo-script.py'),
+    ...                 os.path.join(bin, 'py.exe'),
+    ...                 os.path.join(bin, 'py-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(bin, 'demo'),
+    ...                 os.path.join(bin, 'py')]
+    True
+
+The py script simply runs the Python interactive interpreter with
 the path set:
 
-    >>> cat(bin, 'py-demo') # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
       '/tmp/tmp5zS2Afsample-install/demo-0.3-py2.4.egg',
-      '/tmp/tmp5zS2Afsample-install/demoneeded-1.1-py2.4.egg'
+      '/tmp/tmp5zS2Afsample-install/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     _interactive = True
@@ -278,12 +336,12 @@ the path set:
 If invoked with a script name and arguments, it will run that script, instead.
 
 An additional argumnet can be passed to define which scripts to install
-and to provie script names. The argument is a dictionary mapping
+and to provide script names. The argument is a dictionary mapping
 original script names to new script names.
 
     >>> bin = mkdtemp()
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'))
+    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'))
 
     >>> if sys.platform == 'win32':
     ...     scripts == [os.path.join(bin, 'run.exe'),
@@ -304,7 +362,7 @@ We can pass a keyword argument, extra paths, to caue additional paths
 to be included in the a generated script:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'),
     ...    extra_paths=['/foo/bar'])
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
@@ -314,7 +372,7 @@ to be included in the a generated script:
     sys.path[0:0] = [
       '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
       '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
-      '/foo/bar'
+      '/foo/bar',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -330,7 +388,7 @@ entry point.  The value passed source string to be placed between the
 parentheses in the call:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo==0.1'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'),
     ...    arguments='1, 2')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
@@ -338,7 +396,7 @@ parentheses in the call:
     import sys
     sys.path[0:0] = [
       '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg'
+      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
