@@ -46,6 +46,7 @@ install the demo package using Python 2.3.
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.3
+    ... interpreter = py-demo
     ... """ % dict(server=link_server, python23=python2_3_executable))
 
 Now, if we run the buildout:
@@ -54,6 +55,11 @@ Now, if we run the buildout:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
+    buildout: Installing demo
+    zc.buildout.easy_install: Getting new distribution for demo<0.3
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
 
 we'll get the Python 2.3 eggs for demo and demoneeded:
 
@@ -78,7 +84,7 @@ And the generated scripts invoke Python 2.3:
     import sys
     sys.path[0:0] = [
       '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.3.egg'
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -97,7 +103,7 @@ And the generated scripts invoke Python 2.3:
     <BLANKLINE>
     sys.path[0:0] = [
       '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.3.egg'
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     _interactive = True
@@ -135,6 +141,7 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... python = python2.4
+    ... interpreter = py-demo
     ...
     ... [python2.4]
     ... executable = %(python24)s
@@ -142,6 +149,12 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     ... """ % dict(server=link_server, python24=python2_4_executable))
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+    zc.buildout.easy_install: Getting new distribution for demo<0.3
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
 
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
@@ -162,7 +175,7 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     import sys
     sys.path[0:0] = [
       '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.4.egg'
+      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -183,7 +196,7 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     <BLANKLINE>
     sys.path[0:0] = [
       '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.4.egg'
+      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     _interactive = True
