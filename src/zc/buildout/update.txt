@@ -64,6 +64,16 @@ new versions found in new releases:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
+    zc.buildout.easy_install: Getting new distribution for zc.buildout
+    zc.buildout.easy_install: Got zc.buildout 99.99
+    zc.buildout.easy_install: Getting new distribution for setuptools
+    zc.buildout.easy_install: Got setuptools 99.99
+    buildout: Upgraded:
+      zc.buildout version 99.99,
+      setuptools version 99.99;
+    restarting.
+    buildout: Develop: /sample-buildout/showversions/setup.py
+    buildout: Installing show-versions
     zc.buildout 99.99
     setuptools 99.99
 
@@ -75,7 +85,7 @@ Our buildout script has been updated to use the new eggs:
     import sys
     sys.path[0:0] = [
       '/tmp/tmpc4avO6sample-buildout/eggs/zc.buildout-99.99-py2.3.egg',
-      '/tmp/tmpc4avO6sample-buildout/eggs/setuptools-99.99-py2.3.egg'
+      '/tmp/tmpc4avO6sample-buildout/eggs/setuptools-99.99-py2.3.egg',
       ]
     <BLANKLINE>
     import zc.buildout.buildout
