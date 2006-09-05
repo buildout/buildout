@@ -16,7 +16,7 @@
 $Id$
 """
 
-import os, re, zipfile
+import logging, os, re, zipfile
 import zc.buildout.easy_install
 
 class Egg:
@@ -87,8 +87,11 @@ class Egg:
 
         return orig_distributions, ws
 
+    parse_entry_point = re.compile(
+        '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
+        ).match
     def install(self):
-        distributions, ws = self.working_set()
+        reqs, ws = self.working_set()
         options = self.options
 
         scripts = options.get('scripts')
@@ -99,9 +102,20 @@ class Egg:
                     ('=' in s) and s.split('=', 1) or (s, s)
                     for s in scripts
                     ])
+
+            for s in options.get('entry-points', '').split():
+                parsed = self.parse_entry_point(s)
+                if not parsed:
+                    logging.getLogger(self.name).error(
+                        "Cannot parse the entry point %s.", s)
+                    raise zc.buildout.UserError("Invalid entry point")
+                reqs.append(parsed.groups())
+
             return zc.buildout.easy_install.scripts(
-                distributions, ws, options['executable'],
+                reqs, ws, options['executable'],
                 options['_b'],
                 scripts=scripts,
-                extra_paths=self.extra_paths)
+                extra_paths=self.extra_paths,
+                interpreter=options.get('interpreter'),
+                )
 

@@ -95,6 +95,7 @@ the egg:
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
 
     >>> print system(buildout),
+    buildout: Installing extdemo
     zip_safe flag not set; analyzing archive contents...
 
 We got the zip_safe warning because the source distribution we used

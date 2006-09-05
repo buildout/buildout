@@ -6,10 +6,10 @@ and generate scripts based on the resulting working sets.  The egg
 recipe provides an API that other recipes can use.
 
 A recipe can reuse the egg recipe, supporting the eggs, find-links,
-index, and python options.  This is done by creating an egg recipe
-instance in a recipes's contructor.  In the recipe's install script,
-the egg-recipe instance's working_set method is used to collect the
-requested eggs and working set.
+index, extra-paths, and python options.  This is done by creating an
+egg recipe instance in a recipes's contructor.  In the recipe's
+install script, the egg-recipe instance's working_set method is used
+to collect the requested eggs and working set.
 
 To illustrate, we create a sample recipe that is a very thin layer
 around the egg recipe:
@@ -37,6 +37,7 @@ around the egg recipe:
     ...         print 'Working set:'
     ...         for d in ws:
     ...             print d
+    ...         print 'extra paths:', self.egg.extra_paths
     ... """)
 
 Here we instantiated the egg recipe in the constructor, saving it in
@@ -77,7 +78,7 @@ of extra requirements to be included in the working set.
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(buildout),
+    >>> print system(buildout + ' -q'),
     Part: sample-part
     Egg requirements:
     demo<0.3
@@ -85,6 +86,7 @@ of extra requirements to be included in the working set.
     demo 0.2
     other 1.0
     demoneeded 1.1
+    extra paths: []
 
 We can see that the options were augmented with additionl data
 computed by the egg recipe by looking at .installed.cfg:
@@ -108,3 +110,35 @@ computed by the egg recipe by looking at .installed.cfg:
     find-links = http://localhost:27071/
     index = http://localhost:27071/index
     recipe = sample
+
+If we use the extra-paths option:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = sample
+    ... parts = sample-part
+    ...
+    ... [sample-part]
+    ... recipe = sample
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)sindex
+    ... extras = other
+    ... extra-paths = /foo/bar
+    ...               /spam/eggs
+    ... """ % dict(server=link_server))
+
+Then we'll see that reflected in the extra_paths attribute in the egg
+recipe instance:
+
+    >>> print system(buildout + ' -q'),
+    Part: sample-part
+    Egg requirements:
+    demo<0.3
+    Working set:
+    demo 0.2
+    other 1.0
+    demoneeded 1.1
+    extra paths: ['/foo/bar', '/spam/eggs']

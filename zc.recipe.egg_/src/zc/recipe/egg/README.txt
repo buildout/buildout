@@ -29,6 +29,13 @@ python
    Python executable is found in the executable option of the named
    section. 
 
+entry-points
+   A list of entry-point identifiers of the form name=module#attrs,
+   name is a script name, module is a module name, and a attrs is a
+   (possibly dotted) name of an object wihin the module.  This option
+   is useful when working with distributions that don't declare entry
+   points, such as distributions not written to work with setuptools.
+
 scripts
    Control which scripts are generated.  The value should be a list of
    zero or more tokens.  Each token is either a name, or a name
@@ -36,6 +43,10 @@ scripts
    generated.  If no tokens are given, then script generation is
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
+
+interpreter
+   The name of a script to generate that allows access to a Python
+   interpreter that has the path set based on the eggs installed.
 
 extra-paths
    Extra paths to include in a generates script.
@@ -69,7 +80,7 @@ install the demo package.
     ... index = %(server)s/index
     ... """ % dict(server=link_server))
 
-In this example, we limited ourself to revisions before 0.3. We also
+In this example, we limited ourselves to revisions before 0.3. We also
 specified where to find distributions using the find-links option.
 
 Let's run the buildout:
@@ -78,6 +89,11 @@ Let's run the buildout:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
+    buildout: Installing demo
+    zc.buildout.easy_install: Getting new distribution for demo<0.3
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
     
 Now, if we look at the buildout eggs directory:
 
@@ -93,19 +109,47 @@ link for the recipe.  This egg link was actually created as part of
 the sample buildout setup. Normally, when using the recipe, you'll get
 a regular egg installation.)
 
+Script generation
+-----------------
+
 The demo egg also defined a script and we see that the script was
 installed as well:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  demo
-    -  py-demo
-    -  py-zc.buildout
 
 Here, in addition to the buildout script, we see the demo script,
-demo, and we see a script, py-demo, for giving us a Python prompt with
+demo.
+
+Let's add an interpreter option:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... interpreter = py-demo
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+
+Now we also get a py-demo script for giving us a Python prompt with
 the path for demo and any eggs it depends on included in sys.path.
 This is useful for debugging and testing.
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+    -  demo
+    -  py-demo
+
 
 If we run the demo script, it prints out some minimal data:
 
@@ -144,6 +188,10 @@ specification. For example, We remove the restriction on demo:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+    zc.buildout.easy_install: Getting new distribution for demo
+    zc.buildout.easy_install: Got demo 0.3
 
 Then we'll get a new demo egg:
 
@@ -162,10 +210,12 @@ The script is updated too:
     >>> print system(os.path.join(sample_buildout, 'bin', 'demo')),
     3 1
 
+Controlling script generation
+-----------------------------
+
 You can control which scripts get generated using the scripts option.
 For example, to suppress scripts, use the scripts option without any
 arguments:
-
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -181,10 +231,11 @@ arguments:
 
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
-    -  py-zc.buildout
 
 You can also control the name used for scripts:
 
@@ -201,11 +252,15 @@ You can also control the name used for scripts:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  foo
-    -  py-zc.buildout
+
+Specifying extra script paths
+-----------------------------
 
 If we need to include extra paths in a script, we can use the
 extra-paths option:
@@ -226,6 +281,8 @@ extra-paths option:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
 
 Let's look at the script that was generated:
 
@@ -237,7 +294,7 @@ Let's look at the script that was generated:
       '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
       '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
       '/foo/bar',
-      '/spam/eggs'
+      '/spam/eggs',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -245,7 +302,53 @@ Let's look at the script that was generated:
     if __name__ == '__main__':
         eggrecipedemo.main()
 
+Specifying entry points
+-----------------------
 
+Scripts can be generated for entry points declared explcitly.  We can
+declate entry points using the entry-points option:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... extra-paths = 
+    ...    /foo/bar
+    ...    /spam/eggs
+    ... entry-points = alt=eggrecipedemo:alt other=foo.bar:a.b.c
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+
+    >>> ls(sample_buildout, 'bin')
+    -  alt
+    -  buildout
+    -  demo
+    -  other
+
+    >>> cat(sample_buildout, 'bin', 'other')
+    #!/usr/local/bin/python2.3
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/private/tmp/tmp88gKbfsample-buildout/eggs/demo-0.3-py2.3.egg',
+      '/private/tmp/tmp88gKbfsample-buildout/eggs/demoneeded-1.1-py2.3.egg',
+      '/foo/bar',
+      '/spam/eggs',
+      ]
+    <BLANKLINE>
+    import foo.bar
+    <BLANKLINE>
+    if __name__ == '__main__':
+        foo.bar.a.b.c()
 
 Offline mode
 ------------
@@ -267,3 +370,5 @@ be made to contact an index server:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
