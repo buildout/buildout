@@ -129,7 +129,7 @@ def _satisfied(req, env, dest, executable, index, links):
 
     # Check if we have the upper limit
     if maxv is not None and best_we_have.version == maxv:
-        logger.debug('We have the best distributon that satisfies\n%s',
+        logger.debug('We have the best distribution that satisfies\n%s',
                      req)
         return best_we_have
 
@@ -147,13 +147,13 @@ def _satisfied(req, env, dest, executable, index, links):
         # That's a bit odd.  There aren't any distros available.
         # We should use the best one we have that meets the requirement.
         logger.debug(
-            'There are no distros vailable that meet %s. Using our best.', req)
+            'There are no distros available that meet %s. Using our best.', req)
         return best_we_have
     else:
         # Let's find out if we already have the best available:
         if best_we_have.parsed_version >= best_available.parsed_version:
             # Yup. Use it.
-            logger.debug('We have the best distributon that satisfies\n%s', req)
+            logger.debug('We have the best distribution that satisfies\n%s', req)
             return best_we_have
 
     return None
