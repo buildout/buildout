@@ -16,7 +16,7 @@ setup(
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout >=1.1.0b3', 'setuptools'],
+    install_requires = ['zc.buildout >=1.0.0b3', 'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Egg' % name,
