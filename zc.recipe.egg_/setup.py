@@ -22,5 +22,6 @@ setup(
     entry_points = {'zc.buildout': ['default = %s:Egg' % name,
                                     'custom = %s:Custom' % name,
                                     ]
-                    },    
+                    },
+    zip_safe=False,
     )
