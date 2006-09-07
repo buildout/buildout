@@ -80,7 +80,7 @@ Change History
 Extra path elements to be included in generated scripts can now be set
 via the extra-paths option. 
 
-No longer implicitly generate py_ scripts fo reach egg. There is now
+No longer implicitly generate py\_ scripts fo reach egg. There is now
 an interpreter option to generate a script that, when run without
 arguments, launches the Python interactive interpreter with the path
 set based on a parts eggs and extra paths.  If this script is run with
@@ -101,7 +101,7 @@ specifying custom distutils build_ext options.
 
 - Added Windows support.
 
-- Now-longer implicitly generate "py_" scripts for each egg.  You can
+- Now-longer implicitly generate "py\_" scripts for each egg.  You can
   now generate a script for launching a Python interpreter or for
   running scripts based on the eggs defined for an egg part.
 
