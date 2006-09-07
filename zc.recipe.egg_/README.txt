@@ -1,5 +1,8 @@
+================================
 Buildout Egg-Installation Recipe
 ================================
+
+.. contents::
 
 The egg-installation recipe installes eggs into a buildout eggs
 directory.  It also generates scripts in a buildout bin directory with 
@@ -35,6 +38,20 @@ scripts
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
 
+entry-points
+   A list of entry-point identifiers of the form name=module#attrs,
+   name is a script name, module is a module name, and a attrs is a
+   (possibly dotted) name of an object wihin the module.  This option
+   is useful when working with distributions that don't declare entry
+   points, such as distributions not written to work with setuptools.
+
+interpreter
+   The name of a script to generate that allows access to a Python
+   interpreter that has the path set based on the eggs installed.
+
+extra-paths
+   Extra paths to include in a generates script.
+
 Custom eggs
 -----------
 
@@ -52,10 +69,26 @@ To do
   require that the recorded versions be used in a later run.
 
 - More control over script generation.  In particular, some way to 
-  specify data t be recored in the script.
+  specify data to be recored in the script.
 
 Change History
 ==============
+
+1.0.0a3
+-------
+
+Extra path elements to be included in generated scripts can now be set
+via the extra-paths option. 
+
+No longer implicitly generate py_ scripts fo reach egg. There is now
+an interpreter option to generate a script that, when run without
+arguments, launches the Python interactive interpreter with the path
+set based on a parts eggs and extra paths.  If this script is run with
+the name of a Python script and arguments, then the given script is
+run with the path set.
+
+You can now specify explicit entry points.  This is useful for use
+with packages that don't declare their own entry points.
 
 1.0.0a2
 -------
