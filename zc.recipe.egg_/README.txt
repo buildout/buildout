@@ -72,10 +72,10 @@ To do
   specify data to be recored in the script.
 
 Change History
-==============
+--------------
 
 1.0.0a3
--------
+~~~~~~~
 
 Extra path elements to be included in generated scripts can now be set
 via the extra-paths option. 
@@ -91,13 +91,13 @@ You can now specify explicit entry points.  This is useful for use
 with packages that don't declare their own entry points.
 
 1.0.0a2
--------
+~~~~~~~
 
 Added a new recipe for building custom eggs from source distributions,
 specifying custom distutils build_ext options.
 
 1.0.0a3
--------
+~~~~~~~
 
 - Added Windows support.
 
@@ -112,12 +112,12 @@ specifying custom distutils build_ext options.
 
 
 1.0.0a2
--------
+~~~~~~~
 
 Added a custom recipe for building custom eggs using custom distrutils
 build_ext arguments.
 
 1.0.0a1
--------
+~~~~~~~
 
 Initial public version
