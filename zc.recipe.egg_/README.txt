@@ -77,27 +77,18 @@ Change History
 1.0.0a3
 ~~~~~~~
 
-Extra path elements to be included in generated scripts can now be set
-via the extra-paths option. 
+- Extra path elements to be included in generated scripts can now be
+  set via the extra-paths option.
 
-No longer implicitly generate py\_ scripts fo reach egg. There is now
-an interpreter option to generate a script that, when run without
-arguments, launches the Python interactive interpreter with the path
-set based on a parts eggs and extra paths.  If this script is run with
-the name of a Python script and arguments, then the given script is
-run with the path set.
+- No longer implicitly generate py\_ scripts fo reach egg. There is
+  now an interpreter option to generate a script that, when run
+  without arguments, launches the Python interactive interpreter with
+  the path set based on a parts eggs and extra paths.  If this script
+  is run with the name of a Python script and arguments, then the
+  given script is run with the path set.
 
-You can now specify explicit entry points.  This is useful for use
-with packages that don't declare their own entry points.
-
-1.0.0a2
-~~~~~~~
-
-Added a new recipe for building custom eggs from source distributions,
-specifying custom distutils build_ext options.
-
-1.0.0a3
-~~~~~~~
+- You can now specify explicit entry points.  This is useful for use
+  with packages that don't declare their own entry points.
 
 - Added Windows support.
 
