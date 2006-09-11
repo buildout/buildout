@@ -1170,7 +1170,7 @@ database is shown.
     <BLANKLINE>
     zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
     zc.buildout.easy_install: We have a develop egg for zc.buildout
-    zc.buildout.easy_install: We have the best distributon that satisfies
+    zc.buildout.easy_install: We have the best distribution that satisfies
     setuptools
 
 All of these options can be overridden by configuration files or by
