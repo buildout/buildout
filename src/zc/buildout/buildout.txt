@@ -1271,3 +1271,76 @@ Note that a basic setup.cfg was created for us.
 
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
+
+Extensions
+----------
+
+An **experimental** feature allows code to be loaded and run after
+condiguration files have been read but before the buildout has begun
+any processing.  The intent is to allow special plugins such as
+urllib2 request handlers to be loaded.
+
+To load an extension, we use the extensions option and list one or
+more distribution requirements, on separate lines.  The distributions
+named will be loaded and any zc.buildout.extensions entry points found
+will be called with the buildout as an argument.
+
+Let's create a sample extension in out sample buildout created in the
+previous section:
+
+    >>> mkdir(sample_bootstrapped, 'demo')
+
+    >>> write(sample_bootstrapped, 'demo', 'demo.py', 
+    ... """
+    ... def ext(buildout):
+    ...     print 'ext', list(buildout)
+    ... """)
+
+    >>> write(sample_bootstrapped, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(
+    ...     name = "demo",
+    ...     entry_points = {'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+Our extension just prints out the word 'demo', and lists the sections
+found in the buildout passed to it.
+
+We'll update our buildout.cfg to list the demo directory as a develop
+egg to be built:
+
+    >>> write(sample_bootstrapped, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts =
+    ... """)
+
+    >>> os.chdir(sample_bootstrapped)
+    >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
+    buildout: Develop: /sample-bootstrapped/demo/setup.py
+
+Now we can add the extensions option.  We were a bit tricly and ran
+the buildout once with the demo develop egg defined but without the
+extension option.  This is because extensions are loaded before the
+buildout creates develop eggs. We needed to use a separate buildout
+run to create the develop egg.  Normally, when eggs are loaded from
+the network, we wouldn't need to do anything special.
+
+    >>> write(sample_bootstrapped, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... parts =
+    ... """)
+   
+We see that out extension is loaded and executed:
+
+    >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
+    ext ['buildout']
+    buildout: Develop: /tmp/tmpi0JFIIsample-bootstrapped/demo/setup.py
+
