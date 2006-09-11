@@ -137,6 +137,7 @@ class Buildout(dict):
                                             options['installed'])
 
         self._setup_logging()
+        self._load_extensions()
 
     def _dosubs(self, section, option, value, data, converted, seen):
         key = section, option
@@ -589,6 +590,22 @@ class Buildout(dict):
             args.insert(0, '-O')
         args.insert(0, sys.executable)
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+
+    def _load_extensions(self):
+        specs = self['buildout'].get('extensions', '').split()
+        if specs:
+            if self['buildout'].get('offline') == 'true':
+                dest = None
+            else:
+                dest = self['buildout']['eggs-directory']
+            zc.buildout.easy_install.install(
+                specs, dest,
+                path=[self['buildout']['develop-eggs-directory']],
+                working_set=pkg_resources.working_set,
+                )
+            for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
+                ep.load()(self)
+                    
 
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'

@@ -189,6 +189,12 @@ You can send questions to jim@zope.com.
 Change History
 ==============
 
+1.0.0b4
+-------
+
+Added an **experimental** extensions mechamism, mainly to support
+adding sftp support to buildouts that need it.
+
 1.0.0b3
 -------
 
