@@ -237,7 +237,11 @@ if os.path.exists(bootstrap_py):
     >>> print system(sys.executable+' '+'bootstrap.py'), # doctest: +ELLIPSIS
     Downloading ...
     Warning: creating ...buildout.cfg
-    
+    buildout: Creating directory ...bin
+    buildout: Creating directory ...parts
+    buildout: Creating directory ...eggs
+    buildout: Creating directory ...develop-eggs
+
     >>> ls(sample_buildout)
     d  bin
     -  bootstrap.py
@@ -249,7 +253,6 @@ if os.path.exists(bootstrap_py):
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
-    -  py-zc.buildout
 
     >>> ls(sample_buildout, 'eggs')
     -  setuptools-0.6-py2.4.egg
