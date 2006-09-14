@@ -125,16 +125,17 @@ from pkg_resources import load_entry_point
 sys.exit(load_entry_point('zc.buildout', 'console_scripts', 'buildout')())
 '''
 
-def runsetup(d, executable):
+def runsetup(d, executable, type='bdist_egg'):
     here = os.getcwd()
     try:
         os.chdir(d)
         os.spawnle(
             os.P_WAIT, executable, executable,
-            'setup.py', '-q', 'bdist_egg',
+            'setup.py', '-q', type,
             {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
             )
-        shutil.rmtree('build')
+        if os.path.exists('build'):
+            shutil.rmtree('build')
     finally:
         os.chdir(here)
 
@@ -152,10 +153,11 @@ def create_sample_eggs(test, executable=sys.executable):
             sample, 'setup.py',
             "from setuptools import setup\n"
             "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
-            " zip_safe=True, version='1.%s')\n"
+            " zip_safe=True, version='1.%s', author='bob', url='bob', "
+            "author_email='bob')\n"
             % i
             )
-        runsetup(sample, executable)
+        runsetup(sample, executable, 'sdist')
 
     write(
         sample, 'setup.py',

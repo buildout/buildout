@@ -20,8 +20,12 @@ installed.
 $Id$
 """
 
-import logging, os, re, tempfile, sys
-import pkg_resources, setuptools.command.setopt, setuptools.package_index
+import glob, logging, os, re, tempfile, shutil, sys, zipimport
+import distutils.errors
+import pkg_resources
+import setuptools.command.setopt
+import setuptools.package_index
+import setuptools.archive_util
 import zc.buildout
 
 default_index_url = os.environ.get('buildout-testing-index-url')
@@ -171,8 +175,7 @@ _easy_install_cmd = _safe_arg(
     'from setuptools.command.easy_install import main; main()'
     )
 
-def _call_easy_install(spec, dest, links=(),
-                       index=None,
+def _call_easy_install(spec, dest,
                        executable=sys.executable,
                        always_unzip=False,
                        ):
@@ -180,10 +183,6 @@ def _call_easy_install(spec, dest, links=(),
     path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
 
     args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(dest))
-    if links:
-        args += ('-f', _safe_arg(' '.join(links)))
-    if index:
-        args += ('-i', index)
     if always_unzip:
         args += ('-Z', )
     level = logger.getEffectiveLevel()
@@ -220,15 +219,63 @@ def _get_dist(requirement, env, ws,
         if dest is not None:
             logger.info("Getting new distribution for %s", requirement)
 
-            # May need a new one.  Call easy_install
-            _call_easy_install(str(requirement), dest, links, index,
-                               executable, always_unzip)
+            # Retrieve the dist:
+            index = _get_index(executable, index, links)
+            dist = index.obtain(requirement)
+            if dist is None:
+                raise zc.buildout.UserError(
+                    "Couln't find a distribution for %s."
+                    % requirement)
+            if dist.location.endswith('.egg'):
+                # It's already an egg, just fetch it into the dest
+                tmp = tempfile.mkdtemp('get_dist')
+                try:
+                    dist = index.fetch_distribution(requirement, tmp)
+                    if dist is None:
+                        raise zc.buildout.UserError(
+                            "Couln't download a distribution for %s."
+                            % requirement)
+                    
+                    metadata = pkg_resources.EggMetadata(
+                        zipimport.zipimporter(dist.location)
+                        )
+                    if (always_unzip
+                        or
+                        metadata.has_metadata('not-zip-safe')
+                        or
+                        not metadata.has_metadata('zip-safe')
+                        ):
+                        setuptools.archive_util.unpack_archive(
+                            dist.location,
+                            os.path.join(dest, os.path.basename(dist.location)
+                                         ),
+                            )
+                    else:
+                        shutil.move(
+                            dist.location,
+                            os.path.join(dest, os.path.basename(dist.location)
+                                         ),
+                            )
+                        
+                finally:
+                    shutil.rmtree(tmp)
 
-            # Because we may have added new eggs, we need to rescan
-            # the destination directory.  A possible optimization
-            # is to get easy_install to recod the files installed
-            # and either firgure out the distribution added, or
-            # only rescan if any files have been added.
+            else:
+                # It's some other kind of dist.  We'll download it to
+                # a temporary directory and let easy_install have it's
+                # way with it:
+                tmp = tempfile.mkdtemp('get_dist')
+                try:
+                    dist = index.fetch_distribution(requirement, tmp)
+
+                    # May need a new one.  Call easy_install
+                    _call_easy_install(dist.location, dest,
+                                       executable, always_unzip)
+                finally:
+                    shutil.rmtree(tmp)
+
+            # Because we have added a new egg, we need to rescan
+            # the destination directory.
             env.scan([dest])
             dist = env.best_match(requirement, ws)
             logger.info("Got %s", dist)            
@@ -302,32 +349,6 @@ def install(specs, dest,
             
     return ws
 
-
-def _editable(spec, dest, links=(), index = None, executable=sys.executable):
-    prefix = sys.exec_prefix + os.path.sep
-    path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
-    args = ('-c', _easy_install_cmd, '-eb', _safe_arg(dest))
-    if links:
-        args += ('-f', ' '.join(links))
-    if index:
-        args += ('-i', index)
-    level = logger.getEffectiveLevel()
-    if level > logging.DEBUG:
-        args += ('-q', )
-    elif level < logging.DEBUG:
-        args += ('-v', )
-    
-    args += (spec, )
-
-    if level <= logging.DEBUG:
-        logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
-                     executable, '" "'.join(args), path)
-    
-    args += (dict(os.environ, PYTHONPATH=path), )
-    sys.stdout.flush() # We want any pending output first
-    exit_code = os.spawnle(os.P_WAIT, executable, executable, *args)
-    assert exit_code == 0
-
 def build(spec, dest, build_ext,
           links=(), index=None,
           executable=sys.executable,
@@ -355,18 +376,45 @@ def build(spec, dest, build_ext,
 
     # Get an editable version of the package to a temporary directory:
     tmp = tempfile.mkdtemp('editable')
-    _editable(spec, tmp, links, index, executable)
+    tmp2 = tempfile.mkdtemp('editable')
+    try:
+        index = _get_index(executable, index, links)
+        dist = index.fetch_distribution(requirement, tmp2, False, True)
+        if dist is None:
+            raise zc.buildout.UserError(
+                "Couln't find a source distribution for %s."
+                % requirement)
+        setuptools.archive_util.unpack_archive(dist.location, tmp)
 
-    setup_cfg = os.path.join(tmp, requirement.key, 'setup.cfg')
-    if not os.path.exists(setup_cfg):
-        f = open(setup_cfg, 'w')
-        f.close()
-    setuptools.command.setopt.edit_config(setup_cfg, dict(build_ext=build_ext))
+        if os.path.exists(os.path.join(tmp, 'setup.py')):
+            base = tmp
+        else:
+            setups = glob.glob(os.path.join(tmp, '*', 'setup.py'))
+            if not setups:
+                raise distutils.errors.DistutilsError(
+                    "Couldn't find a setup script in %s"
+                    % os.path.basename(dist.location)
+                    )
+            if len(setups) > 1:
+                raise distutils.errors.DistutilsError(
+                    "Multiple setup scripts in %s"
+                    % os.path.basename(dist.location)
+                    )
+            base = os.path.dirname(setups[0])
 
-    # Now run easy_install for real:
-    _call_easy_install(
-        os.path.join(tmp, requirement.key),
-        dest, links, index, executable, True)
+
+        setup_cfg = os.path.join(base, 'setup.cfg')
+        if not os.path.exists(setup_cfg):
+            f = open(setup_cfg, 'w')
+            f.close()
+        setuptools.command.setopt.edit_config(
+            setup_cfg, dict(build_ext=build_ext))
+
+        # Now run easy_install for real:
+        _call_easy_install(base, dest, executable, True)
+    finally:
+        shutil.rmtree(tmp)
+        shutil.rmtree(tmp2)
 
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)
