@@ -1,6 +1,6 @@
-=============
+*************
 Zope Buildout
-=============
+*************
 
 .. contents::
 
@@ -89,7 +89,7 @@ based on the Python ConfigParser module with some variable-definition
 and substitution extensions.  
 
 Installation
-============
+************
 
 There are two ways to install zc,buildout
 
@@ -106,7 +106,7 @@ There are two ways to install zc,buildout
    running the bootstrap script.
 
 More information
-================
+****************
 
 The detailed documentation for the various parts of buildout can be
 found in the following files:
@@ -121,13 +121,13 @@ found in the following files:
 
 
 Download
-========
+********
 
 You can download zc.buildout and many buildout recipes from the
 `Python Package Index <http://www.python.org/pypi>`_.
 
 Recipes
-=======
+*******
 
 Existing recipes include:
 
@@ -152,7 +152,7 @@ Existing recipes include:
    Zope 3 instance creayed by the zope3instance recipe.
 
 Buildout examples
-=================
+*****************
 
 Some simple buildout examples:
 
@@ -167,92 +167,12 @@ Some simple buildout examples:
    specified everything needed to create a Zope 3 installation with
    the zc.sharing package installed in development mode.
 
-Status
-======
+Questions and Bug Reporting
+***************************
 
-The buildout system is under active development. Some near term
-priorities include:
+Please send questions and comments to the  
+`distutils SIG mailing list <mailto://distutils-sig@python.org>`_.
 
-- Better error reporing
+Report bugs using the `zc.buildout Launchpad Bug Tracker
+<https://launchpad.net/products/zc.buildout/+bugs>`_.
 
-- Windows support
-
-- Handling of egg extras
-
-- More recipes
-
-Questions
-=========
-
-You can send questions to jim@zope.com.
-
-Change History
-==============
-
-1.0.0b4
--------
-
-Added an **experimental** extensions mechamism, mainly to support
-adding sftp support to buildouts that need it.
-
-1.0.0b3
--------
-
-- Added a help option (-h, --help)
-
-- Increased the default level of verbosity.
-
-- Buildouts now automatically update themselves to new versions of
-  zc.buildout and setuptools.
-
-- Added Windows support.
-
-- Added a recipe API for generating user errors.
-
-- No-longer generate a py_zc.buildout script.
-
-- Fixed some bugs in variable substitutions.  
-
-  The characters "-", "." and " ", weren't allowed in section or
-  option names.
-
-  Substitutions with invalid names were ignored, which caused
-  missleading failures downstream.
-
-- Improved error handling.  No longer show tracebacks for user errors.
-
-- Now require a recipe option (and therefore a section) for every part.
-
-- Expanded the easy_install module API to:
-
-  - Allow extra paths to be provided
-
-  - Specify explicit entry points
-
-  - Specify entry-point arguments
-
-1.0.0b2
--------
-
-Added support for specifying some build_ext options when installing eggs
-from source distributions.
-
-1.0.0b1
--------
-
-- Changed the bootstrapping code to only install setuptools and
-  zc.buildout. The bootstrap code no-longer runs the buildout itself.
-  This was to fix a bug that caused parts to be recreated
-  unnecessarily because the recipe signature in the initial buildout
-  reflected temporary locations for setuptools and zc.buildout.
-
-- Now create a minimal setup.py if it doesn't exist and issue a
-  warning that it is being created.
-
-- Fixed bug in saving installed configuration data.  %'s and extra
-  spaces weren't quoted.
-
-1.0.0a1
--------
-
-Initial public version
