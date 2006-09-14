@@ -1,0 +1,102 @@
+Status
+******
+The buildout system is under active development. Some near term
+priorities include:
+
+- Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
+
+- Making it easier to implement recipes by separating install and update.
+
+- Making buildouts more 
+  `repeatable <https://features.launchpad.net/products/zc.buildout/+spec/repeatable>`_
+
+
+- Adding support for making distributions from buildouts
+
+- Better error reporing
+
+- Handling of egg extras
+
+- More recipes
+
+Change History
+**************
+
+1.0.0b5
+=======
+
+Refactored to do more work in buildout and less work in easy_install.
+This makes things go a little faster, makes errors a little easier to
+handle, and allows extensions (like the sftp extension) to influence
+more of the process. This was done to fix a problem in using the sftp
+support.
+
+1.0.0b4
+=======
+
+- Added an **experimental** extensions mechanism, mainly to support
+  adding sftp support to buildouts that need it.
+
+- Fixed buildout self-updating on Windows.
+
+1.0.0b3
+=======
+
+- Added a help option (-h, --help)
+
+- Increased the default level of verbosity.
+
+- Buildouts now automatically update themselves to new versions of
+  zc.buildout and setuptools.
+
+- Added Windows support.
+
+- Added a recipe API for generating user errors.
+
+- No-longer generate a py_zc.buildout script.
+
+- Fixed some bugs in variable substitutions.  
+
+  The characters "-", "." and " ", weren't allowed in section or
+  option names.
+
+  Substitutions with invalid names were ignored, which caused
+  missleading failures downstream.
+
+- Improved error handling.  No longer show tracebacks for user errors.
+
+- Now require a recipe option (and therefore a section) for every part.
+
+- Expanded the easy_install module API to:
+
+  - Allow extra paths to be provided
+
+  - Specify explicit entry points
+
+  - Specify entry-point arguments
+
+1.0.0b2
+=======
+
+Added support for specifying some build_ext options when installing eggs
+from source distributions.
+
+1.0.0b1
+=======
+
+- Changed the bootstrapping code to only install setuptools and
+  zc.buildout. The bootstrap code no-longer runs the buildout itself.
+  This was to fix a bug that caused parts to be recreated
+  unnecessarily because the recipe signature in the initial buildout
+  reflected temporary locations for setuptools and zc.buildout.
+
+- Now create a minimal setup.py if it doesn't exist and issue a
+  warning that it is being created.
+
+- Fixed bug in saving installed configuration data.  %'s and extra
+  spaces weren't quoted.
+
+1.0.0a1
+=======
+
+Initial public version

@@ -1,13 +1,25 @@
+import os
 from setuptools import setup, find_packages
 
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b3",
+    version = "1.0.0b5",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
-    long_description=open('README.txt').read(),
+    long_description=(
+        open('README.txt').read()
+        + '\n' +
+        open('CHANGES.txt').read()
+        + '\n' +
+        'Detailed Documentation\n'
+        '**********************\n'
+        + '\n' +
+        open(os.path.join('src', 'zc', 'buildout', 'buildout.txt')).read()
+        + '\n' +
+        open(os.path.join('src', 'zc', 'buildout', 'update.txt')).read()
+        ),
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
