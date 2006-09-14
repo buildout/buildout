@@ -66,9 +66,10 @@ class Options(dict):
 
 class Buildout(dict):
 
-    def __init__(self, config_file, cloptions):
+    def __init__(self, config_file, cloptions, windows_restart=False):
         config_file = os.path.abspath(config_file)
         self._config_file = config_file
+        self.__windows_restart = windows_restart
         if not os.path.exists(config_file):
             print 'Warning: creating', config_file
             open(config_file, 'w').write('[buildout]\nparts = \n')
@@ -567,6 +568,14 @@ class Buildout(dict):
 
         if not upgraded:
             return
+
+        if sys.platform == 'win32' and not self.__windows_restart:
+            args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+            args.insert(1, '-W')
+            if not __debug__:
+                args.insert(0, '-O')
+            args.insert(0, sys.executable)
+            os.execv(sys.executable, args)            
         
         self._logger.info("Upgraded:\n  %s;\nrestarting.",
                           ",\n  ".join([("%s version %s"
@@ -784,15 +793,18 @@ def main(args=None):
     config_file = 'buildout.cfg'
     verbosity = 0
     options = []
+    windows_restart = False
     while args:
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqh':
+            while op and op[0] in 'vqhW':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
                     verbosity -= 10
+                elif op[0] == 'W':
+                    windows_restart = True
                 else:
                     _help()
                 op = op[1:]
@@ -833,7 +845,7 @@ def main(args=None):
 
     try:
         try:
-            buildout = Buildout(config_file, options)
+            buildout = Buildout(config_file, options, windows_restart)
             getattr(buildout, command)(args)
         except zc.buildout.UserError, v:
             _error(str(v))

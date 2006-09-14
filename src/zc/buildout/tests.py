@@ -522,6 +522,7 @@ def test_suite():
                (re.compile('#!\S+python\S*'), '#!python'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('-py\d[.]\d.egg'), r'-py2.3.egg'),
+               (re.compile(r'\\+'), '/'),
                ])
             ),
         
@@ -559,6 +560,8 @@ def test_suite():
                 'setuptools.egg'),
                (re.compile('zc.buildout-\S+-py\d.\d.egg'),
                 'zc.buildout.egg'),
+               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
+                '\\1-  \\2\n'),
                ]),
             )
         ))

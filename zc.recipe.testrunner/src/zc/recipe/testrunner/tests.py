@@ -57,6 +57,7 @@ def test_suite():
                (re.compile('#!\S+python\S*'), '#!python'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('-([^-]+)-py\d[.]\d.egg'), r'-py2.3.egg'),
+               (re.compile(r'\\+'), '/'),
                ])
             ),
         
