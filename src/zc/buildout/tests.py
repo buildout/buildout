@@ -544,7 +544,7 @@ def test_suite():
                 '\\1V.V.egg'),
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
-               (re.compile('extdemo-1[.]4[.]tar[.]gz'), 'extdemo-1.4.zip'),
+               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
                (re.compile('#!\S+python\S+'), '#!python'),
                ]),
             ),

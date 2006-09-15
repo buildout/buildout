@@ -74,6 +74,7 @@ def test_suite():
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
                (re.compile('#![^\n]+python[^\n]*\n'), '#!python\n'),
+               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
                ])
             ),
         doctest.DocFileSuite(
@@ -115,6 +116,7 @@ def test_suite():
                 '\\1.egg'),
                (re.compile(r'\\\\'), '/'),
                (re.compile(r'/\\'), '/'),
+               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
                ]),
             ),
         doctest.DocFileSuite(
