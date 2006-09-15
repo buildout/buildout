@@ -58,6 +58,7 @@ def test_suite():
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('-([^-]+)-py\d[.]\d.egg'), r'-py2.3.egg'),
                (re.compile(r'\\+'), '/'),
+               (re.compile('\d[.]\d+ seconds'), '0.001 seconds')
                ])
             ),
         
