@@ -582,6 +582,7 @@ def test_suite():
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
                (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
+               (re.compile(r'\\+'), '/'),
                ]),
             )
         ))
