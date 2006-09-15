@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 name = "zc.recipe.egg"
 setup(
     name = name,
-    version = "1.0.0a3",
+    version = "1.0.0b1",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
