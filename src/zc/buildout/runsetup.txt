@@ -1,0 +1,46 @@
+Running setup scripts
+=====================
+
+Buildouts are often used to work on packages that will be distributed
+as eggs. During development, we use develop eggs.  When you've
+completed a development cycle, you'll need to run your setup script to
+generate a distribution and, perhaps, uploaded it to the Python
+package index.  If your script uses setuptools, you'll need setuptools
+in your Python path, which may be an issue if you haven't installed
+setuptools into your Python installation.
+
+The buildout runsetup command is helpful in a situation like this.  It
+can be used to run a setup script and it does so with the setuptools
+egg in the Python path and with setuptools already imported.  The fact
+that setuptools is imported means that you can use setuptools-based
+commands, like bdist_egg even with packages that don't use setuptools.
+To illustrate this, we'll create a package in a sample buildout:
+
+    >>> mkdir(sample_buildout, 'hello')
+    >>> write(sample_buildout, 'hello', 'hello.py', 'print "Hello World!"')
+    >>> write(sample_buildout, 'hello', 'README', 'This is hello')
+    >>> write(sample_buildout, 'hello', 'setup.py',
+    ... """
+    ... from distutils.core import setup
+    ... setup(name="hello",
+    ...       version="1.0",
+    ...       py_modules=["hello"],
+    ...       author="Bob",
+    ...       author_email="bob@foo.com",
+    ...       )
+    ... """)
+  
+We can use the buildout command to generate the hello egg:
+
+    >>> cd(sample_buildout)
+    >>> import os
+    >>> print system(os.path.join('bin', 'buildout')
+    ...              +' runsetup hello -q bdist_egg'),
+    buildout: Running setup script hello/setup.py
+    zip_safe flag not set; analyzing archive contents...
+
+The hello directory now has a hello egg in it's dist directory:
+
+    >>> ls(sample_buildout, 'hello', 'dist')
+    -  hello-1.0-py2.4.egg
+
