@@ -138,7 +138,6 @@ class Buildout(dict):
                                             options['installed'])
 
         self._setup_logging()
-        self._load_extensions()
 
     def _dosubs(self, section, option, value, data, converted, seen):
         key = section, option
@@ -241,6 +240,7 @@ class Buildout(dict):
             self['buildout']['bin-directory'])
 
     def install(self, install_parts):
+        self._load_extensions()
         self._setup_directories()
 
         # Add develop-eggs directory to path so that it gets searched
@@ -607,6 +607,10 @@ class Buildout(dict):
                 dest = None
             else:
                 dest = self['buildout']['eggs-directory']
+                if not os.path.exists(dest):
+                    self._logger.info('Creating directory %s', dest)
+                    os.mkdir(dest)
+                    
             zc.buildout.easy_install.install(
                 specs, dest,
                 path=[self['buildout']['develop-eggs-directory']],

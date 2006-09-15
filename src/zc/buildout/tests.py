@@ -356,10 +356,29 @@ Commmonds:
 <BLANKLINE>
     """
 
-def linkerSetUp(test):
-    zc.buildout.testing.buildoutSetUp(test, clear_home=False)
-    zc.buildout.testing.multi_python(test)
-    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+def test_bootstrap_with_extension():
+    """
+We had a problem running a bootstrap with an extension.  Let's make
+sure it is fixed.  Basically, we don't load extensions when
+bootstrapping.
+
+    >>> d = mkdtemp('sample-bootstrap-2')
+    
+    >>> write(d, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... extensions = some_awsome_extension
+    ... parts = 
+    ... ''')
+
+    >>> os.chdir(d)
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...              + ' bootstrap'),
+    buildout: Creating directory /sample-bootstrap-2/bin
+    buildout: Creating directory /sample-bootstrap-2/parts
+    buildout: Creating directory /sample-bootstrap-2/eggs
+    buildout: Creating directory /sample-bootstrap-2/develop-eggs
+    """
 
 def easy_install_SetUp(test):
     zc.buildout.testing.buildoutSetUp(test)
@@ -562,6 +581,7 @@ def test_suite():
                 'zc.buildout.egg'),
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
+               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                ]),
             )
         ))
