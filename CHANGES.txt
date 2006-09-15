@@ -8,7 +8,8 @@ priorities include:
 - Making it easier to implement recipes by separating install and update.
 
 - Making buildouts more 
-  `repeatable <https://features.launchpad.net/products/zc.buildout/+spec/repeatable>`_
+  `repeatable
+  <https://features.launchpad.net/products/zc.buildout/+spec/repeatable>`_
 
 
 - Adding support for making distributions from buildouts
@@ -21,6 +22,15 @@ priorities include:
 
 Change History
 **************
+
+1.0.0b6
+=======
+
+Fixed https://launchpad.net/products/zc.buildout/+bug/60582
+Use of extension options caused bootstrapping to fail if the eggs
+directory didn't already exist.  We no longer use extensions for
+bootstrapping.  There really isn't any reason to anyway.
+
 
 1.0.0b5
 =======
