@@ -24,4 +24,12 @@ setup(
                                     ]
                     },
     zip_safe=False,
+    classifiers = [
+       'Framework :: Buildout',
+       'Development Status :: 4 - Beta',
+       'Intended Audience :: Developers',
+       'License :: OSI Approved :: Zope Public License',
+       'Topic :: Software Development :: Build Tools',
+       'Topic :: Software Development :: Libraries :: Python Modules',
+       ],
     )

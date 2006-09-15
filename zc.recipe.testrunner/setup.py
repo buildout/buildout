@@ -21,4 +21,12 @@ setup(
                         ],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:TestRunner' % name]},
+    classifiers = [
+       'Framework :: Buildout',
+       'Development Status :: 4 - Beta',
+       'Intended Audience :: Developers',
+       'License :: OSI Approved :: Zope Public License',
+       'Topic :: Software Development :: Build Tools',
+       'Topic :: Software Development :: Libraries :: Python Modules',
+       ],
     )
