@@ -103,6 +103,7 @@ def buildoutSetUp(test):
         __temporary_directories__ = temporary_directories,
         __tearDown__ = [],
         mkdtemp = mkdtemp,
+        cd = os.chdir,
         ))
 
 def buildoutTearDown(test):
