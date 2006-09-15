@@ -23,6 +23,7 @@ import pprint
 import re
 import shutil
 import sys
+import tempfile
 import ConfigParser
 
 import pkg_resources
@@ -618,7 +619,43 @@ class Buildout(dict):
                 )
             for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
                 ep.load()(self)
-                    
+
+    def runsetup(self, args):
+        setup = args.pop(0)
+        if os.path.isdir(setup):
+            setup = os.path.join(setup, 'setup.py')
+
+        self._logger.info("Running setup script %s", setup)
+        setup = os.path.abspath(setup)
+
+        setuptools = pkg_resources.working_set.find(
+            pkg_resources.Requirement.parse('setuptools')
+            ).location
+        
+            
+        fd, tsetup = tempfile.mkstemp()
+        try:
+            os.write(fd, runsetup_template % dict(
+                setuptools=setuptools,
+                setupdir=os.path.dirname(setup),
+                setup=setup,
+                ))
+            os.spawnl(os.P_WAIT, sys.executable, sys.executable, tsetup,
+                      *[zc.buildout.easy_install._safe_arg(a)
+                        for a in args])
+        finally:
+            os.close(fd)
+            os.remove(tsetup)
+        
+runsetup_template = """
+import sys
+sys.path.insert(0, %(setuptools)r)
+import os, setuptools
+
+os.chdir(%(setupdir)r)
+sys.argv[0] = %(setup)r
+execfile(%(setup)r)
+"""
 
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
@@ -842,7 +879,7 @@ def main(args=None):
 
     if args:
         command = args.pop(0)
-        if command not in ('install', 'bootstrap'):
+        if command not in ('install', 'bootstrap', 'runsetup'):
             _error('invalid command:', command)
     else:
         command = 'install'

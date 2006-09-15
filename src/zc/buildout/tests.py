@@ -512,7 +512,7 @@ def updateSetup(test):
 def test_suite():
     return unittest.TestSuite((
         doctest.DocFileSuite(
-            'buildout.txt',
+            'buildout.txt', 'runsetup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
@@ -530,6 +530,8 @@ def test_suite():
                (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
                 '\\1-  \\2\n'),
                (re.compile("(\w)%s(\w)" % os_path_sep), r"\1/\2"),
+               (re.compile('hello-1[.]0-py\d[.]\d[.]egg'),
+                'hello-1.0-py2.4.egg')
                ])
             ),
 
