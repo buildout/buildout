@@ -36,4 +36,11 @@ setup(
                     ['buildout = %s.buildout:main' % name]}, 
 #    dependency_links = ['http://download.zope.org/distribution/'],
     zip_safe=False,
+    classifiers = [
+       'Development Status :: 4 - Beta',
+       'Intended Audience :: Developers',
+       'License :: OSI Approved :: Zope Public License',
+       'Topic :: Software Development :: Build Tools',
+       'Topic :: Software Development :: Libraries :: Python Modules',
+       ],
     )
