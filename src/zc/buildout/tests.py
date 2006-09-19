@@ -570,6 +570,7 @@ def test_suite():
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
                ])
             ),
 

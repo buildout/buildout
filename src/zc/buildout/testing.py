@@ -255,7 +255,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
         else:
-            out = open(path).read()
+            out = open(path, 'rb').read()
             self.send_header('Content-Length', len(out))
             if path.endswith('.egg'):
                 self.send_header('Content-Type', 'application/zip')
@@ -362,11 +362,17 @@ def install_develop(project, destination):
          ).write(dist.location)
 
 def _normalize_path(match):
-    return '/'+match.group(1).replace(os.path.sep, '/')
+    path = match.group(1)
+    if os.path.sep == '\\':
+        path = path.replace('\\\\', '/')
+        if path.startswith('\\'):
+            path = path[1:]
+    return '/' + path.replace(os.path.sep, '/')
     
 normalize_path = (
-    re.compile(r'''[^'" \t\n\r]+%(sep)s_TEST_%(sep)s([^"' \t\n\r]+)'''
-               % dict(sep=os.path.sep)),
+    re.compile(
+        r'''[^'" \t\n\r]+\%(sep)s_[Tt][Ee][Ss][Tt]_\%(sep)s([^"' \t\n\r]+)'''
+        % dict(sep=os.path.sep)),
     _normalize_path,
     )
 
