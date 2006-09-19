@@ -436,14 +436,13 @@ class Buildout(dict):
 
     def _compute_part_signatures(self, parts):
         # Compute recipe signature and add to options
-        base = self['buildout']['eggs-directory'] + os.path.sep
         for part in parts:
             options = self.get(part)
             if options is None:
                 options = self[part] = {}
             recipe, entry = self._recipe(part, options)
             req = pkg_resources.Requirement.parse(recipe)
-            sig = _dists_sig(pkg_resources.working_set.resolve([req]), base)
+            sig = _dists_sig(pkg_resources.working_set.resolve([req]))
             options['__buildout_signature__'] = ' '.join(sig)
 
     def _recipe(self, part, options):
@@ -754,16 +753,14 @@ def _dir_hash(dir):
             hash.update(open(os.path.join(dirpath, name)).read())
     return hash.digest().encode('base64').strip()
     
-def _dists_sig(dists, base):
+def _dists_sig(dists):
     result = []
     for dist in dists:
         location = dist.location
         if dist.precedence == pkg_resources.DEVELOP_DIST:
             result.append(dist.project_name + '-' + _dir_hash(location))
         else:
-            if location.startswith(base):
-                location = location[len(base):]
-            result.append(location)
+            result.append(os.path.basename(location))
     return result
 
 def _update(d1, d2):
