@@ -19,8 +19,9 @@ We have a link server:
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
-    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
+    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
@@ -81,8 +82,8 @@ And the generated scripts invoke Python 2.3:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.3.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -100,8 +101,8 @@ And the generated scripts invoke Python 2.3:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.3.egg',
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.3.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.3.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.3.egg',
       ]
     <BLANKLINE>
     _interactive = True
@@ -172,8 +173,8 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/private/tmp/tmpOEtRO8sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -193,8 +194,8 @@ If we change the Python version to 2.4, we'll use Python 2.4 eggs:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/tmp/tmp5zS2Afsample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     _interactive = True

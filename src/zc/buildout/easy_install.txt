@@ -69,23 +69,19 @@ We have a link server that has a number of eggs:
 
     >>> print get(link_server),
     <html><body>
-    <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
-    <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
-    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
-    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
+    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
+    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
-    <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 
 Let's make a directory and install the demo egg to it, using the demo:
 
-    >>> dest = mkdtemp('sample-install')
+    >>> dest = tmpdir('sample-install')
     >>> import zc.buildout.easy_install
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
@@ -106,8 +102,8 @@ The working set contains the distributions we retrieved.
 And the actual eggs were added to the eggs directory.
 
     >>> ls(dest)
-    -  demo-0.2-py2.3.egg
-    -  demoneeded-1.1-py2.3.egg
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
 
 If we ask for the demo distribution without a version restriction,
 we'll get the newer version:
@@ -115,9 +111,9 @@ we'll get the newer version:
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
     >>> ls(dest)
-    -  demo-0.2-py2.3.egg
-    -  demo-0.3-py2.3.egg
-    -  demoneeded-1.1-py2.3.egg
+    -  demo-0.2-py2.4.egg
+    -  demo-0.3-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
 
 We can supply additional distributions.  We can also supply
 specifications for distributions that would normally be found via
@@ -134,28 +130,31 @@ dependencies.  We might do this to specify a sprcific version.
     demoneeded 1.0
 
     >>> ls(dest)
-    -  demo-0.2-py2.3.egg
-    -  demo-0.3-py2.3.egg
-    -  demoneeded-1.0-py2.3.egg
-    -  demoneeded-1.1-py2.3.egg
-    -  other-1.0-py2.3.egg
+    -  demo-0.2-py2.4.egg
+    -  demo-0.3-py2.4.egg
+    -  demoneeded-1.0-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+    -  other-1.0-py2.4.egg
 
-We can specify an alternate Python executable, and we can specify
-that, when we retrieve (or create) an egg, it should be unzipped.
+We can request that eggs be unzipped even if they are zip safe.  This
+can be useful when debugging.
 
-    >>> dest = mkdtemp('sample-install')
+    >>> rmdir(dest)
+    >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True, executable= python2_3_executable)
+    ...     always_unzip=True)
 
     >>> ls(dest)
-    d  demo-0.3-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
-    >>> dest = mkdtemp('sample-install')
+    
+    >>> rmdir(dest)
+    >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True, executable=python2_4_executable)
+    ...     always_unzip=True)
 
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
@@ -180,13 +179,14 @@ The scripts method can be used to generate scripts. Let's create a
 destination directory for it to place them in:
 
     >>> import tempfile
-    >>> bin = mkdtemp()
+    >>> bin = tmpdir('bin')
 
 Now, we'll use the scripts method to generate scripts in this directory
 from the demo egg:
 
+    >>> import sys
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['demo'], ws, python2_4_executable, bin)
+    ...     ['demo'], ws, sys.executable, bin)
 
 the four arguments we passed were:
 
@@ -223,12 +223,12 @@ interpreter and without having to provide a '.py' suffix.
 The demo script run the entry point defined in the demo egg:
 
     >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -257,15 +257,15 @@ rather than passing a requirement:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...     [('demo', 'eggrecipedemo', 'main')],
-    ...     ws, python2_4_executable, bin)
+    ...     ws, sys.executable, bin)
 
     >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -283,7 +283,7 @@ based on the working set.  This generated script can also be used to
 run other scripts with the path set on the working set:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['demo'], ws, python2_4_executable, bin, interpreter='py')
+    ...     ['demo'], ws, sys.executable, bin, interpreter='py')
 
 
     >>> ls(bin)
@@ -308,8 +308,8 @@ the path set:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      '/tmp/tmp5zS2Afsample-install/demo-0.3-py2.4.egg',
-      '/tmp/tmp5zS2Afsample-install/demoneeded-1.1-py2.4.egg',
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     _interactive = True
@@ -337,9 +337,9 @@ An additional argumnet can be passed to define which scripts to install
 and to provide script names. The argument is a dictionary mapping
 original script names to new script names.
 
-    >>> bin = mkdtemp()
+    >>> bin = tmpdir('bin2')
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'))
+    ...    ['demo'], ws, sys.executable, bin, dict(demo='run'))
 
     >>> if sys.platform == 'win32':
     ...     scripts == [os.path.join(bin, 'run.exe'),
@@ -360,16 +360,16 @@ We can pass a keyword argument, extra paths, to caue additional paths
 to be included in the a generated script:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
     ...    extra_paths=['/foo/bar'])
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       ]
     <BLANKLINE>
@@ -386,15 +386,15 @@ entry point.  The value passed source string to be placed between the
 parentheses in the call:
 
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...    ['demo'], ws, python2_4_executable, bin, dict(demo='run'),
+    ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
     ...    arguments='1, 2')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     import sys
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -492,5 +492,5 @@ Now if we look in our destination directory, we see we have an extdemo egg:
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
-    d  extdemo-1.4-py2.3-unix-i686.egg
+    d  extdemo-1.4-py2.4-unix-i686.egg
 

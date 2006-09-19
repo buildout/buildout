@@ -13,6 +13,8 @@
 ##############################################################################
 
 import os, re, shutil, sys
+import zc.buildout.tests
+import zc.buildout.testselectingpython
 import zc.buildout.testing
 
 import unittest
@@ -28,53 +30,26 @@ def dirname(d, level=1):
     return dirname(os.path.dirname(d), level-1)
 
 def setUp(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    open(os.path.join(test.globs['sample_buildout'],
-                      'develop-eggs', 'zc.recipe.egg.egg-link'),
-         'w').write(dirname(__file__, 4))
-    zc.buildout.testing.create_sample_eggs(test)
-    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
+    zc.buildout.tests.easy_install_SetUp(test)
+    zc.buildout.testing.install_develop('zc.recipe.egg', test)
 
-
-def setUpPython(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    
-    open(os.path.join(test.globs['sample_buildout'],
-                      'develop-eggs', 'zc.recipe.egg.egg-link'),
-         'w').write(dirname(__file__, 4))
-
-    zc.buildout.testing.multi_python(test)
-    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
-
-def setUpCustom(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    open(os.path.join(test.globs['sample_buildout'],
-                      'develop-eggs', 'zc.recipe.egg.egg-link'),
-         'w').write(dirname(__file__, 4))
-    zc.buildout.testing.create_sample_eggs(test)
-    zc.buildout.testing.add_source_dist(test)
-    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
-
+def setUpSelecting(test):
+    zc.buildout.testselectingpython.setup(test)
+    zc.buildout.testing.install_develop('zc.recipe.egg', test)
     
 def test_suite():
     return unittest.TestSuite((
-        #doctest.DocTestSuite(),
         doctest.DocFileSuite(
             'README.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('(\S+[/%(sep)s]| )'
-                           '(\\w+-)[^ \t\n%(sep)s/]+.egg'
-                           % dict(sep=os_path_sep)
-                           ),
-                '\\2-VVV-egg'),
-               (re.compile('-py\d[.]\d.egg'), '-py2.4.egg'),
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
+               zc.buildout.tests.normalize_bang,
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
-                '\\1-  \\2\n'),
-               (re.compile('#![^\n]+python[^\n]*\n'), '#!python\n'),
-               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
+               (re.compile('setuptools-[^-]+-'), 'setuptools-X-')
                ])
             ),
         doctest.DocFileSuite(
@@ -106,22 +81,18 @@ def test_suite():
             ),
         doctest.DocFileSuite(
             'selecting-python.txt',
-            setUp=setUpPython, tearDown=zc.buildout.testing.buildoutTearDown,
+            setUp=setUpSelecting,
+            tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('\S+sample-(\w+)[%(sep)s/](\S+)'
-                           % dict(sep=os_path_sep)),
-                r'/sample-\1/\2'),
-               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
                (re.compile('-  ([a-zA-Z_0-9.]+)(-\S+)?[.]egg(-link)?'),
                 '\\1.egg'),
-               (re.compile(r'\\\\'), '/'),
-               (re.compile(r'/\\'), '/'),
-               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
                ]),
             ),
         doctest.DocFileSuite(
             'custom.txt',
-            setUp=setUpCustom, tearDown=zc.buildout.testing.buildoutTearDown,
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                (re.compile("(d  ((ext)?demo(needed)?|other)"
                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),

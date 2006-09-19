@@ -16,7 +16,7 @@
 $Id$
 """
 
-import os, re, shutil, sys, unittest, zipfile
+import os, re, shutil, sys, tempfile, unittest, zipfile
 from zope.testing import doctest, renormalizing
 import pkg_resources
 import zc.buildout.testing, zc.buildout.easy_install
@@ -231,7 +231,7 @@ if os.path.exists(bootstrap_py):
     def test_bootstrap_py():
         """Make sure the bootstrap script actually works
 
-    >>> sample_buildout = mkdtemp()
+    >>> sample_buildout = tmpdir('sample')
     >>> os.chdir(sample_buildout)
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print system(sys.executable+' '+'bootstrap.py'), # doctest: +ELLIPSIS
@@ -362,7 +362,7 @@ We had a problem running a bootstrap with an extension.  Let's make
 sure it is fixed.  Basically, we don't load extensions when
 bootstrapping.
 
-    >>> d = mkdtemp('sample-bootstrap-2')
+    >>> d = tmpdir('sample-bootstrap')
     
     >>> write(d, 'buildout.cfg',
     ... '''
@@ -374,72 +374,108 @@ bootstrapping.
     >>> os.chdir(d)
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'),
-    buildout: Creating directory /sample-bootstrap-2/bin
-    buildout: Creating directory /sample-bootstrap-2/parts
-    buildout: Creating directory /sample-bootstrap-2/eggs
-    buildout: Creating directory /sample-bootstrap-2/develop-eggs
+    buildout: Creating directory /sample-bootstrap/bin
+    buildout: Creating directory /sample-bootstrap/parts
+    buildout: Creating directory /sample-bootstrap/eggs
+    buildout: Creating directory /sample-bootstrap/develop-eggs
     """
+
+
+def create_sample_eggs(test, executable=sys.executable):
+    write = test.globs['write']
+    dest = test.globs['sample_eggs']
+    tmp = tempfile.mkdtemp()
+    try:
+        write(tmp, 'README.txt', '')
+
+        for i in (0, 1):
+            write(tmp, 'eggrecipedemobeeded.py', 'y=%s\n' % i)
+            write(
+                tmp, 'setup.py',
+                "from setuptools import setup\n"
+                "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
+                " zip_safe=True, version='1.%s', author='bob', url='bob', "
+                "author_email='bob')\n"
+                % i
+                )
+            zc.buildout.testing.sdist(tmp, dest)
+
+        write(
+            tmp, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='other', zip_safe=True, version='1.0', "
+            "py_modules=['eggrecipedemobeeded'])\n"
+            )
+        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+
+        os.remove(os.path.join(tmp, 'eggrecipedemobeeded.py'))
+
+        for i in (1, 2, 3):
+            write(
+                tmp, 'eggrecipedemo.py',
+                'import eggrecipedemobeeded\n'
+                'x=%s\n'
+                'def main(): print x, eggrecipedemobeeded.y\n'
+                % i)
+            write(
+                tmp, 'setup.py',
+                "from setuptools import setup\n"
+                "setup(name='demo', py_modules=['eggrecipedemo'],"
+                " install_requires = 'demoneeded',"
+                " entry_points={'console_scripts': "
+                     "['demo = eggrecipedemo:main']},"
+                " zip_safe=True, version='0.%s')\n" % i
+                )
+            zc.buildout.testing.bdist_egg(tmp, executable, dest)
+    finally:
+        shutil.rmtree(tmp)
+
+extdemo_c = """
+#include <Python.h>
+#include <extdemo.h>
+
+static PyMethodDef methods[] = {{NULL}};
+
+PyMODINIT_FUNC
+initextdemo(void)
+{
+    PyObject *d;
+    d = Py_InitModule3("extdemo", methods, "");
+    PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
+}
+"""
+
+extdemo_setup_py = """
+from distutils.core import setup, Extension
+
+setup(name = "extdemo", version = "1.4", url="http://www.zope.org",
+      author="Demo", author_email="demo@demo.com",
+      ext_modules = [Extension('extdemo', ['extdemo.c'])],
+      )
+"""
+
+def add_source_dist(test):
+    import tarfile
+    tmp = tempfile.mkdtemp('test-sdist')
+    write = test.globs['write']
+    try:
+        write(tmp, 'extdemo.c', extdemo_c);
+        write(tmp, 'setup.py', extdemo_setup_py);
+        write(tmp, 'README', "");
+        write(tmp, 'MANIFEST.in', "include *.c\n");
+        test.globs['sdist'](tmp, test.globs['sample_eggs'])
+    except:
+        shutil.rmtree(tmp)
 
 def easy_install_SetUp(test):
     zc.buildout.testing.buildoutSetUp(test)
-    zc.buildout.testing.multi_python(test)
-    zc.buildout.testing.add_source_dist(test)
-    zc.buildout.testing.setUpServer(test, zc.buildout.testing.make_tree(test))
-
-class PythonNormalizing(renormalizing.RENormalizing):
-
-    def _transform(self, want, got):
-        if '/xyzsample-install/' in want:
-            got = got.replace('-py2.4.egg', '-py2.3.egg')
-            firstg = got.split('\n')[0]
-            firstw = want.split('\n')[0]
-            if firstg.startswith('#!') and firstw.startswith('#!'):
-                firstg = ' '.join(firstg.split()[1:])
-                got = firstg + '\n' + '\n'.join(got.split('\n')[1:])
-                firstw = ' '.join(firstw.split()[1:])
-                want = firstw + '\n' + '\n'.join(want.split('\n')[1:])
-        
-        for pattern, repl in self.patterns:
-            want = pattern.sub(repl, want)
-            got = pattern.sub(repl, got)
-
-        return want, got
-
-    def check_output(self, want, got, optionflags):
-        if got == want:
-            return True
-
-        want, got = self._transform(want, got)
-        if got == want:
-            return True
-            
-        return doctest.OutputChecker.check_output(self, want, got, optionflags)
-
-    def output_difference(self, example, got, optionflags):
-
-        want = example.want
-
-        # If want is empty, use original outputter. This is useful
-        # when setting up tests for the first time.  In that case, we
-        # generally use the differencer to display output, which we evaluate
-        # by hand.
-        if not want.strip():
-            return doctest.OutputChecker.output_difference(
-                self, example, got, optionflags)
-
-        # Dang, this isn't as easy to override as we might wish
-        original = want
-        want, got = self._transform(want, got)
-
-        # temporarily hack example with normalized want:
-        example.want = want
-        result = doctest.OutputChecker.output_difference(
-            self, example, got, optionflags)
-        example.want = original
-
-        return result
-
-        
+    sample_eggs = test.globs['tmpdir']('sample_eggs')
+    test.globs['sample_eggs'] = sample_eggs
+    os.mkdir(os.path.join(sample_eggs, 'index'))
+    create_sample_eggs(test)
+    add_source_dist(test)
+    test.globs['link_server'] = test.globs['start_server'](
+        test.globs['sample_eggs'])
 
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
@@ -468,7 +504,8 @@ def makeNewRelease(project, ws, dest):
 
 def updateSetup(test):
     zc.buildout.testing.buildoutSetUp(test)
-    test.globs['new_releases'] = new_releases = test.globs['mkdtemp']()
+    new_releases = test.globs['tmpdir']('new_releases')
+    test.globs['new_releases'] = new_releases
     sample_buildout = test.globs['sample_buildout']
     eggs = os.path.join(sample_buildout, 'eggs')
 
@@ -509,29 +546,30 @@ def updateSetup(test):
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
     os.mkdir(os.path.join(new_releases, 'setuptools'))
     
+normalize_bang = (
+    re.compile(re.escape('#!'+sys.executable)),
+    '#!/usr/local/bin/python2.4',
+    )
+
 def test_suite():
+    import zc.buildout.testselectingpython
     return unittest.TestSuite((
         doctest.DocFileSuite(
             'buildout.txt', 'runsetup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('\S+sample-(\w+)%s(\S+)' % os_path_sep),
-                r'/sample-\1/\2'),
-               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
                (re.compile('setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
-                '\\1-  \\2\n'),
-               (re.compile("(\w)%s(\w)" % os_path_sep), r"\1/\2"),
-               (re.compile('hello-1[.]0-py\d[.]\d[.]egg'),
-                'hello-1.0-py2.4.egg')
                ])
             ),
 
@@ -540,10 +578,10 @@ def test_suite():
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('#!\S+python\S*'), '#!python'),
-               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
-               (re.compile('-py\d[.]\d.egg'), r'-py2.3.egg'),
-               (re.compile(r'\\+'), '/'),
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
+               normalize_bang,
                ])
             ),
         
@@ -552,43 +590,29 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
 
-            checker=PythonNormalizing([
-               (re.compile("'"
-                           "(\w:)?"
-                           "[%(sep)s/]\S+sample-install[%(sep)s/]"
-                           "[%(sep)s/]?(dist"
-                           "[%(sep)s/])?"
-                           % dict(sep=os_path_sep)),
-                '/sample-eggs/'),
-               (re.compile("([d-]  ((ext)?demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
-                '\\1V.V.egg'),
-               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
-                '\\1-  \\2\n'),
-               (re.compile('(\w+-\d[.]\d[.])zip'), '\\1tar.gz'),
-               (re.compile('#!\S+python\S+'), '#!python'),
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
+               normalize_bang,
                ]),
             ),
         doctest.DocTestSuite(
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
 
-            checker=PythonNormalizing([
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
                (re.compile("buildout: Running \S*setup.py"),
                 'buildout: Running setup.py'),
                (re.compile('py_zc'), 'py-zc'), # XXX get rid of after next rel
-               (re.compile('setuptools-\S+-py\d.\d.egg'),
+               (re.compile('setuptools-\S+-'),
                 'setuptools.egg'),
-               (re.compile('zc.buildout-\S+-py\d.\d.egg'),
+               (re.compile('zc.buildout-\S+-'),
                 'zc.buildout.egg'),
-               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
-                '\\1-  \\2\n'),
-               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
-               (re.compile(r'\\+'), '/'),
                ]),
-            )
+            ),
+        zc.buildout.testselectingpython.test_suite(),
         ))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
-

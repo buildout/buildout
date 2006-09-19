@@ -28,37 +28,23 @@ def dirname(d, level=1):
 
 def setUp(test):
     zc.buildout.testing.buildoutSetUp(test)
-    eggs = os.path.join(test.globs['sample_buildout'], 'eggs')
-    open(os.path.join(eggs, 'zc.recipe.testrunner.egg-link'),
-         'w').write(dirname(__file__, 4))
-    open(os.path.join(eggs, 'zc.recipe.egg.egg-link'),
-         'w').write(dirname(zc.recipe.egg.__file__, 4))
-
-    testing = dirname(zope.testing.__file__, 3)
-    assert testing.endswith('.egg')
-    if os.path.isfile(testing):
-        shutil.copy(testing, eggs)
-    else:
-        shutil.copytree(testing, os.path.join(eggs, os.path.basename(testing)))
-        
-def tearDown(test):
-    zc.buildout.testing.buildoutTearDown(test)
-    
+    zc.buildout.testing.install_develop('zc.recipe.testrunner', test)
+    zc.buildout.testing.install_develop('zc.recipe.egg', test)
+    zc.buildout.testing.install('zope.testing', test)
 
 def test_suite():
     return unittest.TestSuite((
         #doctest.DocTestSuite(),
         doctest.DocFileSuite(
             'README.txt',
-            setUp=setUp, tearDown=tearDown,
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
-                '\\1-  \\2\n'),               
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,        
                (re.compile('#!\S+python\S*'), '#!python'),
-               (re.compile('\S+sample-(\w+)'), r'/sample-\1'),
-               (re.compile('-([^-]+)-py\d[.]\d.egg'), r'-py2.3.egg'),
-               (re.compile(r'\\+'), '/'),
-               (re.compile('\d[.]\d+ seconds'), '0.001 seconds')
+               (re.compile('\d[.]\d+ seconds'), '0.001 seconds'),
+               (re.compile('zope.testing-[^-]+-'), 'zope.testing-X-'),
                ])
             ),
         
