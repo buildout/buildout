@@ -4,7 +4,7 @@ Test-Runner Recipe
 The test-runner recipe, zc.recipe.testrunner, creates a test runner
 for a project.
 
-The test-runner recipe has 2 options:
+The test-runner recipe has 3 options:
 
 eggs
     The eggs option specified a list of eggs to test given as one ore
@@ -207,5 +207,5 @@ extra-paths option to specify them:
     <BLANKLINE>
     if __name__ == '__main__':
         zope.testing.testrunner.run([
-      '--test-path', '/private/tmp/tmppoToJzsample-buildout/demo',
+      '--test-path', '/sample-buildout/demo',
       ])

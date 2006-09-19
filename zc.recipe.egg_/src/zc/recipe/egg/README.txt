@@ -51,15 +51,16 @@ interpreter
 extra-paths
    Extra paths to include in a generates script.
 
-We have a link server that has a number of eggs:
+We have a link server that has a number of distributions:
 
     >>> print get(link_server),
     <html><body>
     <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
     <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
     <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
-    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
-    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
+    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
@@ -198,7 +199,7 @@ Then we'll get a new demo egg:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     -  demo-0.3-py2.3.egg
-    -  demoneeded-1.0-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
     -  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
@@ -287,12 +288,12 @@ extra-paths option:
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/xyzsample-install/demo-0.3-py2.3.egg',
-      '/tmp/xyzsample-install/demoneeded-1.1-py2.3.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/spam/eggs',
       ]
@@ -335,12 +336,12 @@ declate entry points using the entry-points option:
     -  other
 
     >>> cat(sample_buildout, 'bin', 'other')
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/private/tmp/tmp88gKbfsample-buildout/eggs/demo-0.3-py2.3.egg',
-      '/private/tmp/tmp88gKbfsample-buildout/eggs/demoneeded-1.1-py2.3.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/spam/eggs',
       ]

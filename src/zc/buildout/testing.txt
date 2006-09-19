@@ -1,0 +1,160 @@
+Testing Support
+===============
+
+The zc.buildout.testing module provides an API that can be used when
+writing recipe tests.  This API is documented below.  Many examples of
+using this API can be found in the zc.buildout, zc.recipe.egg, and
+zc.recipe.testrunner tests.
+
+zc.buildout.testing.buildoutSetUp(test)
+---------------------------------------
+
+The buildoutSetup function can be used as a doctest setup function.
+It performs adds a number of names to the test namespace:
+
+sample_buildout
+    This is the name of a buildout with a basic configuration.
+
+ls(*path)
+    List the contents of a directory.  The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+cat(*path)
+    Display the contents of a file.   The file path is provided as one or
+    more strings, to be joined with os.path.join.
+
+    On Windows, if the file doesn't exist, the function will try
+    adding a '-script.py' suffix.  This helps to work around a
+    difference in script generation on windows.
+
+mkdir(*path)
+    Create a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+rmdir(*path)
+    Remove a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+tmpdir(name)
+    Create a temporary directory with the given name.  The directory
+    will be automatically removed at the end of the test.  The path of
+    the created directory is returned.
+
+    Further, if the the normalize_path normlaizing substitution (see
+    below) is used, then any paths starting with this path will be
+    normalized to::
+
+      /name/restofpath
+
+    No two temporary directories can be created with the same name.  A
+    directory created with tmpdir can be removed with rmdir and recreated.
+
+    Note that the sample_buildout directory is created by calling this
+    function.
+
+write(*path_and_contents)
+
+    Create a file.  The file path is provided as one or more strings,
+    to be joined with os.path.join. The last argument is the file contents.
+
+system(command, input='')
+    Execute a system command with the given input passed to the
+    command's standard input.  The output (error and regular output)
+    from the command is returned.
+
+get(url)
+    Get a web page.
+
+cd(*path)
+    Change to the given directory.  The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+    The directory will be reset at the end of the test.
+
+join(*path)
+    A convenient reference to os.path.join.
+
+register_teardown(func)
+    Register a tear-down function.  The function will be called with
+    no arguments at the end of the test.
+
+start_server(path)
+    Start a web server on the given path.  The server will be shut
+    down at the end of the test.  The server URL is returned.
+
+sdist(setup, dest)
+    Create a source distribution by running the given setup file and
+    placing the result in the given destination directory.  If the
+    setup argument is a directory, the thge setup.py file in that
+    directory is used.
+
+bdist_egg(setup, executable, dest)
+    Create an egg by running the given setup file with the given
+    Python executable and placing the result in the given destination
+    directory.  If the setup argument is a directory, the thge
+    setup.py file in that directory is used.
+
+find_python(version)
+    Find a Python executable for the given version, where version is a
+    string like "2.4".
+
+    This function uses the following strategy to find a Python of the
+    given version:
+
+    - Look for an environment variable of the form PYTHON%(version)s.
+
+    - On windows, look for \Pythonm%(version)s\python
+
+    - on Unix, try running python%(version)s or just python to get the
+      executable
+
+zc.buildout.testing.buildoutTearDown(test)
+------------------------------------------
+
+Tear down everything set up by zc.buildout.testing.buildoutSetUp.  Any
+functions passed to register_teardown are called as well.
+
+install(project, destination)
+-----------------------------
+
+Install eggs for a given project into a destination.  If the
+destination is a test object, then the eggs directory of the
+sample buildout (sample_buildout) defined by the test will be used.
+Tests will use this to install the distributions for the packages
+being tested (and their dependencies) into a sample buildout. The egg
+to be used should already be loaded, by importing one of the modules
+provided, before calling this function.
+
+install_develop(project, destination)
+-------------------------------------
+
+Like install, but a develop egg is installed even if the current egg
+if not a develop egg.
+
+Output normalization
+--------------------
+
+Recipe tests often generate output that is dependent on temporary file
+locations, operating system conventions or Python versions.  To deal
+with these dependencies, we often use
+zope.testing.renormalizing.RENormalizing to normalize test output.
+zope.testing.renormalizing.RENormalizing takes pairs of regular
+expressions and substitutions. The zc.buildout.testing module provides
+a few helpful variables that define regular-expression/substitution
+pairs that you can pass to zope.testing.renormalizing.RENormalizing.
+
+
+normalize_path
+   Converts tests paths, based on directories created with tmpdir(),
+   to simple paths.
+
+normalize_script
+   On Unix-like systems, scripts are implemented in single files
+   without suffixes.  On windows, scripts are implemented with 2
+   files, a -script.py file and a .exe file.  This normalization
+   converts directory listings of Windows scripts to the form
+   generated on UNix-like systems.
+
+normalize_egg_py
+   Normalize Python version and platform indicators, if specified, in
+   egg names.

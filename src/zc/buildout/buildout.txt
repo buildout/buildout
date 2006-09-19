@@ -262,7 +262,7 @@ buildout:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Installing data-dir
     data-dir: Creating directory mystuff
 
@@ -286,9 +286,9 @@ about the part we installed:
     parts = data-dir
     <BLANKLINE>
     [data-dir]
-    __buildout_installed__ = /tmp/sample-buildout/mystuff
+    __buildout_installed__ = /sample-buildout/mystuff
     __buildout_signature__ = recipes-c7vHV6ekIDUPy/7fjAaYjg==
-    path = /tmp/sample-buildout/mystuff
+    path = /sample-buildout/mystuff
     recipe = recipes:mkdir
 
 Note that the directory we installed is included in .installed.cfg.
@@ -310,7 +310,7 @@ we'll see that the directory gets removed and recreated:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Uninstalling data-dir
     buildout: Installing data-dir
     data-dir: Creating directory mydata
@@ -352,7 +352,7 @@ the directory in:
 We'll get a user error, not a traceback.
 
     >>> print system(buildout),
-    buildout: Develop: /private/tmp/tmp_I5pHasample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
     Error: Invalid Path
 
@@ -467,7 +467,7 @@ Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
     >>> print system(buildout),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Uninstalling data-dir
     buildout: Installing data-dir
     data-dir: Creating directory mydata
@@ -486,7 +486,7 @@ recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
     >>> print system(buildout),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Installing data-dir
     buildout: Installing debug
     File 1 mydata/file
@@ -561,7 +561,7 @@ customization.
 
 Here is a more elaborate example. 
 
-    >>> extensions = mkdtemp()
+    >>> extensions = tmpdir('extensions')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -689,7 +689,7 @@ reading the configuration file.  ($HOME is the value of the HOME
 environment variable. The '/' is replaced by the operating system file
 delimiter.)
 
-    >>> home = mkdtemp()
+    >>> home = tmpdir('home')
     >>> mkdir(home, '.buildout')
     >>> write(home, '.buildout', 'default.cfg',
     ... """
@@ -784,7 +784,7 @@ Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
     
     >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Installing debug
     name other
     op1 foo
@@ -797,7 +797,7 @@ WARNING.
 Options can also be combined in the usual Unix way, as in:
     
     >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Installing debug
     name other
     op1 foo
@@ -876,21 +876,21 @@ the buildout in the usual way:
     recipe = recipes:debug
     <BLANKLINE>
     [d1]
-    __buildout_installed__ = /tmp/sample-buildout/d1
+    __buildout_installed__ = /sample-buildout/d1
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/d1
+    path = /sample-buildout/d1
     recipe = recipes:mkdir
     <BLANKLINE>
     [d2]
-    __buildout_installed__ = /tmp/sample-buildout/d2
+    __buildout_installed__ = /sample-buildout/d2
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/d2
+    path = /sample-buildout/d2
     recipe = recipes:mkdir
     <BLANKLINE>
     [d3]
-    __buildout_installed__ = /tmp/sample-buildout/d3
+    __buildout_installed__ = /sample-buildout/d3
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/d3
+    path = /sample-buildout/d3
     recipe = recipes:mkdir
 
 Now we'll update our configuration file:
@@ -960,27 +960,27 @@ The .installed.cfg is only updated for the recipes that ran:
     recipe = recipes:debug
     <BLANKLINE>
     [d2]
-    __buildout_installed__ = /tmp/sample-buildout/d2
+    __buildout_installed__ = /sample-buildout/d2
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/d2
+    path = /sample-buildout/d2
     recipe = recipes:mkdir
     <BLANKLINE>
     [d3]
-    __buildout_installed__ = /tmp/sample-buildout/data3
+    __buildout_installed__ = /sample-buildout/data3
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/data3
+    path = /sample-buildout/data3
     recipe = recipes:mkdir
     <BLANKLINE>
     [d4]
-    __buildout_installed__ = /tmp/sample-buildout/data4
+    __buildout_installed__ = /sample-buildout/data4
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/data4
+    path = /sample-buildout/data4
     recipe = recipes:mkdir
     <BLANKLINE>
     [d1]
-    __buildout_installed__ = /tmp/sample-buildout/d1
+    __buildout_installed__ = /sample-buildout/d1
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /tmp/sample-buildout/d1
+    path = /sample-buildout/d1
     recipe = recipes:mkdir
 
 Note that the installed data for debug, d1, and d2 haven't changed,
@@ -1028,7 +1028,7 @@ The buildout normally puts the bin, eggs, and parts directories in the
 directory in the directory containing the configuration file. You can
 provide alternate locations, and even names for these directories.
 
-    >>> alt = mkdtemp('sample-alt')
+    >>> alt = tmpdir('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1047,11 +1047,11 @@ provide alternate locations, and even names for these directories.
     ... ))
 
     >>> print system(buildout),
-    buildout: Creating directory /tmp/sample-alt/scripts
-    buildout: Creating directory /tmp/sample-alt/work
-    buildout: Creating directory /tmp/sample-alt/basket
+    buildout: Creating directory /sample-alt/scripts
+    buildout: Creating directory /sample-alt/work
+    buildout: Creating directory /sample-alt/basket
     buildout: Creating directory /sample-alt/developbasket
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes/setup.py
     buildout: Uninstalling d4
     buildout: Uninstalling d3
     buildout: Uninstalling d2
@@ -1068,7 +1068,8 @@ provide alternate locations, and even names for these directories.
 
 You can also specify an alternate buildout directory:
 
-    >>> alt = mkdtemp('sample-alt')
+    >>> rmdir(alt)
+    >>> alt = tmpdir('sample-alt')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1082,11 +1083,11 @@ You can also specify an alternate buildout directory:
     ...    ))
  
     >>> print system(buildout),
-    buildout: Creating directory /tmp/sample-alt/bin
-    buildout: Creating directory /tmp/sample-alt/parts
-    buildout: Creating directory /tmp/sample-alt/eggs
-    buildout: Creating directory /tmp/sample-alt/develop-eggs
-    buildout: Develop: /tmp/sample-buildout/recipes/setup.py
+    buildout: Creating directory /sample-alt/bin
+    buildout: Creating directory /sample-alt/parts
+    buildout: Creating directory /sample-alt/eggs
+    buildout: Creating directory /sample-alt/develop-eggs
+    buildout: Develop: /sample-buildout/recipes/setup.py
 
     >>> ls(alt)
     -  .installed.cfg
@@ -1135,7 +1136,7 @@ configuration file.  Because the verbosity is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(buildout),
-    INFO Develop: /tmp/sample-buildout/recipes/setup.py
+    INFO Develop: /sample-buildout/recipes/setup.py
 
 Predefined buildout options
 ---------------------------
@@ -1155,16 +1156,16 @@ database is shown.
     >>> print system(buildout+' -v'),
     Configuration data:
     [buildout]
-    bin-directory = /tmp/sample-buildout/bin
-    develop-eggs-directory = /tmp/sample-buildout/develop-eggs
-    directory = /tmp/sample-buildout
-    eggs-directory = /tmp/sample-buildout/eggs
+    bin-directory = /sample-buildout/bin
+    develop-eggs-directory = /sample-buildout/develop-eggs
+    directory = /sample-buildout
+    eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
-    installed = /tmp/sample-buildout/.installed.cfg
+    installed = /sample-buildout/.installed.cfg
     log-format = %%(name)s: %%(message)s
     log-level = INFO
     parts = 
-    parts-directory = /tmp/sample-buildout/parts
+    parts-directory = /sample-buildout/parts
     python = buildout
     verbosity = 10
     <BLANKLINE>
@@ -1242,7 +1243,7 @@ If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
 local buildout scripts. 
 
-    >>> sample_bootstrapped = mkdtemp('sample-bootstrapped')
+    >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
     >>> print system(buildout
     ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
@@ -1342,5 +1343,5 @@ We see that out extension is loaded and executed:
 
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ext ['buildout']
-    buildout: Develop: /tmp/tmpi0JFIIsample-bootstrapped/demo/setup.py
+    buildout: Develop: /sample-bootstrapped/demo/setup.py
 

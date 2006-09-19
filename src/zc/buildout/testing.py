@@ -24,6 +24,10 @@ from zope.testing import doctest, renormalizing
 import pkg_resources
 
 import zc.buildout.buildout
+import zc.buildout.easy_install
+
+setuptools_location = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('setuptools')).location
 
 def cat(dir, *names):
     path = os.path.join(dir, *names)
@@ -46,10 +50,11 @@ def ls(dir, *subs):
             print '- ',
         print name
 
-def mkdir(dir, *subs):
-    if subs:
-        dir = os.path.join(dir, *subs)
-    os.mkdir(dir)
+def mkdir(*path):
+    os.mkdir(os.path.join(*path))
+
+def rmdir(*path):
+    shutil.rmtree(os.path.join(*path))
 
 def write(dir, *args):
     open(os.path.join(dir, *(args[:-1])), 'w').write(args[-1])
@@ -64,128 +69,30 @@ def system(command, input=''):
 def get(url):
     return urllib2.urlopen(url).read()
 
-def buildoutSetUp(test):
-    # we both need to make sure that HOME isn't set and be prepared
-    # to restore whatever it was after the test.
-    test.globs['_oldhome'] = os.environ['HOME']
-    del os.environ['HOME'] # pop doesn't truly remove it :(
+def _runsetup(setup, executable, *args):
+    if os.path.isdir(setup):
+        setup = os.path.join(setup, 'setup.py')
+    d = os.path.dirname(setup)
 
-    temporary_directories = []
-    def mkdtemp(*args):
-        d = tempfile.mkdtemp(*args)
-        temporary_directories.append(d)
-        return d
+    args = [zc.buildout.easy_install._safe_arg(arg)
+            for arg in args]
+    args.insert(0, '-q')
+    args.append(dict(os.environ, PYTHONPATH=setuptools_location))
 
-    os.environ['buildout-testing-index-url'] = 'file://'+mkdtemp()
-
-    sample = mkdtemp('sample-buildout')
-
-    # Create a basic buildout.cfg to avoid a warning from buildout:
-    open(os.path.join(sample, 'buildout.cfg'), 'w').write(
-        "[buildout]\nparts =\n"
-        )
-
-    # Use the buildout bootstrap command to create a buildout
-    zc.buildout.buildout.Buildout(
-        os.path.join(sample, 'buildout.cfg'),
-        [('buildout', 'log-level', 'WARNING')]
-        ).bootstrap([])
-
-    test.globs.update(dict(
-        __here = os.getcwd(),
-        sample_buildout = sample,
-        ls = ls,
-        cat = cat,
-        mkdir = mkdir,
-        write = write,
-        system = system,
-        get = get,
-        __temporary_directories__ = temporary_directories,
-        __tearDown__ = [],
-        mkdtemp = mkdtemp,
-        cd = os.chdir,
-        ))
-
-def buildoutTearDown(test):
-    os.chdir(test.globs['__here'])
-    for d in test.globs['__temporary_directories__']:
-        shutil.rmtree(d)
-    for f in test.globs['__tearDown__']:
-        f()
-    if test.globs.get('_oldhome') is not None:
-        os.environ['HOME'] = test.globs['_oldhome']
-
-
-script_template = '''\
-#!%(python)s
-
-import sys
-sys.path[0:0] = %(path)r
-
-from pkg_resources import load_entry_point
-sys.exit(load_entry_point('zc.buildout', 'console_scripts', 'buildout')())
-'''
-
-def runsetup(d, executable, type='bdist_egg'):
     here = os.getcwd()
     try:
         os.chdir(d)
-        os.spawnle(
-            os.P_WAIT, executable, executable,
-            'setup.py', '-q', type,
-            {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)},
-            )
+        os.spawnle(os.P_WAIT, executable, executable, setup, *args)
         if os.path.exists('build'):
             shutil.rmtree('build')
     finally:
         os.chdir(here)
 
-def create_sample_eggs(test, executable=sys.executable):
-    if 'sample_eggs' in test.globs:
-        sample = os.path.dirname(test.globs['sample_eggs'])
-    else:
-        sample = test.globs['mkdtemp']('sample-eggs')
-        test.globs['sample_eggs'] = os.path.join(sample, 'dist')
-        write(sample, 'README.txt', '')
+def sdist(setup, dest):
+    _runsetup(setup, sys.executable, 'sdist', '-d', dest, '--formats=zip')
 
-    for i in (0, 1):
-        write(sample, 'eggrecipedemobeeded.py', 'y=%s\n' % i)
-        write(
-            sample, 'setup.py',
-            "from setuptools import setup\n"
-            "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
-            " zip_safe=True, version='1.%s', author='bob', url='bob', "
-            "author_email='bob')\n"
-            % i
-            )
-        runsetup(sample, executable, 'sdist')
-
-    write(
-        sample, 'setup.py',
-        "from setuptools import setup\n"
-        "setup(name='other', zip_safe=True, version='1.0', "
-        "py_modules=['eggrecipedemobeeded'])\n"
-        )
-    runsetup(sample, executable)
-
-    os.remove(os.path.join(sample, 'eggrecipedemobeeded.py'))
-
-    for i in (1, 2, 3):
-        write(
-            sample, 'eggrecipedemo.py',
-            'import eggrecipedemobeeded\n'
-            'x=%s\n'
-            'def main(): print x, eggrecipedemobeeded.y\n'
-            % i)
-        write(
-            sample, 'setup.py',
-            "from setuptools import setup\n"
-            "setup(name='demo', py_modules=['eggrecipedemo'],"
-            " install_requires = 'demoneeded',"
-            " entry_points={'console_scripts': ['demo = eggrecipedemo:main']},"
-            " zip_safe=True, version='0.%s')\n" % i
-            )
-        runsetup(sample, executable)
+def bdist_egg(setup, executable, dest):
+    _runsetup(setup, executable, 'bdist_egg', '-d', dest)
 
 def find_python(version):
     e = os.environ.get('PYTHON%s' % version)
@@ -223,77 +130,81 @@ def find_python(version):
         "of the Python %(version)s executable before running the tests."
         )
 
-def multi_python(test):
-    p23 = find_python('2.3')
-    p24 = find_python('2.4')
-    create_sample_eggs(test, executable=p23)
-    create_sample_eggs(test, executable=p24)
-    test.globs['python2_3_executable'] = p23
-    test.globs['python2_4_executable'] = p24
+def buildoutSetUp(test):
 
+    test.globs['__tear_downs'] = __tear_downs = []
+    test.globs['register_teardown'] = register_teardown = __tear_downs.append
 
-
-extdemo_c = """
-#include <Python.h>
-#include <extdemo.h>
-
-static PyMethodDef methods[] = {{NULL}};
-
-PyMODINIT_FUNC
-initextdemo(void)
-{
-    PyObject *d;
-    d = Py_InitModule3("extdemo", methods, "");
-    PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
-}
-"""
-
-extdemo_setup_py = """
-from distutils.core import setup, Extension
-
-setup(name = "extdemo", version = "1.4", url="http://www.zope.org",
-      author="Demo", author_email="demo@demo.com",
-      ext_modules = [Extension('extdemo', ['extdemo.c'])],
-      )
-"""
-
-def add_source_dist(test):
-    import tarfile
-    tmp = tempfile.mkdtemp('test-sdist')
-    open(os.path.join(tmp, 'extdemo.c'), 'w').write(extdemo_c);
-    open(os.path.join(tmp, 'setup.py'), 'w').write(extdemo_setup_py);
-    open(os.path.join(tmp, 'README'), 'w').write("");
-    open(os.path.join(tmp, 'MANIFEST.in'), 'w').write("include *.c\n");
     here = os.getcwd()
-    os.chdir(tmp)
-    status = os.spawnl(os.P_WAIT, sys.executable, sys.executable,
-                       os.path.join(tmp, 'setup.py'), '-q', 'sdist')
-    os.chdir(here)
-    assert status == 0
-    if sys.platform == 'win32':
-        sname = 'extdemo-1.4.zip'
-    else:
-        sname = 'extdemo-1.4.tar.gz'
+    register_teardown(lambda: os.chdir(here))
 
-    shutil.move(
-        os.path.join(tmp, 'dist', sname),
-        os.path.join(test.globs['sample_eggs'], sname),
-        )
+    old_home = os.environ.get('HOME')
+    if old_home is not None:
+        del os.environ['HOME'] # pop doesn't truly remove it :(
+        register_teardown(lambda: os.environ.__setitem__('HOME', old_home))
+
+    base = tempfile.mkdtemp()
+    register_teardown(lambda: shutil.rmtree(base))
+    base = os.path.join(base, '_TEST_')
+    os.mkdir(base)
+
+    tmp = tempfile.mkdtemp('buildouttests')
+    register_teardown(lambda: shutil.rmtree(tmp))
     
-def make_tree(test):
-    sample_eggs = test.globs['sample_eggs']
-    tree = dict(
-        [(n, open(os.path.join(sample_eggs, n), 'rb').read())
-         for n in os.listdir(sample_eggs)
-         ])
-    tree['index'] = {}
-    return tree
+    zc.buildout.easy_install.default_index_url = 'file://'+tmp
+    os.environ['buildout-testing-index-url'] = (
+        zc.buildout.easy_install.default_index_url)
+
+    def tmpdir(name):
+        path = os.path.join(base, name)
+        mkdir(path)
+        return path
+
+    sample = tmpdir('sample-buildout')
+
+    # Create a basic buildout.cfg to avoid a warning from buildout:
+    open(os.path.join(sample, 'buildout.cfg'), 'w').write(
+        "[buildout]\nparts =\n"
+        )
+
+    # Use the buildout bootstrap command to create a buildout
+    zc.buildout.buildout.Buildout(
+        os.path.join(sample, 'buildout.cfg'),
+        [('buildout', 'log-level', 'WARNING')]
+        ).bootstrap([])
+
+    def start_server(path):
+        port, thread = _start_server(path, name=path)
+        url = 'http://localhost:%s/' % port
+        register_teardown(lambda: stop_server(url, thread))
+        return url
+
+    test.globs.update(dict(
+        sample_buildout = sample,
+        ls = ls,
+        cat = cat,
+        mkdir = mkdir,
+        rmdir = rmdir,
+        tmpdir = tmpdir,
+        write = write,
+        system = system,
+        get = get,
+        cd = (lambda *path: os.chdir(os.path.join(*path))),
+        join = os.path.join,
+        sdist = sdist,
+        bdist_egg = bdist_egg,
+        start_server = start_server,
+        ))
+
+def buildoutTearDown(test):
+    for f in test.globs['__tear_downs']:
+        f()
     
 class Server(BaseHTTPServer.HTTPServer):
 
     def __init__(self, tree, *args):
         BaseHTTPServer.HTTPServer.__init__(self, *args)
-        self.tree = tree
+        self.tree = os.path.abspath(tree)
 
     __run = True
     def serve_forever(self):
@@ -313,28 +224,30 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         if '__stop__' in self.path:
            raise SystemExit
-       
-        tree = self.tree
-        for name in self.path.split('/'):
-            if not name:
-                continue
-            tree = tree.get(name)
-            if tree is None:
-                self.send_response(404, 'Not Found')
-                out = '<html><body>Not Found</body></html>'
-                self.send_header('Content-Length', str(len(out)))
-                self.send_header('Content-Type', 'text/html')
-                self.end_headers()
-                self.wfile.write(out)
-                return
+
+        path = os.path.abspath(os.path.join(self.tree, *self.path.split('/')))
+        if not (
+            ((path == self.tree) or path.startswith(self.tree+os.path.sep))
+            and
+            os.path.exists(path)
+            ):
+            self.send_response(404, 'Not Found')
+            #self.send_response(200)
+            out = '<html><body>Not Found</body></html>'
+            #out = '\n'.join(self.tree, self.path, path)
+            self.send_header('Content-Length', str(len(out)))
+            self.send_header('Content-Type', 'text/html')
+            self.end_headers()
+            self.wfile.write(out)
+            return
 
         self.send_response(200)
-        if isinstance(tree, dict):
+        if os.path.isdir(path):
             out = ['<html><body>\n']
-            items = tree.items()
-            items.sort()
-            for name, v in items:
-                if isinstance(v, dict):
+            names = os.listdir(path)
+            names.sort()
+            for name in names:
+                if os.path.isdir(os.path.join(path, name)):
                     name += '/'
                 out.append('<a href="%s">%s</a><br>\n' % (name, name))
             out.append('</body></html>\n')
@@ -342,13 +255,13 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
         else:
-            out = tree
+            out = open(path).read()
             self.send_header('Content-Length', len(out))
-            if name.endswith('.egg'):
+            if path.endswith('.egg'):
                 self.send_header('Content-Type', 'application/zip')
-            elif name.endswith('.gz'):
+            elif path.endswith('.gz'):
                 self.send_header('Content-Type', 'application/x-gzip')
-            elif name.endswith('.zip'):
+            elif path.endswith('.zip'):
                 self.send_header('Content-Type', 'application/x-gzip')
             else:
                 self.send_header('Content-Type', 'text/html')
@@ -396,13 +309,6 @@ def stop_server(url, thread=None):
     if thread is not None:
         thread.join() # wait for thread to stop
 
-def setUpServer(test, tree):
-    port, thread = _start_server(tree, name=test.name)
-    link_server = 'http://localhost:%s/' % port
-    test.globs['link_server'] = link_server
-    test.globs['__tearDown__'].append(lambda: stop_server(link_server, thread))
-        
-
 def wait(port, up):
     addr = 'localhost', port
     for i in range(120):
@@ -424,3 +330,51 @@ def wait(port, up):
             raise
         else:
             raise SystemError("Couln't stop server")
+
+def install(project, destination):
+    if not isinstance(destination, basestring):
+        destination = os.path.join(destination.globs['sample_buildout'],
+                                   'eggs')
+
+    dist = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse(project))
+    if dist.location.endswith('.egg'):
+        destination = os.path.join(destination,
+                                   os.path.basename(dist.location),
+                                   )
+        if os.path.isdir(dist.location):
+            shutil.copytree(dist.location, destination)
+        else:
+            shutil.copyfile(dist.location, destination)
+    else:
+        # copy link
+        open(os.path.join(destination, project+'.egg-link'), 'w'
+             ).write(dist.location)
+
+def install_develop(project, destination):
+    if not isinstance(destination, basestring):
+        destination = os.path.join(destination.globs['sample_buildout'],
+                                   'develop-eggs')
+
+    dist = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse(project))
+    open(os.path.join(destination, project+'.egg-link'), 'w'
+         ).write(dist.location)
+
+def _normalize_path(match):
+    return '/'+match.group(1).replace(os.path.sep, '/')
+    
+normalize_path = (
+    re.compile(r'''[^'" \t\n\r]+%(sep)s_TEST_%(sep)s([^"' \t\n\r]+)'''
+               % dict(sep=os.path.sep)),
+    _normalize_path,
+    )
+
+normalize_script = (
+    re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
+    '\\1-  \\2\n')
+
+normalize_egg_py = (
+    re.compile('-py\d[.]\d(-\S+)?.egg'),
+    '-pyN.N.egg',
+    )

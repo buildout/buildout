@@ -202,11 +202,6 @@ def _call_easy_install(spec, dest,
     exit_code = os.spawnle(os.P_WAIT, executable, executable, *args)
     assert exit_code == 0
 
-    # We may overwrite distributions, so clear importer
-    # cache.
-    sys.path_importer_cache.clear()
-
-
 
 def _get_dist(requirement, env, ws,
               dest, links, index, executable, always_unzip):
@@ -235,16 +230,18 @@ def _get_dist(requirement, env, ws,
                         raise zc.buildout.UserError(
                             "Couln't download a distribution for %s."
                             % requirement)
-                    
-                    metadata = pkg_resources.EggMetadata(
-                        zipimport.zipimporter(dist.location)
-                        )
-                    if (always_unzip
-                        or
-                        metadata.has_metadata('not-zip-safe')
-                        or
-                        not metadata.has_metadata('zip-safe')
-                        ):
+
+                    should_unzip = False
+                    if always_unzip:
+                        metadata = pkg_resources.EggMetadata(
+                            zipimport.zipimporter(dist.location)
+                            )
+                        should_unzip = not (
+                            metadata.has_metadata('not-zip-safe')
+                            or
+                            not metadata.has_metadata('zip-safe')
+                            )
+                    if should_unzip:
                         setuptools.archive_util.unpack_archive(
                             dist.location,
                             os.path.join(dest, os.path.basename(dist.location)
@@ -274,8 +271,14 @@ def _get_dist(requirement, env, ws,
                 finally:
                     shutil.rmtree(tmp)
 
+
             # Because we have added a new egg, we need to rescan
             # the destination directory.
+
+            # We may overwrite distributions, so clear importer
+            # cache.
+            sys.path_importer_cache.clear()
+
             env.scan([dest])
             dist = env.best_match(requirement, ws)
             logger.info("Got %s", dist)            

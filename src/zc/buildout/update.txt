@@ -8,9 +8,9 @@ new_releases folder:
 
     >>> ls(new_releases)
     d  setuptools
-    -  setuptools-99.99-py2.3.egg
+    -  setuptools-99.99-py2.4.egg
     d  zc.buildout
-    -  zc.buildout-99.99-py2.3.egg
+    -  zc.buildout-99.99-py2.4.egg
 
 Let's update the sample buildout.cfg to look in this area:
 
@@ -80,12 +80,12 @@ new versions found in new releases:
 Our buildout script has been updated to use the new eggs:
 
     >>> cat(sample_buildout, 'bin', 'buildout') 
-    #!/usr/local/bin/python2.3
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/tmpc4avO6sample-buildout/eggs/zc.buildout-99.99-py2.3.egg',
-      '/tmp/tmpc4avO6sample-buildout/eggs/setuptools-99.99-py2.3.egg',
+      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
+      '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
       ]
     <BLANKLINE>
     import zc.buildout.buildout
