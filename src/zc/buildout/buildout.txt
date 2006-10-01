@@ -14,8 +14,9 @@ This document describes how to define buildouts using buildout
 configuration files and recipes.  There are three ways to set up the
 buildout software and create a buildout instance:
 
-1. Install the zc.buildout egg with easy_install and use the buildout
-   script installed in a Python scripts area.
+1. Install the zc.buildout egg with easy_install `easy_install
+   <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ and use the
+   buildout script installed in a Python scripts area.
 
 2. Use the buildout bootstrap script to create a buildout that
    includes both the setuptools and zc.buildout eggs.  This allows you
