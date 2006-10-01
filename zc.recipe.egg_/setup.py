@@ -1,4 +1,8 @@
+import os
 from setuptools import setup, find_packages
+
+def read(*rnames):
+    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 name = "zc.recipe.egg"
 setup(
@@ -7,7 +11,25 @@ setup(
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
-    long_description = open('README.txt').read(),
+    long_description = (
+        read('README.txt')
+        + '\n' +
+        read('CHANGES.txt')
+        + '\n' +
+        'Detailed Documentation\n'
+        '**********************\n'
+        + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'README.txt')
+        + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'selecting-python.txt')
+        + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'custom.txt')
+        + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'api.txt')
+        + '\n' +
+        'Download\n'
+        '**********************\n'
+        ),
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',

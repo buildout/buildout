@@ -22,6 +22,21 @@ priorities include:
 Change History
 **************
 
+1.0.0b8 (2006-10-01)
+====================
+
+Bugs Fixed
+----------
+
+- Installing source distributions failed when using alternate Python
+  versions (depending on the versions of Python used.)
+
+- Installing eggs wasn't handled as efficiently as possible due to a
+  bug in egg URL parsing.
+
+- Fixed a bug in runsetup that caused setup scripts that introspected
+  __file__ to fail.
+
 1.0.0b7
 =======
 
