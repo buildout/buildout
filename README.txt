@@ -1,55 +1,14 @@
-*************
-Zope Buildout
-*************
+********
+Buildout
+********
 
 .. contents::
 
-The Zope Buildout project provides support for creating applications,
+The Buildout project provides support for creating applications,
 especially Python applications.  It provides tools for assembling
 applications from multiple parts, Python or otherwise.  An application
 may actually contain multiple programs, processes, and configuration
 settings.
-
-Here's an example of such an application that we built with an earlier
-prototype of the buildout system. We have a Zope application consisting of:
-
-- Multiple Zope instances
-
-- 4 ZEO servers
-
-- An LDAP server
-
-- Cache-invalidation and Mail delivery servers
-
-- Dozens of add-on packages
-
-- Multiple test runners
-
-- Multiple deployment modes, including dev, stage, and prod, 
-  with prod deployment over multiple servers
-
-Parts installed include:
-
-- Application software installs, including Zope, ZEO and LDAP
-  software
-
-- Add-on packages
-
-- Bundles of configuration that define Zope, ZEO and LDAP instances
-
-- Utility scripts such as test runners, server-control
-  scripts, cron jobs.
-
-This is all defined using configuration files and recipes, which are
-software that build and installs parts based on configuration data.
-The prototype system has minimal documentation and no tests and
-has no egg support.  (It build on earlier make-based systems that had
-no documentation or tests.)  
-
-This project provides a non-prototype implementation of the ideas and
-knowledge gained from earlier efforts and leverages setuptools to make
-recipe management cleaner and to provide better Python package and
-script management.
 
 The word "buildout" refers to a description of a set of parts and the
 software to create and assemble them.  It is often used informally to
@@ -60,65 +19,10 @@ software that allows an instance of the application to be created.  We
 may refer to such an instance of the application informally as "a Foo
 buildout".  
 
-I expect that, for many Zope packages, we'll arrange the package
-projects in subversion as buildouts.  To work on the package, someone
-will check the project out of Subversion and build it.  Building it
-will assemble all of packages and programs needed to work on it.  For
-example, a buildout for a project to provide a new security policy
-will include the source of the policy and specifications to build the
-application for working on it, including:
+To get a feel for some of the things you might use buildouts for, see
+the `Buildout examples`_.
 
-- a test runner
-
-- a web server for running the user interface
-
-- supporting packages
-
-A buildout will typically contain a copy of bootstrap.py.  When
-someone checks out the project, they'll run bootstrap.py, which will
-
-- create support directories, like bin, eggs, and work, as needed,
-
-- download and install the zc.buildout and setuptools eggs,
-
-- run bin/build (created by installing zc.buildout) to build the
-  application.
-
-Buildouts are defined using configuration files.  These files are
-based on the Python ConfigParser module with some variable-definition
-and substitution extensions.  
-
-Installation
-************
-
-There are two ways to install zc,buildout
-
-1. Install it as an egg using `easy_install
-   <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ into a
-   Python instaallation. Then just use the buildout script from your
-   Python bin or Scripts directory.
-
-2. Use the `bootstrap script
-   <http://dev.zope.org/Buildout/bootstrap.py>`_ to install setuptools
-   and the buildout software into your buildout.  Typically, you'll
-   check the bootstrap script into your project so that, whenever you
-   checkout your project, you can turn it into a buildout by just
-   running the bootstrap script.
-
-More information
-****************
-
-The detailed documentation for the various parts of buildout can be
-found in the following files:
-
-`buildout.txt <http://dev.zope.org/Buildout/buildout.html>`_
-   Describes how to define and run buildouts.  It also describes how
-   to write recipes.
-
-`easy_install.txt <http://dev.zope.org/Buildout/easy_install.html>`_
-   Describes an Python APIs for invoking easy_install for generation
-   of scripts with paths baked into them.
-
+To lean more about using buildouts, see `Detailed Documentation`_.
 
 Download
 ********
@@ -154,18 +58,129 @@ Existing recipes include:
 Buildout examples
 *****************
 
-Some simple buildout examples:
+Here are a few examples of what you can do with buildouts.  We'll
+present these as a set of use cases.
 
-`The zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
-   This is the project for the buildout software itself, which is
-   developed as a buildout. 
+Try out an egg
+==============
 
-`The zc sharing project <http://svn.zope.org/zc.sharing/trunk>`_
-   This project illistrates using the buildout software with Zope 3.
-   Note that the bootstrap.py file is checked in so that a buildout
-   can be made when the project is checked out.  The buildout.cfg
-   specified everything needed to create a Zope 3 installation with
-   the zc.sharing package installed in development mode.
+Sometimes you want to try an egg (or eggs) that someone has released.
+You'd like to get a Python interpreter that lets you try things
+interactively or run sample scripts without having to do path
+manipulations.  If you can and don't mind modifying your Python
+installation, you could use easy_install, otherwise, you could create
+a directory somewhere and create a buildout.cfg file in that directory
+containing::
+
+  [buildout]
+  parts = mypython
+
+  [mypython]
+  recipe = zc.recipe.egg
+  interpreter = mypython
+  eggs = theegg
+
+where theegg is the name of the egg you want to try out.
+
+Run buildout in this directory.  It will create a bin subdirectory
+that includes a mypython script.  If you run mypython without any
+arguments you'll get an interactive interpreter with the egg in the
+path. If you run it with a script and script arguments, the script
+will run with the egg in its path.  Of course, you can specify as many
+eggs as you want in the eggs option.
+
+If the egg provides any scripts (console_scripts entry points), those
+will be installed in your bin directory too.
+
+Work on a package
+=================
+
+I often work on packages that are managed separately.  They don't have
+scripts to be installed, but I want to be able to run their tests
+using the `zope.testing test runner
+<http://www.python.org/pypi/zope.testing>`_.  In this kind of
+application, the program to be instaleld is the test runner.  A good
+example of this is `zc.ngi <http://svn.zope.org/zc.ngi/trunk/>`_.
+
+Here I have a subversion project for the zc.ngi package.  The software
+is in the src directory.  The configuration file is very simple::
+
+  [buildout]
+  develop = .
+  parts = test
+
+  [test]
+  recipe = zc.recipe.testrunner
+  eggs = zc.ngi
+
+I use the develop option to create a develop egg based on the current
+directory.  I request a test script named "test" using the
+zc.recipe.testrunner recipe.  In the section for the test script, I
+specify that I want to run the tests in the zc.ngi package.  
+
+When I check out this project into a new sandbox, I run bootstrap.py
+to get setuptools and zc.buildout and create bin/buildout.  I run
+bin/buildout, which installs the test script, bin/test, which I can
+then use to run the tests.
+
+This is probably the most common type of buildout.
+
+The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
+is a slightly more complex example of this type of buildout.
+
+Install egg-based scripts
+=========================
+
+A variation of the `Try out an egg`_ use case is to install scripts
+into your ~/bin directory (on Unix, of course).  My ~/bin directory is
+a buildout with a configuration file that looks like::
+
+
+  [buildout]
+  parts = foo bar
+  bin-directory = .
+
+  [foo]
+  ...
+
+whwre foo and bar are packages with scripts that I want available.  As
+I need new scripts, I can add additional sections.  The bin-directory
+option specified that scripts should be installed into the current
+directory. 
+
+Multi-program multi-machine systems
+===================================
+
+Using an older prototype version of the buildout, we've build a number
+of systems involving multiple programs, databases, and machines.  One
+typical example consists of:
+
+- Multiple Zope instances
+
+- Multiple ZEO servers
+
+- An LDAP server
+
+- Cache-invalidation and Mail delivery servers
+
+- Dozens of add-on packages
+
+- Multiple test runners
+
+- Multiple deployment modes, including dev, stage, and prod, 
+  with prod deployment over multiple servers
+
+Parts installed include:
+
+- Application software installs, including Zope, ZEO and LDAP
+  software
+
+- Add-on packages
+
+- Bundles of configuration that define Zope, ZEO and LDAP instances
+
+- Utility scripts such as test runners, server-control
+  scripts, cron jobs.
 
 Questions and Bug Reporting
 ***************************

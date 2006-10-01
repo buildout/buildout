@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b6",
+    version = "1.0.0b7",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
@@ -19,6 +19,8 @@ setup(
         open(os.path.join('src', 'zc', 'buildout', 'buildout.txt')).read()
         + '\n' +
         open(os.path.join('src', 'zc', 'buildout', 'update.txt')).read()
+        + '\n' +
+        open(os.path.join('src', 'zc', 'buildout', 'testing.txt')).read()
         ),
     license = "ZPL 2.1",
     keywords = "development build",
