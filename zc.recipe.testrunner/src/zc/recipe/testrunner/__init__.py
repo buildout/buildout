@@ -38,16 +38,20 @@ class TestRunner:
 
         test_paths = [ws.find(pkg_resources.Requirement.parse(spec)).location
                       for spec in eggs]
+
+        defaults = options.get('defaults', '').strip()
+        if defaults:
+            defaults = '(%s) + ' % defaults
         
         return zc.buildout.easy_install.scripts(
             [(options['script'], 'zope.testing.testrunner', 'run')],
             ws, options['executable'],
             self.buildout['buildout']['bin-directory'],
             extra_paths=self.egg.extra_paths,
-            arguments = arg_template % dict(
+            arguments = defaults + (arg_template % dict(
                 TESTPATH=repr(test_paths)[1:-1].replace(
                                ', ', ",\n  '--test-path', "),
-                ),
+                )),
             )
 
 arg_template = """[

@@ -1,0 +1,33 @@
+
+Change History
+**************
+
+1.0.0b2
+=======
+
+Added a defaults option to specify testrunner default options.
+
+1.0.0b1
+=======
+
+Updated to work with zc.buildout 1.0.0b5.
+
+1.0.0a3
+=======
+
+Added a defaults option that lets you specify test-runner default
+options.
+
+
+1.0.0a2
+=======
+
+Now provide a extra-paths option for including extra paths in test
+scripts. This is useful when eggs depend on Python packages not
+packaged as eggs.
+
+
+1.0.0a1
+=======
+
+Initial public version
