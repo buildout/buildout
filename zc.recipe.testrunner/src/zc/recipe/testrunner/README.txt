@@ -19,6 +19,11 @@ script
 extra-paths
     One or more extra paths to include in the generated test script.
 
+defaults
+
+    The defaults option lets you specify testrunner default
+    options. These are specified as Python source for an expression
+    yielding a list, typically a list literal. 
 
 (Note that, at this time, due to limitations in the Zope test runner,
  the distributions cannot be zip files. TODO: Fix the test runner!)
@@ -209,3 +214,56 @@ extra-paths option to specify them:
         zope.testing.testrunner.run([
       '--test-path', '/sample-buildout/demo',
       ])
+
+If we need to specify default options, we can use the defaults
+option. For example, Zope 3 applications typically define test suites
+in modules named ftests or tests.  The default test runner behaviour
+is to look in modules named tests.  To specify that we want to look in
+tests and ftests module, we'd supply a default for the --tests-pattern
+option.  If we like dots, we could also request more verbose output
+using the -v option. 
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts = testdemo
+    ... offline = true
+    ...
+    ... [testdemo]
+    ... recipe = zc.recipe.testrunner
+    ... eggs = demo
+    ... extra-paths = /usr/local/zope/lib/python
+    ... defaults = ['--tests-pattern', '^f?tests$', 
+    ...             '-v'
+    ...            ]
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -q'),
+
+    >>> cat(sample_buildout, 'bin', 'testdemo')
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample-buildout/demo',
+      '/sample-buildout/eggs/zope.testing-3.0-py2.4.egg',
+      '/usr/local/zope/lib/python',
+      ]
+    <BLANKLINE>
+    import zope.testing.testrunner
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zope.testing.testrunner.run((['--tests-pattern', '^f?tests$',
+    '-v'
+    ]) + [
+      '--test-path', '/tmp/tmpef05fA/_TEST_/sample-buildout/demo',
+      ])
+
+Some things to note from this example:
+
+- Parentheses are placed around the given expression.  
+
+- Leading whitespace is removed.
+
+  
