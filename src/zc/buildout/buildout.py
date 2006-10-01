@@ -638,6 +638,7 @@ class Buildout(dict):
                 setuptools=setuptools,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
+                __file__ = setup,
                 ))
             os.spawnl(os.P_WAIT, sys.executable, sys.executable, tsetup,
                       *[zc.buildout.easy_install._safe_arg(a)
@@ -650,6 +651,8 @@ runsetup_template = """
 import sys
 sys.path.insert(0, %(setuptools)r)
 import os, setuptools
+
+__file__ = %(__file__)r
 
 os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
