@@ -1,0 +1,53 @@
+To do
+*****
+
+- Some way to freeze the egg-versions used.  This includes some way to
+  record which versions were selected dynamially and then a way to
+  require that the recorded versions be used in a later run.
+
+Change History
+**************
+
+1.0.0b1
+=======
+
+Updated to work with zc.buildout 1.0.0b3.
+
+1.0.0a3
+=======
+
+- Extra path elements to be included in generated scripts can now be
+  set via the extra-paths option.
+
+- No longer implicitly generate py\_ scripts fo reach egg. There is
+  now an interpreter option to generate a script that, when run
+  without arguments, launches the Python interactive interpreter with
+  the path set based on a parts eggs and extra paths.  If this script
+  is run with the name of a Python script and arguments, then the
+  given script is run with the path set.
+
+- You can now specify explicit entry points.  This is useful for use
+  with packages that don't declare their own entry points.
+
+- Added Windows support.
+
+- Now-longer implicitly generate "py\_" scripts for each egg.  You can
+  now generate a script for launching a Python interpreter or for
+  running scripts based on the eggs defined for an egg part.
+
+- You can now specify custom entry points for packages that don't
+  declare their entry points.
+
+- You can now specify extra-paths to be included in generated scripts.
+
+
+1.0.0a2
+=======
+
+Added a custom recipe for building custom eggs using custom distrutils
+build_ext arguments.
+
+1.0.0a1
+=======
+
+Initial public version
