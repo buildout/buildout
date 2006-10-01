@@ -1,26 +1,32 @@
 import os
 from setuptools import setup, find_packages
 
+def read(*rnames):
+    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b7",
+    version = "1.0.0b8",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
     long_description=(
-        open('README.txt').read()
+        read('README.txt')
         + '\n' +
-        open('CHANGES.txt').read()
+        read('CHANGES.txt')
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +
-        open(os.path.join('src', 'zc', 'buildout', 'buildout.txt')).read()
+        read('src', 'zc', 'buildout', 'buildout.txt')
         + '\n' +
-        open(os.path.join('src', 'zc', 'buildout', 'update.txt')).read()
+        read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
-        open(os.path.join('src', 'zc', 'buildout', 'testing.txt')).read()
+        read('src', 'zc', 'buildout', 'testing.txt')
+        + '\n' +
+        'Download\n'
+        '**********************\n'
         ),
     license = "ZPL 2.1",
     keywords = "development build",
@@ -36,7 +42,6 @@ setup(
     test_suite = name+'.tests.test_suite',
     entry_points = {'console_scripts':
                     ['buildout = %s.buildout:main' % name]}, 
-#    dependency_links = ['http://download.zope.org/distribution/'],
     zip_safe=False,
     classifiers = [
        'Development Status :: 4 - Beta',
