@@ -38,7 +38,7 @@ def setUpSelecting(test):
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
     
 def test_suite():
-    return unittest.TestSuite((
+    suite = unittest.TestSuite((
         doctest.DocFileSuite(
             'README.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
@@ -80,17 +80,6 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
-            'selecting-python.txt',
-            setUp=setUpSelecting,
-            tearDown=zc.buildout.testing.buildoutTearDown,
-            checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_script,
-               (re.compile('-  ([a-zA-Z_0-9.]+)(-\S+)?[.]egg(-link)?'),
-                '\\1.egg'),
-               ]),
-            ),
-        doctest.DocFileSuite(
             'custom.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
@@ -102,6 +91,30 @@ def test_suite():
             ),
         
         ))
+
+    if sys.version_info[:2] != (2, 3):
+        # Only run selecting python tests if not 2.3, since
+        # 2.3 is the alternate python used in the tests.
+        suite.addTest(
+            doctest.DocFileSuite(
+                'selecting-python.txt',
+                setUp=setUpSelecting,
+                tearDown=zc.buildout.testing.buildoutTearDown,
+                checker=renormalizing.RENormalizing([
+                   zc.buildout.testing.normalize_path,
+                   zc.buildout.testing.normalize_script,
+                   (re.compile('Got setuptools \S+'), 'Got setuptools V'),
+                   (re.compile('setuptools-\S+-py'), 'setuptools-V-py'),
+                   (re.compile('-py2[.][0-24-9][.]'), 'py2.4.'),
+                   (re.compile('zc.buildout-\S+[.]egg'),
+                    'zc.buildout.egg'),
+                   (re.compile('zc.buildout[.]egg-link'),
+                    'zc.buildout.egg'),
+                   ]),
+                ),
+            )
+    
+    return suite
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
