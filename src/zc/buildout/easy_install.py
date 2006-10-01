@@ -20,7 +20,7 @@ installed.
 $Id$
 """
 
-import glob, logging, os, re, tempfile, shutil, sys, zipimport
+import glob, logging, os, re, shutil, sys, tempfile, urlparse, zipimport
 import distutils.errors
 import pkg_resources
 import setuptools.command.setopt
@@ -32,20 +32,14 @@ default_index_url = os.environ.get('buildout-testing-index-url')
 
 logger = logging.getLogger('zc.buildout.easy_install')
 
+url_match = re.compile('[a-z0-9+.-]+://').match
+
 # Include buildout and setuptools eggs in paths
 buildout_and_setuptools_path = [
-    (('.egg' in m.__file__)
-       and m.__file__[:m.__file__.rfind('.egg')+4]
-       or os.path.dirname(m.__file__)
-     )
-    for m in (pkg_resources,)
-    ]
-buildout_and_setuptools_path += [
-    (('.egg' in m.__file__)
-       and m.__file__[:m.__file__.rfind('.egg')+4]
-       or os.path.dirname(os.path.dirname(os.path.dirname(m.__file__)))
-     )
-    for m in (zc.buildout,)
+    pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('setuptools')).location,
+    pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
 
 _versions = {sys.executable: '%d.%d' % sys.version_info[:2]}
@@ -175,13 +169,12 @@ _easy_install_cmd = _safe_arg(
     'from setuptools.command.easy_install import main; main()'
     )
 
-def _call_easy_install(spec, dest,
-                       executable=sys.executable,
-                       always_unzip=False,
-                       ):
-    prefix = sys.exec_prefix + os.path.sep
-    path = os.pathsep.join([p for p in sys.path if not p.startswith(prefix)])
+def _call_easy_install(spec, env, ws, dest, links, index,
+                       executable, always_unzip):
 
+    path = _get_dist(pkg_resources.Requirement.parse('setuptools'),
+                     env, ws, dest, links, index, executable, False).location
+ 
     args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(dest))
     if always_unzip:
         args += ('-Z', )
@@ -204,24 +197,29 @@ def _call_easy_install(spec, dest,
 
 
 def _get_dist(requirement, env, ws,
-              dest, links, index, executable, always_unzip):
+              dest, links, index_url, executable, always_unzip):
     
     # Maybe an existing dist is already the best dist that satisfies the
     # requirement
-    dist = _satisfied(requirement, env, dest, executable, index, links)
+    dist = _satisfied(requirement, env, dest, executable, index_url, links)
 
     if dist is None:
         if dest is not None:
             logger.info("Getting new distribution for %s", requirement)
 
             # Retrieve the dist:
-            index = _get_index(executable, index, links)
+            index = _get_index(executable, index_url, links)
             dist = index.obtain(requirement)
             if dist is None:
                 raise zc.buildout.UserError(
-                    "Couln't find a distribution for %s."
+                    "Couldn't find a distribution for %s."
                     % requirement)
-            if dist.location.endswith('.egg'):
+
+            fname = dist.location
+            if url_match(fname):
+                fname = urlparse.urlparse(fname)[2]
+                
+            if fname.endswith('.egg'):
                 # It's already an egg, just fetch it into the dest
                 tmp = tempfile.mkdtemp('get_dist')
                 try:
@@ -266,8 +264,9 @@ def _get_dist(requirement, env, ws,
                     dist = index.fetch_distribution(requirement, tmp)
 
                     # May need a new one.  Call easy_install
-                    _call_easy_install(dist.location, dest,
-                                       executable, always_unzip)
+                    _call_easy_install(
+                        dist.location, env, ws, dest, links, index_url,
+                        executable, always_unzip)
                 finally:
                     shutil.rmtree(tmp)
 
@@ -357,6 +356,8 @@ def build(spec, dest, build_ext,
           executable=sys.executable,
           path=None):
 
+    index_url = index
+
     logger.debug('Building %r', spec)
 
     path = path and path[:] or []
@@ -373,7 +374,7 @@ def build(spec, dest, build_ext,
     env = pkg_resources.Environment(path, python=_get_version(executable))
     requirement = pkg_resources.Requirement.parse(spec)
 
-    dist = _satisfied(requirement, env, dest, executable, index, links)
+    dist = _satisfied(requirement, env, dest, executable, index_url, links)
     if dist is not None:
         return dist
 
@@ -381,11 +382,11 @@ def build(spec, dest, build_ext,
     tmp = tempfile.mkdtemp('editable')
     tmp2 = tempfile.mkdtemp('editable')
     try:
-        index = _get_index(executable, index, links)
+        index = _get_index(executable, index_url, links)
         dist = index.fetch_distribution(requirement, tmp2, False, True)
         if dist is None:
             raise zc.buildout.UserError(
-                "Couln't find a source distribution for %s."
+                "Couldn't find a source distribution for %s."
                 % requirement)
         setuptools.archive_util.unpack_archive(dist.location, tmp)
 
@@ -414,7 +415,8 @@ def build(spec, dest, build_ext,
             setup_cfg, dict(build_ext=build_ext))
 
         # Now run easy_install for real:
-        _call_easy_install(base, dest, executable, True)
+        _call_easy_install(base, env, pkg_resources.WorkingSet(),
+                           dest, links, index_url, executable, True)
     finally:
         shutil.rmtree(tmp)
         shutil.rmtree(tmp2)
