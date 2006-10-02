@@ -619,7 +619,7 @@ class Buildout(dict):
             for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
                 ep.load()(self)
 
-    def runsetup(self, args):
+    def setup(self, args):
         setup = args.pop(0)
         if os.path.isdir(setup):
             setup = os.path.join(setup, 'setup.py')
@@ -646,6 +646,8 @@ class Buildout(dict):
         finally:
             os.close(fd)
             os.remove(tsetup)
+
+    runsetup = setup # backward compat
         
 runsetup_template = """
 import sys
@@ -879,7 +881,7 @@ def main(args=None):
 
     if args:
         command = args.pop(0)
-        if command not in ('install', 'bootstrap', 'runsetup'):
+        if command not in ('install', 'bootstrap', 'runsetup', 'setup'):
             _error('invalid command:', command)
     else:
         command = 'install'
