@@ -61,8 +61,8 @@ we'll get the Python 2.3 eggs for demo and demoneeded:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.3.egg
     -  demoneeded-1.1-py2.3.egg
-    -  setuptools-0.6-py2.3.egg
-    -  setuptools-0.6-py2.4.egg
+    d  setuptools-0.6-py2.3.egg
+    d  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
  
 And the generated scripts invoke Python 2.3:

@@ -403,7 +403,7 @@ def create_sample_eggs(test, executable=sys.executable):
         write(
             tmp, 'setup.py',
             "from setuptools import setup\n"
-            "setup(name='other', zip_safe=True, version='1.0', "
+            "setup(name='other', zip_safe=False, version='1.0', "
             "py_modules=['eggrecipedemobeeded'])\n"
             )
         zc.buildout.testing.bdist_egg(tmp, executable, dest)

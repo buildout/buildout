@@ -22,6 +22,14 @@ priorities include:
 Change History
 **************
 
+1.0.0b9 (2006-10-02)
+====================
+
+Bugs Fixed
+----------
+
+Non-zip-safe eggs were not unzipped when they were installed.
+
 1.0.0b8 (2006-10-01)
 ====================
 

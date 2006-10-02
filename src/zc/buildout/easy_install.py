@@ -229,16 +229,17 @@ def _get_dist(requirement, env, ws,
                             "Couln't download a distribution for %s."
                             % requirement)
 
-                    should_unzip = False
                     if always_unzip:
+                        should_unzip = True
+                    else:
                         metadata = pkg_resources.EggMetadata(
                             zipimport.zipimporter(dist.location)
                             )
-                        should_unzip = not (
+                        should_unzip = (
                             metadata.has_metadata('not-zip-safe')
-                            or
-                            not metadata.has_metadata('zip-safe')
+                            or not metadata.has_metadata('zip-safe')
                             )
+
                     if should_unzip:
                         setuptools.archive_util.unpack_archive(
                             dist.location,

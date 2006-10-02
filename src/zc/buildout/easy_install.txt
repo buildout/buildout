@@ -134,7 +134,7 @@ dependencies.  We might do this to specify a sprcific version.
     -  demo-0.3-py2.4.egg
     -  demoneeded-1.0-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
-    -  other-1.0-py2.4.egg
+    d  other-1.0-py2.4.egg
 
 We can request that eggs be unzipped even if they are zip safe.  This
 can be useful when debugging.
