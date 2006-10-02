@@ -795,22 +795,22 @@ Options:
 
   -q
 
-     Deccreaae the level of verbosity.  This option can be used multiple times.
+     Decrease the level of verbosity.  This option can be used multiple times.
 
   -c config_file
 
      Specify the path to the buildout configuration file to be used.
-     This defaults to the file named"buildout.cfg" in the current
-     working directory. 
+     This defaults to the file named "buildout.cfg" in the current
+     working directory.
 
 Assignments are of the form: section:option=value and are used to
-provide configuration options that override those givem in the
+provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
 use buildout:offline=true.
 
 Options and assignments can be interspersed.
 
-Commmonds:
+Commands:
 
   install [parts]
 
