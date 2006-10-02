@@ -30,7 +30,7 @@ We can specify an specific Python executable.
     >>> ls(dest)
     d  demo-0.3-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
-    -  setuptools-0.6-py2.3.egg
+    d  setuptools-0.6-py2.3.egg
 
 """
 

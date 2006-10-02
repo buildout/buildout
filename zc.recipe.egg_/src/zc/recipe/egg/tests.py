@@ -104,7 +104,7 @@ def test_suite():
                    zc.buildout.testing.normalize_path,
                    zc.buildout.testing.normalize_script,
                    (re.compile('Got setuptools \S+'), 'Got setuptools V'),
-                   (re.compile('setuptools-\S+-py'), 'setuptools-V-py'),
+                   (re.compile('([d-]  )?setuptools-\S+-py'), 'setuptools-V-py'),
                    (re.compile('-py2[.][0-24-9][.]'), 'py2.4.'),
                    (re.compile('zc.buildout-\S+[.]egg'),
                     'zc.buildout.egg'),
