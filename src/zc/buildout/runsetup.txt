@@ -9,7 +9,7 @@ package index.  If your script uses setuptools, you'll need setuptools
 in your Python path, which may be an issue if you haven't installed
 setuptools into your Python installation.
 
-The buildout runsetup command is helpful in a situation like this.  It
+The buildout setup command is helpful in a situation like this.  It
 can be used to run a setup script and it does so with the setuptools
 egg in the Python path and with setuptools already imported.  The fact
 that setuptools is imported means that you can use setuptools-based
@@ -35,7 +35,7 @@ We can use the buildout command to generate the hello egg:
     >>> cd(sample_buildout)
     >>> import os
     >>> print system(os.path.join('bin', 'buildout')
-    ...              +' runsetup hello -q bdist_egg'),
+    ...              +' setup hello -q bdist_egg'),
     buildout: Running setup script hello/setup.py
     zip_safe flag not set; analyzing archive contents...
 

@@ -22,6 +22,14 @@ priorities include:
 Change History
 **************
 
+Next Release
+============
+
+Feature Changes
+---------------
+
+Renamed the runsetup command to setup. (The old name still works.)
+
 1.0.0b9 (2006-10-02)
 ====================
 
