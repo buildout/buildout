@@ -407,7 +407,7 @@ class Buildout(dict):
         # Install the recipe distros
         offline = self['buildout'].get('offline', 'false')
         if offline not in ('true', 'false'):
-            self._error('Invalif value for offline option: %s', offline)
+            self._error('Invalid value for offline option: %s', offline)
             
         if offline == 'false':
             dest = self['buildout']['eggs-directory']
