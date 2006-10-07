@@ -44,6 +44,7 @@ zc.buildout used:
     ...         for project in 'zc.buildout', 'setuptools':
     ...             req = pkg_resources.Requirement.parse(project)
     ...             print project, pkg_resources.working_set.find(req).version
+    ...         return ()
     ... """)
 
 

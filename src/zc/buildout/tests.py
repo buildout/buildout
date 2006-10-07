@@ -178,6 +178,8 @@ def test_comparing_saved_options_with_funny_characters():
     ...     def install(self):
     ...         open('t', 'w').write('t')
     ...         return 't'
+    ...
+    ...     update = install
     ... ''')
 
 
@@ -214,7 +216,7 @@ uninstalling anything because the configuration hasn't changed.
 
     >>> print system(buildout), # doctest: +ELLIPSIS
     buildout: Develop: ...setup.py
-    buildout: Installing debug
+    buildout: Updating debug
 """
 
 
@@ -277,22 +279,22 @@ Options:
 <BLANKLINE>
   -q
 <BLANKLINE>
-     Deccreaae the level of verbosity.  This option can be used multiple times.
+     Decrease the level of verbosity.  This option can be used multiple times.
 <BLANKLINE>
   -c config_file
 <BLANKLINE>
      Specify the path to the buildout configuration file to be used.
-     This defaults to the file named"buildout.cfg" in the current
-     working directory. 
+     This defaults to the file named "buildout.cfg" in the current
+     working directory.
 <BLANKLINE>
 Assignments are of the form: section:option=value and are used to
-provide configuration options that override those givem in the
+provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
 use buildout:offline=true.
 <BLANKLINE>
 Options and assignments can be interspersed.
 <BLANKLINE>
-Commmonds:
+Commands:
 <BLANKLINE>
   install [parts]
 <BLANKLINE>
@@ -324,22 +326,22 @@ Options:
 <BLANKLINE>
   -q
 <BLANKLINE>
-     Deccreaae the level of verbosity.  This option can be used multiple times.
+     Decrease the level of verbosity.  This option can be used multiple times.
 <BLANKLINE>
   -c config_file
 <BLANKLINE>
      Specify the path to the buildout configuration file to be used.
-     This defaults to the file named"buildout.cfg" in the current
-     working directory. 
+     This defaults to the file named "buildout.cfg" in the current
+     working directory.
 <BLANKLINE>
 Assignments are of the form: section:option=value and are used to
-provide configuration options that override those givem in the
+provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
 use buildout:offline=true.
 <BLANKLINE>
 Options and assignments can be interspersed.
 <BLANKLINE>
-Commmonds:
+Commands:
 <BLANKLINE>
   install [parts]
 <BLANKLINE>

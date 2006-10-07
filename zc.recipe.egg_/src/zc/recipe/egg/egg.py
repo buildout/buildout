@@ -119,3 +119,6 @@ class Egg:
                 interpreter=options.get('interpreter'),
                 )
 
+        return ()
+
+    update = install

@@ -38,6 +38,9 @@ around the egg recipe:
     ...         for d in ws:
     ...             print d
     ...         print 'extra paths:', self.egg.extra_paths
+    ...         return ()
+    ...
+    ...     update = install
     ... """)
 
 Here we instantiated the egg recipe in the constructor, saving it in

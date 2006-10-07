@@ -54,6 +54,8 @@ class TestRunner:
                 )),
             )
 
+    update = install
+
 arg_template = """[
   '--test-path', %(TESTPATH)s,
   ]"""
