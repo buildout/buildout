@@ -8,6 +8,8 @@ To do
 Change History
 **************
 
+Updated to work with zc.buildout 1.0.0b10.
+
 1.0.0b1
 =======
 

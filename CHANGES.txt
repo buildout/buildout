@@ -28,7 +28,12 @@ Next Release
 Feature Changes
 ---------------
 
-Renamed the runsetup command to setup. (The old name still works.)
+- Renamed the runsetup command to setup. (The old name still works.)
+
+- Added a recipe update method. Now install is only called when a part
+  is installed for the first time, or after an uninstall. Otherwise, 
+  update is called.  For backward compatibility, recipes that don't
+  define update methiods are still supported.
 
 1.0.0b9 (2006-10-02)
 ====================

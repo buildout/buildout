@@ -67,7 +67,7 @@ class Custom:
 
     def install(self):
         if self.buildout['buildout'].get('offline') == 'true':
-            return
+            return ()
         options = self.options
         distribution = options.get('eggs', self.name).strip()
         build_ext = dict([
@@ -80,3 +80,6 @@ class Custom:
             self.links, self.index, options['executable'], [options['_e']],
             )
         
+        return ()
+
+    update = install

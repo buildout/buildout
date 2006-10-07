@@ -14,9 +14,8 @@ This document describes how to define buildouts using buildout
 configuration files and recipes.  There are three ways to set up the
 buildout software and create a buildout instance:
 
-1. Install the zc.buildout egg with easy_install `easy_install
-   <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ and use the
-   buildout script installed in a Python scripts area.
+1. Install the zc.buildout egg with easy_install and use the buildout
+   script installed in a Python scripts area.
 
 2. Use the buildout bootstrap script to create a buildout that
    includes both the setuptools and zc.buildout eggs.  This allows you
@@ -31,7 +30,7 @@ buildout software and create a buildout instance:
 Often, a software project will be managed in a software repository,
 such as a subversion repository, that includes some software source
 directories, buildout configuration files, and a copy of the buildout
-bootstrap script,  To work on the project, one would check out the
+bootstrap script.  To work on the project, one would check out the
 project from the repository and run the bootstrap script which
 installs setuptools and zc.buildout into the checkout as well as any
 parts defined.
@@ -92,14 +91,23 @@ A part is simply something to be created by a buildout.  It can be
 almost anything, such as a Python package, a program, a directory, or
 even a configuration file.  
 
+Recipes
+-------
+
 A part is created by a recipe.  Recipes are always installed as Python
 eggs. They can be downloaded from a package server, such as the
-Python Package Index, or they can be developed as part of a project.
-Let's create a recipe as part of the sample project.  We'll create a
-recipe for creating directories.  
+Python Package Index, or they can be developed as part of a project
+using a "develop" egg.  
 
-First, we'll create a recipes directory for
-our local recipes:
+A develop egg is a special kind of egg that gets installed as an "egg
+link" that contains the name of a source directory.  Develop eggs
+don't have to be packaged for distribution to be used and can be
+modified in place, which is especially useful while they are being
+developed.
+
+Let's create a recipe as part of the sample project.  We'll create a
+recipe for creating directories.  First, we'll create a recipes source
+directory for our local recipes:
 
     >>> mkdir(sample_buildout, 'recipes')
 
@@ -128,16 +136,52 @@ and then we'll create a source file for our mkdir recipe:
     ...
     ...     def install(self):
     ...         path = self.options['path']
-    ...         if not os.path.isdir(path):
-    ...             logging.getLogger(self.name).info(
-    ...                 'Creating directory %s', os.path.basename(path))
-    ...             os.mkdir(path)
+    ...         logging.getLogger(self.name).info(
+    ...             'Creating directory %s', os.path.basename(path))
+    ...         os.mkdir(path)
     ...         return path
+    ...
+    ...     def update(self):
+    ...         pass
     ... """)
+
+Currently, recipes must define 3 methods [#future_recipe_methods]_:
+
+- a constructor,
+
+- an install method, and
+
+- an update method.
+
+The constructor is responsible for updating a parts options to reflect
+data read from other sections.  The buildout system keeps track of
+whether a part specification has changed.  A part specification has
+changed if it's options, after ajusting for data read from other
+sections, has changed, or if the recipe has changed.  Only the options
+for the part are considered.  If data are read from other sections,
+then that information has to be reflected in the parts options.  In
+the Mkdir example, the given path is interpreted relative to the
+buildout directory, and data from the buildout directory is read.  The
+path option is updated to reflect this.  If the directory option was
+changed in the buildout sections, we would know to update parts
+created using the mkdir recipe using relative path names.
+
+When buildout is run, it saves configuration data for installed parts
+in a file named ".installed.cfg".  In subsequent runs, it compares
+part-configuration data stored in the .installed.cfg file and the
+part-configuration data loaded from the configuration files as
+modified by recipe constructors to decide if the configuration of a
+part has changed. If the configuration has changed, or if the recipe
+has changed, then the part is uninstalled and reinstalled.  The
+buildout only looks at the part's options, so any data used to
+configure the part needs to be reflected in the part's options.  It is
+the job of a recipe constructor to make sure that the options include
+all relevent data.
+
+Of course, parts are also uninstalled if they are no-longer used.
 
 The recipe defines a constructor that takes a buildout object, a part
 name, and an options dictionary. It saves them in instance attributes.
-
 If the path is relative, we'll interpret it as relative to the
 buildout directory.  The buildout object passed in is a mapping from
 section name to a mapping of options for that section. The buildout
@@ -145,39 +189,28 @@ directory is available as the directory option of the buildout
 section.  We normalize the path and save it back into the options
 directory.  
 
-Any time we use data from another section, it is important to reflect
-that data in the recipe's options when the recipe is constructed.
-
-When buildout is run, it saves configuration data for installed parts
-in a file named installed.cfg.  In subsequent runs, it compares
-part-configuration data stored in the installed.cfg file and the
-part-configuration data loaded from the configuration files as
-modified by recipe constructors to decide if the configuration of a
-part has changed. If the configuration has changed, or if the recipe
-has changed, then the part is uninstalled before reinstalling it.  The
-buildout only looks at the part's options, so any data used to
-configure the part needs to be reflected in the part's options.  It is
-the job of a recipe constructor to make sure that the options include
-all rel event data.
-
-Of course, parts are also uninstalled if they are no-longer used.
-
 The install method is responsible for creating the part.  In this
-case, we need the path of the directory to create.  We'll use a
-path option from our options dictionary.
+case, we need the path of the directory to create.  We'll use a path
+option from our options dictionary.  The install method logs what it's
+doing using the Python logging call.  We return the path that we
+installed.  If the part is uninstalled or reinstalled, then the path
+returned will be removed by the buildout machinery.  A recipe install
+method is expected to return a string, or an iterable of strings
+containing paths to be removed if a part is uninstalled.  For most
+recipes, this is all of the uninstall support needed.
 
-The install method logs what it's doing using the Python logging call.
-
-We return the path that we installed.  If the part is uninstalled or
-reinstalled, then the path returned will be removed by the buildout
-machinery.  A recipe install method is expected to return None, a
-string, or an iterable of strings containing paths to be removed if a
-part is uninstalled.  For most recipes, this is all of the uninstall
-support needed.  A recipe can provide custom uninstall support as will
-be described later.
+The update method is responsible for updating an already installed
+part.  An empty method is often provided, as in this example, if parts
+can't be updated.  An update method can return None, a string, or an
+iterable of strings.  If a string or iterable of strings is returned,
+then the saved list of paths to be uninstalled is updated with the new
+information. 
 
 We need to provide packaging information so that our recipe can be
-installed as an egg.  We need to define a setup script for this:
+installed as a develop egg. The minimum information we need to specify
+[#packaging_info]_ is a name.  For recipes, we also need to define the
+names of the recipe classes as entry points.  Packaging information is
+provided via a setup.py script:
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -189,21 +222,11 @@ installed as an egg.  We need to define a setup script for this:
     ...     )
     ... """)
 
-This setup script is incomplete.  It doesn't describe what is to be 
-included in a distribution.  This is fine if we never actually create
-a distribution. If recipes are going to be used only internally in a
-buildout, then we needn't include distribution information.  If we
-wanted to use the same recipes in multiple buildouts, then we'd need
-to include proper distribution data.  To find out more about creating
-distributions, see the setuptools documentation.
-
 Our setup script defines an entry point. Entry points provide
 a way for an egg to define the services it provides.  Here we've said
-that we define a zc.buildout entry point named default.  Recipe
+that we define a zc.buildout entry point named mkdir.  Recipe
 classes must be exposed as entry points in the zc.buildout group.  we
-give entry points names within the group.  The name "default" is
-somewhat special because it allows a recipe to be referenced using a
-package name without naming an entry point.
+give entry points names within the group.
 
 We also need a README.txt for our recipes to avoid an annoying warning
 from distutils, on which setuptools and zc.buildout are based:
@@ -326,6 +349,15 @@ we'll see that the directory gets removed and recreated:
     d  parts
     d  recipes
 
+If any of the files or directories created by a recipe are removed,
+the part will be reinstalled:
+
+    >>> rmdir(sample_buildout, 'mydata')
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Uninstalling data-dir
+    buildout: Installing data-dir
+    data-dir: Creating directory mydata
 
 Error reporting
 ---------------
@@ -404,6 +436,9 @@ allow us to see interactions with the buildout:
     ...         items.sort()
     ...         for option, value in items:
     ...             print option, value
+    ...         return ()
+    ...
+    ...     update = install
     ... """)
 
 In this example, we've used a simple base class that provides a
@@ -488,8 +523,8 @@ the buildout:
 
     >>> print system(buildout),
     buildout: Develop: /sample-buildout/recipes/setup.py
-    buildout: Installing data-dir
-    buildout: Installing debug
+    buildout: Updating data-dir
+    buildout: Updating debug
     File 1 mydata/file
     File 2 mydata/file.out
     File 3 var/file3
@@ -799,7 +834,7 @@ Options can also be combined in the usual Unix way, as in:
     
     >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
     buildout: Develop: /sample-buildout/recipes/setup.py
-    buildout: Installing debug
+    buildout: Updating debug
     name other
     op1 foo
     recipe recipes:debug
@@ -1000,8 +1035,8 @@ Now, if we run the buildout without the install command:
     x 1
     buildout: Installing d2
     d2: Creating directory data2
-    buildout: Installing d3
-    buildout: Installing d4
+    buildout: Updating d3
+    buildout: Updating d4
 
 We see the output of the debug recipe and that data2 was created.  We
 also see that d1 and d2 have gone away:
@@ -1346,3 +1381,13 @@ We see that out extension is loaded and executed:
     ext ['buildout']
     buildout: Develop: /sample-bootstrapped/demo/setup.py
 
+
+
+.. [#future_recipe_methods] In the future, additional mathods may be
+       added. Older recipes with fewer methods will still be
+       supported.
+
+.. [#packaging_info] If we wanted to create a distribution from this
+       package, we would need specify much more information.  See the
+       `setuptools documentation
+       <http://peak.telecommunity.com/DevCenter/setuptools>`_.

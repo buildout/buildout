@@ -288,10 +288,21 @@ class Buildout(dict):
             for part in reversed(installed_parts):
                 if part in install_parts:
                     old_options = installed_part_options[part].copy()
-                    old_options.pop('__buildout_installed__')
+                    installed_files = old_options.pop('__buildout_installed__')
                     new_options = self.get(part)
                     if old_options == new_options:
-                        continue
+                        # The options are the same, but are all of the
+                        # installed files still there?  If not, we should
+                        # reinstall.
+                        if not installed_files:
+                            continue
+                        for f in installed_files.split('\n'):
+                            if not os.path.exists(self._buildout_path(f)):
+                                break
+                        else:
+                            continue
+
+                    # output debugging info
                     for k in old_options:
                         if k not in new_options:
                             self._logger.debug("Part: %s, dropped option %s",
@@ -305,6 +316,7 @@ class Buildout(dict):
                         if k not in old_options:
                             self._logger.debug("Part: %s, new option %s",
                                                part, k)
+
                 elif not uninstall_missing:
                     continue
 
@@ -316,17 +328,52 @@ class Buildout(dict):
 
             # install new parts
             for part in install_parts:
-                self._logger.info('Installing %s', part)
-                installed_part_options[part] = self[part].copy()
-                del self[part]['__buildout_signature__']
-                installed_files = recipes[part].install() or ()
+                signature = self[part].pop('__buildout_signature__')
+                saved_options = self[part].copy()
+                if part in installed_parts:
+                    self._logger.info('Updating %s', part)
+                    old_options = installed_part_options[part]
+                    old_installed_files = old_options['__buildout_installed__']
+                    try:
+                        update = recipes[part].update
+                    except AttributeError:
+                        update = recipes[part].install
+                        self._logger.warning(
+                            "The recipe for %s doesn't define an update "
+                            "method. Using it's install method",
+                            part)
+                        
+                    try:
+                        installed_files = update()
+                    except:
+                        installed_parts.remove(part)
+                        self._uninstall(old_installed_files)
+                        raise
+                    
+                    if installed_files is None:
+                        installed_files = old_installed_files.split('\n')
+
+                else:
+                    self._logger.info('Installing %s', part)
+                    installed_files = recipes[part].install()
+                    if installed_files is None:
+                        self._logger.warning(
+                            "The %s install returned None.  A path or "
+                            "iterable os paths should be returned.",
+                            part)
+                        installed_files = ()
+                    
                 if isinstance(installed_files, str):
                     installed_files = [installed_files]
-                installed_part_options[part]['__buildout_installed__'] = (
-                    '\n'.join(installed_files)
-                    )
+
+                installed_part_options[part] = saved_options
+                saved_options['__buildout_installed__'
+                              ] = '\n'.join(installed_files)
+                saved_options['__buildout_signature__'] = signature
+
                 if part not in installed_parts:
                     installed_parts.append(part)
+
         finally:
             installed_part_options['buildout']['parts'] = ' '.join(
                 [p for p in conf_parts if p in installed_parts]
@@ -475,7 +522,9 @@ class Buildout(dict):
         return self._buildout_path(self['buildout']['installed'])
 
     def _uninstall(self, installed):
-        for f in installed.split():
+        for f in installed.split('\n'):
+            if not f:
+                continue
             f = self._buildout_path(f)
             if os.path.isdir(f):
                 shutil.rmtree(f)
