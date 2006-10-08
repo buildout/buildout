@@ -307,6 +307,7 @@ about the part we installed:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = data-dir
     <BLANKLINE>
     [data-dir]
@@ -904,6 +905,7 @@ the buildout in the usual way:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d1 d2 d3
     <BLANKLINE>
     [debug]
@@ -988,6 +990,7 @@ The .installed.cfg is only updated for the recipes that ran:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d2 d3 d4 d1
     <BLANKLINE>
     [debug]

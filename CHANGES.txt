@@ -33,6 +33,17 @@ Feature Changes
   update is called.  For backward compatibility, recipes that don't
   define update methiods are still supported.
 
+- If a distribution defines namespace packages but fails to declare 
+  setuptools as one of its dependencies, we now treat setuptools as an 
+  implicit dependency.  We generate a warning if the distribution
+  is a develop egg.
+
+Bugs Fixed
+----------
+
+- Egg links weren't removed when corresponding entries were removed
+  from develop sections.
+
 1.0.0b9 (2006-10-02)
 ====================
 

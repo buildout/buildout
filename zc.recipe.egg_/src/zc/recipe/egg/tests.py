@@ -56,8 +56,7 @@ def test_suite():
             'api.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile('_b = \S+sample-buildout.bin'),
-                '_b = sample-buildout/bin'),
+               zc.buildout.testing.normalize_path,
                (re.compile('__buildout_signature__ = '
                            'sample-\S+\s+'
                            'zc.recipe.egg-\S+\s+'
@@ -65,10 +64,6 @@ def test_suite():
                            'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-'),
-               (re.compile('_d = \S+sample-buildout.develop-eggs'),
-                '_d = sample-buildout/develop-eggs'),
-               (re.compile('_e = \S+sample-buildout.eggs'),
-                '_e = sample-buildout/eggs'),
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
                (re.compile('index = \S+python\S+'),

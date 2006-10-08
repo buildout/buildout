@@ -45,6 +45,7 @@ def test_suite():
                (re.compile('#!\S+python\S*'), '#!python'),
                (re.compile('\d[.]\d+ seconds'), '0.001 seconds'),
                (re.compile('zope.testing-[^-]+-'), 'zope.testing-X-'),
+               (re.compile('setuptools-[^-]+-'), 'setuptools-X-'),
                ])
             ),
         

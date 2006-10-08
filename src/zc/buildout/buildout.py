@@ -251,11 +251,17 @@ class Buildout(dict):
         # Check for updates. This could cause the process to be rstarted
         self._maybe_upgrade()
 
-        # Build develop eggs
-        self._develop()
-
         # load installed data
         installed_part_options = self._read_installed_part_options()
+
+        # Remove old develop eggs
+        self._uninstall(
+            installed_part_options['buildout'].get(
+                'installed_develop_eggs', '')
+            )
+
+        # Build develop eggs
+        installed_develop_eggs = self._develop()
 
         # get configured and installed part lists
         conf_parts = self['buildout']['parts']
@@ -380,6 +386,9 @@ class Buildout(dict):
                 +
                 [p for p in installed_parts if p not in conf_parts] 
             )
+            installed_part_options['buildout']['installed_develop_eggs'
+                                               ] = installed_develop_eggs
+            
             self._save_installed_options(installed_part_options)
 
     def _setup_directories(self):
@@ -395,9 +404,15 @@ class Buildout(dict):
         """Install sources by running setup.py develop on them
         """
         develop = self['buildout'].get('develop')
-        if develop:
-            env = dict(os.environ, PYTHONPATH=pkg_resources_loc)
-            here = os.getcwd()
+        if not develop:
+            return ''
+
+        dest = self['buildout']['develop-eggs-directory']
+        old_files = os.listdir(dest)
+
+        env = dict(os.environ, PYTHONPATH=pkg_resources_loc)
+        here = os.getcwd()
+        try:
             try:
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
@@ -413,9 +428,7 @@ class Buildout(dict):
                         '-f', zc.buildout.easy_install._safe_arg(
                             ' '.join(self._links)
                                   ),
-                        '-d', zc.buildout.easy_install._safe_arg(
-                                  self['buildout']['develop-eggs-directory']
-                                  ),
+                        '-d', zc.buildout.easy_install._safe_arg(dest),
                         ]
 
                     if self._log_level <= logging.DEBUG:
@@ -425,11 +438,39 @@ class Buildout(dict):
                             args[1] == '-v'
                         self._logger.debug("in: %s\n%r",
                                            os.path.dirname(setup), args)
-                        
+
                     args.append(env)
-                    os.spawnle(os.P_WAIT, sys.executable, sys.executable, *args)
-            finally:
-                os.chdir(here)
+                    assert os.spawnle(
+                        os.P_WAIT, sys.executable, sys.executable, *args
+                        ) == 0
+            except:
+                # if we had an error, we need to roll back changes, by
+                # removing any files we created.
+                self._sanity_check_develop_eggs_files(dest, old_files)
+                self._uninstall('\n'.join(
+                    [os.path.join(dest, f)
+                     for f in os.listdir(dest)
+                     if f not in old_files
+                     ]))
+            else:
+                self._sanity_check_develop_eggs_files(dest, old_files)
+                return '\n'.join([os.path.join(dest, f)
+                                  for f in os.listdir(dest)
+                                  if f not in old_files
+                                  ])
+
+        finally:
+            os.chdir(here)
+
+
+    def _sanity_check_develop_eggs_files(self, dest, old_files):
+        for f in os.listdir(dest):
+            if f in old_files:
+                continue
+            if not (os.path.isfile(os.path.join(dest, f))
+                    and f.endswith('.egg-link')):
+                self._logger.warning(
+                    "Unexpected entry, %s, in develop-eggs directory", f)
 
     def _load_recipes(self, parts):
         recipes = {}
