@@ -5,8 +5,6 @@ priorities include:
 
 - Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
 
-- Making it easier to implement recipes by separating install and update.
-
 - Making buildouts more 
   `repeatable
   <https://features.launchpad.net/products/zc.buildout/+spec/repeatable>`_
