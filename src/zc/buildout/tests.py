@@ -382,7 +382,179 @@ bootstrapping.
     buildout: Creating directory /sample-bootstrap/develop-eggs
     """
 
+def removing_eggs_from_develop_section_causes_egg_link_to_be_removed():
+    '''
+    >>> cd(sample_buildout)
 
+Create a develop egg:
+
+    >>> mkdir('foo')
+    >>> write('foo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... setup(name='foox')
+    ... """)
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = foo
+    ... parts =
+    ... """)
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/foo/setup.py
+
+    >>> ls('develop-eggs')
+    -  foox.egg-link
+
+Create another:
+
+    >>> mkdir('bar')
+    >>> write('bar', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... setup(name='fooy')
+    ... """)
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = foo bar
+    ... parts =
+    ... """)
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/foo/setup.py
+    buildout: Develop: /sample-buildout/bar/setup.py
+
+    >>> ls('develop-eggs')
+    -  foox.egg-link
+    -  fooy.egg-link
+
+Remove one:
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = bar
+    ... parts =
+    ... """)
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/bar/setup.py
+
+It is gone
+
+    >>> ls('develop-eggs')
+    -  fooy.egg-link
+
+Remove the other:
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+    >>> print system(join('bin', 'buildout')),
+
+All gone
+
+    >>> ls('develop-eggs')
+    '''
+
+
+def add_setuptools_to_dependencies_when_namespace_packages():
+    '''    
+Often, a package depends on setuptools soley by virtue of using
+namespace packages. In this situation, package authors often forget to
+declare setuptools as a dependency. This is a mistake, but,
+unfortunately, a common one that we need to work around.  If an egg
+uses namespace packages and does not include setuptools as a depenency,
+we willll still include setuptools in the working set.  If we see this for
+a devlop egg, we will also generate a warning.
+
+    >>> cd(sample_buildout)
+
+    >>> mkdir('foo')
+    >>> mkdir('foo', 'src')
+    >>> mkdir('foo', 'src', 'stuff')
+    >>> write('foo', 'src', 'stuff', '__init__.py',
+    ... """__import__('pkg_resources').declare_namespace(__name__)
+    ... """)
+    >>> mkdir('foo', 'src', 'stuff', 'foox')
+    >>> write('foo', 'src', 'stuff', 'foox', '__init__.py', '')
+    >>> write('foo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... setup(name='foox',
+    ...       namespace_packages = ['stuff'],
+    ...       package_dir = {'': 'src'},
+    ...       packages = ['stuff', 'stuff.foox'],
+    ...       )
+    ... """)
+    >>> write('foo', 'README.txt', '')
+    
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = foo
+    ... parts = 
+    ... """)
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/foo/setup.py
+
+Now, if we generate a working set using the egg link, we will get a warning
+and we will get setuptools included in the working set.
+
+    >>> import logging, zope.testing.loggingsupport
+    >>> handler = zope.testing.loggingsupport.InstalledHandler(
+    ...        'zc.buildout', level=logging.WARNING)
+    >>> logging.getLogger('zc').propagate = False
+    
+    >>> [dist.project_name
+    ...  for dist in zc.buildout.easy_install.working_set(
+    ...    ['foox'], sys.executable,
+    ...    [join(sample_buildout, 'eggs'),
+    ...     join(sample_buildout, 'develop-eggs'),
+    ...     ])]
+    ['foox', 'setuptools']
+
+    >>> print handler
+    zc.buildout.easy_install WARNING
+      Develop distribution for foox 0.0.0
+    uses namespace packages but the distribution does not require setuptools.
+
+    >>> handler.clear()
+
+On the other hand, if we have a regular egg, rather than a develop egg:
+
+    >>> os.remove(join('develop-eggs', 'foox.egg-link'))
+
+    >>> _ = system(join('bin', 'buildout') + ' setup foo bdist_egg -d'
+    ...            + join(sample_buildout, 'eggs'))
+
+    >>> ls('develop-eggs')
+    
+    >>> ls('eggs') # doctest: +ELLIPSIS
+    -  foox-0.0.0-py2.4.egg
+    ...
+    
+We do not get a warning, but we do get setuptools included in the working set:
+
+    >>> [dist.project_name
+    ...  for dist in zc.buildout.easy_install.working_set(
+    ...    ['foox'], sys.executable,
+    ...    [join(sample_buildout, 'eggs'),
+    ...     join(sample_buildout, 'develop-eggs'),
+    ...     ])]
+    ['foox', 'setuptools']
+
+
+    >>> print handler,
+
+    >>> logging.getLogger('zc').propagate = True
+    >>> handler.uninstall()
+    '''
+    
 def create_sample_eggs(test, executable=sys.executable):
     write = test.globs['write']
     dest = test.globs['sample_eggs']
@@ -603,7 +775,6 @@ def test_suite():
         doctest.DocTestSuite(
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
-
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_script,

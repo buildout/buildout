@@ -96,6 +96,7 @@ computed by the egg recipe by looking at .installed.cfg:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/sample.egg-link
     parts = sample-part
     <BLANKLINE>
     [sample-part]
@@ -104,9 +105,9 @@ computed by the egg recipe by looking at .installed.cfg:
             zc.recipe.egg-cAsnudgkduAa/Fd+WJIM6Q==
             setuptools-0.6-py2.4.egg
             zc.buildout-+rYeCcmFuD1K/aB77XTj5A==
-    _b = /tmp/tmpb7kP9bsample-buildout/bin
-    _d = /tmp/tmpb7kP9bsample-buildout/develop-eggs
-    _e = /tmp/tmpb7kP9bsample-buildout/eggs
+    _b = /sample-buildout/bin
+    _d = /sample-buildout/develop-eggs
+    _e = /sample-buildout/eggs
     eggs = demo<0.3
     executable = /usr/local/bin/python2.3
     extras = other

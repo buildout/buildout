@@ -294,7 +294,7 @@ def _get_dist(requirement, env, ws,
             link = link.strip()
             if link not in links:
                 links.append(link)
-
+                
     return dist
     
 def install(specs, dest,
@@ -325,9 +325,28 @@ def install(specs, dest,
         ws = working_set
 
     for requirement in requirements:
-        ws.add(_get_dist(requirement, env, ws,
+        dist = _get_dist(requirement, env, ws,
                          dest, links, index, executable, always_unzip)
-               )
+        ws.add(dist)
+        if dist.has_metadata('namespace_packages.txt'):
+            for r in dist.requires():
+                if r.project_name == 'setuptools':
+                    break
+            else:
+                # We have a namespace package but no requirement for setuptools
+                if dist.precedence == pkg_resources.DEVELOP_DIST:
+                    logger.warn(
+                        "Develop distribution for %s\n"
+                        "uses namespace packages but the distribution "
+                        "does not require setuptools.",
+                        dist)
+                requirement = pkg_resources.Requirement.parse('setuptools')
+                if ws.find(requirement) is None:
+                    dist = _get_dist(requirement, env, ws,
+                                     dest, links, index, executable,
+                                     False)
+                    ws.add(dist)
+                    
 
     # OK, we have the requested distributions and they're in the working
     # set, but they may have unmet requirements.  We'll simply keep

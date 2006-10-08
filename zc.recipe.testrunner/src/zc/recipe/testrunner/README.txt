@@ -205,6 +205,7 @@ extra-paths option to specify them:
     sys.path[0:0] = [
       '/sample-buildout/demo',
       '/sample-buildout/eggs/zope.testing-3.0-py2.3.egg',
+      '/sample-buildout/eggs/setuptools-0.6-py1.3.egg',
       '/usr/local/zope/lib/python',
       ]
     <BLANKLINE>
@@ -248,6 +249,7 @@ using the -v option.
     sys.path[0:0] = [
       '/sample-buildout/demo',
       '/sample-buildout/eggs/zope.testing-3.0-py2.4.egg',
+      '/sample-buildout/eggs/setuptools-0.6-py1.3.egg',
       '/usr/local/zope/lib/python',
       ]
     <BLANKLINE>
