@@ -659,6 +659,14 @@ class Buildout(dict):
         if not upgraded:
             return
 
+        if (os.path.abspath(sys.argv[0])
+            != os.path.join(os.path.abspath(self['buildout']['bin-directory']),
+                            'buildout')
+            ):
+            self._logger.warn("Not upgrading because not running a local "
+                              "buildout command")
+            return
+
         if sys.platform == 'win32' and not self.__windows_restart:
             args = map(zc.buildout.easy_install._safe_arg, sys.argv)
             args.insert(1, '-W')
