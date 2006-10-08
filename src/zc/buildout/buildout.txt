@@ -1312,6 +1312,16 @@ Note that a basic setup.cfg was created for us.
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
 
+Offline mode
+------------
+
+If the buildout offline option is given a value of "true", the
+buildout and recipes that are aware of the option will avoid doing
+network access.  This is handy when running the buildout when not
+connected to the internet.  It also makes buildouts run much
+faster. This option is typically given as a command-line option
+``buildout:offline=true``.
+
 Extensions
 ----------
 
