@@ -44,6 +44,12 @@ Bugs Fixed
 - Egg links weren't removed when corresponding entries were removed
   from develop sections.
 
+- Running a non-local buildout command (one not installed in the
+  buildout) ket to a hang if there were new versions of zc.buildout or
+  setuptools were available.  Now we issue a warning and don't
+  upgrade.
+
+
 1.0.0b9 (2006-10-02)
 ====================
 

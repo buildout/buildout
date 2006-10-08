@@ -26,7 +26,7 @@ Let's update the sample buildout.cfg to look in this area:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-We'll also include a recipe that echos the version sof setuptools and
+We'll also include a recipe that echos the versions of setuptools and
 zc.buildout used:
 
     >>> mkdir(sample_buildout, 'showversions')
@@ -45,6 +45,7 @@ zc.buildout used:
     ...             req = pkg_resources.Requirement.parse(project)
     ...             print project, pkg_resources.working_set.find(req).version
     ...         return ()
+    ...     update = install
     ... """)
 
 
@@ -93,3 +94,84 @@ Our buildout script has been updated to use the new eggs:
     <BLANKLINE>
     if __name__ == '__main__':
         zc.buildout.buildout.main()
+
+There are a number of cases in which the updates don't happen.
+Let's recreate the sample buildout. One case is the one in which we
+specify versions of zc.buildout and setuptools for which the don't
+match. If we update out configuration file to specify an older
+version:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ... zc.buildout-version = < 99
+    ... setuptools-version = < 99
+    ... 
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+We'll actually "upgrade" to an earlier version.
+
+    >>> print system(buildout),
+    buildout: Upgraded:
+      zc.buildout version 1.0.0,
+      setuptools version 0.6;
+    restarting.
+    buildout: Develop: /sample-buildout/showversions/setup.py
+    buildout: Updating show-versions
+    zc.buildout 1.0.0
+    setuptools 0.6
+
+We won't upgrade in offline mode:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ... offline = true
+    ... 
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/showversions/setup.py
+    buildout: Updating show-versions
+    zc.buildout 1.0.0
+    setuptools 0.6
+ 
+We also won't upgrade if the buildout script bing run isn't in the
+buildouts bin directory.  To see this we'll create a new buildout
+directory:
+
+    >>> sample_buildout2 = tmpdir('sample_buildout2')
+    >>> write(sample_buildout2, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = 
+    ... """ % dict(new_releases=new_releases))
+    
+    >>> cd(sample_buildout2)
+    >>> print system(buildout),
+    buildout: Creating directory /sample_buildout2/bin
+    buildout: Creating directory /sample_buildout2/parts
+    buildout: Creating directory /sample_buildout2/eggs
+    buildout: Creating directory /sample_buildout2/develop-eggs
+    zc.buildout.easy_install: Getting new distribution for zc.buildout
+    zc.buildout.easy_install: Got zc.buildout 99.99
+    zc.buildout.easy_install: Getting new distribution for setuptools
+    zc.buildout.easy_install: Got setuptools 99.99
+    buildout: Not upgrading because not running a local buildout command
+
+    >>> ls('bin')
+

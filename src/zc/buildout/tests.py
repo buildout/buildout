@@ -719,6 +719,8 @@ def updateSetup(test):
 
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
     os.mkdir(os.path.join(new_releases, 'setuptools'))
+
+    
     
 normalize_bang = (
     re.compile(re.escape('#!'+sys.executable)),
@@ -757,6 +759,12 @@ def test_suite():
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                normalize_bang,
+               (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
+               (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
+                           '-py\d.\d.egg'),
+                '\\1.egg'),
+               (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
+                '\\1 V.V'),
                ])
             ),
         
