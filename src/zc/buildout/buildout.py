@@ -219,7 +219,7 @@ class Buildout(dict):
             r = pkg_resources.Requirement.parse(name)
             dist = pkg_resources.working_set.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
-                dest = os.path.join(self['buildout']['eggs-directory'],
+                dest = os.path.join(self['buildout']['develop-eggs-directory'],
                                     name+'.egg-link')
                 open(dest, 'w').write(dist.location)
                 entries.append(dist.location)

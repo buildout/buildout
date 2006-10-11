@@ -1305,9 +1305,15 @@ Note that a basic setup.cfg was created for us.
     >>> ls(sample_bootstrapped, 'bin')
     -  buildout
 
-    >>> ls(sample_bootstrapped, 'eggs')
+    >>> _ = (ls(sample_bootstrapped, 'eggs'),
+    ...      ls(sample_bootstrapped, 'develop-eggs'))
     -  setuptools-0.6-py2.3.egg
     -  zc.buildout-1.0-py2.3.egg
+
+(We list both the eggs and develop-eggs diectories because the
+buildout or setuptools egg could be installed in the develop-eggs
+directory if the original buildout had develop eggs for either
+buildout or setuptools.)
 
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
