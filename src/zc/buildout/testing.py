@@ -170,8 +170,16 @@ def buildoutSetUp(test):
     # Use the buildout bootstrap command to create a buildout
     zc.buildout.buildout.Buildout(
         os.path.join(sample, 'buildout.cfg'),
-        [('buildout', 'log-level', 'WARNING')]
+        [('buildout', 'log-level', 'WARNING'),
+         # trick bootstrap into putting the buildout develop egg
+         # in the eggs dir.
+         ('buildout', 'develop-eggs-directory', 'eggs'),
+         ]
         ).bootstrap([])
+    
+    # Create the develop-eggs dir, which didn't get created the usual
+    # way due to thr trick above:
+    os.mkdir(os.path.join(sample, 'develop-eggs'))
 
     def start_server(path):
         port, thread = _start_server(path, name=path)
