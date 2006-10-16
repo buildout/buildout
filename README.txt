@@ -24,12 +24,6 @@ the `Buildout examples`_.
 
 To lean more about using buildouts, see `Detailed Documentation`_.
 
-Download
-********
-
-You can download zc.buildout and many buildout recipes from the
-`Python Package Index <http://www.python.org/pypi>`_.
-
 Recipes
 *******
 
