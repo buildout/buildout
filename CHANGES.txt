@@ -20,8 +20,8 @@ priorities include:
 Change History
 **************
 
-Next Release
-============
+1.0.0b10 (2006-10-16)
+=====================
 
 Feature Changes
 ---------------
@@ -38,6 +38,8 @@ Feature Changes
   implicit dependency.  We generate a warning if the distribution
   is a develop egg.
 
+- You can now create develop eggs for setup scripts that don't use setuptools.
+
 Bugs Fixed
 ----------
 
@@ -49,6 +51,8 @@ Bugs Fixed
   setuptools were available.  Now we issue a warning and don't
   upgrade.
 
+- When installing zip-safe eggs from local directories, the eggs were
+  moved, rather than copied, removing them from the source directory.
 
 1.0.0b9 (2006-10-02)
 ====================

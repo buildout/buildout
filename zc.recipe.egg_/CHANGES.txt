@@ -8,7 +8,10 @@ To do
 Change History
 **************
 
-Updated to work with zc.buildout 1.0.0b10.
+1.0.0b2 (2006-10-16)
+====================
+
+Updated to work with (not get a warning from) zc.buildout 1.0.0b10.
 
 1.0.0b1
 =======
