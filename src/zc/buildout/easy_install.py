@@ -247,7 +247,7 @@ def _get_dist(requirement, env, ws,
                                          ),
                             )
                     else:
-                        shutil.move(
+                        shutil.copyfile(
                             dist.location,
                             os.path.join(dest, os.path.basename(dist.location)
                                          ),
