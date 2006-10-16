@@ -10,7 +10,9 @@ zc.buildout.testing.buildoutSetUp(test)
 ---------------------------------------
 
 The buildoutSetup function can be used as a doctest setup function.
-It performs adds a number of names to the test namespace:
+It creates a sample buildout that can be used by tests, changing the
+current working directory to the sample_buildout. It also adds a
+number of names to the test namespace:
 
 ``sample_buildout``
     This is the name of a buildout with a basic configuration.
