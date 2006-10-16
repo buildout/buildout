@@ -25,6 +25,33 @@ os_path_sep = os.path.sep
 if os_path_sep == '\\':
     os_path_sep *= 2
 
+
+def develop_w_non_setuptools_setup_scripts():
+    """
+We should be able to deal with setup scripts that aren't setuptools based.
+
+    >>> mkdir('foo')
+    >>> write('foo', 'setup.py',
+    ... '''
+    ... from distutils.core import setup
+    ... setup(name="foo")
+    ... ''')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = foo
+    ... parts = 
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/foo/setup.py
+
+    >>> ls('develop-eggs')
+    -  foo.egg-link
+
+    """
+
 def buildout_error_handling():
     r"""Buildout error handling
 

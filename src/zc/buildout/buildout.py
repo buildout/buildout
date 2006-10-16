@@ -420,16 +420,7 @@ class Buildout(dict):
                         setup = os.path.join(setup, 'setup.py')
 
                     self._logger.info("Develop: %s", setup)
-                    os.chdir(os.path.dirname(setup))
 
-                    args = [
-                        zc.buildout.easy_install._safe_arg(setup),
-                        '-q', 'develop', '-mxN',
-                        '-f', zc.buildout.easy_install._safe_arg(
-                            ' '.join(self._links)
-                                  ),
-                        '-d', zc.buildout.easy_install._safe_arg(dest),
-                        ]
 
                     if self._log_level <= logging.DEBUG:
                         if self._log_level == logging.DEBUG:
@@ -439,10 +430,32 @@ class Buildout(dict):
                         self._logger.debug("in: %s\n%r",
                                            os.path.dirname(setup), args)
 
-                    args.append(env)
-                    assert os.spawnle(
-                        os.P_WAIT, sys.executable, sys.executable, *args
-                        ) == 0
+                    fd, tsetup = tempfile.mkstemp()
+                    try:
+                        os.write(fd, runsetup_template % dict(
+                            setuptools=pkg_resources_loc,
+                            setupdir=os.path.dirname(setup),
+                            setup=setup,
+                            __file__ = setup,
+                            ))
+
+                        args = [
+                            zc.buildout.easy_install._safe_arg(tsetup),
+                            '-q', 'develop', '-mxN',
+                            '-f', zc.buildout.easy_install._safe_arg(
+                                ' '.join(self._links)
+                                ),
+                            '-d', zc.buildout.easy_install._safe_arg(dest),
+                            ]
+
+                        assert os.spawnl(
+                            os.P_WAIT, sys.executable, sys.executable,
+                            *args) == 0
+
+                    finally:
+                        os.close(fd)
+                        os.remove(tsetup)
+
             except:
                 # if we had an error, we need to roll back changes, by
                 # removing any files we created.
@@ -452,6 +465,8 @@ class Buildout(dict):
                      for f in os.listdir(dest)
                      if f not in old_files
                      ]))
+                raise
+                     
             else:
                 self._sanity_check_develop_eggs_files(dest, old_files)
                 return '\n'.join([os.path.join(dest, f)
@@ -725,15 +740,10 @@ class Buildout(dict):
         self._logger.info("Running setup script %s", setup)
         setup = os.path.abspath(setup)
 
-        setuptools = pkg_resources.working_set.find(
-            pkg_resources.Requirement.parse('setuptools')
-            ).location
-        
-            
         fd, tsetup = tempfile.mkstemp()
         try:
             os.write(fd, runsetup_template % dict(
-                setuptools=setuptools,
+                setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
