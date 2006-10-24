@@ -20,6 +20,25 @@ priorities include:
 Change History
 **************
 
+1.0.0b11 (2006-10-24)
+=====================
+
+Bugs Fixed
+----------
+
+`67737 <https://launchpad.net/products/zc.buildout/+bug/67737>`_
+     Verbose and quite output options caused errors when the 
+     develop buildout option was used to create develop eggs.
+
+`67871 <https://launchpad.net/products/zc.buildout/+bug/67871>`_
+     Installation failed if the source was a (local) unzipped
+     egg.
+
+`67873 <https://launchpad.net/products/zc.buildout/+bug/67873>`_
+     There was an error in producing an error message when part names
+     passed to the install command weren't included in the
+     configuration. 
+
 1.0.0b10 (2006-10-16)
 =====================
 
