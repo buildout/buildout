@@ -59,9 +59,6 @@ always_unzip
    A flag indicating that newly-downloaded distributions should be
    directories even if they could be installed as zip files.
 
-arguments
-   Source code to be used to pass arguments when calling a script entry point.
-
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -381,8 +378,8 @@ to be included in the a generated script:
 Providing script arguments
 --------------------------
 
-A n "argument" keyword argument can be used to pass arguments to an
-entry point.  The value passed source string to be placed between the
+An "argument" keyword argument can be used to pass arguments to an
+entry point.  The value passed is a source string to be placed between the
 parentheses in the call:
 
     >>> scripts = zc.buildout.easy_install.scripts(
@@ -402,6 +399,31 @@ parentheses in the call:
     if __name__ == '__main__':
         eggrecipedemo.main(1, 2)
 
+Passing initialization code
+---------------------------
+
+You can also pass script initialization code:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
+    ...    arguments='1, 2', 
+    ...    initialization='import os\nos.chdir("foo")')
+
+    >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4
+    import sys
+    sys.path[0:0] = [
+      '/sample-install/demo-0.3-py2.4.egg',
+      '/sample-install/demoneeded-1.1-py2.4.egg',
+      ]
+    <BLANKLINE>
+    import os
+    os.chdir("foo")
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main(1, 2)
 
 
 Handling custom build options for extensions

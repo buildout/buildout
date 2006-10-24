@@ -20,6 +20,16 @@ priorities include:
 Change History
 **************
 
+1.0.0b12 (2006-10-24)
+=====================
+
+Feature Changes
+---------------
+
+- Added an initialization argument to the
+  zc.buildout.easy_install.scripts function to include initialization
+  code in generated scripts.
+
 1.0.0b11 (2006-10-24)
 =====================
 
