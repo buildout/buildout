@@ -451,6 +451,7 @@ def scripts(reqs, working_set, executable, dest,
             extra_paths=(),
             arguments='',
             interpreter=None,
+            initialization='',
             ):
     
     path = [dist.location for dist in working_set]
@@ -462,6 +463,9 @@ def scripts(reqs, working_set, executable, dest,
         raise TypeError('Expected iterable of requirements or entry points,'
                         ' got string.')
 
+    if initialization:
+        initialization = '\n'+initialization+'\n'
+
     entry_points = []
     for req in reqs:
         if isinstance(req, str):
@@ -470,7 +474,8 @@ def scripts(reqs, working_set, executable, dest,
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
                 entry_points.append(
-                    (name, entry_point.module_name, '.'.join(entry_point.attrs))
+                    (name, entry_point.module_name,
+                     '.'.join(entry_point.attrs))
                     )
         else:
             entry_points.append(req)
@@ -485,7 +490,8 @@ def scripts(reqs, working_set, executable, dest,
 
         sname = os.path.join(dest, sname)
         generated.extend(
-            _script(module_name, attrs, path, sname, executable, arguments)
+            _script(module_name, attrs, path, sname, executable, arguments,
+                    initialization)
             )
 
     if interpreter:
@@ -494,7 +500,8 @@ def scripts(reqs, working_set, executable, dest,
 
     return generated
 
-def _script(module_name, attrs, path, dest, executable, arguments):
+def _script(module_name, attrs, path, dest, executable, arguments,
+            initialization):
     generated = []
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
@@ -510,6 +517,7 @@ def _script(module_name, attrs, path, dest, executable, arguments):
         module_name = module_name,
         attrs = attrs,
         arguments = arguments,
+        initialization = initialization,
         ))
     try:
         os.chmod(dest, 0755)
@@ -525,7 +533,7 @@ import sys
 sys.path[0:0] = [
   %(path)s,
   ]
-
+%(initialization)s
 import %(module_name)s
 
 if __name__ == '__main__':
