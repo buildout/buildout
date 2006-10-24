@@ -7,7 +7,7 @@ def read(*rnames):
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b12",
+    version = "1.0.0b13",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",

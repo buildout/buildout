@@ -581,10 +581,8 @@ namespace packages. In this situation, package authors often forget to
 declare setuptools as a dependency. This is a mistake, but,
 unfortunately, a common one that we need to work around.  If an egg
 uses namespace packages and does not include setuptools as a depenency,
-we willll still include setuptools in the working set.  If we see this for
+we will still include setuptools in the working set.  If we see this for
 a devlop egg, we will also generate a warning.
-
-    >>> cd(sample_buildout)
 
     >>> mkdir('foo')
     >>> mkdir('foo', 'src')
@@ -664,8 +662,46 @@ We do not get a warning, but we do get setuptools included in the working set:
 
     >>> print handler,
 
+We get the same behavior if the it is a depedency that uses a
+namespace package.
+
+
+    >>> mkdir('bar')
+    >>> write('bar', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... setup(name='bar', install_requires = ['foox'])
+    ... """)
+    >>> write('bar', 'README.txt', '')
+    
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = foo bar
+    ... parts = 
+    ... """)
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/foo/setup.py
+    buildout: Develop: /sample-buildout/bar/setup.py
+
+    >>> [dist.project_name
+    ...  for dist in zc.buildout.easy_install.working_set(
+    ...    ['bar'], sys.executable,
+    ...    [join(sample_buildout, 'eggs'),
+    ...     join(sample_buildout, 'develop-eggs'),
+    ...     ])]
+    ['bar', 'foox', 'setuptools']
+
+    >>> print handler,
+    zc.buildout.easy_install WARNING
+      Develop distribution for foox 0.0.0
+    uses namespace packages but the distribution does not require setuptools.
+
+
     >>> logging.getLogger('zc').propagate = True
     >>> handler.uninstall()
+
     '''
     
 def create_sample_eggs(test, executable=sys.executable):
