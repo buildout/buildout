@@ -276,7 +276,10 @@ class Buildout(dict):
         if install_parts:
             extra = [p for p in install_parts if p not in conf_parts]
             if extra:
-                self._error('Invalid install parts:', *extra)
+                self._error(
+                    'Invalid install parts: %s.\n'
+                    'Install parts must be listed in the configuration.',
+                    ' '.join(extra))
             uninstall_missing = False
         else:
             install_parts = conf_parts
@@ -422,14 +425,6 @@ class Buildout(dict):
                     self._logger.info("Develop: %s", setup)
 
 
-                    if self._log_level <= logging.DEBUG:
-                        if self._log_level == logging.DEBUG:
-                            del args[1]
-                        else:
-                            args[1] == '-v'
-                        self._logger.debug("in: %s\n%r",
-                                           os.path.dirname(setup), args)
-
                     fd, tsetup = tempfile.mkstemp()
                     try:
                         os.write(fd, runsetup_template % dict(
@@ -447,6 +442,14 @@ class Buildout(dict):
                                 ),
                             '-d', zc.buildout.easy_install._safe_arg(dest),
                             ]
+
+                        if self._log_level <= logging.DEBUG:
+                            if self._log_level == logging.DEBUG:
+                                del args[1]
+                            else:
+                                args[1] == '-v'
+                            self._logger.debug("in: %s\n%r",
+                                               os.path.dirname(setup), args)
 
                         assert os.spawnl(
                             os.P_WAIT, sys.executable, sys.executable,

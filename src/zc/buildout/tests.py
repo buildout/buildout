@@ -52,6 +52,37 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     """
 
+def develop_verbose():
+    """
+We should be able to deal with setup scripts that aren't setuptools based.
+
+    >>> mkdir('foo')
+    >>> write('foo', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name="foo")
+    ... ''')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = foo
+    ... parts = 
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')+' -v'), # doctest: +ELLIPSIS
+    Configuration data:
+    ...
+    buildout: Develop: /sample-buildout/foo/setup.py
+    ...
+    Installed /sample-buildout/foo
+    ...
+
+    >>> ls('develop-eggs')
+    -  foo.egg-link
+
+    """
+
 def buildout_error_handling():
     r"""Buildout error handling
 
@@ -245,6 +276,61 @@ uninstalling anything because the configuration hasn't changed.
     buildout: Develop: ...setup.py
     buildout: Updating debug
 """
+
+def finding_eggs_as_local_directories():
+    r"""
+It is possible to set up find-links so that we could install from
+a local directory that may contained unzipped eggs.
+
+    >>> src = tmpdir('src')
+    >>> write(src, 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='demo', py_modules=[''],
+    ...    zip_safe=False, version='1.0', author='bob', url='bob', 
+    ...    author_email='bob')
+    ... ''')
+
+    >>> write(src, 't.py', '#\n')
+    >>> write(src, 'README.txt', '')
+    >>> _ = system(join('bin', 'buildout')+' setup ' + src + ' bdist_egg')
+
+Install it so it gets unzipped:
+
+    >>> d1 = tmpdir('d1')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], d1, links=[join(src, 'dist')], 
+    ...     )
+
+    >>> ls(d1)
+    d  demo-1.0-py2.4.egg
+
+Then try to install it again:
+
+    >>> d2 = tmpdir('d2')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], d2, links=[d1], 
+    ...     )
+
+    >>> ls(d2)
+    d  demo-1.0-py2.4.egg
+
+    """
+
+def error_for_indefined_install_parts():
+    """
+Any parts we pass to install on the command line must be
+listed in the configuration.
+
+    >>> print system(join('bin', 'buildout') + ' install foo'),
+    buildout: Invalid install parts: foo.
+    Install parts must be listed in the configuration.
+
+    >>> print system(join('bin', 'buildout') + ' install foo bar'),
+    buildout: Invalid install parts: foo bar.
+    Install parts must be listed in the configuration.
+    
+    """
 
 
 bootstrap_py = os.path.join(
