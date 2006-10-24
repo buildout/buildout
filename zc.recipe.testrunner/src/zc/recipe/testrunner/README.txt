@@ -4,7 +4,7 @@ Test-Runner Recipe
 The test-runner recipe, zc.recipe.testrunner, creates a test runner
 for a project.
 
-The test-runner recipe has 3 options:
+The test-runner recipe has several options:
 
 eggs
     The eggs option specified a list of eggs to test given as one ore
@@ -20,10 +20,14 @@ extra-paths
     One or more extra paths to include in the generated test script.
 
 defaults
-
     The defaults option lets you specify testrunner default
     options. These are specified as Python source for an expression
     yielding a list, typically a list literal. 
+
+working-directory
+    The working-directory option lets to specify a directory where the
+    tests will run. The testrunner will change to this directory whe
+    run.         
 
 (Note that, at this time, due to limitations in the Zope test runner,
  the distributions cannot be zip files. TODO: Fix the test runner!)
@@ -215,6 +219,47 @@ extra-paths option to specify them:
         zope.testing.testrunner.run([
       '--test-path', '/sample-buildout/demo',
       ])
+
+We can use the working-directory option to specify an working
+directory:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts = testdemo
+    ... offline = true
+    ...
+    ... [testdemo]
+    ... recipe = zc.recipe.testrunner
+    ... eggs = demo
+    ... extra-paths = /usr/local/zope/lib/python
+    ... working-directory = /foo/bar
+    ... """)
+
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout') + ' -q'),
+
+    >>> cat(sample_buildout, 'bin', 'testdemo')
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample-buildout/demo',
+      '/sample-buildout/eggs/zope.testing-3.0-py2.3.egg',
+      '/sample-buildout/eggs/setuptools-0.6-py1.3.egg',
+      '/usr/local/zope/lib/python',
+      ]
+    <BLANKLINE>
+    import os
+    os.chdir('/foo/bar')
+    <BLANKLINE>
+    import zope.testing.testrunner
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zope.testing.testrunner.run([
+      '--test-path', '/sample-buildout/demo',
+      ])
+
 
 If we need to specify default options, we can use the defaults
 option. For example, Zope 3 applications typically define test suites

@@ -2,6 +2,16 @@
 Change History
 **************
 
+1.0.0b4 (2006-10-24)
+====================
+
+Feature Changes
+---------------
+
+- Added a working-directoy option to specify a working directory for
+  the generated script.
+
+
 1.0.0b3 (2006-10-16)
 ====================
 

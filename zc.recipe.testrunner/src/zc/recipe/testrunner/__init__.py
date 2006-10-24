@@ -42,6 +42,12 @@ class TestRunner:
         defaults = options.get('defaults', '').strip()
         if defaults:
             defaults = '(%s) + ' % defaults
+
+        wd = options.get('working-directory', '')
+        if wd:
+            initialization = "import os\nos.chdir(%r)" % wd
+        else:
+            initialization = ''
         
         return zc.buildout.easy_install.scripts(
             [(options['script'], 'zope.testing.testrunner', 'run')],
@@ -52,6 +58,7 @@ class TestRunner:
                 TESTPATH=repr(test_paths)[1:-1].replace(
                                ', ', ",\n  '--test-path', "),
                 )),
+            initialization = initialization,
             )
 
     update = install
