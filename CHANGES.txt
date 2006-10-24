@@ -20,6 +20,18 @@ priorities include:
 Change History
 **************
 
+1.0.0b12 (2006-10-?)
+=====================
+
+Bugs Fixed
+----------
+
+- We treat setuptools as a dependency of any distribution that
+  (declares that it) uses namespace packages, whether it declares
+  setuptools as a dependency or not.  This wasn't working for eggs
+  intalled by virtue of being dependencies.
+
+
 1.0.0b12 (2006-10-24)
 =====================
 
