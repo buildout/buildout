@@ -7,7 +7,7 @@ def read(*rnames):
 name = "zc.recipe.testrunner"
 setup(
     name = name,
-    version = "1.0.0b3",
+    version = "1.0.0b4",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "ZC Buildout recipe for creating test runners",
@@ -32,7 +32,8 @@ setup(
     include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout  >=1.0.0b7', 'zope.testing', 'setuptools',
+    install_requires = ['zc.buildout  >=1.0.0b12',
+                        'zope.testing', 'setuptools',
                         'zc.recipe.egg  >=1.0.0a3',
                         ],
     test_suite = name+'.tests.test_suite',
