@@ -26,7 +26,7 @@ defaults
 
 working-directory
     The working-directory option lets to specify a directory where the
-    tests will run. The testrunner will change to this directory whe
+    tests will run. The testrunner will change to this directory when
     run.         
 
 (Note that, at this time, due to limitations in the Zope test runner,
@@ -220,7 +220,7 @@ extra-paths option to specify them:
       '--test-path', '/sample-buildout/demo',
       ])
 
-We can use the working-directory option to specify an working
+We can use the working-directory option to specify a working
 directory:
 
     >>> write(sample_buildout, 'buildout.cfg',
