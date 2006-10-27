@@ -12,19 +12,12 @@
 #
 ##############################################################################
 
-import os, re, shutil, sys, tempfile
-import pkg_resources
+import re
 import zc.buildout.testing
-import zc.recipe.egg
 
 import unittest
 import zope.testing
 from zope.testing import doctest, renormalizing
-
-def dirname(d, level=1):
-    if level == 0:
-        return d
-    return dirname(os.path.dirname(d), level-1)
 
 def setUp(test):
     zc.buildout.testing.buildoutSetUp(test)
