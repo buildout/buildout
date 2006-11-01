@@ -5,7 +5,7 @@ The zc.recipe.egg recipe can be used to install various types if
 distutils distributions as eggs.  It takes a number of options:
 
 eggs
-    A list of eggs to install given as one ore more setuptools
+    A list of eggs to install given as one or more setuptools
     requirement strings.  Each string must be given on a separate
     line.
 
@@ -20,14 +20,14 @@ index
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
-   we'll just point to an empty directory on our link server.  This 
+   we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
 python
    The name of a section to get the Python executable from.
    If not specified, then the buildout python option is used.  The
    Python executable is found in the executable option of the named
-   section. 
+   section.
 
 entry-points
    A list of entry-point identifiers of the form name=module#attrs,
@@ -67,7 +67,7 @@ We have a link server that has a number of distributions:
 
 
 We have a sample buildout.  Let's update it's configuration file to
-install the demo package. 
+install the demo package.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -95,7 +95,7 @@ Let's run the buildout:
     zc.buildout.easy_install: Got demo 0.2
     zc.buildout.easy_install: Getting new distribution for demoneeded
     zc.buildout.easy_install: Got demoneeded 1.1
-    
+
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
@@ -105,7 +105,7 @@ Now, if we look at the buildout eggs directory:
     -  zc.buildout-1.0-py2.3.egg
 
 We see that we got an egg for demo that met the requirement, as well
-as the egg for demoneeded, wich demo requires.  (We also see an egg
+as the egg for demoneeded, which demo requires.  (We also see an egg
 link for the recipe.  This egg link was actually created as part of
 the sample buildout setup. Normally, when using the recipe, you'll get
 a regular egg installation.)
@@ -276,7 +276,7 @@ extra-paths option:
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... scripts = demo=foo
-    ... extra-paths = 
+    ... extra-paths =
     ...    /foo/bar
     ...    /spam/eggs
     ... """ % dict(server=link_server))
@@ -306,9 +306,8 @@ Let's look at the script that was generated:
 Specifying entry points
 -----------------------
 
-Scripts can be generated for entry points declared explcitly.  We can
-declate entry points using the entry-points option:
-
+Scripts can be generated for entry points declared explicitly.  We can
+declare entry points using the entry-points option:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -319,7 +318,7 @@ declate entry points using the entry-points option:
     ... recipe = zc.recipe.egg
     ... find-links = %(server)s
     ... index = %(server)s/index
-    ... extra-paths = 
+    ... extra-paths =
     ...    /foo/bar
     ...    /spam/eggs
     ... entry-points = alt=eggrecipedemo:alt other=foo.bar:a.b.c
