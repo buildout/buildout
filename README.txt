@@ -17,7 +17,7 @@ example, if we are creating an application named "Foo", then "the Foo
 buildout" is the collection of configuration and application-specific
 software that allows an instance of the application to be created.  We
 may refer to such an instance of the application informally as "a Foo
-buildout".  
+buildout".
 
 To get a feel for some of the things you might use buildouts for, see
 the `Buildout examples`_.
@@ -110,7 +110,7 @@ is in the src directory.  The configuration file is very simple::
 I use the develop option to create a develop egg based on the current
 directory.  I request a test script named "test" using the
 zc.recipe.testrunner recipe.  In the section for the test script, I
-specify that I want to run the tests in the zc.ngi package.  
+specify that I want to run the tests in the zc.ngi package.
 
 When I check out this project into a new sandbox, I run bootstrap.py
 to get setuptools and zc.buildout and create bin/buildout.  I run
@@ -140,7 +140,7 @@ a buildout with a configuration file that looks like::
 whwre foo and bar are packages with scripts that I want available.  As
 I need new scripts, I can add additional sections.  The bin-directory
 option specified that scripts should be installed into the current
-directory. 
+directory.
 
 Multi-program multi-machine systems
 ===================================
@@ -161,7 +161,7 @@ typical example consists of:
 
 - Multiple test runners
 
-- Multiple deployment modes, including dev, stage, and prod, 
+- Multiple deployment modes, including dev, stage, and prod,
   with prod deployment over multiple servers
 
 Parts installed include:
@@ -179,7 +179,7 @@ Parts installed include:
 Questions and Bug Reporting
 ***************************
 
-Please send questions and comments to the  
+Please send questions and comments to the
 `distutils SIG mailing list <mailto://distutils-sig@python.org>`_.
 
 Report bugs using the `zc.buildout Launchpad Bug Tracker
