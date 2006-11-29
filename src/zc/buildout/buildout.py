@@ -349,7 +349,7 @@ class Buildout(dict):
                         update = recipes[part].install
                         self._logger.warning(
                             "The recipe for %s doesn't define an update "
-                            "method. Using it's install method",
+                            "method. Using its install method",
                             part)
                         
                     try:
