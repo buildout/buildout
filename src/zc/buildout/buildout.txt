@@ -286,7 +286,7 @@ buildout:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Installing data-dir
     data-dir: Creating directory mystuff
 
@@ -335,7 +335,7 @@ we'll see that the directory gets removed and recreated:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling data-dir
     buildout: Installing data-dir
     data-dir: Creating directory mydata
@@ -355,7 +355,7 @@ the part will be reinstalled:
 
     >>> rmdir(sample_buildout, 'mydata')
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling data-dir
     buildout: Installing data-dir
     data-dir: Creating directory mydata
@@ -386,7 +386,7 @@ the directory in:
 We'll get a user error, not a traceback.
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
     Error: Invalid Path
 
@@ -418,9 +418,8 @@ characters, hyphens, and periods.
 Variable substitutions
 ----------------------
 
-Buildout configuration files support two kinds of substitutions,
-standard ConfigParser substitutions, and string-template
-substitutions.  To illustrate this, we'll create an debug recipe to
+Buildout configuration files support variable substitution.
+To illustrate this, we'll create an debug recipe to
 allow us to see interactions with the buildout:
 
     >>> write(sample_buildout, 'recipes', 'debug.py', 
@@ -442,10 +441,9 @@ allow us to see interactions with the buildout:
     ...     update = install
     ... """)
 
-In this example, we've used a simple base class that provides a
-boilerplate constructor.  This recipe doesn't actually create
-anything. The install method doesn't return anything, because it
-didn't create any files or directories.
+This recipe doesn't actually create anything. The install method
+doesn't return anything, because it didn't create any files or
+directories.
 
 We also have to update our setup script:
 
@@ -478,16 +476,11 @@ examples:
     ... [debug]
     ... recipe = recipes:debug
     ... File 1 = ${data-dir:path}/file
-    ... File 2 = %(File 1)s.out
-    ... File 3 = %(base)s/file3
-    ... File 4 = ${debug:File 3}/log
+    ... File 2 = ${debug:File 1}/log
     ...
     ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mydata
-    ...
-    ... [DEFAULT]
-    ... base = var
     ... """)
 
 In this example, we've used ConfigParser substitutions for file2 and
@@ -504,17 +497,17 @@ Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling data-dir
     buildout: Installing data-dir
     data-dir: Creating directory mydata
     buildout: Installing debug
-    File 1 mydata/file
-    File 2 mydata/file.out
-    File 3 var/file3
-    File 4 var/file3/log
-    base var
+    File 1 /sample-buildout/mydata/file
+    File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
+
+Note that the substitution of the data-dir path option reflects the
+update to the option performed by the mkdir recipe.
 
 It might seem surprising that mydata was created again.  This is
 because we changed our recipes package by adding the debug module.
@@ -523,14 +516,11 @@ recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Updating data-dir
     buildout: Updating debug
-    File 1 mydata/file
-    File 2 mydata/file.out
-    File 3 var/file3
-    File 4 var/file3/log
-    base var
+    File 1 /sample-buildout/mydata/file
+    File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
 We can see that mydata was not recreated.
@@ -542,23 +532,96 @@ Section and option names in variable substitutions are only allowed to
 contain alphanumeric characters, hyphens, periods and spaces. This
 restriction might be relaxed in future releases.
 
+
+Automatic part selection and ordering
+-------------------------------------
+
+When a section with a recipe is refered to, either through variable
+substitution or by an initializing recipe, the section is treated as a
+part and added to the part list before the referencing part.  For
+example, we can leave data-dir out of the parts list:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File 1 = ${data-dir:path}/file
+    ... File 2 = ${debug:File 1}/log
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+
+It will still be treated as a part:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Updating data-dir
+    buildout: Updating debug
+    File 1 /sample-buildout/mydata/file
+    File 2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+    >>> cat('.installed.cfg') # doctest: +ELLIPSIS
+    [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    parts = data-dir debug
+    ...
+
+Note that the data-dir part is included *before* the debug part,
+because the debug part refers to the data-dir part.  Even if we list
+the data-dir part after the debug part, it will be included before:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug data-dir
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File 1 = ${data-dir:path}/file
+    ... File 2 = ${debug:File 1}/log
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+
+It will still be treated as a part:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Updating data-dir
+    buildout: Updating debug
+    File 1 /sample-buildout/mydata/file
+    File 2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+    >>> cat('.installed.cfg') # doctest: +ELLIPSIS
+    [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    parts = data-dir debug
+    ...
+
 Multiple configuration files
 ----------------------------
 
-You can use multiple configuration files.  From your main
-configuration file, you can include other configuration files in 2
-ways:
+A configuration file can "extend" another configuration file.
+Options are read from the other configuration file if they aren't
+already defined by your configuration file.
 
-- Your configuration file can "extend" another configuration file.
-  Option are read from the other configuration file if they aren't
-  already defined by your configuration file.
-
-- Your configuration file can be "extended-by" another configuration
-  file, In this case, the options in the other configuration file
-  override options in your configuration file. 
-
-The configuration files your file extends or is extended by can extend
-or be extended by other configuration files.  The same file may be
+The configuration files your file extends can extend
+other configuration files.  The same file may be
 used more than once although, of course, cycles aren't allowed.
 
 To see how this works, we use an example:
@@ -584,7 +647,7 @@ To see how this works, we use an example:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling debug
     buildout: Uninstalling data-dir
     buildout: Installing debug
@@ -598,20 +661,16 @@ customization.
 
 Here is a more elaborate example. 
 
-    >>> extensions = tmpdir('extensions')
+    >>> other = tmpdir('other')
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
-    ... extends = b1.cfg b2.cfg
-    ... extended-by = e1.cfg %(e2)s
+    ... extends = b1.cfg b2.cfg %(b3)s
     ...
     ... [debug]
-    ... op = %%(name)s
-    ...
-    ... [DEFAULT]
-    ... name = buildout
-    ... """ % dict(e2=os.path.join(extensions, 'e2.cfg')))
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
 
     >>> write(sample_buildout, 'b1.cfg',
     ... """
@@ -619,12 +678,8 @@ Here is a more elaborate example.
     ... extends = base.cfg
     ...
     ... [debug]
-    ... op1 = %(name)s 1
-    ... op2 = %(name)s 2
-    ... op3 = %(name)s 3
-    ...
-    ... [DEFAULT]
-    ... name = b1
+    ... op1 = b1 1
+    ... op2 = b1 2
     ... """)
 
     >>> write(sample_buildout, 'b2.cfg',
@@ -633,12 +688,23 @@ Here is a more elaborate example.
     ... extends = base.cfg
     ...
     ... [debug]
-    ... op3 = %(name)s 3
-    ... op4 = %(name)s 4
-    ... op5 = %(name)s 5
+    ... op2 = b2 2
+    ... op3 = b2 3
+    ... """)
+
+    >>> write(other, 'b3.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b3base.cfg
     ...
-    ... [DEFAULT]
-    ... name = b2
+    ... [debug]
+    ... op4 = b3 4
+    ... """)
+
+    >>> write(other, 'b3base.cfg',
+    ... """
+    ... [debug]
+    ... op5 = b3base 5
     ... """)
 
     >>> write(sample_buildout, 'base.cfg',
@@ -652,71 +718,27 @@ Here is a more elaborate example.
     ... name = base
     ... """)
 
-    >>> write(sample_buildout, 'e1.cfg',
-    ... """
-    ... [debug]
-    ... op1 = %(name)s 1
-    ...
-    ... [DEFAULT]
-    ... name = e1
-    ... """)
-
-    >>> write(extensions, 'e2.cfg',
-    ... """
-    ... [buildout]
-    ... extends = eb.cfg
-    ... extended-by = ee.cfg
-    ... """)
-
-    >>> write(extensions, 'eb.cfg',
-    ... """
-    ... [debug]
-    ... op5 = %(name)s 5
-    ...
-    ... [DEFAULT]
-    ... name = eb
-    ... """)
-
-    >>> write(extensions, 'ee.cfg',
-    ... """
-    ... [debug]
-    ... op6 = %(name)s 6
-    ...
-    ... [DEFAULT]
-    ... name = ee
-    ... """)
-
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling debug
     buildout: Installing debug
-    name ee
+    name base
     op buildout
-    op1 e1 1
-    op2 b1 2
+    op1 b1 1
+    op2 b2 2
     op3 b2 3
-    op4 b2 4
-    op5 eb 5
-    op6 ee 6
+    op4 b3 4
+    op5 b3base 5
     recipe recipes:debug
 
 There are several things to note about this example:
 
-- We can name multiple files in an extends or extended-by option.
+- We can name multiple files in an extends option.
 
 - We can reference files recursively.
 
-- DEFAULT sections only directly affect the configuration file they're
-  used in, but they can have secondary effects.  For example, the name
-  option showed up in the debug section because it was defined in the
-  debug sections in several of the input files by virtue of being in
-  their DEFAULT sections.
-
-- Relative file names in extended and extended-by options are
-  interpreted relative to the directory containing the referencing
-  configuration file.  The files eb.cfg and ee.cfg were found in the
-  extensions directory because they were referenced from a file in
-  that directory.
+- Relative file names in extended options are interpreted relative to
+  the directory containing the referencing configuration file.
 
 User defaults
 -------------
@@ -737,17 +759,16 @@ delimiter.)
 
     >>> os.environ['HOME'] = home
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling debug
     buildout: Installing debug
-    name ee
+    name base
     op buildout
-    op1 e1 1
-    op2 b1 2
+    op1 b1 1
+    op2 b2 2
     op3 b2 3
-    op4 b2 4
-    op5 eb 5
-    op6 ee 6
+    op4 b3 4
+    op5 b3base 5
     op7 7
     recipe recipes:debug
 
@@ -765,16 +786,13 @@ set the logging level to WARNING
     ... [buildout]
     ... log-level = WARNING
     ... extends = b1.cfg b2.cfg
-    ... extended-by = e1.cfg
     ... """)
 
     >>> print system(buildout),
-    name e1
-    op1 e1 1
-    op2 b1 2
+    name base
+    op1 b1 1
+    op2 b2 2
     op3 b2 3
-    op4 b2 4
-    op5 b2 5
     recipe recipes:debug
 
 Command-line usage
@@ -821,7 +839,7 @@ Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
     
     >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Installing debug
     name other
     op1 foo
@@ -834,7 +852,7 @@ WARNING.
 Options can also be combined in the usual Unix way, as in:
     
     >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Updating debug
     name other
     op1 foo
@@ -876,7 +894,7 @@ the buildout in the usual way:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling debug
     buildout: Installing debug
     recipe recipes:debug
@@ -898,7 +916,6 @@ the buildout in the usual way:
     d  d2
     d  d3
     d  develop-eggs
-    -  e1.cfg
     d  eggs
     d  parts
     d  recipes
@@ -959,7 +976,7 @@ Now we'll update our configuration file:
 and run the buildout specifying just d3 and d4:
 
     >>> print system(buildout+' install d3 d4'),
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling d3
     buildout: Installing d3
     d3: Creating directory data3
@@ -978,7 +995,6 @@ and run the buildout specifying just d3 and d4:
     d  data3
     d  data4
     d  develop-eggs
-    -  e1.cfg
     d  eggs
     d  parts
     d  recipes
@@ -991,12 +1007,18 @@ The .installed.cfg is only updated for the recipes that ran:
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
-    parts = debug d2 d3 d4 d1
+    parts = debug d1 d2 d3 d4
     <BLANKLINE>
     [debug]
     __buildout_installed__ = 
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     recipe = recipes:debug
+    <BLANKLINE>
+    [d1]
+    __buildout_installed__ = /sample-buildout/d1
+    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
+    path = /sample-buildout/d1
+    recipe = recipes:mkdir
     <BLANKLINE>
     [d2]
     __buildout_installed__ = /sample-buildout/d2
@@ -1015,12 +1037,6 @@ The .installed.cfg is only updated for the recipes that ran:
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     path = /sample-buildout/data4
     recipe = recipes:mkdir
-    <BLANKLINE>
-    [d1]
-    __buildout_installed__ = /sample-buildout/d1
-    __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /sample-buildout/d1
-    recipe = recipes:mkdir
 
 Note that the installed data for debug, d1, and d2 haven't changed,
 because we didn't install those parts and that the d1 and d2
@@ -1029,9 +1045,9 @@ directories are still there.
 Now, if we run the buildout without the install command:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes/setup.py
-    buildout: Uninstalling d1
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling d2
+    buildout: Uninstalling d1
     buildout: Uninstalling debug
     buildout: Installing debug
     recipe recipes:debug
@@ -1055,7 +1071,6 @@ also see that d1 and d2 have gone away:
     d  data3
     d  data4
     d  develop-eggs
-    -  e1.cfg
     d  eggs
     d  parts
     d  recipes
@@ -1090,7 +1105,7 @@ provide alternate locations, and even names for these directories.
     buildout: Creating directory /sample-alt/work
     buildout: Creating directory /sample-alt/basket
     buildout: Creating directory /sample-alt/developbasket
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling d4
     buildout: Uninstalling d3
     buildout: Uninstalling d2
@@ -1126,7 +1141,7 @@ You can also specify an alternate buildout directory:
     buildout: Creating directory /sample-alt/parts
     buildout: Creating directory /sample-alt/eggs
     buildout: Creating directory /sample-alt/develop-eggs
-    buildout: Develop: /sample-buildout/recipes/setup.py
+    buildout: Develop: /sample-buildout/recipes
 
     >>> ls(alt)
     -  .installed.cfg
@@ -1162,12 +1177,11 @@ of changing the format:
     ... parts =
     ... log-level = 25
     ... verbosity = 5
-    ... log-format = %%(levelname)s %%(message)s
+    ... log-format = %(levelname)s %(message)s
     ... """)
  
 Here, we've changed the format to include the log-level name, rather
-than the logger name.  Note that we had to double percent signs,
-because configuration options allow ConfigParser variable substitution.
+than the logger name.
 
 We've also illustrated, with a contrived example, that the log level
 can be a numeric value and that the verbosity can be specified in the
@@ -1175,7 +1189,7 @@ configuration file.  Because the verbosity is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(buildout),
-    INFO Develop: /sample-buildout/recipes/setup.py
+    INFO Develop: /sample-buildout/recipes
 
 Predefined buildout options
 ---------------------------
@@ -1193,6 +1207,11 @@ database is shown.
     ... """)
 
     >>> print system(buildout+' -v'),
+    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
+    zc.buildout.easy_install: We have a develop egg for zc.buildout
+    zc.buildout.easy_install: We have the best distribution that satisfies
+    setuptools
+    <BLANKLINE>
     Configuration data:
     [buildout]
     bin-directory = /sample-buildout/bin
@@ -1201,18 +1220,15 @@ database is shown.
     eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
     installed = /sample-buildout/.installed.cfg
-    log-format = %%(name)s: %%(message)s
+    log-format = %(name)s: %(message)s
     log-level = INFO
+    offline = false
     parts = 
     parts-directory = /sample-buildout/parts
     python = buildout
     verbosity = 10
     <BLANKLINE>
-    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
-    zc.buildout.easy_install: We have a develop egg for zc.buildout
-    zc.buildout.easy_install: We have the best distribution that satisfies
-    setuptools
-
+ 
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
@@ -1377,7 +1393,7 @@ egg to be built:
 
     >>> os.chdir(sample_bootstrapped)
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
-    buildout: Develop: /sample-bootstrapped/demo/setup.py
+    buildout: Develop: /sample-bootstrapped/demo
 
 Now we can add the extensions option.  We were a bit tricly and ran
 the buildout once with the demo develop egg defined but without the
@@ -1398,7 +1414,7 @@ We see that out extension is loaded and executed:
 
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ext ['buildout']
-    buildout: Develop: /sample-bootstrapped/demo/setup.py
+    buildout: Develop: /sample-bootstrapped/demo
 
 
 

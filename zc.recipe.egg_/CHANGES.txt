@@ -8,6 +8,27 @@ To do
 Change History
 **************
 
+1.0.0b3 (2006-12-04)
+====================
+
+Feature Changes
+---------------
+
+- Added a develop recipe for creating develop eggs.
+
+  This is useful to:
+
+  - Specify custom extension building options,
+
+  - Specify a version of Python to use, and to
+
+  - Cause develop eggs to be created after other parts.
+
+- The develop and build recipes now return the paths created, so that 
+  created eggs or egg links are removed when a part is removed (or
+  changed).
+
+
 1.0.0b2 (2006-10-16)
 ====================
 

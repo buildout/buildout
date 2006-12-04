@@ -42,7 +42,9 @@ setup(
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Egg' % name,
+                                    'script = %s:Egg' % name,
                                     'custom = %s:Custom' % name,
+                                    'develop = %s:Develop' % name,
                                     ]
                     },
     zip_safe=False,

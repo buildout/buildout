@@ -1,8 +1,9 @@
-Minimal Python interface to easy_install
-========================================
+Python API for egg and script installation
+==========================================
 
-The easy_install module provides a minimal interface to the setuptools
-easy_install command that provides some additional semantics:
+The easy_install module provides some functions to provide support for
+egg and script installation.  It provides functionality at the python
+level that is similar to easy_install, with a few exceptions:
 
 - By default, we look for new packages *and* the packages that
   they depend on.  This is somewhat like (and uses) the --upgrade
@@ -21,8 +22,8 @@ easy_install command that provides some additional semantics:
 - Distutils options for building extensions can be passed.
 
 The easy_install module provides a method, install, for installing one
-or more packages and their dependencies.  The
-install function takes 2 positional arguments:
+or more packages and their dependencies.  The install function takes 2
+positional arguments:
 
 - An iterable of setuptools requirement strings for the distributions
   to be installed, and
@@ -426,18 +427,18 @@ You can also pass script initialization code:
         eggrecipedemo.main(1, 2)
 
 
-Handling custom build options for extensions
---------------------------------------------
+Handling custom build options for extensions provided in source distributions
+-----------------------------------------------------------------------------
 
 Sometimes, we need to control how extension modules are built.  The
-build method provides this level of control.  It takes a single
+build function provides this level of control.  It takes a single
 package specification, downloads a source distribution, and builds it
 with specified custom build options.
 
-The build method takes 3 positional arguments:
+The build function takes 3 positional arguments:
 
 spec
-   A package specification
+   A package specification for a source distribution
 
 dest
    A destination directory
@@ -486,9 +487,13 @@ extension, extdemo.c::
   PyMODINIT_FUNC
   initextdemo(void)
   {
-      PyObject *d;
-      d = Py_InitModule3("extdemo", methods, "");
-      PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
+      PyObject *m;
+      m = Py_InitModule3("extdemo", methods, "");
+  #ifdef TWO
+      PyModule_AddObject(m, "val", PyInt_FromLong(2));
+  #else
+      PyModule_AddObject(m, "val", PyInt_FromLong(EXTDEMO));
+  #endif
   }
 
 The extension depends on a system-dependnt include file, extdemo.h,
@@ -497,9 +502,11 @@ that defines a constant, EXTDEMO, that is exposed by the extension.
 We'll add an include directory to our sample buildout and add the
 needed include file to it:
 
-    >>> mkdir(sample_buildout, 'include')
-    >>> open(os.path.join(sample_buildout, 'include', 'extdemo.h'), 'w').write(
-    ...    "#define EXTDEMO 42\n")
+    >>> mkdir('include')
+    >>> write('include', 'extdemo.h',
+    ... """
+    ... #define EXTDEMO 42
+    ... """)
 
 Now, we can use the build function to create an egg from the source
 distribution:
@@ -508,6 +515,9 @@ distribution:
     ...   'extdemo', dest, 
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
+    '/sample-install/extdemo-1.4-py2.4-unix-i686.egg'
+
+The function returns the list of eggs 
 
 Now if we look in our destination directory, we see we have an extdemo egg:
 
@@ -516,3 +526,68 @@ Now if we look in our destination directory, we see we have an extdemo egg:
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
 
+Handling custom build options for extensions in develop eggs
+------------------------------------------------------------
+
+The develop function is similar to the build function, except that,
+rather than building an egg from a source directory containing a
+setup.py script.  
+
+The develop function takes 2 positional arguments:
+
+setup
+   The path to a setup script, typically named "setup.py", or a
+   directory containing a setup.py script.
+
+dest
+   The directory to install the egg link to
+
+It supports some optional keyword argument:
+
+build_ext
+   A dictionary of options to be passed to the distutils build_ext
+   command when building extensions.
+
+executable
+   A path to a Python executable.  Distributions will ne installed
+   using this executable and will be for the matching Python version.
+
+We have a local directory containing the extdemo source:
+
+    >>> ls(extdemo)
+    -  MANIFEST
+    -  MANIFEST.in
+    -  README
+    -  extdemo.c
+    -  setup.py
+
+Now, we can use the develop function to create a develop egg from the source
+distribution:
+
+    >>> zc.buildout.easy_install.develop(
+    ...   extdemo, dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')})
+    '/sample-install/extdemo.egg-link'
+
+The name of the egg link created is returned.
+
+Now if we look in our destination directory, we see we have an extdemo
+egg link:
+
+    >>> ls(dest)
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.4-py2.4-linux-i686.egg
+    -  extdemo.egg-link
+
+And that the source directory contains the compiled extension:
+
+    >>> ls(extdemo)
+    -  MANIFEST
+    -  MANIFEST.in
+    -  README
+    d  build
+    -  extdemo.c
+    d  extdemo.egg-info
+    -  extdemo.so
+    -  setup.py

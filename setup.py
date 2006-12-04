@@ -25,6 +25,8 @@ setup(
         + '\n' +
         read('src', 'zc', 'buildout', 'testing.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'easy_install.txt')
+        + '\n' +
         'Download\n'
         '**********************\n'
         ),

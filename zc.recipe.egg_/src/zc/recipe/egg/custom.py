@@ -19,12 +19,27 @@ $Id$
 import os, re, zipfile
 import zc.buildout.easy_install
 
-class Custom:
+class Base:
 
     def __init__(self, buildout, name, options):
-        self.buildout = buildout
-        self.name = name
-        self.options = options
+        self.name, self.options = name, options
+
+        options['_d'] = buildout['buildout']['develop-eggs-directory']
+
+        python = options.get('python', buildout['buildout']['python'])
+        options['executable'] = buildout[python]['executable']
+
+        self.build_ext = build_ext(buildout, options)
+
+
+    def update(self):
+        return self.install()
+
+class Custom(Base):
+
+    def __init__(self, buildout, name, options):
+        Base.__init__(self, buildout, name, options)
+
         links = options.get('find-links',
                             buildout['buildout'].get('find-links'))
         if links:
@@ -39,47 +54,66 @@ class Custom:
             options['index'] = index
         self.index = index
 
-        options['_b'] = buildout['buildout']['bin-directory']
         options['_e'] = buildout['buildout']['eggs-directory']
-        options['_d'] = buildout['buildout']['develop-eggs-directory']
 
         assert options.get('unzip') in ('true', 'false', None)
 
-        python = options.get('python', buildout['buildout']['python'])
-        options['executable'] = buildout[python]['executable']
-
-        build_ext = {}
-        for be_option in ('include-dirs', 'library-dirs', 'rpath'):
-            value = options.get(be_option)
-            if value is None:
-                continue
-            value = [
-                os.path.join(
-                    buildout['buildout']['directory'],
-                    v.strip()
-                    )
-                for v in value.strip().split('\n')
-                if v.strip()
-            ]
-            build_ext[be_option] = ':'.join(value)
-            options[be_option] = ':'.join(value)
-        self.build_ext = build_ext
+        if buildout['buildout'].get('offline') == 'true':
+            self.install = lambda: ()
 
     def install(self):
-        if self.buildout['buildout'].get('offline') == 'true':
-            return ()
         options = self.options
         distribution = options.get('eggs', self.name).strip()
-        build_ext = dict([
-            (k, options[k])
-            for k in ('include-dirs', 'library-dirs', 'rpath')
-            if k in options
-            ])
-        zc.buildout.easy_install.build(
+        return zc.buildout.easy_install.build(
             distribution, options['_d'], self.build_ext,
             self.links, self.index, options['executable'], [options['_e']],
             )
         
-        return ()
+class Develop(Base):
 
-    update = install
+    def __init__(self, buildout, name, options):
+        Base.__init__(self, buildout, name, options)
+        options['setup'] = os.path.join(buildout['buildout']['directory'],
+                                        options['setup'])
+
+    def install(self):
+        options = self.options
+        return zc.buildout.easy_install.develop(
+            options['setup'], options['_d'], self.build_ext,
+            options['executable'],
+            )
+        
+
+def build_ext(buildout, options):
+    result = {}
+    for be_option in ('include-dirs', 'library-dirs', 'rpath'):
+        value = options.get(be_option)
+        if value is None:
+            continue
+        value = [
+            os.path.join(
+                buildout['buildout']['directory'],
+                v.strip()
+                )
+            for v in value.strip().split('\n')
+            if v.strip()
+        ]
+        result[be_option] = os.pathsep.join(value)
+        options[be_option] = os.pathsep.join(value)
+
+    swig = options.get('swig')
+    if swig:
+        options['swig'] = result['swig'] = os.path.join(
+            buildout['buildout']['directory'],
+            swig,
+            )
+
+    for be_option in ('define', 'undef', 'libraries', 'link-objects',
+                      'debug', 'force', 'compiler', 'swig-cpp', 'swig-opts',
+                      ):
+        value = options.get(be_option)
+        if value is None:
+            continue
+        result[be_option] = value
+
+    return result
