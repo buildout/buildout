@@ -45,7 +45,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
     ... ''')
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/foo/setup.py
+    buildout: Develop: /sample-buildout/foo
 
     >>> ls('develop-eggs')
     -  foo.egg-link
@@ -71,9 +71,8 @@ We should be able to deal with setup scripts that aren't setuptools based.
     ... ''')
 
     >>> print system(join('bin', 'buildout')+' -v'), # doctest: +ELLIPSIS
-    Configuration data:
-    ...
-    buildout: Develop: /sample-buildout/foo/setup.py
+    zc.buildout...
+    buildout: Develop: /sample-buildout/foo
     ...
     Installed /sample-buildout/foo
     ...
@@ -86,7 +85,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
 def buildout_error_handling():
     r"""Buildout error handling
 
-Asking for a section that doesn't exist, yields a key error:
+Asking for a section that doesn't exist, yields a missing section error:
 
     >>> import os
     >>> os.chdir(sample_buildout)
@@ -95,7 +94,7 @@ Asking for a section that doesn't exist, yields a key error:
     >>> buildout['eek']
     Traceback (most recent call last):
     ...
-    KeyError: 'eek'
+    MissingSection: The referenced section, 'eek', was not defined.
 
 Asking for an option that doesn't exist, a MissingOption error is raised:
 
@@ -109,8 +108,7 @@ It is an error to create a variable-reference cycle:
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
     ... [buildout]
-    ... develop = recipes
-    ... parts = data_dir debug
+    ... parts =
     ... x = ${buildout:y}
     ... y = ${buildout:z}
     ... z = ${buildout:x}
@@ -183,7 +181,7 @@ Al parts have to have a section:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
-    Error: No section was specified for part x
+    Error: The referenced section, 'x', was not defined.
 
 and all parts have to have a specified recipe:
 
@@ -265,15 +263,15 @@ def test_comparing_saved_options_with_funny_characters():
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
-    buildout: Develop: ...setup.py
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
     buildout: Installing debug
 
 If we run the buildout again, we shoudn't get a message about
 uninstalling anything because the configuration hasn't changed.
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
-    buildout: Develop: ...setup.py
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
     buildout: Updating debug
 """
 
@@ -317,20 +315,21 @@ Then try to install it again:
 
     """
 
-def error_for_indefined_install_parts():
-    """
-Any parts we pass to install on the command line must be
-listed in the configuration.
+# Why?
+## def error_for_undefined_install_parts():
+##     """
+## Any parts we pass to install on the command line must be
+## listed in the configuration.
 
-    >>> print system(join('bin', 'buildout') + ' install foo'),
-    buildout: Invalid install parts: foo.
-    Install parts must be listed in the configuration.
+##     >>> print system(join('bin', 'buildout') + ' install foo'),
+##     buildout: Invalid install parts: foo.
+##     Install parts must be listed in the configuration.
 
-    >>> print system(join('bin', 'buildout') + ' install foo bar'),
-    buildout: Invalid install parts: foo bar.
-    Install parts must be listed in the configuration.
+##     >>> print system(join('bin', 'buildout') + ' install foo bar'),
+##     buildout: Invalid install parts: foo bar.
+##     Install parts must be listed in the configuration.
     
-    """
+##     """
 
 
 bootstrap_py = os.path.join(
@@ -515,7 +514,7 @@ Create a develop egg:
     ... """)
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/foo/setup.py
+    buildout: Develop: /sample-buildout/foo
 
     >>> ls('develop-eggs')
     -  foox.egg-link
@@ -536,8 +535,8 @@ Create another:
     ... """)
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/foo/setup.py
-    buildout: Develop: /sample-buildout/bar/setup.py
+    buildout: Develop: /sample-buildout/foo
+    buildout: Develop: /sample-buildout/bar
 
     >>> ls('develop-eggs')
     -  foox.egg-link
@@ -552,7 +551,7 @@ Remove one:
     ... parts =
     ... """)
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/bar/setup.py
+    buildout: Develop: /sample-buildout/bar
 
 It is gone
 
@@ -611,7 +610,7 @@ a devlop egg, we will also generate a warning.
     ... """)
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/foo/setup.py
+    buildout: Develop: /sample-buildout/foo
 
 Now, if we generate a working set using the egg link, we will get a warning
 and we will get setuptools included in the working set.
@@ -659,7 +658,6 @@ We do not get a warning, but we do get setuptools included in the working set:
     ...     ])]
     ['foox', 'setuptools']
 
-
     >>> print handler,
 
 We get the same behavior if the it is a depedency that uses a
@@ -682,8 +680,8 @@ namespace package.
     ... """)
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /sample-buildout/foo/setup.py
-    buildout: Develop: /sample-buildout/bar/setup.py
+    buildout: Develop: /sample-buildout/foo
+    buildout: Develop: /sample-buildout/bar
 
     >>> [dist.project_name
     ...  for dist in zc.buildout.easy_install.working_set(
@@ -703,6 +701,52 @@ namespace package.
     >>> handler.uninstall()
 
     '''
+
+def develop_preserves_existing_setup_cfg():
+    """
+    
+See "Handling custom build options for extensions in develop eggs" in
+easy_install.txt.  This will be very similar except that we'll have an
+existing setup.cfg:
+
+    >>> write(extdemo, "setup.cfg",
+    ... '''
+    ... # sampe cfg file
+    ...
+    ... [foo]
+    ... bar = 1
+    ...
+    ... [build_ext]
+    ... define = X,Y
+    ... ''')
+
+    >>> mkdir('include')
+    >>> write('include', 'extdemo.h',
+    ... '''
+    ... #define EXTDEMO 42
+    ... ''')
+
+    >>> dest = tmpdir('dest')
+    >>> zc.buildout.easy_install.develop(
+    ...   extdemo, dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')})
+    '/tmp/tmp7AFYXv/_TEST_/dest/extdemo.egg-link'
+
+    >>> ls(dest)
+    -  extdemo.egg-link
+
+    >>> cat(extdemo, "setup.cfg")
+    <BLANKLINE>
+    # sampe cfg file
+    <BLANKLINE>
+    [foo]
+    bar = 1
+    <BLANKLINE>
+    [build_ext]
+    define = X,Y
+
+"""
+    
     
 def create_sample_eggs(test, executable=sys.executable):
     write = test.globs['write']
@@ -762,9 +806,13 @@ static PyMethodDef methods[] = {{NULL}};
 PyMODINIT_FUNC
 initextdemo(void)
 {
-    PyObject *d;
-    d = Py_InitModule3("extdemo", methods, "");
-    PyDict_SetItemString(d, "val", PyInt_FromLong(EXTDEMO));    
+    PyObject *m;
+    m = Py_InitModule3("extdemo", methods, "");
+#ifdef TWO
+    PyModule_AddObject(m, "val", PyInt_FromLong(2));
+#else
+    PyModule_AddObject(m, "val", PyInt_FromLong(EXTDEMO));
+#endif
 }
 """
 
@@ -778,8 +826,8 @@ setup(name = "extdemo", version = "1.4", url="http://www.zope.org",
 """
 
 def add_source_dist(test):
-    import tarfile
-    tmp = tempfile.mkdtemp('test-sdist')
+    
+    tmp = test.globs['extdemo'] = test.globs['tmpdir']('extdemo')
     write = test.globs['write']
     try:
         write(tmp, 'extdemo.c', extdemo_c);
@@ -930,7 +978,7 @@ def test_suite():
                ]),
             ),
         doctest.DocTestSuite(
-            setUp=zc.buildout.testing.buildoutSetUp,
+            setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,

@@ -22,13 +22,21 @@ import os
 import pprint
 import re
 import shutil
+import cStringIO
 import sys
 import tempfile
 import ConfigParser
+import UserDict
 
 import pkg_resources
 import zc.buildout
 import zc.buildout.easy_install
+
+try:
+    realpath = os.path.realpath
+except AttributeError:
+    def realpath(path):
+        return path
 
 pkg_resources_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
@@ -42,30 +50,11 @@ class MissingSection(zc.buildout.UserError, KeyError):
     """A required section is missinh
     """
 
-class Options(dict):
+    def __str__(self):
+        return "The referenced section, %r, was not defined." % self[0]
 
-    def __init__(self, buildout, section, data):
-        self.buildout = buildout
-        self.section = section
-        super(Options, self).__init__(data)
 
-    def __getitem__(self, option):
-        try:
-            return super(Options, self).__getitem__(option)
-        except KeyError:
-            raise MissingOption("Missing option: %s:%s"
-                                % (self.section, option))
-
-    # XXX need test
-    def __setitem__(self, option, value):
-        if not isinstance(value, str):
-            raise TypeError('Option values must be strings', value)
-        super(Options, self).__setitem__(option, value)
-
-    def copy(self):
-        return Options(self.buildout, self.section, self)
-
-class Buildout(dict):
+class Buildout(UserDict.DictMixin):
 
     def __init__(self, config_file, cloptions, windows_restart=False):
         config_file = os.path.abspath(config_file)
@@ -74,8 +63,6 @@ class Buildout(dict):
         if not os.path.exists(config_file):
             print 'Warning: creating', config_file
             open(config_file, 'w').write('[buildout]\nparts = \n')
-
-        super(Buildout, self).__init__()
 
         # default options
         data = dict(buildout={
@@ -110,19 +97,9 @@ class Buildout(dict):
             options[option] = value
                 # The egg dire
 
-        # do substitutions
-        converted = {}
-        for section, options in data.iteritems():
-            for option, value in options.iteritems():
-                if '$' in value:
-                    value = self._dosubs(section, option, value,
-                                         data, converted, [])
-                    options[option] = value
-                converted[(section, option)] = value
-
-        # copy data into self:
-        for section, options in data.iteritems():
-            self[section] = Options(self, section, options)
+        self._raw = data
+        self._data = {}
+        self._parts = []
         
         # initialize some attrs and buildout directories.
         options = self['buildout']
@@ -140,72 +117,11 @@ class Buildout(dict):
 
         self._setup_logging()
 
-    def _dosubs(self, section, option, value, data, converted, seen):
-        key = section, option
-        r = converted.get(key)
-        if r is not None:
-            return r
-        if key in seen:
-            raise zc.buildout.UserError(
-                "Circular reference in substitutions.\n"
-                "We're evaluating %s\nand are referencing: %s.\n"
-                % (", ".join([":".join(k) for k in seen]),
-                   ":".join(key)
-                   )
-                )
-        seen.append(key)
-        value = '$$'.join([self._dosubs_esc(s, data, converted, seen)
-                           for s in value.split('$$')
-                           ])
-        seen.pop()
-        return value
+        offline = options.get('offline', 'false')
+        if offline not in ('true', 'false'):
+            self._error('Invalid value for offline option: %s', offline)
+        options['offline'] = offline
 
-    _template_split = re.compile('([$]{[^}]*})').split
-    _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
-    _valid = re.compile('[-a-zA-Z0-9 ._]+:[-a-zA-Z0-9 ._]+$').match
-    def _dosubs_esc(self, value, data, converted, seen):
-        value = self._template_split(value)
-        subs = []
-        for ref in value[1::2]:
-            s = tuple(ref[2:-1].split(':'))
-            if not self._valid(ref):
-                if len(s) < 2:
-                    raise zc.buildout.UserError("The substitution, %s,\n"
-                                                "doesn't contain a colon."
-                                                % ref)
-                if len(s) > 2:
-                    raise zc.buildout.UserError("The substitution, %s,\n"
-                                                "has too many colons."
-                                                % ref)
-                if not self._simple(s[0]):
-                    raise zc.buildout.UserError(
-                        "The section name in substitution, %s,\n"
-                        "has invalid characters."
-                        % ref)
-                if not self._simple(s[1]):
-                    raise zc.buildout.UserError(
-                        "The option name in substitution, %s,\n"
-                        "has invalid characters."
-                        % ref)
-                
-            v = converted.get(s)
-            if v is None:
-                options = data.get(s[0])
-                if options is None:
-                    raise MissingSection(
-                        "Referenced section does not exist", s[0])
-                v = options.get(s[1])
-                if v is None:
-                    raise MissingOption("Referenced option does not exist:",
-                                        *s)
-                if '$' in v:
-                    v = self._dosubs(s[0], s[1], v, data, converted, seen)
-                    options[s[1]] = v
-                converted[s] = v
-            subs.append(v)
-        subs.append('')
-
-        return ''.join([''.join(v) for v in zip(value[::2], subs)])
 
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
@@ -268,25 +184,26 @@ class Buildout(dict):
         conf_parts = conf_parts and conf_parts.split() or []
         installed_parts = installed_part_options['buildout']['parts']
         installed_parts = installed_parts and installed_parts.split() or []
-
-
-        # If install_parts is given, then they must be listed in parts
-        # and we don't uninstall anything. Otherwise, we install
-        # the configured parts and uninstall anything else.
+        
         if install_parts:
-            extra = [p for p in install_parts if p not in conf_parts]
-            if extra:
-                self._error(
-                    'Invalid install parts: %s.\n'
-                    'Install parts must be listed in the configuration.',
-                    ' '.join(extra))
             uninstall_missing = False
         else:
             install_parts = conf_parts
             uninstall_missing = True
 
-        # load recipes
-        recipes = self._load_recipes(install_parts)
+        # load and initialize recipes
+        [self[part]['recipe'] for part in install_parts]
+        install_parts = self._parts
+
+        if self._log_level <= logging.DEBUG:
+            sections = list(self)
+            sections.sort()
+            print    
+            print 'Configuration data:'
+            for section in self._data:
+                _save_options(section, self[section], sys.stdout)
+            print    
+
 
         # compute new part recipe signatures
         self._compute_part_signatures(install_parts)
@@ -339,19 +256,20 @@ class Buildout(dict):
             for part in install_parts:
                 signature = self[part].pop('__buildout_signature__')
                 saved_options = self[part].copy()
+                recipe = self[part].recipe
                 if part in installed_parts:
                     self._logger.info('Updating %s', part)
                     old_options = installed_part_options[part]
                     old_installed_files = old_options['__buildout_installed__']
                     try:
-                        update = recipes[part].update
+                        update = recipe.update
                     except AttributeError:
-                        update = recipes[part].install
+                        update = recipe.install
                         self._logger.warning(
                             "The recipe for %s doesn't define an update "
                             "method. Using its install method",
                             part)
-                        
+
                     try:
                         installed_files = update()
                     except:
@@ -364,7 +282,7 @@ class Buildout(dict):
 
                 else:
                     self._logger.info('Installing %s', part)
-                    installed_files = recipes[part].install()
+                    installed_files = recipe.install()
                     if installed_files is None:
                         self._logger.warning(
                             "The %s install returned None.  A path or "
@@ -380,15 +298,12 @@ class Buildout(dict):
                               ] = '\n'.join(installed_files)
                 saved_options['__buildout_signature__'] = signature
 
-                if part not in installed_parts:
-                    installed_parts.append(part)
+                installed_parts = [p for p in installed_parts if p != part]
+                installed_parts.append(part)
 
         finally:
-            installed_part_options['buildout']['parts'] = ' '.join(
-                [p for p in conf_parts if p in installed_parts]
-                +
-                [p for p in installed_parts if p not in conf_parts] 
-            )
+            installed_part_options['buildout']['parts'] = (
+                ' '.join(installed_parts))
             installed_part_options['buildout']['installed_develop_eggs'
                                                ] = installed_develop_eggs
             
@@ -419,46 +334,8 @@ class Buildout(dict):
             try:
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
-                    if os.path.isdir(setup):
-                        setup = os.path.join(setup, 'setup.py')
-
                     self._logger.info("Develop: %s", setup)
-
-
-                    fd, tsetup = tempfile.mkstemp()
-                    try:
-                        os.write(fd, runsetup_template % dict(
-                            setuptools=pkg_resources_loc,
-                            setupdir=os.path.dirname(setup),
-                            setup=setup,
-                            __file__ = setup,
-                            ))
-
-                        args = [
-                            zc.buildout.easy_install._safe_arg(tsetup),
-                            '-q', 'develop', '-mxN',
-                            '-f', zc.buildout.easy_install._safe_arg(
-                                ' '.join(self._links)
-                                ),
-                            '-d', zc.buildout.easy_install._safe_arg(dest),
-                            ]
-
-                        if self._log_level <= logging.DEBUG:
-                            if self._log_level == logging.DEBUG:
-                                del args[1]
-                            else:
-                                args[1] == '-v'
-                            self._logger.debug("in: %s\n%r",
-                                               os.path.dirname(setup), args)
-
-                        assert os.spawnl(
-                            os.P_WAIT, sys.executable, sys.executable,
-                            *args) == 0
-
-                    finally:
-                        os.close(fd)
-                        os.remove(tsetup)
-
+                    zc.buildout.easy_install.develop(setup, dest)
             except:
                 # if we had an error, we need to roll back changes, by
                 # removing any files we created.
@@ -490,90 +367,34 @@ class Buildout(dict):
                 self._logger.warning(
                     "Unexpected entry, %s, in develop-eggs directory", f)
 
-    def _load_recipes(self, parts):
-        recipes = {}
-        if not parts:
-            return recipes
-        
-        recipes_requirements = []
-        pkg_resources.working_set.add_entry(
-            self['buildout']['develop-eggs-directory'])
-        pkg_resources.working_set.add_entry(self['buildout']['eggs-directory'])
-
-        # Gather requirements
-        for part in parts:
-            options = self.get(part)
-            if options is None:
-                raise MissingSection("No section was specified for part", part)
-
-            recipe, entry = self._recipe(part, options)
-            if recipe not in recipes_requirements:
-                recipes_requirements.append(recipe)
-
-        # Install the recipe distros
-        offline = self['buildout'].get('offline', 'false')
-        if offline not in ('true', 'false'):
-            self._error('Invalid value for offline option: %s', offline)
-            
-        if offline == 'false':
-            dest = self['buildout']['eggs-directory']
-        else:
-            dest = None
-
-        ws = zc.buildout.easy_install.install(
-            recipes_requirements, dest,
-            links=self._links,
-            index=self['buildout'].get('index'),
-            path=[self['buildout']['develop-eggs-directory'],
-                  self['buildout']['eggs-directory'],
-                  ],
-            working_set=pkg_resources.working_set,
-            )
-
-        # instantiate the recipes
-        for part in parts:
-            options = self[part]
-            recipe, entry = self._recipe(part, options)
-            recipe_class = pkg_resources.load_entry_point(
-                recipe, 'zc.buildout', entry)
-            recipes[part] = recipe_class(self, part, options)
-        
-        return recipes
-
     def _compute_part_signatures(self, parts):
         # Compute recipe signature and add to options
         for part in parts:
             options = self.get(part)
             if options is None:
                 options = self[part] = {}
-            recipe, entry = self._recipe(part, options)
+            recipe, entry = _recipe(options)
             req = pkg_resources.Requirement.parse(recipe)
             sig = _dists_sig(pkg_resources.working_set.resolve([req]))
             options['__buildout_signature__'] = ' '.join(sig)
 
-    def _recipe(self, part, options):
-        recipe = options['recipe']
-        if ':' in recipe:
-            recipe, entry = recipe.split(':')
-        else:
-            entry = 'default'
-
-        return recipe, entry
-
     def _read_installed_part_options(self):
         old = self._installed_path()
         if os.path.isfile(old):
-            parser = ConfigParser.SafeConfigParser(_spacey_defaults)
+            parser = ConfigParser.RawConfigParser()
             parser.optionxform = lambda s: s
             parser.read(old)
-            return dict([
-                (section,
-                 Options(self, section,
-                         [item for item in parser.items(section)
-                          if item[0] not in _spacey_defaults]
-                         )
-                 )
-                for section in parser.sections()])
+            result = {}
+            for section in parser.sections():
+                options = {}
+                for option, value in parser.items(section):
+                    if '%(' in value:
+                        for k, v in _spacey_defaults:
+                            value = value.replace(k, v)
+                    options[option] = value
+                result[section] = Options(self, section, options)
+                        
+            return result
         else:
             return {'buildout': Options(self, 'buildout', {'parts': ''})}
 
@@ -592,7 +413,7 @@ class Buildout(dict):
                 
     def _install(self, part):
         options = self[part]
-        recipe, entry = self._recipe(part, options)
+        recipe, entry = _recipe(options)
         recipe_class = pkg_resources.load_entry_point(
             recipe, 'zc.buildout', entry)
         installed = recipe_class(self, part, options).install()
@@ -642,14 +463,6 @@ class Buildout(dict):
         root_logger.setLevel(level)
         self._log_level = level
 
-        if level <= logging.DEBUG:
-            sections = list(self)
-            sections.sort()
-            print 'Configuration data:'
-            for section in sections:
-                _save_options(section, self[section], sys.stdout)
-            print    
-
     def _maybe_upgrade(self):
         # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
@@ -677,10 +490,25 @@ class Buildout(dict):
         if not upgraded:
             return
 
-        if (os.path.abspath(sys.argv[0])
-            != os.path.join(os.path.abspath(self['buildout']['bin-directory']),
-                            'buildout')
+        if (realpath(os.path.abspath(sys.argv[0]))
+            !=
+            realpath(
+                os.path.join(os.path.abspath(
+                                 self['buildout']['bin-directory']
+                                 ),
+                             'buildout',
+                             )
+                )
             ):
+            self._logger.debug("Running %r", realpath(sys.argv[0]))
+            self._logger.debug(
+                "Local buildout is %r",
+                realpath(
+                    os.path.join(
+                        os.path.abspath(self['buildout']['bin-directory']),
+                        'buildout')
+                    )
+                )
             self._logger.warn("Not upgrading because not running a local "
                               "buildout command")
             return
@@ -745,7 +573,7 @@ class Buildout(dict):
 
         fd, tsetup = tempfile.mkstemp()
         try:
-            os.write(fd, runsetup_template % dict(
+            os.write(fd, zc.buildout.easy_install.runsetup_template % dict(
                 setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
@@ -758,20 +586,180 @@ class Buildout(dict):
             os.close(fd)
             os.remove(tsetup)
 
-    runsetup = setup # backward compat
+    runsetup = setup # backward compat.
+
+    def __getitem__(self, section):
+        try:
+            return self._data[section]
+        except KeyError:
+            pass
+
+        try:
+            data = self._raw[section]
+        except KeyError:
+            raise MissingSection(section)
+
+        options = Options(self, section, data)
+        self._data[section] = options
+        options._initialize()
+        return options          
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError('__setitem__')
+
+    def __delitem__(self, key):
+        raise NotImplementedError('__delitem__')
+
+    def keys(self):
+        return self._raw.keys()
+
+    def __iter__(self):
+        return iter(self._raw)
+
+class Options(UserDict.DictMixin):
+
+    def __init__(self, buildout, section, data):
+        self.buildout = buildout
+        self.name = section
+        self._raw = data
+        self._data = {}
+
+    def _initialize(self):
+        # force substitutions
+        for k in self._raw:
+            self.get(k)
+
+        recipe = self.get('recipe')
+        if not recipe:
+            return
         
-runsetup_template = """
-import sys
-sys.path.insert(0, %(setuptools)r)
-import os, setuptools
+        reqs, entry = _recipe(self._data)
+        req = pkg_resources.Requirement.parse(reqs)
+        buildout = self.buildout
+        
+        if pkg_resources.working_set.find(req) is None:
+            offline = buildout['buildout']['offline'] == 'true'
+            if offline:
+                dest = None
+                path = [buildout['buildout']['develop-eggs-directory'],
+                        buildout['buildout']['eggs-directory'],
+                        ]
+            else:
+                dest = buildout['buildout']['eggs-directory']
+                path = [buildout['buildout']['develop-eggs-directory']]
+            zc.buildout.easy_install.install(
+                [reqs], dest,
+                links=buildout._links,
+                index=buildout['buildout'].get('index'),
+                path=path,
+                working_set=pkg_resources.working_set,
+                )
+            
+        recipe_class = pkg_resources.load_entry_point(
+            req.project_name, 'zc.buildout', entry)
 
-__file__ = %(__file__)r
+        self.recipe = recipe_class(buildout, self.name, self)
+        buildout._parts.append(self.name)
 
-os.chdir(%(setupdir)r)
-sys.argv[0] = %(setup)r
-execfile(%(setup)r)
-"""
+    def get(self, option, default=None, seen=None):
+        try:
+            return self._data[option]
+        except KeyError:
+            pass
 
+        v = self._raw.get(option)
+        if v is None:
+            return default
+
+        if '${' in v:
+            key = self.name, option
+            if seen is None:
+                seen = [key]
+            elif key in seen:
+                raise zc.buildout.UserError(
+                    "Circular reference in substitutions.\n"
+                    "We're evaluating %s\nand are referencing: %s.\n"
+                    % (", ".join([":".join(k) for k in seen]),
+                       ":".join(key)
+                       )
+                    )
+            else:
+                seen.append(key)
+            v = '$$'.join([self._sub(s, seen) for s in v.split('$$')])
+            seen.pop()
+
+        self._data[option] = v
+        return v
+
+    _template_split = re.compile('([$]{[^}]*})').split
+    _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
+    _valid = re.compile('[-a-zA-Z0-9 ._]+:[-a-zA-Z0-9 ._]+$').match
+    def _sub(self, template, seen):
+        value = self._template_split(template)
+        subs = []
+        for ref in value[1::2]:
+            s = tuple(ref[2:-1].split(':'))
+            if not self._valid(ref):
+                if len(s) < 2:
+                    raise zc.buildout.UserError("The substitution, %s,\n"
+                                                "doesn't contain a colon."
+                                                % ref)
+                if len(s) > 2:
+                    raise zc.buildout.UserError("The substitution, %s,\n"
+                                                "has too many colons."
+                                                % ref)
+                if not self._simple(s[0]):
+                    raise zc.buildout.UserError(
+                        "The section name in substitution, %s,\n"
+                        "has invalid characters."
+                        % ref)
+                if not self._simple(s[1]):
+                    raise zc.buildout.UserError(
+                        "The option name in substitution, %s,\n"
+                        "has invalid characters."
+                        % ref)
+                
+            v = self.buildout[s[0]].get(s[1], None, seen)
+            if v is None:
+                raise MissingOption("Referenced option does not exist:", *s)
+            subs.append(v)
+        subs.append('')
+
+        return ''.join([''.join(v) for v in zip(value[::2], subs)])
+        
+    def __getitem__(self, key):
+        try:
+            return self._data[key]
+        except KeyError:
+            pass
+
+        v = self.get(key)
+        if v is None:
+            raise MissingOption("Missing option: %s:%s"
+                                % (self.name, key))
+        return v
+
+    def __setitem__(self, option, value):
+        if not isinstance(value, str):
+            raise TypeError('Option values must be strings', value)
+        self._data[option] = value
+
+    def __delitem__(self, key):
+        if key in self._raw:
+            del self._raw[key]
+            if key in self._data:
+                del self._data[key]
+        elif key in self._data:
+            del self._data[key]
+        else:
+            raise KeyError, key
+
+    def keys(self):
+        raw = self._raw
+        return list(self._raw) + [k for k in self._data if k not in raw]
+
+    def copy(self):
+        return dict([(k, self[k]) for k in self.keys()])
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
@@ -779,6 +767,14 @@ _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
                         '[ \t\r\f\v]+$'
                         )
+
+_spacey_defaults = [
+    ('%(__buildout_space__)s',   ' '),
+    ('%(__buildout_space_n__)s', '\n'),
+    ('%(__buildout_space_r__)s', '\r'),
+    ('%(__buildout_space_f__)s', '\f'),
+    ('%(__buildout_space_v__)s', '\v'),
+    ]
 
 def _quote_spacey_nl(match):
     match = match.group(0).split('\n', 1)
@@ -794,20 +790,11 @@ def _quote_spacey_nl(match):
         )
     return result
 
-_spacey_defaults = dict(
-    __buildout_space__   = ' ',
-    __buildout_space_r__ = '\r',
-    __buildout_space_f__ = '\f',
-    __buildout_space_v__ = '\v',
-    __buildout_space_n__ = '\n',
-    )
-
 def _save_options(section, options, f):
     print >>f, '[%s]' % section
     items = options.items()
     items.sort()
     for option, value in items:
-        value = value.replace('%', '%%')
         value = _spacey_nl.sub(_quote_spacey_nl, value)
         if value.startswith('\n\t'):
             value = '%(__buildout_space_n__)s' + value[2:]
@@ -832,7 +819,7 @@ def _open(base, filename, seen):
 
     result = {}
 
-    parser = ConfigParser.SafeConfigParser()
+    parser = ConfigParser.RawConfigParser()
     parser.optionxform = lambda s: s
     parser.readfp(open(filename))
     extends = extended_by = None
@@ -850,6 +837,9 @@ def _open(base, filename, seen):
             result = _update(_open(base, fname, seen), result)
 
     if extended_by:
+        self._logger.warn(
+            "The extendedBy option is deprecated.  Stop using it."
+            )
         for fname in extended_by.split():
             result = _update(result, _open(base, fname, seen))
 
@@ -886,6 +876,15 @@ def _update(d1, d2):
         else:
             d1[section] = d2[section]
     return d1
+
+def _recipe(options):
+    recipe = options['recipe']
+    if ':' in recipe:
+        recipe, entry = recipe.split(':')
+    else:
+        entry = 'default'
+
+    return recipe, entry
 
 def _error(*message):
     sys.stderr.write('Error: ' + ' '.join(message) +'\n')

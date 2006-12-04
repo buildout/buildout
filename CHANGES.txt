@@ -20,8 +20,33 @@ priorities include:
 Change History
 **************
 
-1.0.0b12 (2006-10-?)
+1.0.0b13 (2006-12-04)
 =====================
+
+Feature Changes
+---------------
+
+- Variable substitutions now reflect option data written by recipes.
+
+- A part referenced by a part in a parts list is now added to the parts
+  list before the referencing part.  This means that you can omit
+  parts from the parts list if they are referenced by other parts.
+
+- Added a develop function to the easy_install module to aid in
+  creating develop eggs with custom build_ext options.
+
+- The build and develop functions in the easy_install module now
+  return the path of the egg or egg link created.
+
+- Removed the limitation that parts named in the install command can
+  only name configured parts.
+
+- Removed support ConfigParser-style variable substitutions
+  (e.g. %(foo)s). Only the string-template style of variable
+  (e.g. ${section:option}) substitutions will be supported.
+  Supporting both violates "there's only one way to do it".
+
+- Deprecated the buildout-section extendedBy option.
 
 Bugs Fixed
 ----------
