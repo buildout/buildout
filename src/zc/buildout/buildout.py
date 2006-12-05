@@ -250,16 +250,15 @@ class Buildout(UserDict.DictMixin):
                 self._logger.info('Uninstalling %s', part)
 
                 # run uinstall recipe
-                recipe = installed_part_options[part].get('uninstall')
-                if recipe:
-                    if ':' in recipe:
-                        recipe, entry = recipe.split(':')
-                    else:
-                        entry = 'default'
-                    self._logger.info('Running uninstall recipe')
+                recipe, entry = _recipe(installed_part_options[part])
+                try:
                     uninstaller = pkg_resources.load_entry_point(
                         recipe, 'zc.buildout.uninstall', entry)
+                    self._logger.info('Running uninstall recipe')
                     uninstaller(part, installed_part_options[part])
+                except (ImportError, pkg_resources.DistributionNotFound):
+                    # no uninstall recipe registered
+                    pass
 
                 # remove created files and directories
                 self._uninstall(
