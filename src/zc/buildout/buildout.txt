@@ -197,7 +197,8 @@ installed.  If the part is uninstalled or reinstalled, then the path
 returned will be removed by the buildout machinery.  A recipe install
 method is expected to return a string, or an iterable of strings
 containing paths to be removed if a part is uninstalled.  For most
-recipes, this is all of the uninstall support needed.
+recipes, this is all of the uninstall support needed. For more complex
+uninstallation scenarios use `Uninstall recipes`_.
 
 The update method is responsible for updating an already installed
 part.  An empty method is often provided, as in this example, if parts
@@ -795,6 +796,238 @@ set the logging level to WARNING
     op3 b2 3
     recipe recipes:debug
 
+Uninstall recipes
+-----------------
+
+As we've seen, when parts are installed, buildout keeps track of files
+and directories that they create. When the parts are uninstalled these
+files and directories are deleted.
+
+Sometimes more clean up is needed. For example, a recipe might add a
+system service by calling chkconfig --add during installation. Later
+during uninstallation, chkconfig --del will need to be called to
+remove the system service.
+
+In order to deal with these uninstallation issues, you can register
+uninstall recipes. Uninstall recipes are registered using the
+'zc.buildout.uninstall' entry point. Parts specify uninstall recipes
+using the 'uninstall' option.
+
+In comparison to regular recipes, uninstall recipes are much
+simpler. They are simply callable objects that accept the name of the
+part to be uninstalled and the part's options dictionary. Uninstall
+recipes don't have access to the part itself since it maybe not be
+able to be instantiated at uninstallation time.
+
+Here's a recipe that simulates installation of a system service, along
+with an uninstall recipe that simulates removing the service.
+
+    >>> write(sample_buildout, 'recipes', 'service.py', 
+    ... """
+    ... class Service:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.buildout = buildout
+    ...         self.name = name
+    ...         self.options = options
+    ...
+    ...     def install(self):
+    ...         print "chkconfig --add %s" % self.options['script']         
+    ...         return ()
+    ...
+    ...     def update(self):
+    ...         pass
+    ...
+    ...
+    ... def uninstall_service(name, options):
+    ...     print "chkconfig --del %s" % options['script']
+    ... """)
+
+To use these recipes we must register them using entry points.
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... entry_points = (
+    ... '''
+    ... [zc.buildout]
+    ... mkdir = mkdir:Mkdir
+    ... debug = debug:Debug
+    ... service = service:Service
+    ...
+    ... [zc.buildout.uninstall]
+    ... uninstall_service = service:uninstall_service
+    ... ''')
+    ... setup(name="recipes", entry_points=entry_points)
+    ... """)
+
+Here's how these recipes could be used in a buildout:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = service
+    ...
+    ... [service]
+    ... recipe = recipes:service
+    ... script = /path/to/script
+    ... uninstall = recipes:uninstall_service
+    ... """)
+
+When the buildout is run the service will be installed
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling debug
+    buildout: Installing service
+    chkconfig --add /path/to/script
+    <BLANKLINE>
+
+The service has been installed. If the buildout is run again with no changes, the serivce shouldn't be changed.
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Updating service
+    <BLANKLINE>
+
+Now we change the service part to trigger uninstallation and
+re-installation.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = service
+    ...
+    ... [service]
+    ... recipe = recipes:service
+    ... script = /path/to/a/different/script
+    ... uninstall = recipes:uninstall_service
+    ... """)
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling service
+    buildout: Running uninstall recipe
+    chkconfig --del /path/to/script
+    buildout: Installing service
+    chkconfig --add /path/to/a/different/script
+    <BLANKLINE>
+
+Now we remove the service part, and add another part.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... 
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling service
+    buildout: Running uninstall recipe
+    chkconfig --del /path/to/a/different/script
+    buildout: Installing debug
+    recipe recipes:debug
+    <BLANKLINE>
+
+Uninstall recipes don't have to take care of removing all the files
+and directories created by the part. This is still done automatically,
+following the execution of the uninstall recipe. An upshot is that an
+uninstallation recipe can access files and directories created by a
+recipe before they are deleted.
+
+For example, here's an uninstallation recipe that simulates backing up
+a directory.
+ 
+    >>> write(sample_buildout, 'recipes', 'backup.py', 
+    ... """
+    ... import os
+    ... def backup_directory(name, options):
+    ...     path = options['path']
+    ...     size = os.stat(path).st_size
+    ...     print "backing up directory %s of size %s" % (path, size) 
+    ... """)
+
+It must be registered with the zc.buildout.uninstall entry point.
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... entry_points = (
+    ... '''
+    ... [zc.buildout]
+    ... mkdir = mkdir:Mkdir
+    ... debug = debug:Debug
+    ... service = service:Service
+    ...
+    ... [zc.buildout.uninstall]
+    ... uninstall_service = service:uninstall_service
+    ... backup = backup:backup_directory
+    ... ''')
+    ... setup(name="recipes", entry_points=entry_points)
+    ... """)
+
+Now we can use it with a part. It's necessary to pick a part that
+defines a 'path' option, since that's what the uninstall recipe
+expects.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = dir debug
+    ... 
+    ... [dir]
+    ... recipe = recipes:mkdir
+    ... uninstall = recipes:backup
+    ... path = my_directory
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
+Run the buildout to install the part.
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling debug
+    buildout: Installing dir
+    dir: Creating directory my_directory
+    buildout: Installing debug
+    recipe recipes:debug
+    <BLANKLINE>
+
+Now we remove the part from the configuration file.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... 
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
+When the buildout is run the part is removed, and the uninstall recipe
+is run before the directory is deleted.
+
+    >>> print system(buildout)
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling dir
+    buildout: Running uninstall recipe
+    backing up directory /sample-buildout/my_directory of size 4096
+    buildout: Updating debug
+    recipe recipes:debug
+    <BLANKLINE>
+
+
 Command-line usage
 ------------------
 
@@ -895,8 +1128,7 @@ the buildout in the usual way:
 
     >>> print system(buildout),
     buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    buildout: Updating debug
     recipe recipes:debug
     buildout: Installing d1
     d1: Creating directory d1

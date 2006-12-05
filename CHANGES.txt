@@ -20,6 +20,15 @@ priorities include:
 Change History
 **************
 
+Unreleased version
+==================
+
+Feature Changes
+---------------
+
+- Added uninstall recipes for dealing with complex uninstallation
+  scenarios.
+
 1.0.0b13 (2006-12-04)
 =====================
 
