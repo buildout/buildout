@@ -248,6 +248,20 @@ class Buildout(UserDict.DictMixin):
 
                 # ununstall part
                 self._logger.info('Uninstalling %s', part)
+
+                # run uinstall recipe
+                recipe = installed_part_options[part].get('uninstall')
+                if recipe:
+                    if ':' in recipe:
+                        recipe, entry = recipe.split(':')
+                    else:
+                        entry = 'default'
+                    self._logger.info('Running uninstall recipe')
+                    uninstaller = pkg_resources.load_entry_point(
+                        recipe, 'zc.buildout.uninstall', entry)
+                    uninstaller(part, installed_part_options[part])
+
+                # remove created files and directories
                 self._uninstall(
                     installed_part_options[part]['__buildout_installed__'])
                 installed_parts = [p for p in installed_parts if p != part]
