@@ -843,7 +843,10 @@ with an uninstall recipe that simulates removing the service.
     ...     print "chkconfig --del %s" % options['script']
     ... """)
 
-To use these recipes we must register them using entry points.
+To use these recipes we must register them using entry points. Make
+sure to use the same name for the recipe and uninstall recipe. This is
+required to let buildout know which uninstall recipe goes with which
+recipe.
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -856,7 +859,7 @@ To use these recipes we must register them using entry points.
     ... service = service:Service
     ...
     ... [zc.buildout.uninstall]
-    ... uninstall_service = service:uninstall_service
+    ... service = service:uninstall_service
     ... ''')
     ... setup(name="recipes", entry_points=entry_points)
     ... """)
@@ -872,7 +875,6 @@ Here's how these recipes could be used in a buildout:
     ... [service]
     ... recipe = recipes:service
     ... script = /path/to/script
-    ... uninstall = recipes:uninstall_service
     ... """)
 
 When the buildout is run the service will be installed
@@ -884,7 +886,8 @@ When the buildout is run the service will be installed
     chkconfig --add /path/to/script
     <BLANKLINE>
 
-The service has been installed. If the buildout is run again with no changes, the serivce shouldn't be changed.
+The service has been installed. If the buildout is run again with no
+changes, the serivce shouldn't be changed.
 
     >>> print system(buildout)
     buildout: Develop: /sample-buildout/recipes
@@ -903,7 +906,6 @@ re-installation.
     ... [service]
     ... recipe = recipes:service
     ... script = /path/to/a/different/script
-    ... uninstall = recipes:uninstall_service
     ... """)
 
     >>> print system(buildout)
@@ -943,7 +945,8 @@ uninstallation recipe can access files and directories created by a
 recipe before they are deleted.
 
 For example, here's an uninstallation recipe that simulates backing up
-a directory.
+a directory before it is deleted. It is designed to work with the
+mkdir recipe introduced earlier.
  
     >>> write(sample_buildout, 'recipes', 'backup.py', 
     ... """
@@ -954,7 +957,9 @@ a directory.
     ...     print "backing up directory %s of size %s" % (path, size) 
     ... """)
 
-It must be registered with the zc.buildout.uninstall entry point.
+It must be registered with the zc.buildout.uninstall entry
+point. Notice how it is given the name 'mkdir' to associate it with
+the mkdir recipe.
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -968,14 +973,12 @@ It must be registered with the zc.buildout.uninstall entry point.
     ...
     ... [zc.buildout.uninstall]
     ... uninstall_service = service:uninstall_service
-    ... backup = backup:backup_directory
+    ... mkdir = backup:backup_directory
     ... ''')
     ... setup(name="recipes", entry_points=entry_points)
     ... """)
 
-Now we can use it with a part. It's necessary to pick a part that
-defines a 'path' option, since that's what the uninstall recipe
-expects.
+Now we can use it with a mkdir part.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -985,7 +988,6 @@ expects.
     ... 
     ... [dir]
     ... recipe = recipes:mkdir
-    ... uninstall = recipes:backup
     ... path = my_directory
     ...
     ... [debug]
@@ -1026,6 +1028,21 @@ is run before the directory is deleted.
     buildout: Updating debug
     recipe recipes:debug
     <BLANKLINE>
+
+Now we will return the registeration to normal for the benefit of the
+rest of the examples.
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... entry_points = (
+    ... '''
+    ... [zc.buildout]
+    ... mkdir = mkdir:Mkdir
+    ... debug = debug:Debug
+    ... ''')
+    ... setup(name="recipes", entry_points=entry_points)
+    ... """)
 
 
 Command-line usage
@@ -1128,7 +1145,8 @@ the buildout in the usual way:
 
     >>> print system(buildout),
     buildout: Develop: /sample-buildout/recipes
-    buildout: Updating debug
+    buildout: Uninstalling debug
+    buildout: Installing debug
     recipe recipes:debug
     buildout: Installing d1
     d1: Creating directory d1
