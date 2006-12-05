@@ -304,7 +304,7 @@ using the -v option.
         zope.testing.testrunner.run((['--tests-pattern', '^f?tests$',
     '-v'
     ]) + [
-      '--test-path', '/tmp/tmpef05fA/_TEST_/sample-buildout/demo',
+      '--test-path', '/sample-buildout/demo',
       ])
 
 Some things to note from this example:
