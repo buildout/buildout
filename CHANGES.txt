@@ -20,7 +20,7 @@ priorities include:
 Change History
 **************
 
-1.0.0b15 (2006-12-05)
+1.0.0b14 (2006-12-05)
 =====================
 
 Feature Changes
