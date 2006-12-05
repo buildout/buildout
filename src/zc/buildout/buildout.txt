@@ -953,7 +953,7 @@ mkdir recipe introduced earlier.
     ... import os
     ... def backup_directory(name, options):
     ...     path = options['path']
-    ...     size = os.stat(path).st_size
+    ...     size = len(os.listdir(path))
     ...     print "backing up directory %s of size %s" % (path, size) 
     ... """)
 
@@ -1024,7 +1024,7 @@ is run before the directory is deleted.
     buildout: Develop: /sample-buildout/recipes
     buildout: Uninstalling dir
     buildout: Running uninstall recipe
-    backing up directory /sample-buildout/my_directory of size 4096
+    backing up directory /sample-buildout/my_directory of size 0
     buildout: Updating debug
     recipe recipes:debug
     <BLANKLINE>
