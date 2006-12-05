@@ -20,14 +20,23 @@ priorities include:
 Change History
 **************
 
-Unreleased version
-==================
+1.0.0b15 (2006-12-05)
+=====================
 
 Feature Changes
 ---------------
 
 - Added uninstall recipes for dealing with complex uninstallation
   scenarios.
+
+Bugs Fixed
+----------
+
+- Automatic upgrades weren't performed on Windows due to a bug that
+  caused buildout to incorrectly determine that it wasn't running
+  locally in a buildout.
+
+- Fixed some spurious test failures on Windows.
 
 1.0.0b13 (2006-12-04)
 =====================
