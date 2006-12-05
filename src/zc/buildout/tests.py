@@ -730,7 +730,7 @@ existing setup.cfg:
     >>> zc.buildout.easy_install.develop(
     ...   extdemo, dest, 
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')})
-    '/tmp/tmp7AFYXv/_TEST_/dest/extdemo.egg-link'
+    '/dest/extdemo.egg-link'
 
     >>> ls(dest)
     -  extdemo.egg-link
@@ -975,6 +975,7 @@ def test_suite():
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                normalize_bang,
+               (re.compile('extdemo[.]pyd'), 'extdemo.so')
                ]),
             ),
         doctest.DocTestSuite(
@@ -986,7 +987,6 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                (re.compile("buildout: Running \S*setup.py"),
                 'buildout: Running setup.py'),
-               (re.compile('py_zc'), 'py-zc'), # XXX get rid of after next rel
                (re.compile('setuptools-\S+-'),
                 'setuptools.egg'),
                (re.compile('zc.buildout-\S+-'),
