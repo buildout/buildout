@@ -298,7 +298,7 @@ TWO to be defined.  This will cause the module-variable, 'val', to be
 set with a value of 2.
 
     >>> print system(buildout),
-    buildout: Develop: /tmp/tmpCXjRps/_TEST_/sample-buildout/demo
+    buildout: Develop: /sample-buildout/demo
     buildout: Uninstalling extdemo
     buildout: Installing extdemo
     buildout: Updating demo
