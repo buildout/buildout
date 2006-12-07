@@ -92,7 +92,7 @@ number of names to the test namespace:
 ``bdist_egg(setup, executable, dest)``
     Create an egg by running the given setup file with the given
     Python executable and placing the result in the given destination
-    directory.  If the setup argument is a directory, the thge
+    directory.  If the setup argument is a directory, then the
     setup.py file in that directory is used.
 
 ``find_python(version)``

@@ -1749,7 +1749,7 @@ Extensions
 ----------
 
 An **experimental** feature allows code to be loaded and run after
-condiguration files have been read but before the buildout has begun
+configuration files have been read but before the buildout has begun
 any processing.  The intent is to allow special plugins such as
 urllib2 request handlers to be loaded.
 
@@ -1811,7 +1811,7 @@ the network, we wouldn't need to do anything special.
     ... parts =
     ... """)
    
-We see that out extension is loaded and executed:
+We see that our extension is loaded and executed:
 
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ext ['buildout']
