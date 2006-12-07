@@ -562,17 +562,18 @@ class Buildout(UserDict.DictMixin):
     def _load_extensions(self):
         specs = self['buildout'].get('extensions', '').split()
         if specs:
+            path = [self['buildout']['develop-eggs-directory']]
             if self['buildout'].get('offline') == 'true':
                 dest = None
+                path.append(self['buildout']['eggs-directory'])
             else:
                 dest = self['buildout']['eggs-directory']
                 if not os.path.exists(dest):
                     self._logger.info('Creating directory %s', dest)
                     os.mkdir(dest)
-                    
+
             zc.buildout.easy_install.install(
-                specs, dest,
-                path=[self['buildout']['develop-eggs-directory']],
+                specs, dest, path=path,
                 working_set=pkg_resources.working_set,
                 )
             for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
