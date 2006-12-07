@@ -773,6 +773,22 @@ delimiter.)
     op7 7
     recipe recipes:debug
 
+A buildout command-line argument, -U, can be used to suppress reading
+user defaults:
+
+    >>> print system(buildout + ' -U'),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling debug
+    buildout: Installing debug
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
     >>> del os.environ['HOME']
 
 Log level
@@ -1051,7 +1067,7 @@ Command-line usage
 A number of arguments can be given on the buildout command line.  The
 command usage is::
 
-  buildout [-h] [-c file] [-q] [-v] [assignments] [command [command arguments]]
+  buildout [-h] [-c file] [-q] [-v] [-U] [assignments] [command [command arguments]]
 
 The -h (or --help) option causes basic usage information to be
 printed.  If this option is used, then all other options are ignored.
@@ -1063,6 +1079,8 @@ The -q and -v decrement and increment the verbosity by 10.  The
 verbosity is used to adjust the logging level.  The verbosity is
 subtracted from the numeric value of the log-level option specified in
 the configuration file.
+
+The -U option suppresses reading user defaults.
 
 Assignments are of the form::
 
@@ -1592,6 +1610,48 @@ network access.  This is handy when running the buildout when not
 connected to the internet.  It also makes buildouts run much
 faster. This option is typically given as a command-line option
 ``buildout:offline=true``.
+
+Controlling the installation database
+-------------------------------------
+
+The buildout installed uption is used to specify the file used to save
+information on installed parts.  This option is initialized to
+".installed.cfg", but it can be overridded in the configuration file
+or on the command line:
+
+    >>> os.remove('.installed.cfg')
+    >>> print system(buildout+' buildout:installed=inst.cfg'),
+
+    >>> ls(sample_buildout)
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    -  inst.cfg
+    d  parts
+    d  recipes
+
+
+The installation database can be disabled by supplying an empty
+buildout installed opttion:
+
+    >>> os.remove('inst.cfg')
+    >>> print system(buildout+' buildout:installed='),
+
+    >>> ls(sample_buildout)
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    d  recipes
+
 
 Extensions
 ----------

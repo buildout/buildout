@@ -56,7 +56,8 @@ class MissingSection(zc.buildout.UserError, KeyError):
 
 class Buildout(UserDict.DictMixin):
 
-    def __init__(self, config_file, cloptions, windows_restart=False):
+    def __init__(self, config_file, cloptions,
+                 user_defaults=True, windows_restart=False):
         config_file = os.path.abspath(config_file)
         self._config_file = config_file
         self.__windows_restart = windows_restart
@@ -79,7 +80,7 @@ class Buildout(UserDict.DictMixin):
             })
 
         # load user defaults, which override defaults
-        if 'HOME' in os.environ:
+        if user_defaults and 'HOME' in os.environ:
             user_config = os.path.join(os.environ['HOME'],
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
@@ -112,8 +113,9 @@ class Buildout(UserDict.DictMixin):
             d = self._buildout_path(options[name+'-directory'])
             options[name+'-directory'] = d
 
-        options['installed'] = os.path.join(options['directory'],
-                                            options['installed'])
+        if options['installed']:
+            options['installed'] = os.path.join(options['directory'],
+                                                options['installed'])
 
         self._setup_logging()
 
@@ -394,8 +396,8 @@ class Buildout(UserDict.DictMixin):
             options['__buildout_signature__'] = ' '.join(sig)
 
     def _read_installed_part_options(self):
-        old = self._installed_path()
-        if os.path.isfile(old):
+        old = self['buildout']['installed']
+        if old and os.path.isfile(old):
             parser = ConfigParser.RawConfigParser()
             parser.optionxform = lambda s: s
             parser.read(old)
@@ -412,9 +414,6 @@ class Buildout(UserDict.DictMixin):
             return result
         else:
             return {'buildout': Options(self, 'buildout', {'parts': ''})}
-
-    def _installed_path(self):        
-        return self._buildout_path(self['buildout']['installed'])
 
     def _uninstall(self, installed):
         for f in installed.split('\n'):
@@ -443,7 +442,10 @@ class Buildout(UserDict.DictMixin):
 
 
     def _save_installed_options(self, installed_options):
-        f = open(self._installed_path(), 'w')
+        installed = self['buildout']['installed']
+        if not installed:
+            return
+        f = open(installed, 'w')
         _save_options('buildout', installed_options['buildout'], f)
         for part in installed_options['buildout']['parts'].split():
             print >>f
@@ -919,6 +921,10 @@ Options:
      This defaults to the file named "buildout.cfg" in the current
      working directory.
 
+  -U
+
+     Don't read user defaults.
+
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -953,17 +959,20 @@ def main(args=None):
     verbosity = 0
     options = []
     windows_restart = False
+    user_defaults = True
     while args:
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhW':
+            while op and op[0] in 'vqhWU':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
                     verbosity -= 10
                 elif op[0] == 'W':
                     windows_restart = True
+                elif op[0] == 'U':
+                    user_defaults = False
                 else:
                     _help()
                 op = op[1:]
@@ -1004,7 +1013,8 @@ def main(args=None):
 
     try:
         try:
-            buildout = Buildout(config_file, options, windows_restart)
+            buildout = Buildout(config_file, options,
+                                user_defaults, windows_restart)
             getattr(buildout, command)(args)
         except zc.buildout.UserError, v:
             _error(str(v))

@@ -399,6 +399,10 @@ Options:
      This defaults to the file named "buildout.cfg" in the current
      working directory.
 <BLANKLINE>
+  -U
+<BLANKLINE>
+     Don't read user defaults.
+<BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -445,6 +449,10 @@ Options:
      Specify the path to the buildout configuration file to be used.
      This defaults to the file named "buildout.cfg" in the current
      working directory.
+<BLANKLINE>
+  -U
+<BLANKLINE>
+     Don't read user defaults.
 <BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
