@@ -25,6 +25,7 @@ import shutil
 import cStringIO
 import sys
 import tempfile
+import urllib2
 import ConfigParser
 import UserDict
 
@@ -41,6 +42,7 @@ except AttributeError:
 pkg_resources_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
 
+_isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
 class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing
@@ -58,16 +60,11 @@ class Buildout(UserDict.DictMixin):
 
     def __init__(self, config_file, cloptions,
                  user_defaults=True, windows_restart=False):
-        config_file = os.path.abspath(config_file)
-        self._config_file = config_file
+
         self.__windows_restart = windows_restart
-        if not os.path.exists(config_file):
-            print 'Warning: creating', config_file
-            open(config_file, 'w').write('[buildout]\nparts = \n')
 
         # default options
         data = dict(buildout={
-            'directory': os.path.dirname(config_file),
             'eggs-directory': 'eggs',
             'develop-eggs-directory': 'develop-eggs',
             'bin-directory': 'bin',
@@ -78,6 +75,16 @@ class Buildout(UserDict.DictMixin):
             'log-level': 'INFO',
             'log-format': '%(name)s: %(message)s',
             })
+
+        if not _isurl(config_file):
+            config_file = os.path.abspath(config_file)
+            base = os.path.dirname(config_file)
+            if not os.path.exists(config_file):
+                print 'Warning: creating', config_file
+                open(config_file, 'w').write('[buildout]\nparts = \n')
+            data['buildout']['directory'] = os.path.dirname(config_file)
+        else:
+            base = None
 
         # load user defaults, which override defaults
         if user_defaults and 'HOME' in os.environ:
@@ -97,6 +104,7 @@ class Buildout(UserDict.DictMixin):
                 options = self[section] = {}
             options[option] = value
                 # The egg dire
+
 
         self._raw = data
         self._data = {}
@@ -822,8 +830,6 @@ def _save_options(section, options, f):
         if value.endswith('\n\t'):
             value = value[:-2] + '%(__buildout_space_n__)s'
         print >>f, option, '=', value
-            
-    
 
 def _open(base, filename, seen):
     """Open a configuration file and return the result as a dictionary,
@@ -831,18 +837,32 @@ def _open(base, filename, seen):
     Recursively open other files based on buildout options found.
     """
 
-    filename = os.path.join(base, filename)
+    if _isurl(filename):
+        fp = urllib2.urlopen(filename)
+        base = filename[:filename.rfind('/')]
+    elif _isurl(base):
+        if os.path.isabs(filename):
+            fp = open(filename)
+            base = os.path.dirname(filename)
+        else:
+            filename = base + '/' + filename
+            fp = urllib2.urlopen(filename)
+            base = filename[:filename.rfind('/')]
+    else:
+        filename = os.path.join(base, filename)
+        fp = open(filename)
+        base = os.path.dirname(filename)
+
     if filename in seen:
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
-    base = os.path.dirname(filename)
     seen.append(filename)
 
     result = {}
 
     parser = ConfigParser.RawConfigParser()
     parser.optionxform = lambda s: s
-    parser.readfp(open(filename))
+    parser.readfp(fp)
     extends = extended_by = None
     for section in parser.sections():
         options = dict(parser.items(section))

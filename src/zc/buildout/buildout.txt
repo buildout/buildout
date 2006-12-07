@@ -741,6 +741,98 @@ There are several things to note about this example:
 - Relative file names in extended options are interpreted relative to
   the directory containing the referencing configuration file.
 
+Loading Configuration from URLs
+-------------------------------
+
+Configuration files can be loaded from URLs.  To see how this works,
+we'll set up a web server with some configuration files.
+
+    >>> server_data = tmpdir('server_data')
+
+    >>> write(server_data, "r1.cfg",
+    ... """
+    ... [debug]
+    ... op1 = r1 1
+    ... op2 = r1 2
+    ... """)
+
+    >>> write(server_data, "r2.cfg",
+    ... """
+    ... [buildout]
+    ... extends = r1.cfg
+    ... 
+    ... [debug]
+    ... op2 = r2 2
+    ... op3 = r2 3
+    ... """)
+
+    >>> server_url = start_server(server_data)
+
+    >>> write('client.cfg', 
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... extends = %(url)s/r2.cfg
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = base
+    ... """ % dict(url=server_url))
+
+
+    >>> print system(buildout+ ' -c client.cfg'),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling debug
+    buildout: Installing debug
+    name base
+    op1 r1 1
+    op2 r2 2
+    op3 r2 3
+    recipe recipes:debug
+
+Here we specified a URL for the file we extended.  The file we
+downloaded, itself refered to a file on the server using a relative
+URL reference.  Relative references are interpreted relative to the
+base URL when they appear in configuration files loaded via URL.
+
+We can also specify a URL as the configuration file to be used by a
+buildout.  
+
+    >>> os.remove('client.cfg')
+    >>> write(server_data, 'remote.cfg', 
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... extends = r2.cfg
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = remote
+    ... """)
+
+    >>> print system(buildout + ' -c ' + server_url + '/remote.cfg'),
+    Error: Missing option: buildout:directory
+
+Normally, the buildout directory defaults to directory
+containing a configuration file.  This won't work for configuration
+files loaded from URLs.  In this case, the buildout directory would
+normally be defined on the command line:
+
+    >>> print system(buildout
+    ...              + ' -c ' + server_url + '/remote.cfg'
+    ...              + ' buildout:directory=' + sample_buildout
+    ...              ),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling debug
+    buildout: Installing debug
+    name remote
+    op1 r1 1
+    op2 r2 2
+    op3 r2 3
+    recipe recipes:debug
+
 User defaults
 -------------
 
