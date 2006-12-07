@@ -789,7 +789,7 @@ Uninstall recipes need to be called when a part is removed too:
     ... ''')
 
     >>> print system(join('bin', 'buildout')),
-    buildout: Develop: /tmp/tmpnTSVbq/_TEST_/sample-buildout/recipes
+    buildout: Develop: /sample-buildout/recipes
     buildout: Installing demo
     installing
 
