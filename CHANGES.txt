@@ -23,6 +23,15 @@ Change History
 1.0.0b15 (2006-12-07)
 =====================
 
+Feature Changes
+---------------
+
+- A new command-line argument, -U, suppresses reading user defaults.
+
+- You can now suppress use of an installed-part database
+  (e.g. .installed.cfg) by sprifying an empty value for the buildout
+  installed option.
+
 Bugs Fixed
 ----------
 
