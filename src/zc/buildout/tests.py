@@ -826,6 +826,44 @@ Uninstall recipes need to be called when a part is removed too:
 
 """
 
+def extensions_installed_as_eggs_work_in_offline_mode():
+    '''
+    >>> mkdir('demo')
+
+    >>> write('demo', 'demo.py', 
+    ... """
+    ... def ext(buildout):
+    ...     print 'ext', list(buildout)
+    ... """)
+
+    >>> write('demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(
+    ...     name = "demo",
+    ...     py_modules=['demo'],
+    ...     entry_points = {'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+    >>> bdist_egg(join(sample_buildout, "demo"), sys.executable,
+    ...           join(sample_buildout, "eggs"))
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extensions = demo
+    ... parts =
+    ... offline = true
+    ... """)
+
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    ext ['buildout']
+    
+
+    '''
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
