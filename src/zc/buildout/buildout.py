@@ -156,7 +156,7 @@ class Buildout(UserDict.DictMixin):
             ['zc.buildout'], ws, sys.executable,
             self['buildout']['bin-directory'])
 
-    def install(self, install_parts):
+    def install(self, install_args):
         self._load_extensions()
         self._setup_directories()
 
@@ -185,7 +185,8 @@ class Buildout(UserDict.DictMixin):
         installed_parts = installed_part_options['buildout']['parts']
         installed_parts = installed_parts and installed_parts.split() or []
         
-        if install_parts:
+        if install_args:
+            install_parts = install_args
             uninstall_missing = False
         else:
             install_parts = conf_parts
@@ -193,7 +194,8 @@ class Buildout(UserDict.DictMixin):
 
         # load and initialize recipes
         [self[part]['recipe'] for part in install_parts]
-        install_parts = self._parts
+        if not install_args:
+            install_parts = self._parts
 
         if self._log_level <= logging.DEBUG:
             sections = list(self)

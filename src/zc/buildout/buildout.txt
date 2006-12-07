@@ -1115,9 +1115,8 @@ argument.
     >>> os.remove(os.path.join(sample_buildout, 'other.cfg'))
     >>> os.remove(os.path.join(sample_buildout, '.other.cfg'))
 
-The most commonly used command is 'install' and it takes a
-list of parts to install. if any parts are specified, then they must
-be listed in the buildout parts option and only those parts are
+The most commonly used command is 'install' and it takes a list of
+parts to install. if any parts are specified, only those parts are
 installed.  To illustrate this, we'll update our configuration and run
 the buildout in the usual way:
 
@@ -1216,7 +1215,7 @@ Now we'll update our configuration file:
     ...
     ... [d4]
     ... recipe = recipes:mkdir
-    ... path = data4
+    ... path = ${d2:path}-extra
     ...
     ... [debug]
     ... recipe = recipes:debug
@@ -1231,7 +1230,7 @@ and run the buildout specifying just d3 and d4:
     buildout: Installing d3
     d3: Creating directory data3
     buildout: Installing d4
-    d4: Creating directory data4
+    d4: Creating directory data2-extra
     
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -1242,14 +1241,14 @@ and run the buildout specifying just d3 and d4:
     -  buildout.cfg
     d  d1
     d  d2
+    d  data2-extra
     d  data3
-    d  data4
     d  develop-eggs
     d  eggs
     d  parts
     d  recipes
     
-Only the d3 and d4 recipes ran.  d3 was removed and data3 and data4
+Only the d3 and d4 recipes ran.  d3 was removed and data3 and data2-extra
 were created.
 
 The .installed.cfg is only updated for the recipes that ran:
@@ -1283,9 +1282,9 @@ The .installed.cfg is only updated for the recipes that ran:
     recipe = recipes:mkdir
     <BLANKLINE>
     [d4]
-    __buildout_installed__ = /sample-buildout/data4
+    __buildout_installed__ = /sample-buildout/data2-extra
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
-    path = /sample-buildout/data4
+    path = /sample-buildout/data2-extra
     recipe = recipes:mkdir
 
 Note that the installed data for debug, d1, and d2 haven't changed,
@@ -1318,8 +1317,8 @@ also see that d1 and d2 have gone away:
     d  bin
     -  buildout.cfg
     d  data2
+    d  data2-extra
     d  data3
-    d  data4
     d  develop-eggs
     d  eggs
     d  parts
