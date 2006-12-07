@@ -754,7 +754,79 @@ existing setup.cfg:
     define = X,Y
 
 """
-    
+
+def uninstall_recipes_used_for_removal():
+    """
+Uninstall recipes need to be called when a part is removed too:
+
+    >>> mkdir("recipes")
+    >>> write("recipes", "setup.py",
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipes',
+    ...       entry_points={
+    ...          'zc.buildout': ["demo=demo:Install"],
+    ...          'zc.buildout.uninstall': ["demo=demo:uninstall"],
+    ...          })
+    ... ''')
+
+    >>> write("recipes", "demo.py",
+    ... '''
+    ... class Install:
+    ...     def __init__(*args): pass
+    ...     def install(self):
+    ...         print 'installing'
+    ...         return ()
+    ... def uninstall(name, options): print 'uninstalling'
+    ... ''')
+
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = demo
+    ... [demo]
+    ... recipe = recipes:demo
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /tmp/tmpnTSVbq/_TEST_/sample-buildout/recipes
+    buildout: Installing demo
+    installing
+
+
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = demo
+    ... [demo]
+    ... recipe = recipes:demo
+    ... x = 1
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling demo
+    buildout: Running uninstall recipe
+    uninstalling
+    buildout: Installing demo
+    installing
+
+
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = 
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling demo
+    buildout: Running uninstall recipe
+    uninstalling
+
+"""
+
+######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
     write = test.globs['write']
