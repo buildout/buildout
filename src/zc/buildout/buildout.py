@@ -291,7 +291,7 @@ class Buildout(UserDict.DictMixin):
                         update = recipe.install
                         self._logger.warning(
                             "The recipe for %s doesn't define an update "
-                            "method. Using its install method",
+                            "method. Using its install method.",
                             part)
 
                     try:
