@@ -28,8 +28,10 @@ positional arguments:
 - An iterable of setuptools requirement strings for the distributions
   to be installed, and
 
-- A destination directory to install to and to satisfy
-  requirements from.
+- A destination directory to install to and to satisfy requirements
+  from.  The destination directory can be None, in which case, no new
+  distributions are downloaded and there will be an error if the
+  needed distributions can't be found amoung those already installed.
 
 It supports a number of optional keyword arguments:
 
@@ -59,6 +61,12 @@ path
 always_unzip
    A flag indicating that newly-downloaded distributions should be
    directories even if they could be installed as zip files.
+
+working_set
+   An exsiting working set to be augmented with additional
+   distributions, if necessary to satisfy requirements.  This allows
+   you to call install multiple times, if necessary, to gather
+   multiple sets of requirements.
 
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
