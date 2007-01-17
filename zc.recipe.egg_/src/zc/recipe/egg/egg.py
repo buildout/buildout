@@ -133,6 +133,8 @@ class Scripts(Eggs):
                 scripts=scripts,
                 extra_paths=self.extra_paths,
                 interpreter=options.get('interpreter'),
+                initialization=options.get('initialization', ''),
+                arguments=options.get('arguments', ''),
                 )
 
         return ()
