@@ -19,7 +19,7 @@ $Id$
 import logging, os, re, zipfile
 import zc.buildout.easy_install
 
-class Egg:
+class Eggs(object):
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
@@ -39,18 +39,12 @@ class Egg:
             options['index'] = index
         self.index = index
 
-        self.extra_paths = [
-            os.path.join(buildout['buildout']['directory'], p.strip())
-            for p in options.get('extra-paths', '').split('\n')
-            if p.strip()
-            ]
-        if self.extra_paths:
-            options['extra-paths'] = '\n'.join(self.extra_paths)
-
-        options['_b'] = buildout['buildout']['bin-directory']
-        options['_e'] = buildout['buildout']['eggs-directory']
-        options['_d'] = buildout['buildout']['develop-eggs-directory']
-
+        options['eggs-directory'] = buildout['buildout']['eggs-directory']
+        options['_e'] = options['eggs-directory'] # backward compat.
+        options['develop-eggs-directory'
+                ] = buildout['buildout']['develop-eggs-directory']
+        options['_d'] = options['develop-eggs-directory'] # backward compat.
+        
         assert options.get('unzip') in ('true', 'false', None)
 
         python = options.get('python', buildout['buildout']['python'])
@@ -73,19 +67,41 @@ class Egg:
         if self.buildout['buildout'].get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
-                [options['_d'], options['_e']]
+                [options['develop-eggs-directory'], options['eggs-directory']]
                 )
         else:
             ws = zc.buildout.easy_install.install(
-                distributions, options['_e'],
+                distributions, options['eggs-directory'],
                 links = self.links,
                 index = self.index, 
                 executable = options['executable'],
                 always_unzip=options.get('unzip') == 'true',
-                path=[options['_d']]
+                path=[options['develop-eggs-directory']]
                 )
 
         return orig_distributions, ws
+
+    def install(self):
+        reqs, ws = self.working_set()
+        return ()
+
+    update = install
+
+class Scripts(Eggs):
+
+    def __init__(self, buildout, name, options):
+        super(Scripts, self).__init__(buildout, name, options)
+
+        options['bin-directory'] = buildout['buildout']['bin-directory']
+        options['_b'] = options['bin-directory'] # backward compat.
+
+        self.extra_paths = [
+            os.path.join(buildout['buildout']['directory'], p.strip())
+            for p in options.get('extra-paths', '').split('\n')
+            if p.strip()
+            ]
+        if self.extra_paths:
+            options['extra-paths'] = '\n'.join(self.extra_paths)
 
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
@@ -113,7 +129,7 @@ class Egg:
 
             return zc.buildout.easy_install.scripts(
                 reqs, ws, options['executable'],
-                options['_b'],
+                options['bin-directory'],
                 scripts=scripts,
                 extra_paths=self.extra_paths,
                 interpreter=options.get('interpreter'),
@@ -122,3 +138,5 @@ class Egg:
         return ()
 
     update = install
+
+Egg = Scripts

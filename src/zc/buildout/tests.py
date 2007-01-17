@@ -984,7 +984,7 @@ def makeNewRelease(project, ws, dest):
             )
         zip.close()
     else:
-        shutil.copy(dist.location, dest)
+        shutil.copytree(dist.location, dest)
         info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
         info = open(info_path).read().replace("Version: %s" % oldver, 
                                               "Version: 99.99")
@@ -1057,7 +1057,7 @@ def test_suite():
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile('executable = \S+python\S*'),
                 'executable = python'),
-               (re.compile('setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
@@ -1080,6 +1080,7 @@ def test_suite():
                 '\\1.egg'),
                (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
                 '\\1 V.V'),
+               (re.compile('[-d]  setuptools'), '-  setuptools'),
                ])
             ),
         
