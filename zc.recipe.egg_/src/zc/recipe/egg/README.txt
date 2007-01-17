@@ -144,6 +144,14 @@ interpreter
 extra-paths
    Extra paths to include in a generates script.
 
+initialization
+   Specify some Python initialization code.  This is very limited.  In
+   particular, be aware that leading whitespace is stripped from the
+   code given.
+
+arguments
+   Specify some arguments to be passed to entry points as Python source.
+
 Let's add an interpreter option:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -326,6 +334,60 @@ Let's look at the script that was generated:
     <BLANKLINE>
     if __name__ == '__main__':
         eggrecipedemo.main()
+
+Specifying initialialization code and arguments
+-----------------------------------------------
+
+Sometimes, we ned to do more than just calling entry points.  We can
+use the initialialization and arguments options to specify extra code
+to be included in generated scripts:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = demo=foo
+    ... extra-paths =
+    ...    /foo/bar
+    ...    /spam/eggs
+    ... initialization = a = (1, 2
+    ...                       3, 4)
+    ... arguments = a, 2
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+
+    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/tmp/tmpmypJLx/_TEST_/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/tmp/tmpmypJLx/_TEST_/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/foo/bar',
+      '/spam/eggs',
+      ]
+    <BLANKLINE>
+    a = (1, 2
+    3, 4)
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main(a, 2)
+
+Here we see that the initialization code we specified was added after
+setting the path.  Note, as mentioennd above, that leading whitespace
+has been stripped.  Similarly, the argument code we specified was
+added in the entry point call (to main).
 
 Specifying entry points
 -----------------------
