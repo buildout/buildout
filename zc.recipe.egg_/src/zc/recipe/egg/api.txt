@@ -23,7 +23,7 @@ around the egg recipe:
     ... class Sample:
     ...
     ...     def __init__(self, buildout, name, options):
-    ...         self.egg = zc.recipe.egg.Egg(buildout, name, options)
+    ...         self.egg = zc.recipe.egg.Scripts(buildout, name, options)
     ...         self.name = name
     ...         self.options = options
     ...
@@ -108,7 +108,10 @@ computed by the egg recipe by looking at .installed.cfg:
     _b = /sample-buildout/bin
     _d = /sample-buildout/develop-eggs
     _e = /sample-buildout/eggs
+    bin-directory = /sample-buildout/bin
+    develop-eggs-directory = /sample-buildout/develop-eggs
     eggs = demo<0.3
+    eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
     extras = other
     find-links = http://localhost:27071/
@@ -146,3 +149,4 @@ recipe instance:
     other 1.0
     demoneeded 1.1
     extra paths: ['/foo/bar', '/spam/eggs']
+

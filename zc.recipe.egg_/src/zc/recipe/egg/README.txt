@@ -1,7 +1,7 @@
 Installation of distributions as eggs
 =====================================
 
-The zc.recipe.egg recipe can be used to install various types if
+The zc.recipe.egg:eggs recipe can be used to install various types if
 distutils distributions as eggs.  It takes a number of options:
 
 eggs
@@ -29,28 +29,6 @@ python
    Python executable is found in the executable option of the named
    section.
 
-entry-points
-   A list of entry-point identifiers of the form name=module#attrs,
-   name is a script name, module is a module name, and a attrs is a
-   (possibly dotted) name of an object wihin the module.  This option
-   is useful when working with distributions that don't declare entry
-   points, such as distributions not written to work with setuptools.
-
-scripts
-   Control which scripts are generated.  The value should be a list of
-   zero or more tokens.  Each token is either a name, or a name
-   followed by an '=' and a new name.  Only the named scripts are
-   generated.  If no tokens are given, then script generation is
-   disabled.  If the option isn't given at all, then all scripts
-   defined by the named eggs will be generated.
-
-interpreter
-   The name of a script to generate that allows access to a Python
-   interpreter that has the path set based on the eggs installed.
-
-extra-paths
-   Extra paths to include in a generates script.
-
 We have a link server that has a number of distributions:
 
     >>> print get(link_server),
@@ -65,7 +43,6 @@ We have a link server that has a number of distributions:
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
 
-
 We have a sample buildout.  Let's update it's configuration file to
 install the demo package.
 
@@ -75,7 +52,7 @@ install the demo package.
     ... parts = demo
     ...
     ... [demo]
-    ... recipe = zc.recipe.egg
+    ... recipe = zc.recipe.egg:eggs
     ... eggs = demo<0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
@@ -113,15 +90,59 @@ a regular egg installation.)
 Script generation
 -----------------
 
-The demo egg also defined a script and we see that the script was
-installed as well:
+The demo egg defined a script, but we didn't get one installed:
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+If we want scripts provided by eggs to be installed, we should use the 
+scripts recipe:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg:scripts
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    buildout: Uninstalling demo
+    buildout: Installing demo
+
+Now we also see the script defined by the dmo script:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
     -  demo
 
-Here, in addition to the buildout script, we see the demo script,
-demo.
+The scripts recipe defines some additional options:
+
+entry-points
+   A list of entry-point identifiers of the form name=module#attrs,
+   name is a script name, module is a module name, and a attrs is a
+   (possibly dotted) name of an object wihin the module.  This option
+   is useful when working with distributions that don't declare entry
+   points, such as distributions not written to work with setuptools.
+
+scripts
+   Control which scripts are generated.  The value should be a list of
+   zero or more tokens.  Each token is either a name, or a name
+   followed by an '=' and a new name.  Only the named scripts are
+   generated.  If no tokens are given, then script generation is
+   disabled.  If the option isn't given at all, then all scripts
+   defined by the named eggs will be generated.
+
+interpreter
+   The name of a script to generate that allows access to a Python
+   interpreter that has the path set based on the eggs installed.
+
+extra-paths
+   Extra paths to include in a generates script.
 
 Let's add an interpreter option:
 
@@ -138,6 +159,10 @@ Let's add an interpreter option:
     ... interpreter = py-demo
     ... """ % dict(server=link_server))
 
+Note that we ommitted the entry point name from the recipe
+specification. We were able to do this because the scripts recipe if
+the default entry point for the zc.recipe.egg egg.
+
     >>> print system(buildout),
     buildout: Uninstalling demo
     buildout: Installing demo
@@ -150,7 +175,6 @@ This is useful for debugging and testing.
     -  buildout
     -  demo
     -  py-demo
-
 
 If we run the demo script, it prints out some minimal data:
 

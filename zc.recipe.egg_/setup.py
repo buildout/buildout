@@ -41,8 +41,10 @@ setup(
     install_requires = ['zc.buildout >=1.0.0b3', 'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
-    entry_points = {'zc.buildout': ['default = %s:Egg' % name,
-                                    'script = %s:Egg' % name,
+    entry_points = {'zc.buildout': ['default = %s:Scripts' % name,
+                                    'script = %s:Scripts' % name,
+                                    'scripts = %s:Scripts' % name,
+                                    'eggs = %s:Eggs' % name,
                                     'custom = %s:Custom' % name,
                                     'develop = %s:Develop' % name,
                                     ]
