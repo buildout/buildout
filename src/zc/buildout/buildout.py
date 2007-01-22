@@ -889,9 +889,11 @@ def _open(base, filename, seen):
     return result
     
 
+ignore_directories = '.svn', 'CVS'
 def _dir_hash(dir):
     hash = md5.new()
     for (dirpath, dirnames, filenames) in os.walk(dir):
+        dirnames[:] = [n for n in dirnames if n not in ignore_directories]
         filenames[:] = [f for f in filenames
                         if not (f.endswith('pyc') or f.endswith('pyo'))
                         ]
@@ -998,7 +1000,7 @@ def main(args=None):
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWU':
+            while op and op[0] in 'vqhWUo':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1007,6 +1009,8 @@ def main(args=None):
                     windows_restart = True
                 elif op[0] == 'U':
                     user_defaults = False
+                elif op[0] == 'o':
+                    options.append(('buildout', 'offline', 'true'))
                 else:
                     _help()
                 op = op[1:]

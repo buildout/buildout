@@ -1159,20 +1159,32 @@ Command-line usage
 A number of arguments can be given on the buildout command line.  The
 command usage is::
 
-  buildout [-h] [-c file] [-q] [-v] [-U] [assignments] [command [command arguments]]
+  buildout [options and assignments] [command [command arguments]]
 
-The -h (or --help) option causes basic usage information to be
-printed.  If this option is used, then all other options are ignored.
+The following options are supported:
 
-The -c option can be used to specify a configuration file, rather than
-buildout.cfg in the current directory.  
+-h (or --help)
+    Print basic usage information.  If this option is used, then all
+    other options are ignored.
 
-The -q and -v decrement and increment the verbosity by 10.  The
-verbosity is used to adjust the logging level.  The verbosity is
-subtracted from the numeric value of the log-level option specified in
-the configuration file.
+-c filename
+    The -c option can be used to specify a configuration file, rather than
+    buildout.cfg in the current directory.  
 
-The -U option suppresses reading user defaults.
+-v
+    Increment the verbosity by 10.  The verbosity is used to adjust
+    the logging level.  The verbosity is subtracted from the numeric
+    value of the log-level option specified in the configuration file.
+
+-q
+    Decrement the verbosity by 10.
+
+-U
+    Don't read user-default configuration.
+
+-o
+    Run in off-line mode.  This is equivalent to the assignment 
+    buildout:offline=true.
 
 Assignments are of the form::
 
