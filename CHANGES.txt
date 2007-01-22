@@ -20,7 +20,7 @@ priorities include:
 Change History
 **************
 
-1.0.0b18 (2007-01-??)
+1.0.0b18 (2007-01-22)
 =====================
 
 Feature Changes
@@ -29,8 +29,14 @@ Feature Changes
 - Added documentation for some previously undocumented features of the 
   easy_install APIs.
 
+- By popular demand, added a -o command-line option that is a short
+  hand for the assignment buildout:offline=true.
+
 Bugs Fixed
 ----------
+
+- When deciding whether recipe develop eggs had changed, buildout
+  incorrectly considered files in .svn and CVS directories.
 
 1.0.0b17 (2006-12-07)
 =====================

@@ -864,6 +864,67 @@ def extensions_installed_as_eggs_work_in_offline_mode():
 
     '''
 
+def changes_in_svn_or_CVS_dont_affect_sig():
+    """
+    
+If we have a develop recipe, it's signature shouldn't be affected to
+changes in .svn or CVS directories.
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipe',
+    ...       entry_points={'zc.buildout': ['default=foo:Foo']})
+    ... ''')
+    >>> write('recipe', 'foo.py',
+    ... '''
+    ... class Foo:
+    ...     def __init__(*args): pass
+    ...     def install(*args): return ()
+    ...     update = install
+    ... ''')
+    
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipe
+    ... parts = foo
+    ... 
+    ... [foo]
+    ... recipe = recipe
+    ... ''')
+
+
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    buildout: Develop: /sample-buildout/recipe
+    buildout: Installing foo
+
+    >>> mkdir('recipe', '.svn')
+    >>> mkdir('recipe', 'CVS')
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    buildout: Develop: /sample-buildout/recipe
+    buildout: Updating foo
+
+    >>> write('recipe', '.svn', 'x', '1')
+    >>> write('recipe', 'CVS', 'x', '1')
+
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    buildout: Develop: /sample-buildout/recipe
+    buildout: Updating foo
+
+    """
+
+def o_option_sets_offline():
+    """
+    >>> print system(join(sample_buildout, 'bin', 'buildout')+' -vvo'),
+    ... # doctest: +ELLIPSIS
+    <BLANKLINE>
+    ...
+    offline = true
+    ...
+    """
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
