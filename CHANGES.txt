@@ -20,6 +20,16 @@ priorities include:
 Change History
 **************
 
+1.0.0b19 (2007-01-24)
+=====================
+
+Bugs Fixed
+----------
+
+- Explicitly specifying a Python executable failed if the output of
+  running Python with the -V option included a 2-digit (rather than a
+  3-digit) version number.
+
 1.0.0b18 (2007-01-22)
 =====================
 
