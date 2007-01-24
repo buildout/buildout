@@ -315,6 +315,55 @@ Then try to install it again:
 
     """
 
+def make_sure__get_version_works_with_2_digit_python_versions():
+    """
+
+This is a test of an internal function used by higher-level machinery.
+
+We'll start by creating a faux 'python' that executable that prints a
+2-digit version. This is a bit of a pain to do portably. :(
+
+    >>> mkdir('demo')
+    >>> write('demo', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='demo',
+    ...       entry_points = {'console_scripts': ['demo = demo:main']},
+    ...       )
+    ... ''')
+    >>> write('demo', 'demo.py',
+    ... '''
+    ... def main():
+    ...     print 'Python 2.5'
+    ... ''')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = demo
+    ... parts = 
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    buildout: Develop: /sample-buildout/demo
+
+    >>> import zc.buildout.easy_install
+    >>> ws = zc.buildout.easy_install.working_set(
+    ...    ['demo'], sys.executable, ['develop-eggs'])
+    >>> zc.buildout.easy_install.scripts(
+    ...    ['demo'], ws, sys.executable, 'bin')
+    ['bin/demo']
+
+    >>> print system(join('bin', 'demo')),
+    Python 2.5
+
+Now, finally, let's test _get_version:
+
+    >>> zc.buildout.easy_install._get_version(join('bin', 'demo'))
+    '2.5'
+
+    """
+
 # Why?
 ## def error_for_undefined_install_parts():
 ##     """
