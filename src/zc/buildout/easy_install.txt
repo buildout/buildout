@@ -21,7 +21,10 @@ level that is similar to easy_install, with a few exceptions:
 
 - Distutils options for building extensions can be passed.
 
-The easy_install module provides a method, install, for installing one
+Distribution installation
+-------------------------
+
+The easy_install module provides a function, install, for installing one
 or more packages and their dependencies.  The install function takes 2
 positional arguments:
 
@@ -68,6 +71,13 @@ working_set
    you to call install multiple times, if necessary, to gather
    multiple sets of requirements.
 
+newest
+   A boolian value indicating whether to search for new distributions
+   when already-installed distributions meet the requirement.  When
+   this is true, the default, and when the destination directory is
+   not None, then the install function will search for the newest
+   distributions that satisfy the requirements.
+
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -111,8 +121,17 @@ And the actual eggs were added to the eggs directory.
     -  demo-0.2-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
 
-If we ask for the demo distribution without a version restriction,
-we'll get the newer version:
+If we remove the version restriction on demo, but specify a false
+value for newest, no new didstributions will be installed:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     newest=False)
+    >>> ls(dest)
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+
+If we leave off the newst option, we'll get an update for demo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
@@ -480,9 +499,13 @@ path
    A list of additional directories to search for locally-installed
    distributions.
 
-always_unzip
-   A flag indicating that newly-downloaded distributions should be
-   directories even if they could be installed as zip files.
+newest
+   A boolian value indicating whether to search for new distributions
+   when already-installed distributions meet the requirement.  When
+   this is true, the default, and when the destination directory is
+   not None, then the install function will search for the newest
+   distributions that satisfy the requirements.
+
 
 Our link server included a source distribution that includes a simple
 extension, extdemo.c::
@@ -533,6 +556,57 @@ Now if we look in our destination directory, we see we have an extdemo egg:
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
+
+Let's update our link server with a new version of extdemo:
+
+    >>> update_extdemo()
+    >>> print get(link_server),
+    <html><body>
+    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
+    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
+    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
+    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
+    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
+    <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>
+    <a href="index/">index/</a><br>
+    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    </body></html>
+
+The easy_install caches information about servers to reduce network
+access. To see the update, we have to call the clear_index_cache
+function to clear the index cache:
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+If we run build with newest set to False, we won't get an update:
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/',
+    ...   newest=False)
+    '/sample-install/extdemo-1.4-py2.4-linux-i686.egg'
+
+    >>> ls(dest)
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.4-py2.4-unix-i686.egg
+
+But if we run it with the default True setting for newest, then we'll
+get an updated egg:
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/')
+    '/sample-install/extdemo-1.5-py2.4-unix-i686.egg'
+
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.4-py2.4-unix-i686.egg
+    d  extdemo-1.5-py2.4-unix-i686.egg
+
 
 Handling custom build options for extensions in develop eggs
 ------------------------------------------------------------
@@ -586,6 +660,7 @@ egg link:
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-linux-i686.egg
+    d  extdemo-1.5-py2.4-linux-i686.egg
     -  extdemo.egg-link
 
 And that the source directory contains the compiled extension:
