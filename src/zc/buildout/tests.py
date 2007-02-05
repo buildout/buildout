@@ -1047,19 +1047,22 @@ initextdemo(void)
 extdemo_setup_py = """
 from distutils.core import setup, Extension
 
-setup(name = "extdemo", version = "1.4", url="http://www.zope.org",
+setup(name = "extdemo", version = "%s", url="http://www.zope.org",
       author="Demo", author_email="demo@demo.com",
       ext_modules = [Extension('extdemo', ['extdemo.c'])],
       )
 """
 
-def add_source_dist(test):
-    
-    tmp = test.globs['extdemo'] = test.globs['tmpdir']('extdemo')
+def add_source_dist(test, version=1.4):
+
+    if 'extdemo' not in test.globs:
+        test.globs['extdemo'] = test.globs['tmpdir']('extdemo')
+
+    tmp = test.globs['extdemo']
     write = test.globs['write']
     try:
         write(tmp, 'extdemo.c', extdemo_c);
-        write(tmp, 'setup.py', extdemo_setup_py);
+        write(tmp, 'setup.py', extdemo_setup_py % version);
         write(tmp, 'README', "");
         write(tmp, 'MANIFEST.in', "include *.c\n");
         test.globs['sdist'](tmp, test.globs['sample_eggs'])
@@ -1075,7 +1078,9 @@ def easy_install_SetUp(test):
     add_source_dist(test)
     test.globs['link_server'] = test.globs['start_server'](
         test.globs['sample_eggs'])
+    test.globs['update_extdemo'] = lambda : add_source_dist(test, 1.5)
 
+        
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
 def makeNewRelease(project, ws, dest):
