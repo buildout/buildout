@@ -131,7 +131,16 @@ class Buildout(UserDict.DictMixin):
         if offline not in ('true', 'false'):
             self._error('Invalid value for offline option: %s', offline)
         options['offline'] = offline
+        self.offline = offline == 'true'
 
+        if self.offline:
+            newest = options['newest'] = 'false'
+        else:
+            newest = options.get('newest', 'true')
+            if newest not in ('true', 'false'):
+                self._error('Invalid value for newest option: %s', newest)
+            options['newest'] = newest
+        self.newest = newest == 'true'
 
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
@@ -303,6 +312,16 @@ class Buildout(UserDict.DictMixin):
                     
                     if installed_files is None:
                         installed_files = old_installed_files.split('\n')
+                    else:
+                        if isinstance(installed_files, str):
+                            installed_files = [installed_files]
+                        else:
+                            installed_files = list(installed_files)
+                            
+
+                        installed_files += [
+                            p for p in old_installed_files.split('\n')
+                            if p and p not in installed_files]
 
                 else:
                     self._logger.info('Installing %s', part)
@@ -491,8 +510,8 @@ class Buildout(UserDict.DictMixin):
         # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
 
-        if self['buildout'].get('offline') == 'true':
-            return # skip upgrade in offline mode:
+        if not self.newest:
+            return
         
         ws = zc.buildout.easy_install.install(
             [
@@ -563,7 +582,7 @@ class Buildout(UserDict.DictMixin):
         specs = self['buildout'].get('extensions', '').split()
         if specs:
             path = [self['buildout']['develop-eggs-directory']]
-            if self['buildout'].get('offline') == 'true':
+            if self.offline:
                 dest = None
                 path.append(self['buildout']['eggs-directory'])
             else:
@@ -575,7 +594,7 @@ class Buildout(UserDict.DictMixin):
             zc.buildout.easy_install.install(
                 specs, dest, path=path,
                 working_set=pkg_resources.working_set,
-                )
+                newest=self.newest)
             for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
                 ep.load()(self)
 
@@ -640,7 +659,7 @@ def _install_and_load(spec, group, entry, buildout):
 
         buildout_options = buildout['buildout']
         if pkg_resources.working_set.find(req) is None:
-            if buildout_options['offline'] == 'true':
+            if buildout.offline:
                 dest = None
                 path = [buildout_options['develop-eggs-directory'],
                         buildout_options['eggs-directory'],
@@ -655,6 +674,7 @@ def _install_and_load(spec, group, entry, buildout):
                 index=buildout_options.get('index'),
                 path=path,
                 working_set=pkg_resources.working_set,
+                newest=buildout.newest,
                 )
 
         return pkg_resources.load_entry_point(
@@ -961,6 +981,32 @@ Options:
 
      Don't read user defaults.
 
+  -o
+  
+    Run in off-line mode.  This is equivalent to the assignment 
+    buildout:offline=true.
+
+  -O
+
+    Run in non-off-line mode.  This is equivalent to the assignment 
+    buildout:offline=false.  This is the default buildout mode.  The
+    -O option would normally be used to override a true offline
+    setting in a configuration file.
+
+  -n
+
+    Run in newest mode.  This is equivalent to the assignment
+    buildout:newest=true.  With this setting, which is the default,
+    buildout will try to find the newest versions of distributions
+    available that satisfy its requirements.
+
+  -N
+
+    Run in non-newest mode.  This is equivalent to the assignment 
+    buildout:newest=false.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy it's
+    requirements. 
+
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -1000,7 +1046,7 @@ def main(args=None):
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWUo':
+            while op and op[0] in 'vqhWUoOnN':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1011,6 +1057,12 @@ def main(args=None):
                     user_defaults = False
                 elif op[0] == 'o':
                     options.append(('buildout', 'offline', 'true'))
+                elif op[0] == 'O':
+                    options.append(('buildout', 'offline', 'false'))
+                elif op[0] == 'n':
+                    options.append(('buildout', 'newest', 'true'))
+                elif op[0] == 'N':
+                    options.append(('buildout', 'newest', 'false'))
                 else:
                     _help()
                 op = op[1:]

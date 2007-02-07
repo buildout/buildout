@@ -59,12 +59,10 @@ zc.buildout used:
     ...     )
     ... """)
 
+
 Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
-    >>> import os
-    >>> os.chdir(sample_buildout)
-    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
     zc.buildout.easy_install: Getting new distribution for zc.buildout
     zc.buildout.easy_install: Got zc.buildout 99.99
@@ -136,18 +134,25 @@ We won't upgrade in offline mode:
     ... index = %(new_releases)s
     ... parts = show-versions
     ... develop = showversions
-    ... offline = true
     ... 
     ... [show-versions]
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print system(buildout),
+    >>> print system(buildout+' -o'),
     buildout: Develop: /sample-buildout/showversions
     buildout: Updating show-versions
     zc.buildout 1.0.0
     setuptools 0.6
- 
+
+Or in non-newest mode:
+
+    >>> print system(buildout+' -N'),
+    buildout: Develop: /sample-buildout/showversions
+    buildout: Updating show-versions
+    zc.buildout 1.0.0
+    setuptools 0.6
+
 We also won't upgrade if the buildout script bing run isn't in the
 buildouts bin directory.  To see this we'll create a new buildout
 directory:

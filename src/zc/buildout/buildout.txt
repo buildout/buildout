@@ -205,7 +205,7 @@ part.  An empty method is often provided, as in this example, if parts
 can't be updated.  An update method can return None, a string, or an
 iterable of strings.  If a string or iterable of strings is returned,
 then the saved list of paths to be uninstalled is updated with the new
-information. 
+information by adding any new files returned by the update method.
 
 We need to provide packaging information so that our recipe can be
 installed as a develop egg. The minimum information we need to specify
@@ -1186,6 +1186,24 @@ The following options are supported:
     Run in off-line mode.  This is equivalent to the assignment 
     buildout:offline=true.
 
+-O
+    Run in non-off-line mode.  This is equivalent to the assignment 
+    buildout:offline=false.  This is the default buildout mode.  The
+    -O option would normally be used to override a true offline
+    setting in a configuration file.
+
+-n
+    Run in newest mode.  This is equivalent to the assignment
+    buildout:newest=true.  With this setting, which is the default,
+    buildout will try to find the newest versions of distributions
+    available that satisfy its requirements.
+
+-N
+    Run in non-newest mode.  This is equivalent to the assignment 
+    buildout:newest=false.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy it's
+    requirements. 
+
 Assignments are of the form::
 
   section_name:option_name=value
@@ -1593,6 +1611,7 @@ database is shown.
     installed = /sample-buildout/.installed.cfg
     log-format = %(name)s: %(message)s
     log-level = INFO
+    newest = true
     offline = false
     parts = 
     parts-directory = /sample-buildout/parts
@@ -1705,15 +1724,24 @@ buildout or setuptools.)
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
 
-Offline mode
-------------
+Newest and Offline Modes
+------------------------
 
-If the buildout offline option is given a value of "true", the
-buildout and recipes that are aware of the option will avoid doing
-network access.  This is handy when running the buildout when not
-connected to the internet.  It also makes buildouts run much
-faster. This option is typically given as a command-line option
-``buildout:offline=true``.
+By default buildout and recipes will try to find the newest versions
+of distributions needed to satisfy requirements.  This can be very
+time consuming, especially when incrementally working on setting up a
+buildout or working on a recipe.  The buildout newest option can be
+used to to suppress this.  If the newest option is set to false, then
+new distributions won't be sought if an installed distribution meets
+requirements.  The newest option can be set to false using the -N
+command-line option.
+
+The offline option goes a bit further.  If the buildout offline option
+is given a value of "true", the buildout and recipes that are aware of
+the option will avoid doing network access.  This is handy when
+running the buildout when not connected to the internet.  It also
+makes buildouts run much faster. This option is typically set using
+the buildout -o option.
 
 Controlling the installation database
 -------------------------------------
