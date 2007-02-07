@@ -61,12 +61,15 @@ class Custom(Base):
         if buildout['buildout'].get('offline') == 'true':
             self.install = lambda: ()
 
+        self.newest = buildout['buildout'].get('newest') == 'true'
+
     def install(self):
         options = self.options
         distribution = options.get('eggs', self.name).strip()
         return zc.buildout.easy_install.build(
             distribution, options['_d'], self.build_ext,
             self.links, self.index, options['executable'], [options['_e']],
+            newest=self.newest,
             )
         
 class Develop(Base):

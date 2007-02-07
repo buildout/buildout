@@ -8,6 +8,14 @@ To do
 Change History
 **************
 
+1.0.0b5 (2007-02-??)
+====================
+
+Feature Changes
+---------------
+
+- Added support for the buildout newest option.
+
 1.0.0b4 (2007-01-17)
 ====================
 

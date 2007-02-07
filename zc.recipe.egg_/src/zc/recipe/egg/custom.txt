@@ -132,8 +132,6 @@ the egg:
     ... include-dirs = include
     ... """ % dict(server=link_server))
 
-    >>> buildout = join('bin', 'buildout')
-
     >>> print system(buildout),
     buildout: Installing extdemo
     zip_safe flag not set; analyzing archive contents...
@@ -199,6 +197,51 @@ When we run the script, we'll 42 printed:
 
     >>> print system(join('bin', 'demo')),
     42
+
+Updating
+--------
+
+The custom recipe will normally check for new source distributions
+that meet the given specification.  This can be suppressed using the
+buildout non-newest and offline modes.  We'll generate a new source
+distribution for extdemo:
+
+    >>> update_extdemo()
+
+If we run the buildout in non-newest or offline modes:
+
+    >>> print system(buildout+' -N'),
+    buildout: Develop: /sample-buildout/demo
+    buildout: Updating extdemo
+    buildout: Updating demo
+
+    >>> print system(buildout+' -o'),
+    buildout: Develop: /sample-buildout/demo
+    buildout: Updating extdemo
+    buildout: Updating demo
+
+We won't get an update.
+
+    >>> ls(sample_buildout, 'develop-eggs')
+    -  demo.egg-link
+    d  extdemo-1.4-py2.4-unix-i686.egg
+    -  zc.recipe.egg.egg-link
+
+But if we run the buildout in the default on-line and newest modes, we
+will:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/demo
+    buildout: Updating extdemo
+    zip_safe flag not set; analyzing archive contents...
+    buildout: Updating demo
+
+    >>> ls(sample_buildout, 'develop-eggs')
+    -  demo.egg-link
+    d  extdemo-1.4-py2.4-linux-i686.egg
+    d  extdemo-1.5-py2.4-linux-i686.egg
+    -  zc.recipe.egg.egg-link
+
 
 Controlling develop-egg generation
 ==================================

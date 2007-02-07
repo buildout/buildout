@@ -76,7 +76,8 @@ class Eggs(object):
                 index = self.index, 
                 executable = options['executable'],
                 always_unzip=options.get('unzip') == 'true',
-                path=[options['develop-eggs-directory']]
+                path=[options['develop-eggs-directory']],
+                newest=self.buildout['buildout'].get('newest') == 'true',
                 )
 
         return orig_distributions, ws
