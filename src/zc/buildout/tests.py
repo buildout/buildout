@@ -452,6 +452,32 @@ Options:
 <BLANKLINE>
      Don't read user defaults.
 <BLANKLINE>
+  -o
+<BLANKLINE>
+    Run in off-line mode.  This is equivalent to the assignment 
+    buildout:offline=true.
+<BLANKLINE>
+  -O
+<BLANKLINE>
+    Run in non-off-line mode.  This is equivalent to the assignment 
+    buildout:offline=false.  This is the default buildout mode.  The
+    -O option would normally be used to override a true offline
+    setting in a configuration file.
+<BLANKLINE>
+  -n
+<BLANKLINE>
+    Run in newest mode.  This is equivalent to the assignment
+    buildout:newest=true.  With this setting, which is the default,
+    buildout will try to find the newest versions of distributions
+    available that satisfy its requirements.
+<BLANKLINE>
+  -N
+<BLANKLINE>
+    Run in non-newest mode.  This is equivalent to the assignment 
+    buildout:newest=false.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy it's
+    requirements. 
+<BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -502,6 +528,32 @@ Options:
   -U
 <BLANKLINE>
      Don't read user defaults.
+<BLANKLINE>
+  -o
+<BLANKLINE>
+    Run in off-line mode.  This is equivalent to the assignment 
+    buildout:offline=true.
+<BLANKLINE>
+  -O
+<BLANKLINE>
+    Run in non-off-line mode.  This is equivalent to the assignment 
+    buildout:offline=false.  This is the default buildout mode.  The
+    -O option would normally be used to override a true offline
+    setting in a configuration file.
+<BLANKLINE>
+  -n
+<BLANKLINE>
+    Run in newest mode.  This is equivalent to the assignment
+    buildout:newest=true.  With this setting, which is the default,
+    buildout will try to find the newest versions of distributions
+    available that satisfy its requirements.
+<BLANKLINE>
+  -N
+<BLANKLINE>
+    Run in non-newest mode.  This is equivalent to the assignment 
+    buildout:newest=false.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy it's
+    requirements. 
 <BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
@@ -973,6 +1025,185 @@ def o_option_sets_offline():
     offline = true
     ...
     """
+
+def recipe_upgrade():
+    """
+
+The buildout will upgrade recipes in newest (and non-offline) mode.
+
+Let's create a recipe egg
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v1'
+    ...         return ()
+    ...     update = install
+    ... ''')
+
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipe', version='1', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+    >>> write('recipe', 'README', '')
+
+    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    buildout: Running setup script recipe/setup.py
+    ...
+
+And update our buildout to use it.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ...
+    ... [foo]
+    ... recipe = recipe
+    ... ''' % join('recipe', 'dist'))
+
+    >>> print system(buildout),
+    zc.buildout.easy_install: Getting new distribution for recipe
+    zc.buildout.easy_install: Got recipe 1
+    buildout: Installing foo
+    recipe v1
+
+Now, if we update the recipe egg:
+
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v2'
+    ...         return ()
+    ...     update = install
+    ... ''')
+
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipe', version='2', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+
+    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    buildout: Running setup script recipe/setup.py
+    ...
+
+We won't get the update if we specify -N:
+
+    >>> print system(buildout+' -N'),
+    buildout: Updating foo
+    recipe v1
+
+or if we use -o:
+
+    >>> print system(buildout+' -o'),
+    buildout: Updating foo
+    recipe v1
+
+But we will if we use neither of these:
+
+    >>> print system(buildout),
+    zc.buildout.easy_install: Getting new distribution for recipe
+    zc.buildout.easy_install: Got recipe 2
+    buildout: Uninstalling foo
+    buildout: Installing foo
+    recipe v1
+
+We can also select a particular recipe version:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ...
+    ... [foo]
+    ... recipe = recipe ==1
+    ... ''' % join('recipe', 'dist'))
+
+    >>> print system(buildout),
+    buildout: Uninstalling foo
+    buildout: Installing foo
+    recipe v1
+    
+    """
+
+def update_adds_to_uninstall_list():
+    """
+
+Paths returned by the update method are added to the list of paths to
+uninstall
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipe',
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... import os
+    ... class Recipe:
+    ...     def __init__(*_): pass
+    ...     def install(self):
+    ...         r = ('a', 'b', 'c')
+    ...         for p in r: os.mkdir(p)
+    ...         return r
+    ...     def update(self):
+    ...         r = ('c', 'd', 'e')
+    ...         for p in r:
+    ...             if not os.path.exists(p):
+    ...                os.mkdir(p)
+    ...         return r
+    ... ''')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipe
+    ... parts = foo
+    ...
+    ... [foo]
+    ... recipe = recipe
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /tmp/tmpbHOHnU/_TEST_/sample-buildout/recipe
+    buildout: Installing foo
+
+    >>> print system(buildout),
+    buildout: Develop: /tmp/tmpbHOHnU/_TEST_/sample-buildout/recipe
+    buildout: Updating foo
+
+    >>> cat('.installed.cfg') # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    [buildout]
+    ...
+    [foo]
+    __buildout_installed__ = c
+    	d
+    	e
+    	a
+    	b
+    __buildout_signature__ = ...
+
+"""
+
 
 ######################################################################
     

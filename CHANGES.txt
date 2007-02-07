@@ -20,6 +20,44 @@ priorities include:
 Change History
 **************
 
+1.0.0b20 (2007-02-??)
+=====================
+
+Feature Changes
+---------------
+
+- Added a buildout newest option, to control whether the newest
+  distributions should be sought to meet requirements.  This might
+  also provide a hint to recipes that don't deal with
+  distributions. For example, a recipe that manages subversion
+  checkouts might not update a checkout if newest is set to "false".
+
+- Added a *newest* keyword parameter to the
+  zc.buildout.easy_install.install and zc.buildout.easy_install.build
+  functions to control whether the newest distributions that meed
+  given requirements should be sought.  If a false value is provided
+  for this parameter and already installed eggs meet the given
+  requirements, then no attempt will be made to search for newer
+  distributions.
+ 
+- The recipe-testing support setUp function now adds the name
+  *buildout* to the test namespace with a value that is the path to
+  the buildout script in the sample buildout.  This allows tests to
+  use
+
+    >>> print system(buildout),
+
+  rather than:
+
+    >>> print system(join('bin', 'buildout')),
+
+
+Bugs Fixed
+----------
+
+- Paths returned from update methods replaced lists of installed files
+  rather than augmenting them.
+
 1.0.0b19 (2007-01-24)
 =====================
 

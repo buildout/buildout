@@ -204,6 +204,7 @@ def buildoutSetUp(test):
         sdist = sdist,
         bdist_egg = bdist_egg,
         start_server = start_server,
+        buildout = os.path.join(sample, 'bin', 'buildout'),
         ))
 
 def buildoutTearDown(test):
