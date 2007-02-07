@@ -64,8 +64,6 @@ specified where to find distributions using the find-links option.
 Let's run the buildout:
 
     >>> import os
-    >>> os.chdir(sample_buildout)
-    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
     buildout: Installing demo
     zc.buildout.easy_install: Getting new distribution for demo<0.3
@@ -83,9 +81,9 @@ Now, if we look at the buildout eggs directory:
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, which demo requires.  (We also see an egg
-link for the recipe.  This egg link was actually created as part of
-the sample buildout setup. Normally, when using the recipe, you'll get
-a regular egg installation.)
+link for the recipe in the develop-eggs directory.  This egg link was
+actually created as part of the sample buildout setup. Normally, when
+using the recipe, you'll get a regular egg installation.)
 
 Script generation
 -----------------
@@ -186,7 +184,7 @@ This is useful for debugging and testing.
 
 If we run the demo script, it prints out some minimal data:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'demo')),
+    >>> print system(join(sample_buildout, 'bin', 'demo')),
     2 1
 
 The value it prints out happens to be some values defined in the
@@ -195,7 +193,7 @@ modules installed.
 We can also run the py-demo script.  Here we'll just print out
 the bits if the path added to reflect the eggs:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'py-demo'),
+    >>> print system(join(sample_buildout, 'bin', 'py-demo'),
     ... """import os, sys
     ... for p in sys.path:
     ...     if 'demo' in p:
@@ -206,8 +204,13 @@ the bits if the path added to reflect the eggs:
     demo-0.2-py2.4.egg
     demoneeded-1.1-py2.4.egg
 
-The recipe gets the most recent distribution that satisfies the
-specification. For example, We remove the restriction on demo:
+Egg updating
+------------
+
+The recipe normally gets the most recent distribution that satisfies the
+specification.  It won't do this is the buildout is either in
+non-newest mode or in offline mode.  To see how this works, we'll
+remove the restriction on demo:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -220,9 +223,34 @@ specification. For example, We remove the restriction on demo:
     ... index = %(server)s/index
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+and run the buildout in non-newest mode:
+
+    >>> print system(buildout+' -N'),
     buildout: Uninstalling demo
     buildout: Installing demo
+
+Note that we removed the eggs option, and the eggs defaulted to the
+part name. Because we removed the eggs option, the demo was
+reinstalled.
+
+We'll also run the buildout in off-line mode:
+
+    >>> print system(buildout+' -o'),
+    buildout: Updating demo
+
+We didn't get an update for demo:
+
+    >>> ls(sample_buildout, 'eggs')
+    -  demo-0.2-py2.3.egg
+    -  demoneeded-1.1-py2.3.egg
+    -  setuptools-0.6-py2.3.egg
+    -  zc.buildout-1.0-py2.3.egg
+
+If we run the buildout on the default online and newest modes, 
+we'll get an update for demo:
+
+    >>> print system(buildout),
+    buildout: Updating demo
     zc.buildout.easy_install: Getting new distribution for demo
     zc.buildout.easy_install: Got demo 0.3
 
@@ -235,12 +263,9 @@ Then we'll get a new demo egg:
     -  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
-Note that we removed the eggs option, and the eggs
-defaulted to the part name.
-
 The script is updated too:
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'demo')),
+    >>> print system(join(sample_buildout, 'bin', 'demo')),
     3 1
 
 Controlling script generation
@@ -441,7 +466,6 @@ Offline mode
 
 If the buildout offline option is set to "true", then no attempt will
 be made to contact an index server:
-
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
