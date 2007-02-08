@@ -26,6 +26,8 @@ import pkg_resources
 import zc.buildout.buildout
 import zc.buildout.easy_install
 
+fsync = getattr(os, 'fsync', lambda fileno: None)
+
 setuptools_location = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
 
@@ -57,7 +59,12 @@ def rmdir(*path):
     shutil.rmtree(os.path.join(*path))
 
 def write(dir, *args):
-    open(os.path.join(dir, *(args[:-1])), 'w').write(args[-1])
+    path = os.path.join(dir, *(args[:-1]))
+    f = open(path, 'w')
+    f.write(args[-1])
+    f.flush()
+    fsync(f.fileno())
+    f.close()
 
 def system(command, input=''):
     i, o = os.popen4(command)
