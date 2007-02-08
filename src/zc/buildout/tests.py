@@ -1058,6 +1058,8 @@ Let's create a recipe egg
     buildout: Running setup script recipe/setup.py
     ...
 
+    >>> rmdir('recipe', 'build')
+
 And update our buildout to use it.
 
     >>> write('buildout.cfg',
@@ -1120,7 +1122,7 @@ But we will if we use neither of these:
     zc.buildout.easy_install: Got recipe 2
     buildout: Uninstalling foo
     buildout: Installing foo
-    recipe v1
+    recipe v2
 
 We can also select a particular recipe version:
 
