@@ -1,5 +1,6 @@
 Status
 ******
+
 The buildout system is under active development. Some near term
 priorities include:
 
@@ -13,14 +14,10 @@ priorities include:
 
 - Better error reporing
 
-- Handling of egg extras
-
-- More recipes
-
 Change History
 **************
 
-1.0.0b20 (2007-02-??)
+1.0.0b20 (2007-02-08)
 =====================
 
 Feature Changes
