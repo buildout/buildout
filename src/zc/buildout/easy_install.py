@@ -226,7 +226,7 @@ class Installer:
 
         if level <= logging.DEBUG:
             logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
-                         executable, '" "'.join(args), path)
+                         self._executable, '" "'.join(args), path)
 
         args += (dict(os.environ, PYTHONPATH=path), )
         sys.stdout.flush() # We want any pending output first
