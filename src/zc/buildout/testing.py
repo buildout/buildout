@@ -132,7 +132,7 @@ def find_python(version):
                 return e
         
     raise ValueError(
-        "Couldn't figure out the exectable for Python %(version)s.\n"
+        "Couldn't figure out the executable for Python %(version)s.\n"
         "Set the environment variable PYTHON%(version)s to the location\n"
         "of the Python %(version)s executable before running the tests."
         )
