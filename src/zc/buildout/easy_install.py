@@ -127,7 +127,8 @@ class Installer:
     def _satisfied(self, req):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
         if not dists:
-            logger.debug('We have no distributions for %s', req.project_name)
+            logger.debug('We have no distributions for %s that satisfies %s.',
+                         req.project_name, req)
             return None
 
         # Note that dists are sorted from best to worst, as promised by
@@ -144,7 +145,7 @@ class Installer:
             # Environment.__getitem__.
             return dists[0]
 
-        # Find an upprt limit in the specs, if there is one:
+        # Find an upper limit in the specs, if there is one:
         specs = [(pkg_resources.parse_version(v), op) for (op, v) in req.specs]
         specs.sort()
         maxv = None
@@ -217,9 +218,9 @@ class Installer:
         if self._always_unzip:
             args += ('-Z', )
         level = logger.getEffectiveLevel()
-        if level > logging.DEBUG:
+        if level > 0:
             args += ('-q', )
-        elif level < logging.DEBUG:
+        elif level < 0:
             args += ('-v', )
 
         args += (spec, )
@@ -549,12 +550,12 @@ def develop(setup, dest,
             ]
 
         log_level = logger.getEffectiveLevel()
-        if log_level <= logging.DEBUG:
-            if log_level == logging.DEBUG:
+        if log_level <= 0:
+            if log_level == 0:
                 del args[1]
             else:
                 args[1] == '-v'
-            logger.debug("in: %s\n%r", directory, args)
+        logger.debug("in: %s\n%r", directory, args)
 
         assert os.spawnl(os.P_WAIT, executable, executable, *args) == 0
 

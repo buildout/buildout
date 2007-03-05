@@ -70,7 +70,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
     ... parts = 
     ... ''')
 
-    >>> print system(join('bin', 'buildout')+' -v'), # doctest: +ELLIPSIS
+    >>> print system(join('bin', 'buildout')+' -vv'), # doctest: +ELLIPSIS
     zc.buildout...
     buildout: Develop: /sample-buildout/foo
     ...
@@ -1206,6 +1206,32 @@ uninstall
 
 """
 
+def log_when_there_are_not_local_distros():
+    """
+    >>> from zope.testing.loggingsupport import InstalledHandler
+    >>> handler = InstalledHandler('zc.buildout.easy_install')
+    >>> import logging
+    >>> logger = logging.getLogger('zc.buildout.easy_install')
+    >>> old_propogate = logger.propagate
+    >>> logger.propagate = False
+
+    >>> dest = tmpdir('sample-install')
+    >>> import zc.buildout.easy_install
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], dest,
+    ...     links=[link_server], index=link_server+'index/')
+
+    >>> print handler # doctest: +ELLIPSIS
+    zc.buildout.easy_install DEBUG
+      Installing ['demo==0.2']
+    zc.buildout.easy_install DEBUG
+      We have no distributions for demo that satisfies demo==0.2.
+    ...
+
+    >>> handler.uninstall()
+    >>> logger.propagate = old_propogate
+    
+    """
 
 ######################################################################
     

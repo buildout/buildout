@@ -17,6 +17,16 @@ priorities include:
 Change History
 **************
 
+1.0.0b21 (2007-03-??)
+=====================
+
+Feature Changes
+---------------
+
+- Adjusted the output for verbosity levels.  Using a single -v option
+  no longer causes voluminous setuptools output.  Uisng -vv and -vvv
+  now triggers extra setuptools output.
+
 1.0.0b20 (2007-02-08)
 =====================
 
