@@ -4,14 +4,7 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-name = "zc.buildout"
-setup(
-    name = name,
-    version = "1.0.0b21",
-    author = "Jim Fulton",
-    author_email = "jim@zope.com",
-    description = "System for managing development buildouts",
-    long_description=(
+long_description=(
         read('README.txt')
         + '\n' +
         read('CHANGES.txt')
@@ -21,6 +14,8 @@ setup(
         + '\n' +
         read('src', 'zc', 'buildout', 'buildout.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'repeatable.txt')
+        + '\n' +
         read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'testing.txt')
@@ -29,7 +24,18 @@ setup(
         + '\n' +
         'Download\n'
         '**********************\n'
-        ),
+        )
+
+#open('doc.txt', 'w').write(long_description)
+
+name = "zc.buildout"
+setup(
+    name = name,
+    version = "1.0.0b21",
+    author = "Jim Fulton",
+    author_email = "jim@zope.com",
+    description = "System for managing development buildouts",
+    long_description=long_description,
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://svn.zope.org/zc.buildout',
