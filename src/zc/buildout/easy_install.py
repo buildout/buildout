@@ -45,6 +45,10 @@ buildout_and_setuptools_path = [
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
 
+class IncompatibleVersionError(zc.buildout.UserError):
+    """A specified version is incompatible with a given requirement.
+    """
+
 _versions = {sys.executable: '%d.%d' % sys.version_info[:2]}
 def _get_version(executable):
     try:
@@ -109,6 +113,7 @@ class Installer:
                  always_unzip=False,
                  path=None,
                  newest=True,
+                 versions=None,
                  ):
         self._dest = dest
         self._links = list(links)
@@ -123,6 +128,7 @@ class Installer:
         self._env = pkg_resources.Environment(path,
                                               python=_get_version(executable))
         self._index = _get_index(executable, index, links)
+        self._versions = versions or {}
 
     def _satisfied(self, req):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -246,7 +252,7 @@ class Installer:
             if self._dest is not None:
                 logger.info("Getting new distribution for %s", requirement)
 
-                # Retrieve the dist:
+                # Retrieve the dist:grokonepage
                 index = self._index
                 dist = index.obtain(requirement)
                 if dist is None:
@@ -336,6 +342,13 @@ class Installer:
                     self._index = _get_index(self._executable,
                                              self._index_url, self._links)
 
+        # Check whether we picked a version and, if we did, report it:
+        if not (
+            len(requirement.specs) == 1 and requirement.specs[0][0] == '=='
+            ):
+            logger.debug('Picked version for %s = %s',
+                         dist.project_name, dist.version)
+
         return dist
 
     def _maybe_add_setuptools(self, ws, dist):
@@ -351,11 +364,26 @@ class Installer:
                         "uses namespace packages but the distribution "
                         "does not require setuptools.",
                         dist)
-                requirement = pkg_resources.Requirement.parse('setuptools')
+                requirement = self._constrain(
+                    pkg_resources.Requirement.parse('setuptools')
+                    )
                 if ws.find(requirement) is None:
                     dist = self._get_dist(requirement, ws, False)
                     ws.add(dist)
 
+
+    def _constrain(self, requirement):
+        version = self._versions.get(requirement.project_name)
+        if version:
+            if version not in requirement:
+                logger.error("The version, %s, is not consistent with the "
+                             "requirement, %s", version, requirement)
+                raise IncompatibleVersionError("Bad version", version)
+            
+            requirement = pkg_resources.Requirement.parse(
+                "%s ==%s" % (requirement.project_name, version))
+
+        return requirement
 
     def install(self, specs, working_set=None):
 
@@ -366,8 +394,10 @@ class Installer:
         if dest is not None and dest not in path:
             path.insert(0, dest)
 
-        requirements = [pkg_resources.Requirement.parse(spec)
+        requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
+
+        
 
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
@@ -392,6 +422,7 @@ class Installer:
                 ws.resolve(requirements)
             except pkg_resources.DistributionNotFound, err:
                 [requirement] = err
+                requirement = self._constrain(requirement)
                 if dest:
                     logger.debug('Getting required %s', requirement)
                 dist = self._get_dist(requirement, ws, self._always_unzip)
@@ -405,7 +436,7 @@ class Installer:
     def build(self, spec, build_ext):
         logger.debug('Building %r', spec)
 
-        requirement = pkg_resources.Requirement.parse(spec)
+        requirement = self._constrain(pkg_resources.Requirement.parse(spec))
 
         dist = self._satisfied(requirement)
         if dist is not None:
@@ -465,17 +496,18 @@ class Installer:
 def install(specs, dest,
             links=(), index=None,
             executable=sys.executable, always_unzip=False,
-            path=None, working_set=None, newest=True):
+            path=None, working_set=None, newest=True, versions=None):
     installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest)
+                          newest, versions)
     return installer.install(specs, working_set)
 
 
 def build(spec, dest, build_ext,
           links=(), index=None,
           executable=sys.executable,
-          path=None, newest=True):
-    installer = Installer(dest, links, index, executable, True, path, newest)
+          path=None, newest=True, versions=None):
+    installer = Installer(dest, links, index, executable, True, path, newest,
+                          versions)
     return installer.build(spec, build_ext)
 
         

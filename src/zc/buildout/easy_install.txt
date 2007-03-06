@@ -78,6 +78,11 @@ newest
    not None, then the install function will search for the newest
    distributions that satisfy the requirements.
 
+versions
+   A dictionary mapping project names to version numbers to be used
+   when selecting distributions.  This can be used to specify a set of
+   distribution versions independent of other requirements.
+
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -184,6 +189,76 @@ can be useful when debugging.
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
+
+Specifying version information indepenent of requirements
+---------------------------------------------------------
+
+Sometimes it's useful to specify version information indepenent of
+normal requirements specifications.  For example, a buildout may need
+to lock down a set of versions, without having to put put version
+numbers in setup files or part definitions.  If a dictionary is passed
+to the install function, mapping project names to version numbers,
+then the versions numbers will be used.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     versions = dict(demo='0.2', demoneeded='1.0'))
+    >>> [d.version for d in ws]
+    ['0.2', '1.0']
+
+In this example, we specified a version for demoneeded, even though we
+didn't define a requirement for it.  The versions specified apply to
+depenencies as well as the specified requirements.
+
+If we specify a version that's incompatible with a requirement, then
+we'll get an error:
+
+    >>> from zope.testing.loggingsupport import InstalledHandler
+    >>> handler = InstalledHandler('zc.buildout.easy_install')
+    >>> import logging
+    >>> logging.getLogger('zc.buildout.easy_install').propagate = False
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo >0.2'], dest, links=[link_server],
+    ...     index=link_server+'index/',
+    ...     versions = dict(demo='0.2', demoneeded='1.0'))
+    Traceback (most recent call last):
+    ...
+    IncompatibleVersionError: Bad version 0.2
+
+    >>> print handler
+    zc.buildout.easy_install DEBUG
+      Installing ['demo >0.2']
+    zc.buildout.easy_install ERROR
+      The version, 0.2, is not consistent with the requirement, demo>0.2
+
+    >>> handler.clear()
+
+If no versions are specified, a debugging message will be output 
+reporting that a version was picked automatically:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     )
+
+    >>> print handler
+    zc.buildout.easy_install DEBUG
+      Installing ['demo']
+    zc.buildout.easy_install DEBUG
+      We have the best distribution that satisfies
+    demo
+    zc.buildout.easy_install DEBUG
+      Picked version for demo = 0.3
+    zc.buildout.easy_install DEBUG
+      Getting required demoneeded
+    zc.buildout.easy_install DEBUG
+      We have the best distribution that satisfies
+    demoneeded
+    zc.buildout.easy_install DEBUG
+      Picked version for demoneeded = 1.1
+
+    >>> handler.uninstall()
+    >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
 Script generation
 -----------------
@@ -506,6 +581,11 @@ newest
    not None, then the install function will search for the newest
    distributions that satisfy the requirements.
 
+versions
+   A dictionary mapping project names to version numbers to be used
+   when selecting distributions.  This can be used to specify a set of
+   distribution versions independent of other requirements.
+
 
 Our link server included a source distribution that includes a simple
 extension, extdemo.c::
@@ -553,7 +633,9 @@ The function returns the list of eggs
 Now if we look in our destination directory, we see we have an extdemo egg:
 
     >>> ls(dest)
+    -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
+    -  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
 
@@ -589,7 +671,9 @@ If we run build with newest set to False, we won't get an update:
     '/sample-install/extdemo-1.4-py2.4-linux-i686.egg'
 
     >>> ls(dest)
+    -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
+    -  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
 
@@ -602,11 +686,32 @@ get an updated egg:
     ...   links=[link_server], index=link_server+'index/')
     '/sample-install/extdemo-1.5-py2.4-unix-i686.egg'
 
+    >>> ls(dest)
+    -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
+    -  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
     d  extdemo-1.5-py2.4-unix-i686.egg
 
+The versions option also influences the versions used.  For example,
+if we specify a version for extdemo, then that will be used, even
+though it isn't the newest.  Let's clean out the destimation directory
+first:
+
+    >>> import os
+    >>> for name in os.listdir(dest):
+    ...     remove(dest, name)
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/',
+    ...   versions=dict(extdemo='1.4'))
+    '/sample-install/extdemo-1.4-py2.4-unix-i686.egg'
+
+    >>> ls(dest)
+    d  extdemo-1.4-py2.4-unix-i686.egg
 
 Handling custom build options for extensions in develop eggs
 ------------------------------------------------------------
@@ -657,10 +762,7 @@ Now if we look in our destination directory, we see we have an extdemo
 egg link:
 
     >>> ls(dest)
-    d  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
-    d  extdemo-1.4-py2.4-linux-i686.egg
-    d  extdemo-1.5-py2.4-linux-i686.egg
+    d  extdemo-1.4-py2.4-unix-i686.egg
     -  extdemo.egg-link
 
 And that the source directory contains the compiled extension:

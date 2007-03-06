@@ -37,6 +37,10 @@ number of names to the test namespace:
     Remove a directory. The directory path is provided as one or
     more strings, to be joined with os.path.join.
 
+``remove(*path)``
+    Remove a directory or file. The path is provided as one or
+    more strings, to be joined with os.path.join.
+
 ``tmpdir(name)``
     Create a temporary directory with the given name.  The directory
     will be automatically removed at the end of the test.  The path of
