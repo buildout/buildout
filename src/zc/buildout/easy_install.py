@@ -105,6 +105,8 @@ _easy_install_cmd = _safe_arg(
 
 class Installer:
 
+    _versions = {}
+
     def __init__(self,
                  dest=None,
                  links=(),
@@ -128,7 +130,9 @@ class Installer:
         self._env = pkg_resources.Environment(path,
                                               python=_get_version(executable))
         self._index = _get_index(executable, index, links)
-        self._versions = versions or {}
+
+        if versions is not None:
+            self._versions = versions
 
     def _satisfied(self, req):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -414,9 +418,9 @@ class Installer:
         # trying to resolve requirements, adding missing requirements as they
         # are reported.
         #
-        # Note that we don't pass in the environment, because we
-        # want to look for new eggs unless what we have is the best that matches
-        # the requirement.
+        # Note that we don't pass in the environment, because we want
+        # to look for new eggs unless what we have is the best that
+        # matches the requirement.
         while 1:
             try:
                 ws.resolve(requirements)
@@ -492,6 +496,11 @@ class Installer:
             undo.reverse()
             [f() for f in undo]
 
+def default_versions(versions=None):
+    old = Installer._versions
+    if versions is not None:
+        Installer._versions = versions
+    return old
 
 def install(specs, dest,
             links=(), index=None,
