@@ -142,6 +142,10 @@ class Buildout(UserDict.DictMixin):
             options['newest'] = newest
         self.newest = newest == 'true'
 
+        versions = options.get('versions')
+        if versions:
+            zc.buildout.easy_install.default_versions(dict(self[versions]))
+
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 

@@ -31,6 +31,7 @@ import zc.buildout
 default_index_url = os.environ.get('buildout-testing-index-url')
 
 logger = logging.getLogger('zc.buildout.easy_install')
+picked = logging.getLogger('zc.buildout.easy_install.picked')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 
@@ -348,10 +349,11 @@ class Installer:
 
         # Check whether we picked a version and, if we did, report it:
         if not (
-            len(requirement.specs) == 1 and requirement.specs[0][0] == '=='
+            dist.precedence == pkg_resources.DEVELOP_DIST
+            or
+            (len(requirement.specs) == 1 and requirement.specs[0][0] == '==')
             ):
-            logger.debug('Picked version for %s = %s',
-                         dist.project_name, dist.version)
+            picked.debug('%s = %s', dist.project_name, dist.version)
 
         return dist
 

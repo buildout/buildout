@@ -247,15 +247,15 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install DEBUG
       We have the best distribution that satisfies
     demo
-    zc.buildout.easy_install DEBUG
-      Picked version for demo = 0.3
+    zc.buildout.easy_install.picked DEBUG
+      demo = 0.3
     zc.buildout.easy_install DEBUG
       Getting required demoneeded
     zc.buildout.easy_install DEBUG
       We have the best distribution that satisfies
     demoneeded
-    zc.buildout.easy_install DEBUG
-      Picked version for demoneeded = 1.1
+    zc.buildout.easy_install.picked DEBUG
+      demoneeded = 1.1
 
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True

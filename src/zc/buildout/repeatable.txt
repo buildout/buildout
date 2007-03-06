@@ -1,0 +1,168 @@
+Repeatable buildouts: controlling eggs used
+===========================================
+
+One of the goals of zc.buildout is to provide enough control to make
+buildouts repeatable.  It should be possible to check the buildout
+configuration files for a project into a version control system and
+later use the checked in files to get the same buildout, subject to
+changes in the environment outside the buildout.
+
+An advantage of using Python eggs is that depenencies of eggs used are
+automatically determined and used.  The automatic inclusion of
+depenent distributions is at odds with the goal of repeatable
+buildouts.
+
+To support repeatable buildouts, a versions section can be created
+with options for each distribution name whos version is to be fixed.
+The section can then be specified via the buildout versions option.
+
+To see how this works, we'll create two versions of a recipe egg:
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v1'
+    ...         return ()
+    ...     update = install
+    ... ''')
+
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='spam', version='1', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+    >>> write('recipe', 'README', '')
+
+    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    buildout: Running setup script recipe/setup.py
+    ...
+
+    >>> rmdir('recipe', 'build')
+
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v2'
+    ...         return ()
+    ...     update = install
+    ... ''')
+
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='spam', version='2', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+
+    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    buildout: Running setup script recipe/setup.py
+    ...
+
+and we'll configure a buildout to use it:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+
+If we run the buildout, it will use version 2:
+
+    >>> print system(buildout),
+    zc.buildout.easy_install: Getting new distribution for spam
+    zc.buildout.easy_install: Got spam 2
+    buildout: Installing foo
+    recipe v2
+
+We can specify a versions section that lists our recipe and name it in
+the buildout section:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... versions = release-1
+    ...
+    ... [release-1]
+    ... spam = 1
+    ... eggs = 2.2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+
+Here we created a release-1 section listing the version 1 for the spam
+distribution.  We told the buildout to use it by specifying release-1
+as in the versions option.
+
+Now, if we run the buildout, we'll use version 1 of the spam recipe:
+
+    >>> print system(buildout),
+    zc.buildout.easy_install: Getting new distribution for spam==1
+    zc.buildout.easy_install: Got spam 1
+    buildout: Uninstalling foo
+    buildout: Installing foo
+    recipe v1
+
+Running the buildout in verbose mode will help us get information
+about versions used. If we run the buildout in verbose mode without
+specifying a versions section:
+
+    >>> print system(buildout+' buildout:versions= -v'), # doctest: +ELLIPSIS
+    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
+    zc.buildout.easy_install: We have a develop egg for zc.buildout
+    zc.buildout.easy_install: We have the best distribution that satisfies
+    setuptools
+    zc.buildout.easy_install.picked: setuptools = 0.6
+    zc.buildout.easy_install: Installing ['spam']
+    zc.buildout.easy_install: We have the best distribution that satisfies
+    spam
+    zc.buildout.easy_install.picked: spam = 2
+    ...
+    buildout: Uninstalling foo
+    buildout: Installing foo
+    recipe v2
+
+We'll get output that includes lines that tell us what versions
+buildout chose a for us, like::
+
+    zc.buildout.easy_install.picked: spam = 2
+
+This allows us to discover versions that are picked dynamically, so
+that we can fix them in a versions section.
+
+If we run the buildout with the versions section:
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
+    zc.buildout.easy_install: We have a develop egg for zc.buildout
+    zc.buildout.easy_install: We have the best distribution that satisfies
+    setuptools
+    zc.buildout.easy_install.picked: setuptools = 0.6
+    zc.buildout.easy_install: Installing ['spam']
+    zc.buildout.easy_install: We have the best distribution that satisfies
+    spam==1
+    ...
+    buildout: Uninstalling foo
+    buildout: Installing foo
+    recipe v1
+
+We won't get output for the spam distribution, which we didn't pick,
+but we will get output for setuptools, which we didn't specify
+versions for.
+
