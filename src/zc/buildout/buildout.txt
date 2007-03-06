@@ -1598,10 +1598,9 @@ database is shown.
     >>> print system(buildout+' -v'),
     zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
     zc.buildout.easy_install: We have a develop egg for zc.buildout
-    zc.buildout.easy_install: Picked version for zc.buildout = 1.0.0
     zc.buildout.easy_install: We have the best distribution that satisfies
     setuptools
-    zc.buildout.easy_install: Picked version for setuptools = 0.6
+    zc.buildout.easy_install.picked: setuptools = 0.6
     <BLANKLINE>
     Configuration data:
     [buildout]

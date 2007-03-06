@@ -1420,7 +1420,7 @@ def test_suite():
     import zc.buildout.testselectingpython
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
-            'buildout.txt', 'runsetup.txt',
+            'buildout.txt', 'runsetup.txt', 'repeatable.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
@@ -1436,8 +1436,8 @@ def test_suite():
                 'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-               (re.compile('Picked version for (\S+) = \S+'),
-                'Picked version for \\1 = V.V'),
+               (re.compile('zc.buildout.easy_install.picked: (\S+) = \S+'),
+                'picked \\1 = V.V'),
                ])
             ),
 

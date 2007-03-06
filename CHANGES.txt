@@ -17,11 +17,14 @@ priorities include:
 Change History
 **************
 
-1.0.0b21 (2007-03-??)
+1.0.0b21 (2007-03-06)
 =====================
 
 Feature Changes
 ---------------
+
+- Added support for repeatable buildouts by allowing egg versions to
+  be specified in a versions section.
 
 - The easy_install module install and build functions now accept a
   versions argument that supplied to mapping from project name to
