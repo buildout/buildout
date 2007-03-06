@@ -55,6 +55,13 @@ def ls(dir, *subs):
 def mkdir(*path):
     os.mkdir(os.path.join(*path))
 
+def remove(*path):
+    path = os.path.join(*path)
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    else:
+        os.remove(path)
+
 def rmdir(*path):
     shutil.rmtree(os.path.join(*path))
 
@@ -202,6 +209,7 @@ def buildoutSetUp(test):
         cat = cat,
         mkdir = mkdir,
         rmdir = rmdir,
+        remove = remove,
         tmpdir = tmpdir,
         write = write,
         system = system,

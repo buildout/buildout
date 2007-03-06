@@ -23,9 +23,21 @@ Change History
 Feature Changes
 ---------------
 
+- The easy_install module install and build functions now accept a
+  versions argument that supplied to mapping from project name to
+  version numbers.  This can be used to fix version numbers for
+  required distributions and their depenencies.
+
+  When a version isn't fixed, using either a versions option or using
+  a fixed version number in a requirement, then a debug log message is
+  emitted indicating the version picked.  This is useful for setting
+  versions options.
+
 - Adjusted the output for verbosity levels.  Using a single -v option
   no longer causes voluminous setuptools output.  Uisng -vv and -vvv
   now triggers extra setuptools output.
+
+- Added a remove testing helper function that removes files or directories.
 
 1.0.0b20 (2007-02-08)
 =====================
