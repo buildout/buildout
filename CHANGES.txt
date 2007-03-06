@@ -33,6 +33,9 @@ Feature Changes
   emitted indicating the version picked.  This is useful for setting
   versions options.
 
+  A default_versions function can be used to set a default value for
+  this option.
+
 - Adjusted the output for verbosity levels.  Using a single -v option
   no longer causes voluminous setuptools output.  Uisng -vv and -vvv
   now triggers extra setuptools output.

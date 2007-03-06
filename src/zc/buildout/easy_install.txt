@@ -260,6 +260,44 @@ reporting that a version was picked automatically:
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
+The function default_versions can be used to get and set default
+version information to be used when no version information is passes.
+If called with an argument, it sets the default versions:
+
+    >>> zc.buildout.easy_install.default_versions(dict(demoneeded='1'))
+    {}
+
+It always returns the previous default versions.  If called without an
+argument, it simply returns the default versions without changing
+them:
+
+    >>> zc.buildout.easy_install.default_versions()
+    {'demoneeded': '1'}
+
+So with the default versions set, we'll get the requested version even
+if the versions option isn't used:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     )
+
+    >>> [d.version for d in ws]
+    ['0.3', '1.0']
+
+Of course, we can unset the default versions by passing an empty
+dictionary:
+
+    >>> zc.buildout.easy_install.default_versions({})
+    {'demoneeded': '1'}
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     )
+
+    >>> [d.version for d in ws]
+    ['0.3', '1.1']
+    
+
 Script generation
 -----------------
 
