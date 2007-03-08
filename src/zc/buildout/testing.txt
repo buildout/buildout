@@ -17,6 +17,9 @@ number of names to the test namespace:
 ``sample_buildout``
     This is the name of a buildout with a basic configuration.
 
+``buildout``
+    This is the path of the buildout script in the sample buildout.
+
 ``ls(*path)``
     List the contents of a directory.  The directory path is provided as one or
     more strings, to be joined with os.path.join.
