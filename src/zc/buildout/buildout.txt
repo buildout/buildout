@@ -120,9 +120,7 @@ and then we'll create a source file for our mkdir recipe:
     ... class Mkdir:
     ...
     ...     def __init__(self, buildout, name, options):
-    ...         self.buildout = buildout
-    ...         self.name = name
-    ...         self.options = options
+    ...         self.name, self.options = name, options
     ...         options['path'] = os.path.join(
     ...                               buildout['buildout']['directory'],
     ...                               options['path'],
@@ -367,10 +365,10 @@ Error reporting
 If a user makes an error, an error needs to be printed and work needs
 to stop.  This is accomplished by logging a detailed error message and
 then raising a (or an instance of a subclass of a)
-zc.buildout.UserError exception.  Raising UserError causes the
-buildout to print the error and exit without printing a traceback.  In
-the sample above, of someone gives a non-existant directory to create
-the directory in:
+zc.buildout.UserError exception.  Raising an error other than a
+UserError still displays the error, but labels it as a bug in the
+buildout software or recipe. In the sample above, of someone gives a
+non-existant directory to create the directory in:
 
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -389,6 +387,10 @@ We'll get a user error, not a traceback.
     >>> print system(buildout),
     buildout: Develop: /sample-buildout/recipes
     data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
+    While:
+      Installing
+      Getting section data-dir
+      Initializing part data-dir
     Error: Invalid Path
 
 
@@ -813,6 +815,8 @@ buildout.
     ... """)
 
     >>> print system(buildout + ' -c ' + server_url + '/remote.cfg'),
+    While:
+      Initializing
     Error: Missing option: buildout:directory
 
 Normally, the buildout directory defaults to directory

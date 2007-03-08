@@ -1,0 +1,96 @@
+Debugging buildouts
+===================
+
+Buildouts can be pretty complex.  When things go wrong, it isn't
+always obvious why.  Errors can occur due to problems in user input or
+due to bugs in zc.buildout or recipes.  When an error occurs, Python's
+post-mortem debugger can be used to inspect the state of the buildout
+or recipe code were there error occured.  To enable this, use the -D
+option to the buildout.  Let's create a recipe that has a bug:
+
+    >>> mkdir(sample_buildout, 'recipes')
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... """
+    ... import os, zc.buildout
+    ...
+    ... class Mkdir:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...         options['path'] = os.path.join(
+    ...                               buildout['buildout']['directory'],
+    ...                               options['path'],
+    ...                               )
+    ...
+    ...     def install(self):
+    ...         directory = self.options['directory']
+    ...         os.mkdir(directory)
+    ...         return directory
+    ...
+    ...     def update(self):
+    ...         pass
+    ... """)
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... 
+    ... setup(name = "recipes",
+    ...       entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
+    ...       )
+    ... """)
+
+And create a buildout that uses it:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mystuff
+    ... """)
+
+If we run the buildout, we'll get an error:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing data-dir
+    While:
+      Installing data-dir
+    Error: Missing option: data-dir:directory
+
+
+If we want to debug the error, we can add the -D option. Here's we'll
+supply some input:
+
+    >>> print system(buildout+" -D", """\
+    ... up
+    ... p self.options.keys()
+    ... q
+    ... """),
+    buildout: Develop: /tmp/tmpozk_tH/_TEST_/sample-buildout/recipes
+    buildout: Installing data-dir
+    While:
+      Installing data-dir
+    Traceback (most recent call last):
+      File "/zc/buildout/buildout.py", line 1173, in main
+        getattr(buildout, command)(args)
+      File "/zc/buildout/buildout.py", line 324, in install
+        installed_files = recipe.install()
+      File "/sample-buildout/recipes/mkdir.py", line 14, in install
+        directory = self.options['directory']
+      File "/zc/buildout/buildout.py", line 815, in __getitem__
+        raise MissingOption("Missing option: %s:%s" % (self.name, key))
+    MissingOption: Missing option: data-dir:directory
+    <BLANKLINE>
+    Starting pdb:
+    > /zc/buildout/buildout.py(815)__getitem__()
+    -> raise MissingOption("Missing option: %s:%s" % (self.name, key))
+    (Pdb) > /sample-buildout/recipes/mkdir.py(14)install()
+    -> directory = self.options['directory']
+    (Pdb) ['path', 'recipe']
+    (Pdb) 
