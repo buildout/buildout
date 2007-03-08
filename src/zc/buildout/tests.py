@@ -116,9 +116,15 @@ It is an error to create a variable-reference cycle:
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    While:
+      Initializing
+      Getting section buildout
+      Initializing section buildout
+      Getting option buildout:y
+      Getting option buildout:z
+      Getting option buildout:x
+      Getting option buildout:y
     Error: Circular reference in substitutions.
-    We're evaluating buildout:y, buildout:z, buildout:x
-    and are referencing: buildout:y.
 
 It is an error to use funny characters in variable refereces:
 
@@ -131,6 +137,11 @@ It is an error to use funny characters in variable refereces:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Initializing
+      Getting section buildout
+      Initializing section buildout
+      Getting option buildout:x
     Error: The section name in substitution, ${bui$ldout:y},
     has invalid characters.
 
@@ -143,6 +154,11 @@ It is an error to use funny characters in variable refereces:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Initializing
+      Getting section buildout
+      Initializing section buildout
+      Getting option buildout:x
     Error: The option name in substitution, ${buildout:y{z},
     has invalid characters.
 
@@ -157,6 +173,11 @@ and too have too many or too few colons:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Initializing
+      Getting section buildout
+      Initializing section buildout
+      Getting option buildout:x
     Error: The substitution, ${parts},
     doesn't contain a colon.
 
@@ -169,6 +190,11 @@ and too have too many or too few colons:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Initializing
+      Getting section buildout
+      Initializing section buildout
+      Getting option buildout:x
     Error: The substitution, ${buildout:y:z},
     has too many colons.
 
@@ -181,6 +207,9 @@ Al parts have to have a section:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Installing
+      Getting section x
     Error: The referenced section, 'x', was not defined.
 
 and all parts have to have a specified recipe:
@@ -196,6 +225,8 @@ and all parts have to have a specified recipe:
     ... ''')
 
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    While:
+      Installing
     Error: Missing option: x:recipe
 
 """
@@ -478,6 +509,12 @@ Options:
     new distributions if installed distributions satisfy it's
     requirements. 
 <BLANKLINE>
+  -D
+<BLANKLINE>
+    Debug errors.  If an error occurs, then the post-mortem debugger
+    will be started. This is especially useful for debuging recipe
+    problems.
+<BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -554,6 +591,12 @@ Options:
     buildout:newest=false.  With this setting, buildout will not seek
     new distributions if installed distributions satisfy it's
     requirements. 
+<BLANKLINE>
+  -D
+<BLANKLINE>
+    Debug errors.  If an error occurs, then the post-mortem debugger
+    will be started. This is especially useful for debuging recipe
+    problems.
 <BLANKLINE>
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
@@ -1233,6 +1276,55 @@ def log_when_there_are_not_local_distros():
     
     """
 
+def internal_errors():
+    """Internal errors are clearly marked and don't generate tracebacks:
+
+    >>> mkdir(sample_buildout, 'recipes')
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... '''
+    ... class Mkdir:
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...         options['path'] = os.path.join(
+    ...                               buildout['buildout']['directory'],
+    ...                               options['path'],
+    ...                               )
+    ... ''')
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name = "recipes",
+    ...       entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
+    ...       )
+    ... ''')
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    While:
+      Installing
+      Getting section data-dir
+      Initializing part data-dir
+    <BLANKLINE>
+    An internal error occured due to a bug in either zc.buildout or in a
+    recipe being used:
+    <BLANKLINE>
+    NameError:
+    global name 'os' is not defined
+    """
+    
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
@@ -1438,6 +1530,17 @@ def test_suite():
                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
                (re.compile('zc.buildout.easy_install.picked: (\S+) = \S+'),
                 'picked \\1 = V.V'),
+               ])
+            ),
+        doctest.DocFileSuite(
+            'debugging.txt',
+            setUp=zc.buildout.testing.buildoutSetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               (re.compile(r'\S+buildout.py'), 'buildout.py'),
+               (re.compile(r'line \d+'), 'line NNN'),
+               (re.compile(r'py\(\d+\)'), 'py(NNN)'),
                ])
             ),
 

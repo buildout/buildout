@@ -1,4 +1,4 @@
-#############################################################################
+############################################################################
 #
 # Copyright (c) 2005 Zope Corporation and Contributors.
 # All Rights Reserved.
@@ -61,6 +61,8 @@ class Buildout(UserDict.DictMixin):
     def __init__(self, config_file, cloptions,
                  user_defaults=True, windows_restart=False):
 
+        __doing__ = 'Initializing'
+        
         self.__windows_restart = windows_restart
 
         # default options
@@ -150,6 +152,8 @@ class Buildout(UserDict.DictMixin):
         return os.path.join(self._buildout_dir, *names)
 
     def bootstrap(self, args):
+        __doing__ = 'Bootstraping'
+
         self._setup_directories()
 
         # Now copy buildout and setuptools eggs, amd record destination eggs:
@@ -180,6 +184,8 @@ class Buildout(UserDict.DictMixin):
             self['buildout']['bin-directory'])
 
     def install(self, install_args):
+        __doing__ = 'Installing'
+
         self._load_extensions()
         self._setup_directories()
 
@@ -271,22 +277,7 @@ class Buildout(UserDict.DictMixin):
                 elif not uninstall_missing:
                     continue
 
-                # ununstall part
-                self._logger.info('Uninstalling %s', part)
-
-                # run uinstall recipe
-                recipe, entry = _recipe(installed_part_options[part])
-                try:
-                    uninstaller = _install_and_load(
-                        recipe, 'zc.buildout.uninstall', entry, self)
-                    self._logger.info('Running uninstall recipe')
-                    uninstaller(part, installed_part_options[part])
-                except (ImportError, pkg_resources.DistributionNotFound), v:
-                    pass
-
-                # remove created files and directories
-                self._uninstall(
-                    installed_part_options[part]['__buildout_installed__'])
+                self._uninstall_part(part, installed_part_options)
                 installed_parts = [p for p in installed_parts if p != part]
 
             # install new parts
@@ -295,7 +286,8 @@ class Buildout(UserDict.DictMixin):
                 saved_options = self[part].copy()
                 recipe = self[part].recipe
                 if part in installed_parts:
-                    self._logger.info('Updating %s', part)
+                    __doing__ = 'Updating %s', part
+                    self._logger.info(*__doing__)
                     old_options = installed_part_options[part]
                     old_installed_files = old_options['__buildout_installed__']
                     try:
@@ -321,14 +313,14 @@ class Buildout(UserDict.DictMixin):
                             installed_files = [installed_files]
                         else:
                             installed_files = list(installed_files)
-                            
 
                         installed_files += [
                             p for p in old_installed_files.split('\n')
                             if p and p not in installed_files]
 
                 else:
-                    self._logger.info('Installing %s', part)
+                    __doing__ = 'Installing %s', part
+                    self._logger.info(*__doing__)
                     installed_files = recipe.install()
                     if installed_files is None:
                         self._logger.warning(
@@ -356,7 +348,28 @@ class Buildout(UserDict.DictMixin):
             
             self._save_installed_options(installed_part_options)
 
+    def _uninstall_part(self, part, installed_part_options):
+        # ununstall part
+        __doing__ = 'Uninstalling %s', part
+        self._logger.info(*__doing__)
+
+        # run uinstall recipe
+        recipe, entry = _recipe(installed_part_options[part])
+        try:
+            uninstaller = _install_and_load(
+                recipe, 'zc.buildout.uninstall', entry, self)
+            self._logger.info('Running uninstall recipe')
+            uninstaller(part, installed_part_options[part])
+        except (ImportError, pkg_resources.DistributionNotFound), v:
+            pass
+
+        # remove created files and directories
+        self._uninstall(
+            installed_part_options[part]['__buildout_installed__'])
+
+
     def _setup_directories(self):
+        __doing__ = 'Setting up buildout directories'
 
         # Create buildout directories
         for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
@@ -368,6 +381,8 @@ class Buildout(UserDict.DictMixin):
     def _develop(self):
         """Install sources by running setup.py develop on them
         """
+        __doing__ = 'Processing directories listed in the develop option'
+
         develop = self['buildout'].get('develop')
         if not develop:
             return ''
@@ -382,6 +397,7 @@ class Buildout(UserDict.DictMixin):
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
                     self._logger.info("Develop: %s", setup)
+                    __doing__ = 'Processing develop directory %s', setup
                     zc.buildout.easy_install.develop(setup, dest)
             except:
                 # if we had an error, we need to roll back changes, by
@@ -482,9 +498,8 @@ class Buildout(UserDict.DictMixin):
             _save_options(part, installed_options[part], f)
         f.close()
 
-    def _error(self, message, *args, **kw):
-        self._logger.error(message, *args, **kw)
-        sys.exit(1)
+    def _error(self, message, *args):
+        raise zc.buildout.UserError(message % args)
 
     def _setup_logging(self):
         root_logger = logging.getLogger()
@@ -513,6 +528,7 @@ class Buildout(UserDict.DictMixin):
     def _maybe_upgrade(self):
         # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
+        __doing__ = 'Checking for upgrades'
 
         if not self.newest:
             return
@@ -536,6 +552,8 @@ class Buildout(UserDict.DictMixin):
 
         if not upgraded:
             return
+
+        __doing__ = 'Upgrading'
 
         should_run = realpath(
             os.path.join(os.path.abspath(self['buildout']['bin-directory']),
@@ -583,6 +601,7 @@ class Buildout(UserDict.DictMixin):
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
     def _load_extensions(self):
+        __doing__ = 'Loading extensions'
         specs = self['buildout'].get('extensions', '').split()
         if specs:
             path = [self['buildout']['develop-eggs-directory']]
@@ -628,6 +647,7 @@ class Buildout(UserDict.DictMixin):
     runsetup = setup # backward compat.
 
     def __getitem__(self, section):
+        __doing__ = 'Getting section %s', section
         try:
             return self._data[section]
         except KeyError:
@@ -657,12 +677,13 @@ class Buildout(UserDict.DictMixin):
 
 
 def _install_and_load(spec, group, entry, buildout):
+    __doing__ = 'Loading recipe %s', spec
     try:
-
         req = pkg_resources.Requirement.parse(spec)
 
         buildout_options = buildout['buildout']
         if pkg_resources.working_set.find(req) is None:
+            __doing__ = 'Installing recipe %s', spec
             if buildout.offline:
                 dest = None
                 path = [buildout_options['develop-eggs-directory'],
@@ -681,6 +702,7 @@ def _install_and_load(spec, group, entry, buildout):
                 newest=buildout.newest,
                 )
 
+        __doing__ = 'Loading %s recipe entry %s:%s', group, spec, entry
         return pkg_resources.load_entry_point(
             req.project_name, group, entry)
 
@@ -700,6 +722,8 @@ class Options(UserDict.DictMixin):
         self._data = {}
 
     def _initialize(self):
+        name = self.name
+        __doing__ = 'Initializing section %s', name
         # force substitutions
         for k in self._raw:
             self.get(k)
@@ -712,8 +736,9 @@ class Options(UserDict.DictMixin):
         buildout = self.buildout
         recipe_class = _install_and_load(reqs, 'zc.buildout', entry, buildout)
 
-        self.recipe = recipe_class(buildout, self.name, self)
-        buildout._parts.append(self.name)
+        __doing__ = 'Initializing part %s', name
+        self.recipe = recipe_class(buildout, name, self)
+        buildout._parts.append(name)
 
     def get(self, option, default=None, seen=None):
         try:
@@ -725,6 +750,8 @@ class Options(UserDict.DictMixin):
         if v is None:
             return default
 
+        __doing__ = 'Getting option %s:%s', self.name, option
+
         if '${' in v:
             key = self.name, option
             if seen is None:
@@ -732,10 +759,6 @@ class Options(UserDict.DictMixin):
             elif key in seen:
                 raise zc.buildout.UserError(
                     "Circular reference in substitutions.\n"
-                    "We're evaluating %s\nand are referencing: %s.\n"
-                    % (", ".join([":".join(k) for k in seen]),
-                       ":".join(key)
-                       )
                     )
             else:
                 seen.append(key)
@@ -789,8 +812,7 @@ class Options(UserDict.DictMixin):
 
         v = self.get(key)
         if v is None:
-            raise MissingOption("Missing option: %s:%s"
-                                % (self.name, key))
+            raise MissingOption("Missing option: %s:%s" % (self.name, key))
         return v
 
     def __setitem__(self, option, value):
@@ -954,9 +976,38 @@ def _recipe(options):
 
     return recipe, entry
 
+def _doing():
+    _, v, tb = sys.exc_info()
+    message = str(v)
+    doing = []
+    while tb is not None:
+        d = tb.tb_frame.f_locals.get('__doing__')
+        if d:
+            doing.append(d)
+        tb = tb.tb_next
+        
+    if doing:
+        sys.stderr.write('While:\n')
+        for d in doing:
+            if not isinstance(d, str):
+                d = d[0] % d[1:]
+            sys.stderr.write('  %s\n' % d)
+
 def _error(*message):
     sys.stderr.write('Error: ' + ' '.join(message) +'\n')
     sys.exit(1)
+
+_internal_error_template = """
+An internal error occured due to a bug in either zc.buildout or in a
+recipe being used:
+
+%s:
+%s
+"""
+
+def _internal_error(v):
+    sys.stderr.write(_internal_error_template % (v.__class__.__name__, v))
+    
 
 _usage = """\
 Usage: buildout [options] [assignments] [command [command arguments]]
@@ -1011,6 +1062,12 @@ Options:
     new distributions if installed distributions satisfy it's
     requirements. 
 
+  -D
+
+    Debug errors.  If an error occurs, then the post-mortem debugger
+    will be started. This is especially useful for debuging recipe
+    problems.
+
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -1046,11 +1103,12 @@ def main(args=None):
     options = []
     windows_restart = False
     user_defaults = True
+    debug = False
     while args:
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWUoOnN':
+            while op and op[0] in 'vqhWUoOnND':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1067,6 +1125,8 @@ def main(args=None):
                     options.append(('buildout', 'newest', 'true'))
                 elif op[0] == 'N':
                     options.append(('buildout', 'newest', 'false'))
+                elif op[0] == 'D':
+                    debug = True
                 else:
                     _help()
                 op = op[1:]
@@ -1110,8 +1170,21 @@ def main(args=None):
             buildout = Buildout(config_file, options,
                                 user_defaults, windows_restart)
             getattr(buildout, command)(args)
-        except zc.buildout.UserError, v:
-            _error(str(v))
+        except SystemExit:
+            pass
+        except Exception, v:
+            _doing()
+            if debug:
+                exc_info = sys.exc_info()
+                import pdb, traceback
+                traceback.print_exception(*exc_info)
+                sys.stderr.write('\nStarting pdb:\n')
+                pdb.post_mortem(exc_info[2])
+            else:
+                if isinstance(v, zc.buildout.UserError):
+                    _error(str(v))
+                else:
+                    _internal_error(v)
             
     finally:
             logging.shutdown()
