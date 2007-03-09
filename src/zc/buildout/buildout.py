@@ -56,6 +56,17 @@ class MissingSection(zc.buildout.UserError, KeyError):
     def __str__(self):
         return "The referenced section, %r, was not defined." % self[0]
 
+_buildout_default_options = {
+    'eggs-directory': 'eggs',
+    'develop-eggs-directory': 'develop-eggs',
+    'bin-directory': 'bin',
+    'parts-directory': 'parts',
+    'installed': '.installed.cfg',
+    'python': 'buildout',
+    'executable': sys.executable,
+    'log-level': 'INFO',
+    'log-format': '%(name)s: %(message)s',
+    }
 
 class Buildout(UserDict.DictMixin):
 
@@ -67,17 +78,7 @@ class Buildout(UserDict.DictMixin):
         self.__windows_restart = windows_restart
 
         # default options
-        data = dict(buildout={
-            'eggs-directory': 'eggs',
-            'develop-eggs-directory': 'develop-eggs',
-            'bin-directory': 'bin',
-            'parts-directory': 'parts',
-            'installed': '.installed.cfg',
-            'python': 'buildout',
-            'executable': sys.executable,
-            'log-level': 'INFO',
-            'log-format': '%(name)s: %(message)s',
-            })
+        data = dict(buildout=_buildout_default_options.copy())
 
         if not _isurl(config_file):
             config_file = os.path.abspath(config_file)
@@ -107,7 +108,6 @@ class Buildout(UserDict.DictMixin):
                 options = self[section] = {}
             options[option] = value
                 # The egg dire
-
 
         self._raw = data
         self._data = {}
@@ -148,6 +148,10 @@ class Buildout(UserDict.DictMixin):
         versions = options.get('versions')
         if versions:
             zc.buildout.easy_install.default_versions(dict(self[versions]))
+
+        # "Use" each of the defaults so they aren't reported as unused options.
+        for name in _buildout_default_options:
+            options[name]
 
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
@@ -281,6 +285,9 @@ class Buildout(UserDict.DictMixin):
                 self._uninstall_part(part, installed_part_options)
                 installed_parts = [p for p in installed_parts if p != part]
 
+            # Check for unused buildout options:
+            _check_for_unused_options_in_section(self, 'buildout')
+
             # install new parts
             for part in install_parts:
                 signature = self[part].pop('__buildout_signature__')
@@ -340,6 +347,7 @@ class Buildout(UserDict.DictMixin):
 
                 installed_parts = [p for p in installed_parts if p != part]
                 installed_parts.append(part)
+                _check_for_unused_options_in_section(self, part)
 
         finally:
             installed_part_options['buildout']['parts'] = (
@@ -720,14 +728,17 @@ class Options(UserDict.DictMixin):
         self.buildout = buildout
         self.name = section
         self._raw = data
+        self._cooked = {}
         self._data = {}
 
     def _initialize(self):
         name = self.name
         __doing__ = 'Initializing section %s', name
+        
         # force substitutions
-        for k in self._raw:
-            self.get(k)
+        for k, v in self._raw.items():
+            if '${' in v:
+                self._dosub(k, v)
 
         recipe = self.get('recipe')
         if not recipe:
@@ -741,15 +752,23 @@ class Options(UserDict.DictMixin):
         self.recipe = recipe_class(buildout, name, self)
         buildout._parts.append(name)
 
+    def _dosub(self, option, v):
+        __doing__ = 'Getting option %s:%s', self.name, option
+        seen = [(self.name, option)]
+        v = '$$'.join([self._sub(s, seen) for s in v.split('$$')])
+        self._cooked[option] = v
+
     def get(self, option, default=None, seen=None):
         try:
             return self._data[option]
         except KeyError:
             pass
 
-        v = self._raw.get(option)
+        v = self._cooked.get(option)
         if v is None:
-            return default
+            v = self._raw.get(option)
+            if v is None:
+                return default
 
         __doing__ = 'Getting option %s:%s', self.name, option
 
@@ -826,6 +845,8 @@ class Options(UserDict.DictMixin):
             del self._raw[key]
             if key in self._data:
                 del self._data[key]
+            if key in self._cooked:
+                del self._cooked[key]
         elif key in self._data:
             del self._data[key]
         else:
@@ -836,7 +857,10 @@ class Options(UserDict.DictMixin):
         return list(self._raw) + [k for k in self._data if k not in raw]
 
     def copy(self):
-        return dict([(k, self[k]) for k in self.keys()])
+        result = self._raw.copy()
+        result.update(self._cooked)
+        result.update(self._data)
+        return result
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
@@ -1005,6 +1029,14 @@ recipe being used:
 %s:
 %s
 """
+
+def _check_for_unused_options_in_section(buildout, section):
+    options = buildout[section]
+    unused = [option for option in options._raw if option not in options._data]
+    if unused:
+        buildout._logger.warn("Unused options for %s: %s"
+                              % (section, ' '.join(map(repr, unused)))
+                              )
 
 def _internal_error(v):
     sys.stderr.write(_internal_error_template % (v.__class__.__name__, v))
