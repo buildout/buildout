@@ -249,6 +249,8 @@ class Installer:
 
     def _get_dist(self, requirement, ws, always_unzip):
 
+        __doing__ = 'Getting distribution for %s', requirement
+
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
         dist = self._satisfied(requirement)
