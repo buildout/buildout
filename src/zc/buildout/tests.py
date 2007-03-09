@@ -1323,6 +1323,23 @@ def internal_errors():
     NameError:
     global name 'os' is not defined
     """
+
+def download_errors():
+    """
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = 
+    ... find-links = http://127.0.0.1/no-shuch-thing
+    ... ''')
+
+    >>> print system(buildout), # doctest: +ELLIPSIS
+    While:
+      Installing
+      Checking for upgrades
+      Getting distribution for setuptools
+    Error: Download error...
+    """
     
 
 ######################################################################

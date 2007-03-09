@@ -16,6 +16,7 @@
 $Id$
 """
 
+import distutils.errors
 import logging
 import md5
 import os
@@ -1181,7 +1182,10 @@ def main(args=None):
                 sys.stderr.write('\nStarting pdb:\n')
                 pdb.post_mortem(exc_info[2])
             else:
-                if isinstance(v, zc.buildout.UserError):
+                if isinstance(v, (zc.buildout.UserError,
+                                  distutils.errors.DistutilsError,
+                                  )
+                              ):
                     _error(str(v))
                 else:
                     _internal_error(v)
