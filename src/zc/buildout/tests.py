@@ -1340,7 +1340,51 @@ def download_errors():
       Getting distribution for setuptools
     Error: Download error...
     """
-    
+
+def whine_about_unused_options():
+    '''
+
+    >>> write('foo.py', 
+    ... """
+    ... class Foo:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...         options['x']
+    ...
+    ...     def install(self):
+    ...         self.options['y']
+    ...         return ()
+    ... """)
+
+    >>> write('setup.py',
+    ... """
+    ... from setuptools import setup
+    ... setup(name = "foo",
+    ...       entry_points = {'zc.buildout': ['default = foo:Foo']},
+    ...       )
+    ... """)
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = .
+    ... parts = foo
+    ... a = 1
+    ...
+    ... [foo]
+    ... recipe = foo
+    ... x = 1
+    ... y = 1
+    ... z = 1
+    ... """)
+
+    >>> print system(buildout),
+    buildout: Develop: /tmp/tmpsueWpG/_TEST_/sample-buildout/.
+    buildout: Unused options for buildout: 'a'
+    buildout: Installing foo
+    buildout: Unused options for foo: 'z'
+    '''
 
 ######################################################################
     
