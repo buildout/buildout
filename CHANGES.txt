@@ -6,13 +6,7 @@ priorities include:
 
 - Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
 
-- Making buildouts more 
-  `repeatable
-  <https://features.launchpad.net/products/zc.buildout/+spec/repeatable>`_
-
 - Adding support for making distributions from buildouts
-
-- Better error reporing
 
 Change History
 **************
