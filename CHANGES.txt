@@ -17,6 +17,19 @@ priorities include:
 Change History
 **************
 
+1.0.0b22 (2007-03-09)
+=====================
+
+Feature Changes
+---------------
+
+- Added "logical tracebacks" that show functionally what the buildout
+  was doing when an error occurs.  Don't show a Python traceback
+  unless the -D option is used.
+
+- Added a -D option that causes the buildout to print a traceback and
+  start the pdb post-mortem debugger when an error occurs.
+
 1.0.0b21 (2007-03-06)
 =====================
 

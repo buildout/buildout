@@ -31,7 +31,7 @@ long_description=(
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b21",
+    version = "1.0.0b22",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
