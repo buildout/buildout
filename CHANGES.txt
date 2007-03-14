@@ -17,18 +17,25 @@ Change History
 Feature Changes
 ---------------
 
-Improved error reporting and debugging support:
+- Improved error reporting and debugging support:
 
-- Added "logical tracebacks" that show functionally what the buildout
-  was doing when an error occurs.  Don't show a Python traceback
-  unless the -D option is used.
+  - Added "logical tracebacks" that show functionally what the buildout
+    was doing when an error occurs.  Don't show a Python traceback
+    unless the -D option is used.
 
-- Added a -D option that causes the buildout to print a traceback and
-  start the pdb post-mortem debugger when an error occurs.
+  - Added a -D option that causes the buildout to print a traceback and
+    start the pdb post-mortem debugger when an error occurs.
 
-- Warnings are printed for unused options in the buildout section and
-  installed-part sections.  This should make it easier to catch option
-  misspellings.
+  - Warnings are printed for unused options in the buildout section and
+    installed-part sections.  This should make it easier to catch option
+    misspellings.
+
+- Changed the way the installed database (.installed.cfg) is handled
+  to avoid database corruption when a user breaks out of a buildout
+  with control-c.
+
+- Don't save an installed database if there are no installed parts or
+  develop egg links.
 
 1.0.0b21 (2007-03-06)
 =====================
