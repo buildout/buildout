@@ -202,7 +202,8 @@ class Buildout(UserDict.DictMixin):
         self._maybe_upgrade()
 
         # load installed data
-        installed_part_options = self._read_installed_part_options()
+        (installed_part_options, installed_exists
+         )= self._read_installed_part_options()
 
         # Remove old develop eggs
         self._uninstall(
@@ -212,6 +213,12 @@ class Buildout(UserDict.DictMixin):
 
         # Build develop eggs
         installed_develop_eggs = self._develop()
+        installed_part_options['buildout']['installed_develop_eggs'
+                                           ] = installed_develop_eggs
+        
+        if installed_exists:
+            self._update_installed(
+                installed_develop_eggs=installed_develop_eggs)
 
         # get configured and installed part lists
         conf_parts = self['buildout']['parts']
@@ -244,118 +251,147 @@ class Buildout(UserDict.DictMixin):
         # compute new part recipe signatures
         self._compute_part_signatures(install_parts)
 
-        try:
-            # uninstall parts that are no-longer used or who's configs
-            # have changed
-            for part in reversed(installed_parts):
-                if part in install_parts:
-                    old_options = installed_part_options[part].copy()
-                    installed_files = old_options.pop('__buildout_installed__')
-                    new_options = self.get(part)
-                    if old_options == new_options:
-                        # The options are the same, but are all of the
-                        # installed files still there?  If not, we should
-                        # reinstall.
-                        if not installed_files:
-                            continue
-                        for f in installed_files.split('\n'):
-                            if not os.path.exists(self._buildout_path(f)):
-                                break
-                        else:
-                            continue
-
-                    # output debugging info
-                    for k in old_options:
-                        if k not in new_options:
-                            self._logger.debug("Part: %s, dropped option %s",
-                                               part, k)
-                        elif old_options[k] != new_options[k]:
-                            self._logger.debug(
-                                "Part: %s, option %s, %r != %r",
-                                part, k, new_options[k], old_options[k],
-                                )
-                    for k in new_options:
-                        if k not in old_options:
-                            self._logger.debug("Part: %s, new option %s",
-                                               part, k)
-
-                elif not uninstall_missing:
-                    continue
-
-                self._uninstall_part(part, installed_part_options)
-                installed_parts = [p for p in installed_parts if p != part]
-
-            # Check for unused buildout options:
-            _check_for_unused_options_in_section(self, 'buildout')
-
-            # install new parts
-            for part in install_parts:
-                signature = self[part].pop('__buildout_signature__')
-                saved_options = self[part].copy()
-                recipe = self[part].recipe
-                if part in installed_parts:
-                    __doing__ = 'Updating %s', part
-                    self._logger.info(*__doing__)
-                    old_options = installed_part_options[part]
-                    old_installed_files = old_options['__buildout_installed__']
-                    try:
-                        update = recipe.update
-                    except AttributeError:
-                        update = recipe.install
-                        self._logger.warning(
-                            "The recipe for %s doesn't define an update "
-                            "method. Using its install method.",
-                            part)
-
-                    try:
-                        installed_files = update()
-                    except:
-                        installed_parts.remove(part)
-                        self._uninstall(old_installed_files)
-                        raise
-                    
-                    if installed_files is None:
-                        installed_files = old_installed_files.split('\n')
+        # uninstall parts that are no-longer used or who's configs
+        # have changed
+        for part in reversed(installed_parts):
+            if part in install_parts:
+                old_options = installed_part_options[part].copy()
+                installed_files = old_options.pop('__buildout_installed__')
+                new_options = self.get(part)
+                if old_options == new_options:
+                    # The options are the same, but are all of the
+                    # installed files still there?  If not, we should
+                    # reinstall.
+                    if not installed_files:
+                        continue
+                    for f in installed_files.split('\n'):
+                        if not os.path.exists(self._buildout_path(f)):
+                            break
                     else:
-                        if isinstance(installed_files, str):
-                            installed_files = [installed_files]
-                        else:
-                            installed_files = list(installed_files)
+                        continue
 
-                        installed_files += [
-                            p for p in old_installed_files.split('\n')
-                            if p and p not in installed_files]
+                # output debugging info
+                for k in old_options:
+                    if k not in new_options:
+                        self._logger.debug("Part: %s, dropped option %s",
+                                           part, k)
+                    elif old_options[k] != new_options[k]:
+                        self._logger.debug(
+                            "Part: %s, option %s, %r != %r",
+                            part, k, new_options[k], old_options[k],
+                            )
+                for k in new_options:
+                    if k not in old_options:
+                        self._logger.debug("Part: %s, new option %s",
+                                           part, k)
 
+            elif not uninstall_missing:
+                continue
+
+            self._uninstall_part(part, installed_part_options)
+            installed_parts = [p for p in installed_parts if p != part]
+
+            if installed_exists:
+                self._update_installed(parts=' '.join(installed_parts))
+
+        # Check for unused buildout options:
+        _check_for_unused_options_in_section(self, 'buildout')
+
+        # install new parts
+        for part in install_parts:
+            signature = self[part].pop('__buildout_signature__')
+            saved_options = self[part].copy()
+            recipe = self[part].recipe
+            if part in installed_parts: # update
+                need_to_save_installed = False
+                __doing__ = 'Updating %s', part
+                self._logger.info(*__doing__)
+                old_options = installed_part_options[part]
+                old_installed_files = old_options['__buildout_installed__']
+
+                try:
+                    update = recipe.update
+                except AttributeError:
+                    update = recipe.install
+                    self._logger.warning(
+                        "The recipe for %s doesn't define an update "
+                        "method. Using its install method.",
+                        part)
+
+                try:
+                    installed_files = update()
+                except:
+                    installed_parts.remove(part)
+                    self._uninstall(old_installed_files)
+                    if installed_exists:
+                        self._update_installed(
+                            parts=' '.join(installed_parts))
+                    raise
+
+                old_installed_files = old_installed_files.split('\n')
+                if installed_files is None:
+                    installed_files = old_installed_files
                 else:
-                    __doing__ = 'Installing %s', part
-                    self._logger.info(*__doing__)
-                    installed_files = recipe.install()
-                    if installed_files is None:
-                        self._logger.warning(
-                            "The %s install returned None.  A path or "
-                            "iterable os paths should be returned.",
-                            part)
-                        installed_files = ()
-                    
-                if isinstance(installed_files, str):
+                    if isinstance(installed_files, str):
+                        installed_files = [installed_files]
+                    else:
+                        installed_files = list(installed_files)
+
+                    need_to_save_installed = [
+                        p for p in installed_files
+                        if p not in old_installed_files]
+
+                    if need_to_save_installed:
+                        installed_files = (old_installed_files
+                                           + need_to_save_installed)
+
+            else: # install
+                need_to_save_installed = True
+                __doing__ = 'Installing %s', part
+                self._logger.info(*__doing__)
+                installed_files = recipe.install()
+                if installed_files is None:
+                    self._logger.warning(
+                        "The %s install returned None.  A path or "
+                        "iterable os paths should be returned.",
+                        part)
+                    installed_files = ()
+                elif isinstance(installed_files, str):
                     installed_files = [installed_files]
+                else:
+                    installed_files = list(installed_files)
 
-                installed_part_options[part] = saved_options
-                saved_options['__buildout_installed__'
-                              ] = '\n'.join(installed_files)
-                saved_options['__buildout_signature__'] = signature
+            installed_part_options[part] = saved_options
+            saved_options['__buildout_installed__'
+                          ] = '\n'.join(installed_files)
+            saved_options['__buildout_signature__'] = signature
 
-                installed_parts = [p for p in installed_parts if p != part]
-                installed_parts.append(part)
-                _check_for_unused_options_in_section(self, part)
+            installed_parts = [p for p in installed_parts if p != part]
+            installed_parts.append(part)
+            _check_for_unused_options_in_section(self, part)
 
-        finally:
-            installed_part_options['buildout']['parts'] = (
-                ' '.join(installed_parts))
-            installed_part_options['buildout']['installed_develop_eggs'
-                                               ] = installed_develop_eggs
-            
-            self._save_installed_options(installed_part_options)
+            if need_to_save_installed:
+                installed_part_options['buildout']['parts'] = (
+                    ' '.join(installed_parts))            
+                self._save_installed_options(installed_part_options)
+                installed_exists = True
+            else:
+                assert installed_exists
+                self._update_installed(parts=' '.join(installed_parts))
+
+        if installed_develop_eggs:
+            if not installed_exists:
+                self._save_installed_options(installed_part_options)
+        elif (not installed_parts) and installed_exists:
+            os.remove(self['buildout']['installed'])
+
+    def _update_installed(self, **buildout_options):
+        installed = self['buildout']['installed']
+        f = open(installed, 'a')
+        f.write('\n[buildout]\n')
+        for option, value in buildout_options.items():
+            _save_option(option, value, f)
+        f.close()
 
     def _uninstall_part(self, part, installed_part_options):
         # ununstall part
@@ -466,9 +502,11 @@ class Buildout(UserDict.DictMixin):
                     options[option] = value
                 result[section] = Options(self, section, options)
                         
-            return result
+            return result, True
         else:
-            return {'buildout': Options(self, 'buildout', {'parts': ''})}
+            return ({'buildout': Options(self, 'buildout', {'parts': ''})},
+                    False,
+                    )
 
     def _uninstall(self, installed):
         for f in installed.split('\n'):
@@ -891,17 +929,20 @@ def _quote_spacey_nl(match):
         )
     return result
 
+def _save_option(option, value, f):
+    value = _spacey_nl.sub(_quote_spacey_nl, value)
+    if value.startswith('\n\t'):
+        value = '%(__buildout_space_n__)s' + value[2:]
+    if value.endswith('\n\t'):
+        value = value[:-2] + '%(__buildout_space_n__)s'
+    print >>f, option, '=', value
+    
 def _save_options(section, options, f):
     print >>f, '[%s]' % section
     items = options.items()
     items.sort()
     for option, value in items:
-        value = _spacey_nl.sub(_quote_spacey_nl, value)
-        if value.startswith('\n\t'):
-            value = '%(__buildout_space_n__)s' + value[2:]
-        if value.endswith('\n\t'):
-            value = value[:-2] + '%(__buildout_space_n__)s'
-        print >>f, option, '=', value
+        _save_option(option, value, f)
 
 def _open(base, filename, seen):
     """Open a configuration file and return the result as a dictionary,

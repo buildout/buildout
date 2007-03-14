@@ -1240,11 +1240,11 @@ uninstall
     [buildout]
     ...
     [foo]
-    __buildout_installed__ = c
+    __buildout_installed__ = a
+    	b
+    	c
     	d
     	e
-    	a
-    	b
     __buildout_signature__ = ...
 
 """
@@ -1385,6 +1385,208 @@ def whine_about_unused_options():
     buildout: Installing foo
     buildout: Unused options for foo: 'z'
     '''
+
+def abnormal_exit():
+    """
+People sometimes hit control-c while running a builout. We need to make
+sure that the installed database Isn't corrupted.  To test this, we'll create
+some evil recipes that exit uncleanly:
+
+    >>> mkdir('recipes')
+    >>> write('recipes', 'recipes.py',
+    ... '''
+    ... import os
+    ...
+    ... class Clean:
+    ...     def __init__(*_): pass
+    ...     def install(_): return ()
+    ...     def update(_): pass
+    ...
+    ... class EvilInstall(Clean):
+    ...     def install(_): os._exit(1)
+    ...
+    ... class EvilUpdate(Clean):
+    ...     def update(_): os._exit(1)
+    ... ''')
+
+    >>> write('recipes', 'setup.py',
+    ... '''
+    ... import setuptools
+    ... setuptools.setup(name='recipes',
+    ...    entry_points = {
+    ...      'zc.buildout': [
+    ...          'clean = recipes:Clean',
+    ...          'evil_install = recipes:EvilInstall',
+    ...          'evil_update = recipes:EvilUpdate',
+    ...          'evil_uninstall = recipes:Clean',
+    ...          ],
+    ...       },
+    ...     )
+    ... ''')
+
+Now let's look at 3 cases:
+
+1. We exit during installation after installing some other parts:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = p1 p2 p3 p4
+    ...
+    ... [p1]
+    ... recipe = recipes:clean
+    ...
+    ... [p2]
+    ... recipe = recipes:clean
+    ...
+    ... [p3]
+    ... recipe = recipes:evil_install
+    ...
+    ... [p4]
+    ... recipe = recipes:clean
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing p1
+    buildout: Installing p2
+    buildout: Installing p3
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Updating p1
+    buildout: Updating p2
+    buildout: Installing p3
+
+    >>> print system(buildout+' buildout:parts='),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling p2
+    buildout: Uninstalling p1
+
+2. We exit while updating:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = p1 p2 p3 p4
+    ...
+    ... [p1]
+    ... recipe = recipes:clean
+    ...
+    ... [p2]
+    ... recipe = recipes:clean
+    ...
+    ... [p3]
+    ... recipe = recipes:evil_update
+    ...
+    ... [p4]
+    ... recipe = recipes:clean
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing p1
+    buildout: Installing p2
+    buildout: Installing p3
+    buildout: Installing p4
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Updating p1
+    buildout: Updating p2
+    buildout: Updating p3
+
+    >>> print system(buildout+' buildout:parts='),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling p2
+    buildout: Uninstalling p1
+    buildout: Uninstalling p4
+    buildout: Uninstalling p3
+
+3. We exit while installing or updating after uninstalling:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = p1 p2 p3 p4
+    ...
+    ... [p1]
+    ... recipe = recipes:evil_update
+    ...
+    ... [p2]
+    ... recipe = recipes:clean
+    ...
+    ... [p3]
+    ... recipe = recipes:clean
+    ...
+    ... [p4]
+    ... recipe = recipes:clean
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing p1
+    buildout: Installing p2
+    buildout: Installing p3
+    buildout: Installing p4
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = p1 p2 p3 p4
+    ...
+    ... [p1]
+    ... recipe = recipes:evil_update
+    ...
+    ... [p2]
+    ... recipe = recipes:clean
+    ...
+    ... [p3]
+    ... recipe = recipes:clean
+    ...
+    ... [p4]
+    ... recipe = recipes:clean
+    ... x = 1
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling p4
+    buildout: Updating p1
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = p1 p2 p3 p4
+    ...
+    ... [p1]
+    ... recipe = recipes:clean
+    ...
+    ... [p2]
+    ... recipe = recipes:clean
+    ...
+    ... [p3]
+    ... recipe = recipes:clean
+    ...
+    ... [p4]
+    ... recipe = recipes:clean
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling p1
+    buildout: Installing p1
+    buildout: Updating p2
+    buildout: Updating p3
+    buildout: Installing p4
+
+    """
+    
 
 ######################################################################
     

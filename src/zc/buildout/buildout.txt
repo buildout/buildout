@@ -1756,8 +1756,20 @@ information on installed parts.  This option is initialized to
 ".installed.cfg", but it can be overridded in the configuration file
 or on the command line:
 
-    >>> os.remove('.installed.cfg')
+    >>> write('buildout.cfg', 
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
     >>> print system(buildout+' buildout:installed=inst.cfg'),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing debug
+    recipe recipes:debug
 
     >>> ls(sample_buildout)
     -  b1.cfg
@@ -1771,12 +1783,14 @@ or on the command line:
     d  parts
     d  recipes
 
-
 The installation database can be disabled by supplying an empty
 buildout installed opttion:
 
     >>> os.remove('inst.cfg')
     >>> print system(buildout+' buildout:installed='),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing debug
+    recipe recipes:debug
 
     >>> ls(sample_buildout)
     -  b1.cfg
@@ -1789,6 +1803,28 @@ buildout installed opttion:
     d  parts
     d  recipes
 
+
+Note that there will be no installation database if there are no
+parts:
+
+    >>> write('buildout.cfg', 
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+
+    >>> print system(buildout+' buildout:installed=inst.cfg'),
+
+    >>> ls(sample_buildout)
+    -  b1.cfg
+    -  b2.cfg
+    -  base.cfg
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    d  recipes
 
 Extensions
 ----------
