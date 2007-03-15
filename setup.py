@@ -18,6 +18,8 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'debugging.txt')
+        + '\n' +
         read('src', 'zc', 'buildout', 'testing.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'easy_install.txt')
