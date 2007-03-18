@@ -645,7 +645,7 @@ extension, extdemo.c::
   #endif
   }
 
-The extension depends on a system-dependnt include file, extdemo.h,
+The extension depends on a system-dependent include file, extdemo.h,
 that defines a constant, EXTDEMO, that is exposed by the extension.
 
 We'll add an include directory to our sample buildout and add the
@@ -664,7 +664,7 @@ distribution:
     ...   'extdemo', dest, 
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
-    '/sample-install/extdemo-1.4-py2.4-unix-i686.egg'
+    ['/sample-install/extdemo-1.4-py2.4-unix-i686.egg']
 
 The function returns the list of eggs 
 
@@ -706,7 +706,7 @@ If we run build with newest set to False, we won't get an update:
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/',
     ...   newest=False)
-    '/sample-install/extdemo-1.4-py2.4-linux-i686.egg'
+    ['/sample-install/extdemo-1.4-py2.4-linux-i686.egg']
 
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
@@ -722,7 +722,7 @@ get an updated egg:
     ...   'extdemo', dest, 
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
-    '/sample-install/extdemo-1.5-py2.4-unix-i686.egg'
+    ['/sample-install/extdemo-1.5-py2.4-unix-i686.egg']
 
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
@@ -746,7 +746,7 @@ first:
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/',
     ...   versions=dict(extdemo='1.4'))
-    '/sample-install/extdemo-1.4-py2.4-unix-i686.egg'
+    ['/sample-install/extdemo-1.4-py2.4-unix-i686.egg']
 
     >>> ls(dest)
     d  extdemo-1.4-py2.4-unix-i686.egg
@@ -814,3 +814,112 @@ And that the source directory contains the compiled extension:
     d  extdemo.egg-info
     -  extdemo.so
     -  setup.py
+
+Download cache
+--------------
+
+Normally, when distributions are installed, if any processing is
+needed, they are downloaded from the internet to a temporary directory
+and then installed from there.  A download cache can be used to avoid
+the download step.  This can be useful to reduce network access and to
+create source distributions of an entire buildout.
+
+A download cache is specified by calling the download_cache
+function.  The function always returns the previous setting. If no
+argument is passed, then the setting is unchanged.  Is an argument is
+passed, the download cache is set to the given path, which must point
+to an existing directory.  Passing None clears the cache setting.
+
+To see this work, we'll create a directory and set it as the cache
+directory:
+
+    >>> cache = tmpdir('cache')
+    >>> zc.buildout.easy_install.download_cache(cache)
+
+We'll recreate out destination directory:
+
+    >>> remove(dest)
+    >>> dest = tmpdir('sample-install')
+
+We'd like to see what is being fetched from the server, so we'll
+enable server logging:
+   
+    >>> get(link_server+'enable_server_logging')
+    GET 200 /enable_server_logging
+    ''
+
+Now, if we install demo, and extdemo:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], dest,
+    ...     links=[link_server], index=link_server+'index/', 
+    ...     always_unzip=True)
+    GET 200 /
+    GET 404 /index/demo/
+    GET 200 /index/
+    GET 200 /demo-0.2-py2.4.egg
+    GET 404 /index/demoneeded/
+    GET 200 /demoneeded-1.1.zip
+    GET 404 /index/setuptools/
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/')
+    GET 404 /index/extdemo/
+    GET 200 /extdemo-1.5.zip
+    ['/sample-install/extdemo-1.5-py2.4-linux-i686.egg']
+
+Not only will we get eggs in our destination directory:
+
+    >>> ls(dest)
+    d  demo-0.2-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.5-py2.4-linux-i686.egg
+
+But we'll get distributions in the cache directory:
+
+    >>> ls(cache)
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1.zip
+    -  extdemo-1.5.zip
+
+The cache directory contains uninstalled distributions, such as zipped
+eggs or source distributions.  
+
+Let's recreate our destination directory and clear the index cache:
+
+    >>> remove(dest)
+    >>> dest = tmpdir('sample-install')
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+Now when we install the distributions:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], dest,
+    ...     links=[link_server], index=link_server+'index/', 
+    ...     always_unzip=True)
+    GET 200 /
+    GET 404 /index/demo/
+    GET 200 /index/
+    GET 404 /index/demoneeded/
+    GET 404 /index/setuptools/
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/')
+    GET 404 /index/extdemo/
+    ['/sample-install/extdemo-1.5-py2.4-linux-i686.egg']
+
+    >>> ls(dest)
+    d  demo-0.2-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  extdemo-1.5-py2.4-linux-i686.egg
+
+Note that we didn't download the distributions from the link server.
+
+.. Disable the download cache:
+
+    >>> zc.buildout.easy_install.download_cache(None)
+    '/cache'
