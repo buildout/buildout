@@ -242,14 +242,27 @@ class Server(BaseHTTPServer.HTTPServer):
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
+    Server.__log = False
+
     def __init__(self, request, address, server):
+        self.__server = server
         self.tree = server.tree
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(
             self, request, address, server)
 
     def do_GET(self):
         if '__stop__' in self.path:
-           raise SystemExit
+            raise SystemExit
+        
+        if self.path == '/enable_server_logging':
+            self.__server.__log = True
+            self.send_response(200)
+            return
+            
+        if self.path == '/disable_server_logging':
+            self.__server.__log = False
+            self.send_response(200)
+            return
 
         path = os.path.abspath(os.path.join(self.tree, *self.path.split('/')))
         if not (
@@ -295,8 +308,9 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.wfile.write(out)
                 
-    def log_request(*s):
-        pass
+    def log_request(self, code):
+        if self.__server.__log:
+            print '%s %s %s' % (self.command, code, self.path)
 
 def _run(tree, port):
     server_address = ('localhost', port)

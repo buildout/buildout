@@ -90,6 +90,19 @@ number of names to the test namespace:
     Start a web server on the given path.  The server will be shut
     down at the end of the test.  The server URL is returned.
 
+    You can cause the server to start and stop logging it's output
+    using: 
+
+       >>> get(server_url+'enable_server_logging')
+
+    and:
+
+       >>> get(server_url+'enable_server_logging')
+
+    This can be useful to see how buildout is interacting with a
+    server.
+
+
 ``sdist(setup, dest)``
     Create a source distribution by running the given setup file and
     placing the result in the given destination directory.  If the
