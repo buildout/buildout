@@ -105,7 +105,7 @@ class Buildout(UserDict.DictMixin):
         for (section, option, value) in cloptions:
             options = data.get(section)
             if options is None:
-                options = self[section] = {}
+                options = data[section] = {}
             options[option] = value
                 # The egg dire
 

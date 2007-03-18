@@ -11,6 +11,15 @@ priorities include:
 Change History
 **************
 
+1.0.0b23 (2007-03-??)
+=====================
+
+Bugs Fixed
+----------
+
+- It wasn't possible to give options on the command line for sections
+  not defined in a configuration file.
+
 1.0.0b22 (2007-03-15)
 =====================
 
