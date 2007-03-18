@@ -395,6 +395,24 @@ Now, finally, let's test _get_version:
 
     """
 
+def create_sections_on_command_line():
+    """
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... x = ${foo:bar}
+    ... ''')
+
+    >>> print system(buildout + ' foo:bar=1 -vD'), # doctest: +ELLIPSIS
+    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
+    ...
+    [foo]
+    bar = 1
+    ...
+    
+    """
+
 # Why?
 ## def error_for_undefined_install_parts():
 ##     """
