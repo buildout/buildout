@@ -49,6 +49,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     >>> ls('develop-eggs')
     -  foo.egg-link
+    -  zc.recipe.egg.egg-link
 
     """
 
@@ -79,6 +80,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     >>> ls('develop-eggs')
     -  foo.egg-link
+    -  zc.recipe.egg.egg-link
 
     """
 
@@ -688,6 +690,7 @@ Create a develop egg:
 
     >>> ls('develop-eggs')
     -  foox.egg-link
+    -  zc.recipe.egg.egg-link
 
 Create another:
 
@@ -711,6 +714,7 @@ Create another:
     >>> ls('develop-eggs')
     -  foox.egg-link
     -  fooy.egg-link
+    -  zc.recipe.egg.egg-link
 
 Remove one:
 
@@ -727,6 +731,7 @@ It is gone
 
     >>> ls('develop-eggs')
     -  fooy.egg-link
+    -  zc.recipe.egg.egg-link
 
 Remove the other:
 
@@ -740,6 +745,7 @@ Remove the other:
 All gone
 
     >>> ls('develop-eggs')
+    -  zc.recipe.egg.egg-link
     '''
 
 
@@ -813,6 +819,7 @@ On the other hand, if we have a regular egg, rather than a develop egg:
     ...            + join(sample_buildout, 'eggs'))
 
     >>> ls('develop-eggs')
+    -  zc.recipe.egg.egg-link
     
     >>> ls('eggs') # doctest: +ELLIPSIS
     -  foox-0.0.0-py2.4.egg
@@ -1604,6 +1611,74 @@ Now let's look at 3 cases:
     buildout: Installing p4
 
     """
+
+def install_source_dist_with_bad_py():
+    """
+
+    >>> mkdir('badegg')
+    >>> mkdir('badegg', 'badegg')
+    >>> write('badegg', 'badegg', '__init__.py', '#\\n')
+    >>> mkdir('badegg', 'badegg', 'scripts')
+    >>> write('badegg', 'badegg', 'scripts', '__init__.py', '#\\n')
+    >>> write('badegg', 'badegg', 'scripts', 'one.py',
+    ... '''
+    ... return 1
+    ... ''')
+
+    >>> write('badegg', 'setup.py',
+    ... '''
+    ... from setuptools import setup, find_packages
+    ... setup(
+    ...     name='badegg',
+    ...     version='1',
+    ...     packages = find_packages('.'),
+    ...     zip_safe=False)
+    ... ''')
+
+    >>> print system(buildout+' setup badegg sdist'), # doctest: +ELLIPSIS
+    buildout: Running setup script badegg/setup.py
+    ...
+    
+    >>> dist = join('badegg', 'dist')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs bo
+    ... find-links = %(dist)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = badegg
+    ...
+    ... [bo]
+    ... recipe = zc.recipe.egg
+    ... eggs = zc.buildout
+    ... scripts = buildout=bo
+    ... ''' % globals())
+
+    >>> print system('buildout'),
+    buildout: Not upgrading because not running a local buildout command
+    buildout: Installing eggs
+    zc.buildout.easy_install: Getting new distribution for badegg
+      File "build/bdist.linux-i686/egg/badegg/scripts/one.py", line 2
+        return 1
+    SyntaxError: 'return' outside function
+      File "/sample-buildout/eggs/badegg-1-py2.4.egg/badegg/scripts/one.py", line 2
+        return 1
+    SyntaxError: 'return' outside function
+    zc.buildout.easy_install: Got badegg 1
+    buildout: Installing bo
+
+    >>> ls('eggs')
+    d  badegg-1-py2.4.egg
+    d  setuptools-0.6c5-py2.4.egg
+    -  zc.buildout.egg-link
+    
+    >>> ls('bin')
+    -  bo
+    -  buildout
+    """
     
 
 ######################################################################
@@ -1711,7 +1786,7 @@ def easy_install_SetUp(test):
     test.globs['link_server'] = test.globs['start_server'](
         test.globs['sample_eggs'])
     test.globs['update_extdemo'] = lambda : add_source_dist(test, 1.5)
-
+    zc.buildout.testing.install_develop('zc.recipe.egg', test)
         
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
@@ -1845,7 +1920,7 @@ def test_suite():
             ),
         
         doctest.DocFileSuite(
-            'easy_install.txt', 
+            'easy_install.txt', 'downloadcache.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
 
