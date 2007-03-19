@@ -157,8 +157,8 @@ def buildoutSetUp(test):
         del os.environ['HOME'] # pop doesn't truly remove it :(
         register_teardown(lambda: os.environ.__setitem__('HOME', old_home))
 
-    base = tempfile.mkdtemp()
-    register_teardown(lambda: shutil.rmtree(base))
+    base = tempfile.mkdtemp('buildoutSetUp')
+    register_teardown(lambda base=base: shutil.rmtree(base))
     base = os.path.join(base, '_TEST_')
     os.mkdir(base)
 
