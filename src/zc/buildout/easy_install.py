@@ -104,11 +104,11 @@ _easy_install_cmd = _safe_arg(
     'from setuptools.command.easy_install import main; main()'
     )
 
-
 class Installer:
 
     _versions = {}
     _download_cache = None
+    _install_from_cache = False
 
     def __init__(self,
                  dest=None,
@@ -121,6 +121,14 @@ class Installer:
                  versions=None,
                  ):
         self._dest = dest
+
+        if self._install_from_cache:
+            if not self._download_cache:
+                raise ValueError("install_from_cache set to true with no"
+                                 " download cache")
+            links = ()
+            index = 'file://' + self._download_cache
+        
         self._links = links = list(links)
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
@@ -453,7 +461,9 @@ class Installer:
 
         # XXX Need test for this
         for dist in dists:
-            if dist.has_metadata('dependency_links.txt'):
+            if (dist.has_metadata('dependency_links.txt')
+                and not self._install_from_cache
+                ):
                 for link in dist.get_metadata_lines('dependency_links.txt'):
                     link = link.strip()
                     if link not in self._links:
@@ -625,7 +635,6 @@ class Installer:
             if tmp != self._download_cache:
                 shutil.rmtree(tmp)
 
-
 def default_versions(versions=None):
     old = Installer._versions
     if versions is not None:
@@ -635,7 +644,15 @@ def default_versions(versions=None):
 def download_cache(path=-1):
     old = Installer._download_cache
     if path != -1:
+        if path:
+            path = os.path.abspath(path)
         Installer._download_cache = path
+    return old
+
+def install_from_cache(setting=None):
+    old = Installer._install_from_cache
+    if setting is not None:
+        Installer._install_from_cache = bool(setting)
     return old
 
 def install(specs, dest,
