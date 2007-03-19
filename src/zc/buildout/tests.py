@@ -1670,10 +1670,9 @@ def install_source_dist_with_bad_py():
     zc.buildout.easy_install: Got badegg 1
     buildout: Installing bo
 
-    >>> ls('eggs')
+    >>> ls('eggs') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
-    d  setuptools-0.6c5-py2.4.egg
-    -  zc.buildout.egg-link
+    ...
     
     >>> ls('bin')
     -  bo
