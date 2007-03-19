@@ -932,8 +932,9 @@ Normally, the download cache is the prefered source of downloads, but
 not the only one.
 
 Installing solely from a download cache
+---------------------------------------
 
-A download cache can be used as the basis of application sources
+A download cache can be used as the basis of application source
 releases.  In an application source release, we want to distribute an
 application that can be built without making any network accesses.  In
 this case, we distribute a download cache and tell the easy_install
@@ -955,7 +956,10 @@ previous setting:
 Let's remove demo-0.3-py2.4.egg from the cache, clear the index cache,
 recreate the destination directory, and reinstall demo:
 
-    >>> remove(cache, 'demo-0.3-py2.4.egg')
+    >>> for  f in os.listdir(cache):
+    ...     if f.startswith('demo-0.3-'):
+    ...         remove(cache, f)
+
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> remove(dest)
     >>> dest = tmpdir('sample-install')
