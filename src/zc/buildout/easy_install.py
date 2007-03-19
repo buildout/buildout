@@ -314,7 +314,7 @@ class Installer:
             for d in dists:
                 newloc = os.path.join(dest, os.path.basename(d.location))
                 if os.path.exists(newloc):
-                    if os.path.is_dir(newloc):
+                    if os.path.isdir(newloc):
                         shutil.rmtree(newloc)
                     else:
                         os.remove(newloc)
