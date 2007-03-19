@@ -919,7 +919,62 @@ Now when we install the distributions:
 
 Note that we didn't download the distributions from the link server.
 
+If we remove the restriction on demo, we'll download a newer version
+from the link server:
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest,
+    ...     links=[link_server], index=link_server+'index/', 
+    ...     always_unzip=True)
+    GET 200 /demo-0.3-py2.4.egg
+
+Normally, the download cache is the prefered source of downloads, but
+not the only one.
+
+Installing solely from a download cache
+
+A download cache can be used as the basis of application sources
+releases.  In an application source release, we want to distribute an
+application that can be built without making any network accesses.  In
+this case, we distribute a download cache and tell the easy_install
+module to install from the download cache only, without making network
+accesses.  The install_from_cache function can be used to signal that
+packages should be installed only from the download cache.  The
+function always returns the previous setting.  Calling it with no
+arguments returns the current setting without changing it:
+
+    >>> zc.buildout.easy_install.install_from_cache()
+    False
+
+Calling it with a boolean value changes the setting and returns the
+previous setting:
+
+    >>> zc.buildout.easy_install.install_from_cache(True)
+    False
+
+Let's remove demo-0.3-py2.4.egg from the cache, clear the index cache,
+recreate the destination directory, and reinstall demo:
+
+    >>> remove(cache, 'demo-0.3-py2.4.egg')
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> remove(dest)
+    >>> dest = tmpdir('sample-install')
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest,
+    ...     links=[link_server], index=link_server+'index/', 
+    ...     always_unzip=True)
+
+    >>> ls(dest)
+    d  demo-0.2-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+
+This time, we didn't download from or even query the link server.
+
 .. Disable the download cache:
 
     >>> zc.buildout.easy_install.download_cache(None)
     '/cache'
+
+    >>> zc.buildout.easy_install.install_from_cache(False)
+    True
