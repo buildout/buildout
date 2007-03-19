@@ -16,6 +16,8 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'repeatable.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'downloadcache.txt')
+        + '\n' +
         read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'debugging.txt')
@@ -28,12 +30,12 @@ long_description=(
         '**********************\n'
         )
 
-#open('doc.txt', 'w').write(long_description)
+open('doc.txt', 'w').write(long_description)
 
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b22",
+    version = "1.0.0b23",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
