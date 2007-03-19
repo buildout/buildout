@@ -14,6 +14,15 @@ Change History
 1.0.0b23 (2007-03-??)
 =====================
 
+Feature Changes
+---------------
+
+- Added support for download caches.  A buildout can specify a cache
+  for distribution downloads.  The cache can be shared among buildouts
+  to reduce network access and to support creating source
+  distributions for applications allowing install without network
+  access. 
+
 Bugs Fixed
 ----------
 

@@ -149,6 +149,29 @@ class Buildout(UserDict.DictMixin):
         if versions:
             zc.buildout.easy_install.default_versions(dict(self[versions]))
 
+        download_cache = options.get('download-cache')
+        if download_cache:
+            download_cache = os.path.join(options['directory'], download_cache)
+            if not os.path.isdir(download_cache):
+                raise zc.buildout.UserError(
+                    'The specified download cache:\n'
+                    '%r\n'
+                    "Doesn't exist.\n"
+                    % download_cache)
+            download_cache = os.path.join(download_cache, 'dist')
+            if not os.path.isdir(download_cache):
+                os.mkdir(download_cache)
+                
+            zc.buildout.easy_install.download_cache(download_cache)
+
+        install_from_cache = options.get('install-from-cache')
+        if install_from_cache:
+            if install_from_cache not in ('true', 'false'):
+                self._error('Invalid value for install-from-cache option: %s',
+                            install_from_cache)
+            if install_from_cache == 'true':
+                zc.buildout.easy_install.install_from_cache(True)
+
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]

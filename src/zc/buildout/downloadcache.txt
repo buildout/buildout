@@ -1,0 +1,136 @@
+Using a download cache
+======================
+
+Normally, when distributions are installed, if any processing is
+needed, they are downloaded from the internet to a temporary directory
+and then installed from there.  A download cache can be used to avoid
+the download step.  This can be useful to reduce network access and to
+create source distributions of an entire buildout.
+
+The buildout download-cache option can be used to specify a directory
+to be used as a download cache.
+
+In this example, we'll create a directory to hold the cache:
+
+    >>> cache = tmpdir('cache')
+
+And set up a buildout that downloads some eggs:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... download-cache = %(cache)s
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo ==0.2
+    ... ''' % globals())
+
+We specified a link server that has some distributions available for
+download:
+
+    >>> print get(link_server),
+    <html><body>
+    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
+    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
+    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
+    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
+    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
+    <a href="index/">index/</a><br>
+    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    </body></html>
+    
+
+We'll enable logging on the link server so we can see what's going on:
+
+    >>> get(link_server+'enable_server_logging')
+    GET 200 /enable_server_logging
+    ''
+
+We also specified a download cache.
+
+If we run the buildout, we'll see the eggs installed from the link
+server as usual:
+
+    >>> print system(buildout),
+    GET 200 /
+    GET 200 /demo-0.2-py2.4.egg
+    GET 200 /demoneeded-1.1.zip
+    buildout: Installing eggs
+    zc.buildout.easy_install: Getting new distribution for demo==0.2
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
+
+We'll also get the download cache populated.  The buildout doesn't put
+files in the cache directly.  It creates an intermediate directory,
+dist:
+
+
+    >>> ls(cache)
+    d  dist
+
+    >>> ls(cache, 'dist')
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1.zip
+
+If we remove the installed eggs from eggs directory and re-run the buildout:
+
+    >>> import os
+    >>> for  f in os.listdir('eggs'):
+    ...     if f.startswith('demo'):
+    ...         remove('eggs', f)
+   
+    >>> print system(buildout),
+    GET 200 /
+    buildout: Updating eggs
+    zc.buildout.easy_install: Getting new distribution for demo==0.2
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
+
+We see that the distributions aren't downloaded, because they're
+downloaded from the cache.
+
+Installing solely from a download cache
+---------------------------------------
+
+A download cache can be used as the basis of application source
+releases.  In an application source release, we want to distribute an
+application that can be built without making any network accesses.  In
+this case, we distribute a buildout with download cache and tell the
+buildout to install from the download cache only, without making
+network accesses.  The buildout install-from-cache option can be used
+to signal that packages should be installed only from the download
+cache.
+
+Let's remove our installed eggs and run the buildout with the
+install-from-cache option set to true:
+
+    >>> for  f in os.listdir('eggs'):
+    ...     if f.startswith('demo'):
+    ...         remove('eggs', f)
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... download-cache = %(cache)s
+    ... install-from-cache = true
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout),
+    buildout: Uninstalling eggs
+    buildout: Installing eggs
+    zc.buildout.easy_install: Getting new distribution for demo
+    zc.buildout.easy_install: Got demo 0.2
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
