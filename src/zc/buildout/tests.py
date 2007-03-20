@@ -1678,7 +1678,26 @@ def install_source_dist_with_bad_py():
     -  bo
     -  buildout
     """
-    
+
+def version_requirements_in_build_honored():
+    '''
+
+    >>> update_extdemo()
+    >>> dest = tmpdir('sample-install')
+    >>> mkdir('include')
+    >>> write('include', 'extdemo.h',
+    ... """
+    ... #define EXTDEMO 42
+    ... """)
+
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo ==1.4', dest, 
+    ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
+    ...   links=[link_server], index=link_server+'index/',
+    ...   newest=False)
+    ['/sample-install/extdemo-1.4-py2.4-linux-i686.egg']
+
+    '''
 
 ######################################################################
     
