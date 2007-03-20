@@ -16,8 +16,10 @@
 $Id$
 """
 
-import os, re, zipfile
+import logging, os, re, zipfile
 import zc.buildout.easy_install
+
+logger = logging.getLogger(__name__)
 
 class Base:
 
@@ -65,7 +67,17 @@ class Custom(Base):
 
     def install(self):
         options = self.options
-        distribution = options.get('eggs', self.name).strip()
+        distribution = options.get('egg')
+        if distribution is None:
+            distribution = options.get('eggs')
+            if distribution is None:
+                distribution = self.name
+            else:
+                logger.warn("The eggs option is deprecated. Use egg instead")
+            
+        
+        distribution = options.get('egg', options.get('eggs', self.name)
+                                   ).strip()
         return zc.buildout.easy_install.build(
             distribution, options['_d'], self.build_ext,
             self.links, self.index, options['executable'], [options['_e']],
