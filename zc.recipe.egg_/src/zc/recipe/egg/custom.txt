@@ -59,8 +59,8 @@ swig-opts
 In addition, the following options can be used to specify the egg:
 
 egg
-    An eggs to install given as a setuptools requirement string.
-    This defaults to the part name.
+    An specification for the egg to be created, to install given as a
+    setuptools requirement string.  This defaults to the part name.
 
 find-links
    A list of URLs, files, or directories to search for distributions.
@@ -242,6 +242,43 @@ will:
     d  extdemo-1.5-py2.4-linux-i686.egg
     -  zc.recipe.egg.egg-link
 
+Controlling the version used
+----------------------------
+
+We can specify a specific version using the egg option:
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts = extdemo demo
+    ...
+    ... [extdemo]
+    ... recipe = zc.recipe.egg:custom
+    ... egg = extdemo ==1.4
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... include-dirs = include
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo 
+    ...        extdemo ==1.4
+    ... entry-points = demo=demo:main
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout+' -D'),
+    buildout: Develop: /sample-buildout/demo
+    buildout: Uninstalling demo
+    buildout: Uninstalling extdemo
+    buildout: Installing extdemo
+    zip_safe flag not set; analyzing archive contents...
+    buildout: Installing demo
+
+    >>> ls(sample_buildout, 'develop-eggs')
+    -  demo.egg-link
+    d  extdemo-1.4-py2.4-linux-i686.egg
+    -  zc.recipe.egg.egg-link
 
 Controlling develop-egg generation
 ==================================
@@ -342,9 +379,10 @@ set with a value of 2.
 
     >>> print system(buildout),
     buildout: Develop: /sample-buildout/demo
+    buildout: Uninstalling demo
     buildout: Uninstalling extdemo
     buildout: Installing extdemo
-    buildout: Updating demo
+    buildout: Installing demo
 
 Our develop-eggs now includes an egg link for extdemo:
 
