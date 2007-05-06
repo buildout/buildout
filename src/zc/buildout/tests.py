@@ -1828,6 +1828,59 @@ def version_requirements_in_build_honored():
 
     '''
 
+def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
+    """
+    Buildout might ignore a specific egg requirement for a recipe:
+
+    - Have a newer version of an egg in your eggs directory
+    - Use 'recipe==olderversion' in your buildout.cfg to request an
+      older version
+
+    Buildout will go and fetch the older version, but it will *use*
+    the newer version when installing a part with this recipe.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... find-links = %(sample_eggs)s
+    ...
+    ... [x]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout),
+    buildout: Installing x
+    zc.buildout.easy_install: Getting new distribution for demo
+    zc.buildout.easy_install: Got demo 0.3
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    zc.buildout.easy_install: Got demoneeded 1.1
+
+    >>> print system(join('bin', 'demo')),
+    3 1
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... find-links = %(sample_eggs)s
+    ...
+    ... [x]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo ==0.1
+    ... ''' % globals())
+    
+    >>> print system(buildout),
+    buildout: Uninstalling x
+    buildout: Installing x
+    zc.buildout.easy_install: Getting new distribution for demo==0.1
+    zc.buildout.easy_install: Got demo 0.1
+
+    >>> print system(join('bin', 'demo')),
+    1 1
+    """
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
