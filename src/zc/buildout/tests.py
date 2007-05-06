@@ -232,6 +232,135 @@ and all parts have to have a specified recipe:
     Error: Missing option: x:recipe
 
 """
+
+make_dist_that_requires_setup_py_template = """
+from setuptools import setup
+setup(name=%r, version=%r,
+      install_requires=%r,
+      )
+"""
+
+def make_dist_that_requires(dest, name, requires=[], version=1, egg=''):
+    os.mkdir(os.path.join(dest, name))
+    open(os.path.join(dest, name, 'setup.py'), 'w').write(
+        make_dist_that_requires_setup_py_template
+        % (name, version, requires)
+        )
+
+def show_who_requires_when_there_is_a_conflict():
+    """
+    It's a pain when we require eggs that have requirements that are
+    incompatible. We want the error we get to tell us what is missing.
+
+    Let's make a few develop distros, some of which have incompatible
+    requirements.
+
+    >>> make_dist_that_requires(sample_buildout, 'sampley',
+    ...                         ['demoneeded ==1.0']) 
+    >>> make_dist_that_requires(sample_buildout, 'samplez',
+    ...                         ['demoneeded ==1.1']) 
+
+    Now, let's create a buildout that requires y and z:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... develop = sampley samplez
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = sampley
+    ...        samplez
+    ... ''' % globals())
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/sampley
+    buildout: Develop: /sample-buildout/samplez
+    buildout: Installing eggs
+    zc.buildout.easy_install: Getting new distribution for demoneeded==1.1
+    zc.buildout.easy_install: Got demoneeded 1.1
+    While:
+      Installing eggs
+    Error: There is a version conflict.
+    We already have: demoneeded 1.1
+    but sampley 1 requires demoneeded==1.0.
+
+    Here, we see that sampley required an older version of demoneeded.
+    What if we hadn't required sampley ourselves:
+
+    >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb']) 
+    >>> make_dist_that_requires(sample_buildout, 'sampleb',
+    ...                         ['sampley', 'samplea'])
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... develop = sampley samplez samplea sampleb
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = samplea
+    ...        samplez
+    ... ''' % globals())
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/sampley
+    buildout: Develop: /sample-buildout/samplez
+    buildout: Develop: /sample-buildout/samplea
+    buildout: Develop: /sample-buildout/sampleb
+    buildout: Installing eggs
+    While:
+      Installing eggs
+    Error: There is a version conflict.
+    We already have: demoneeded 1.1
+    but sampley 1 requires demoneeded==1.0.
+    sampley 1 is required by sampleb 1.
+    sampleb 1 is required by samplea 1.
+    """
+
+def show_who_requires_missing_distributions():
+    """
+
+    When working with a lot of eggs, which require eggs recursively,
+    it can be hard to tell why we're requireing things we can't find.
+    Fortunately, buildout will tell us who's asking for something that
+    we can't find.
+
+    >>> make_dist_that_requires(sample_buildout, 'sampley', ['demoneeded']) 
+    >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb']) 
+    >>> make_dist_that_requires(sample_buildout, 'sampleb',
+    ...                         ['sampley', 'samplea'])
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... develop = sampley samplea sampleb
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = samplea
+    ... ''')
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/sampley
+    buildout: Develop: /sample-buildout/samplea
+    buildout: Develop: /sample-buildout/sampleb
+    buildout: Installing eggs
+    Couldn't find index page for 'demoneeded' (maybe misspelled?)
+    zc.buildout.easy_install: Getting new distribution for demoneeded
+    While:
+      Installing eggs
+      Getting distribution for demoneeded
+    Error: Couldn't find a distribution for demoneeded.
+    demoneeded is required by sampley 1.
+    sampley 1 is required by sampleb 1.
+    sampleb 1 is required by samplea 1.
+
+    """
+    
  
 def test_comparing_saved_options_with_funny_characters():
     """
@@ -1963,6 +2092,8 @@ def test_suite():
                 'setuptools.egg'),
                (re.compile('zc.buildout-\S+-'),
                 'zc.buildout.egg'),
+               (re.compile('File "\S+one.py"'),
+                'File "one.py"'),
                ]),
             ),
         ))
