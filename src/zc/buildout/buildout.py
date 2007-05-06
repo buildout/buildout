@@ -34,11 +34,7 @@ import pkg_resources
 import zc.buildout
 import zc.buildout.easy_install
 
-try:
-    realpath = os.path.realpath
-except AttributeError:
-    def realpath(path):
-        return path
+realpath = zc.buildout.easy_install.realpath
 
 pkg_resources_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location

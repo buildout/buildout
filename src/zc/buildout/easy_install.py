@@ -28,6 +28,12 @@ import setuptools.package_index
 import setuptools.archive_util
 import zc.buildout
 
+try:
+    realpath = os.path.realpath
+except AttributeError:
+    def realpath(path):
+        return path
+
 default_index_url = os.environ.get('buildout-testing-index-url')
 
 logger = logging.getLogger('zc.buildout.easy_install')
@@ -359,7 +365,10 @@ class Installer:
         
         if self._download_cache:
             for dist in best:
-                if os.path.dirname(dist.location) == self._download_cache:
+                if (realpath(os.path.dirname(dist.location))
+                    ==
+                    realpath(self._download_cache)
+                    ):
                     return dist
 
         best.sort()
@@ -382,9 +391,7 @@ class Installer:
 
             # Retrieve the dist:
             if avail is None:
-                raise zc.buildout.UserError(
-                    "Couldn't find a distribution for %s."
-                    % requirement)
+                raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
             # cache.
@@ -563,6 +570,8 @@ class Installer:
                                            ):
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
+            except pkg_resources.VersionConflict, err:
+                raise VersionConflict(err, ws)
             else:
                 break
 
@@ -918,3 +927,45 @@ os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
 execfile(%(setup)r)
 """
+
+class VersionConflict(zc.buildout.UserError):
+
+    def __init__(self, err, ws):
+        self.err, self.ws = err, ws
+
+    def __str__(self):
+        existing_dist, req = self.err
+        result = ["There is a version conflict.",
+                  "We already have: %s" % existing_dist,
+                  ]
+        for dist in self.ws:
+            if req in dist.requires():
+                result.append("but %s requires %s." % (dist, req))
+                _needed(self.ws, dist, result.append, [dist])
+        return '\n'.join(result)
+
+class MissingDistribution(zc.buildout.UserError):
+
+    def __init__(self, req, ws):
+        self.data = req, ws
+
+    def __str__(self):
+        req, ws = self.data
+        result = ["Couldn't find a distribution for %s." % req]
+        for dist in ws:
+            if req in dist.requires():
+                result.append("%s is required by %s." % (req, dist))
+                _needed(ws, dist, result.append, [dist])
+        return '\n'.join(result)
+
+        
+def _needed(ws, needed_dist, write, seen):
+    for dist in ws:
+        if dist in seen:
+            continue
+        for req in dist.requires():
+            if needed_dist in req:
+                write("%s is required by %s." % (needed_dist, dist))
+                seen.append(dist)
+                _needed(ws, dist, write, seen)
+                seen.pop()
