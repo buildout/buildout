@@ -826,7 +826,7 @@ create source distributions of an entire buildout.
 
 A download cache is specified by calling the download_cache
 function.  The function always returns the previous setting. If no
-argument is passed, then the setting is unchanged.  Is an argument is
+argument is passed, then the setting is unchanged.  If an argument is
 passed, the download cache is set to the given path, which must point
 to an existing directory.  Passing None clears the cache setting.
 
@@ -836,7 +836,7 @@ directory:
     >>> cache = tmpdir('cache')
     >>> zc.buildout.easy_install.download_cache(cache)
 
-We'll recreate out destination directory:
+We'll recreate our destination directory:
 
     >>> remove(dest)
     >>> dest = tmpdir('sample-install')
