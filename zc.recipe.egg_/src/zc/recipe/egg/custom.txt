@@ -192,6 +192,7 @@ Let's define a script that uses out ext demo:
     buildout: Develop: /sample-buildout/demo
     buildout: Updating extdemo
     buildout: Installing demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
 When we run the script, we'll 42 printed:
 
@@ -214,11 +215,13 @@ If we run the buildout in non-newest or offline modes:
     buildout: Develop: /sample-buildout/demo
     buildout: Updating extdemo
     buildout: Updating demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
     >>> print system(buildout+' -o'),
     buildout: Develop: /sample-buildout/demo
     buildout: Updating extdemo
     buildout: Updating demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
 We won't get an update.
 
@@ -235,6 +238,7 @@ will:
     buildout: Updating extdemo
     zip_safe flag not set; analyzing archive contents...
     buildout: Updating demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
     >>> ls(sample_buildout, 'develop-eggs')
     -  demo.egg-link
@@ -274,6 +278,7 @@ We can specify a specific version using the egg option:
     buildout: Installing extdemo
     zip_safe flag not set; analyzing archive contents...
     buildout: Installing demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
     >>> ls(sample_buildout, 'develop-eggs')
     -  demo.egg-link
@@ -383,6 +388,7 @@ set with a value of 2.
     buildout: Uninstalling extdemo
     buildout: Installing extdemo
     buildout: Installing demo
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
 Our develop-eggs now includes an egg link for extdemo:
 

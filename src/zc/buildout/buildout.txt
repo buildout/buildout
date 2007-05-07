@@ -1693,16 +1693,17 @@ If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
 local buildout scripts. 
 
-    >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
+   >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
-    >>> print system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-    ...              +' bootstrap'),
-    Warning: creating /sample-bootstrapped/setup.cfg
-    buildout: Creating directory /sample-bootstrapped/bin
-    buildout: Creating directory /sample-bootstrapped/parts
-    buildout: Creating directory /sample-bootstrapped/eggs
-    buildout: Creating directory /sample-bootstrapped/develop-eggs
+   >>> print system(buildout
+   ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+   ...              +' bootstrap'),
+   Warning: creating /sample-bootstrapped/setup.cfg
+   buildout: Creating directory /sample-bootstrapped/bin
+   buildout: Creating directory /sample-bootstrapped/parts
+   buildout: Creating directory /sample-bootstrapped/eggs
+   buildout: Creating directory /sample-bootstrapped/develop-eggs
+   zc.buildout.easy_install: Generated script /sample-bootstrapped/bin/buildout.
 
 Note that a basic setup.cfg was created for us.
 

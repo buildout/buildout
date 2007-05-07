@@ -793,6 +793,7 @@ bootstrapping.
     buildout: Creating directory /sample-bootstrap/parts
     buildout: Creating directory /sample-bootstrap/eggs
     buildout: Creating directory /sample-bootstrap/develop-eggs
+    zc.buildout.easy_install: Generated script /sample-bootstrap/bin/buildout.
     """
 
 def removing_eggs_from_develop_section_causes_egg_link_to_be_removed():
@@ -1856,6 +1857,7 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     zc.buildout.easy_install: Got demo 0.3
     zc.buildout.easy_install: Getting new distribution for demoneeded
     zc.buildout.easy_install: Got demoneeded 1.1
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
     >>> print system(join('bin', 'demo')),
     3 1
@@ -1876,6 +1878,7 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     buildout: Installing x
     zc.buildout.easy_install: Getting new distribution for demo==0.1
     zc.buildout.easy_install: Got demo 0.1
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
     >>> print system(join('bin', 'demo')),
     1 1

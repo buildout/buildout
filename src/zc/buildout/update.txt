@@ -72,6 +72,7 @@ new versions found in new releases:
       zc.buildout version 99.99,
       setuptools version 99.99;
     restarting.
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/buildout.
     buildout: Develop: /sample-buildout/showversions
     buildout: Installing show-versions
     zc.buildout 99.99
@@ -120,6 +121,7 @@ We'll actually "upgrade" to an earlier version.
       zc.buildout version 1.0.0,
       setuptools version 0.6;
     restarting.
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/buildout.
     buildout: Develop: /sample-buildout/showversions
     buildout: Updating show-versions
     zc.buildout 1.0.0
