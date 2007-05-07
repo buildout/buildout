@@ -829,6 +829,7 @@ def scripts(reqs, working_set, executable, dest,
 def _script(module_name, attrs, path, dest, executable, arguments,
             initialization):
     generated = []
+    script = dest
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
         open(dest+'.exe', 'wb').write(
@@ -850,6 +851,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     except (AttributeError, os.error):
         pass
     generated.append(dest)
+    logger.info("Generated script %s.", script)
     return generated
 
 script_template = '''\
@@ -869,6 +871,7 @@ if __name__ == '__main__':
 
 def _pyscript(path, dest, executable):
     generated = []
+    script = dest
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
         open(dest+'.exe', 'wb').write(
@@ -886,6 +889,7 @@ def _pyscript(path, dest, executable):
     except (AttributeError, os.error):
         pass
     generated.append(dest)
+    logger.info("Generated interpreter %s.", script)
     return generated
 
 py_script_template = '''\

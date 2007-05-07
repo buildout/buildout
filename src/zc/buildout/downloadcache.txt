@@ -64,6 +64,7 @@ server as usual:
     zc.buildout.easy_install: Got demo 0.2
     zc.buildout.easy_install: Getting new distribution for demoneeded
     zc.buildout.easy_install: Got demoneeded 1.1
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
 We'll also get the download cache populated.  The buildout doesn't put
 files in the cache directly.  It creates an intermediate directory,
@@ -91,6 +92,7 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
     zc.buildout.easy_install: Got demo 0.2
     zc.buildout.easy_install: Getting new distribution for demoneeded
     zc.buildout.easy_install: Got demoneeded 1.1
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
 
 We see that the distributions aren't downloaded, because they're
 downloaded from the cache.
@@ -134,3 +136,4 @@ install-from-cache option set to true:
     zc.buildout.easy_install: Got demo 0.2
     zc.buildout.easy_install: Getting new distribution for demoneeded
     zc.buildout.easy_install: Got demoneeded 1.1
+    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
