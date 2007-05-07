@@ -797,6 +797,9 @@ class Options(UserDict.DictMixin):
             if '${' in v:
                 self._dosub(k, v)
 
+        if self.name == 'buildout':
+            return # buildout section can never be a part
+        
         recipe = self.get('recipe')
         if not recipe:
             return

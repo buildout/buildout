@@ -796,6 +796,37 @@ bootstrapping.
     zc.buildout.easy_install: Generated script /sample-bootstrap/bin/buildout.
     """
 
+
+def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
+    """
+    >>> d = tmpdir('sample-bootstrap')
+    
+    >>> write(d, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = buildout
+    ... eggs-directory = eggs
+    ...
+    ... [buildout]
+    ... recipe = zc.recipe.egg
+    ... eggs = zc.buildout
+    ... scripts = buildout=buildout
+    ... ''')
+
+    >>> os.chdir(d)
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...              + ' bootstrap'),
+    buildout: Creating directory /sample-bootstrap/bin
+    buildout: Creating directory /sample-bootstrap/parts
+    buildout: Creating directory /sample-bootstrap/eggs
+    buildout: Creating directory /sample-bootstrap/develop-eggs
+    zc.buildout.easy_install: Generated script /sample-bootstrap/bin/buildout.
+
+    >>> print system(os.path.join('bin', 'buildout')),
+    buildout: Unused options for buildout: 'scripts' 'eggs'
+
+    """
+
 def removing_eggs_from_develop_section_causes_egg_link_to_be_removed():
     '''
     >>> cd(sample_buildout)
