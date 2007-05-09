@@ -338,7 +338,7 @@ class Buildout(UserDict.DictMixin):
                         part)
 
                 try:
-                    installed_files = update()
+                    installed_files = self[part]._call(update)
                 except:
                     installed_parts.remove(part)
                     self._uninstall(old_installed_files)
@@ -368,7 +368,7 @@ class Buildout(UserDict.DictMixin):
                 need_to_save_installed = True
                 __doing__ = 'Installing %s', part
                 self._logger.info(*__doing__)
-                installed_files = recipe.install()
+                installed_files = self[part]._call(recipe.install)
                 if installed_files is None:
                     self._logger.warning(
                         "The %s install returned None.  A path or "
@@ -922,6 +922,32 @@ class Options(UserDict.DictMixin):
         result.update(self._data)
         return result
 
+    def _call(self, f):
+        self._created = []
+        try:
+            try:
+                return f()
+            except:
+                for p in self._created:
+                    if os.path.isdir(p):
+                        shutil.rmtree(p)
+                    elif os.path.isfile(p):
+                        os.remove(p)
+                    else:
+                        self._buildout._logger.warn("Couldn't clean up %s", p)
+                raise
+        finally:
+            self._created = None
+
+    def created(self, *paths):
+        try:
+            self._created.extend(paths)
+        except AttributeError:
+            raise TypeError(
+                "Attempt to register a created path while not installing",
+                self.name)
+        return self._created
+
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
                         '^[ \t\r\f\v]+'
@@ -1103,6 +1129,7 @@ def _check_for_unused_options_in_section(buildout, section):
 
 def _internal_error(v):
     sys.stderr.write(_internal_error_template % (v.__class__.__name__, v))
+    sys.exit(1)
     
 
 _usage = """\

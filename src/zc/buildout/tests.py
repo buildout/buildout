@@ -1915,6 +1915,76 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     1 1
     """
 
+if sys.version_info > (2, 4):
+    def test_exit_codes():
+        """
+        >>> import subprocess
+        >>> def call(s):
+        ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
+        ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ...     p.stdin.close()
+        ...     print p.stdout.read()
+        ...     print 'Exit:', bool(p.wait())
+        
+        >>> call(buildout)
+        <BLANKLINE>
+        Exit: False
+
+        >>> write('buildout.cfg',
+        ... '''
+        ... [buildout]
+        ... parts = x
+        ... ''')
+
+        >>> call(buildout)
+        While:
+          Installing
+          Getting section x
+        Error: The referenced section, 'x', was not defined.
+        <BLANKLINE>
+        Exit: True
+
+        >>> write('setup.py',
+        ... '''
+        ... from setuptools import setup
+        ... setup(name='zc.buildout.testexit', entry_points={
+        ...    'zc.buildout': ['default = testexitrecipe:x']})
+        ... ''')
+
+        >>> write('testexitrecipe.py',
+        ... '''
+        ... x y
+        ... ''')
+
+        >>> write('buildout.cfg',
+        ... '''
+        ... [buildout]
+        ... parts = x
+        ... develop = .
+        ...
+        ... [x]
+        ... recipe = zc.buildout.testexit
+        ... ''')
+
+        >>> call(buildout)
+        buildout: Develop: /sample-buildout/.
+        While:
+          Installing
+          Getting section x
+          Initializing section x
+          Loading zc.buildout recipe entry zc.buildout.testexit:default
+        <BLANKLINE>
+        An internal error occured due to a bug in either zc.buildout or in a
+        recipe being used:
+        <BLANKLINE>
+        SyntaxError:
+        invalid syntax (testexitrecipe.py, line 2)
+        <BLANKLINE>
+        Exit: True
+
+        """
+
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):

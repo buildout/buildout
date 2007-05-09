@@ -394,6 +394,288 @@ We'll get a user error, not a traceback.
     Error: Invalid Path
 
 
+Recipe Error Handling
+---------------------
+
+If an error occurs during installation, it is up to the recipe to
+clean up any system side effects, such as files created.  Let's update
+the mkdir recipe to support multiple paths:
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... """
+    ... import logging, os, zc.buildout
+    ...
+    ... class Mkdir:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...
+    ...         # Normalize paths and check that their parent
+    ...         # directories exist:
+    ...         paths = []
+    ...         for path in options['path'].split(): 
+    ...             path = os.path.join(buildout['buildout']['directory'], path)
+    ...             if not os.path.isdir(os.path.dirname(path)):
+    ...                 logging.getLogger(self.name).error(
+    ...                     'Cannot create %s. %s is not a directory.',
+    ...                     options['path'], os.path.dirname(options['path']))
+    ...                 raise zc.buildout.UserError('Invalid Path')
+    ...             paths.append(path)
+    ...         options['path'] = ' '.join(paths)
+    ...
+    ...     def install(self):
+    ...         paths = self.options['path'].split()
+    ...         for path in paths: 
+    ...             logging.getLogger(self.name).info(
+    ...                 'Creating directory %s', os.path.basename(path))
+    ...             os.mkdir(path)
+    ...         return paths
+    ...
+    ...     def update(self):
+    ...         pass
+    ... """)
+
+If there is an error creating a path, the install method will exit and
+leave previously created paths in place:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = foo bin
+    ... """)
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Uninstalling data-dir
+    buildout: Installing data-dir
+    data-dir: Creating directory foo
+    data-dir: Creating directory bin
+    While:
+      Installing data-dir
+    <BLANKLINE>
+    An internal error occured due to a bug in either zc.buildout or in a
+    recipe being used:
+    <BLANKLINE>
+    OSError:
+    [Errno 17] File exists: '/sample-buildout/bin'
+
+We meant to create a directiry bins, but typed bin.  Now foo was
+left behind.
+
+    >>> os.path.exists('foo')
+    True
+
+If we fix the typo:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = foo bins
+    ... """)
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing data-dir
+    data-dir: Creating directory foo
+    While:
+      Installing data-dir
+    <BLANKLINE>
+    An internal error occured due to a bug in either zc.buildout or in a
+    recipe being used:
+    <BLANKLINE>
+    OSError:
+    [Errno 17] File exists: '/sample-buildout/foo'
+
+Now they fail because foo exists, because it was left behind.
+
+    >>> remove('foo')
+
+Let's fix the recipe:
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... """
+    ... import logging, os, zc.buildout
+    ...
+    ... class Mkdir:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...
+    ...         # Normalize paths and check that their parent
+    ...         # directories exist:
+    ...         paths = []
+    ...         for path in options['path'].split(): 
+    ...             path = os.path.join(buildout['buildout']['directory'], path)
+    ...             if not os.path.isdir(os.path.dirname(path)):
+    ...                 logging.getLogger(self.name).error(
+    ...                     'Cannot create %s. %s is not a directory.',
+    ...                     options['path'], os.path.dirname(options['path']))
+    ...                 raise zc.buildout.UserError('Invalid Path')
+    ...             paths.append(path)
+    ...         options['path'] = ' '.join(paths)
+    ...
+    ...     def install(self):
+    ...         paths = self.options['path'].split()
+    ...         created = []
+    ...         try:
+    ...             for path in paths: 
+    ...                 logging.getLogger(self.name).info(
+    ...                     'Creating directory %s', os.path.basename(path))
+    ...                 os.mkdir(path)
+    ...                 created.append(path)
+    ...         except:
+    ...             for d in created:
+    ...                 os.rmdir(d)
+    ...             raise
+    ...
+    ...         return paths
+    ...
+    ...     def update(self):
+    ...         pass
+    ... """)
+
+And put back the typo:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = foo bin
+    ... """)
+
+When we rerun the buildout:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing data-dir
+    data-dir: Creating directory foo
+    data-dir: Creating directory bin
+    While:
+      Installing data-dir
+    <BLANKLINE>
+    An internal error occured due to a bug in either zc.buildout or in a
+    recipe being used:
+    <BLANKLINE>
+    OSError:
+    [Errno 17] File exists: '/sample-buildout/bin'
+
+we get the same error, but we don't get the directory left behind:
+
+    >>> os.path.exists('foo')
+    False
+
+It's critical that recipes clean up partial effects when errors
+occur.  Because recipes most commonly create files and directories,
+buildout provides a helper API for removing created files when an
+error occurs.  Option objects have a created method that can be called
+to record files as they are created.  If the install or update methof
+returns with an error, then any registered paths are removed
+automatically.  The method returns the files registered and can be
+used to return the files created.  Let's use this API to simplify the
+recipe:
+
+    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    ... """
+    ... import logging, os, zc.buildout
+    ...
+    ... class Mkdir:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name, self.options = name, options
+    ...
+    ...         # Normalize paths and check that their parent
+    ...         # directories exist:
+    ...         paths = []
+    ...         for path in options['path'].split(): 
+    ...             path = os.path.join(buildout['buildout']['directory'], path)
+    ...             if not os.path.isdir(os.path.dirname(path)):
+    ...                 logging.getLogger(self.name).error(
+    ...                     'Cannot create %s. %s is not a directory.',
+    ...                     options['path'], os.path.dirname(options['path']))
+    ...                 raise zc.buildout.UserError('Invalid Path')
+    ...             paths.append(path)
+    ...         options['path'] = ' '.join(paths)
+    ...
+    ...     def install(self):
+    ...         paths = self.options['path'].split()
+    ...         for path in paths: 
+    ...             logging.getLogger(self.name).info(
+    ...                 'Creating directory %s', os.path.basename(path))
+    ...             os.mkdir(path)
+    ...             self.options.created(path)
+    ...
+    ...         return self.options.created()
+    ...
+    ...     def update(self):
+    ...         pass
+    ... """)
+
+..
+
+    >>> remove(sample_buildout, 'recipes', 'mkdir.pyc')
+
+We returned by calling created, taking advantage of the fact that it
+returns the registered paths.  We did this for illustrative purposes.
+It would be simpler just to return the paths as before.
+
+If we rerun the buildout, again, we'll get the error and no
+directiories will be created:
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing data-dir
+    data-dir: Creating directory foo
+    data-dir: Creating directory bin
+    While:
+      Installing data-dir
+    <BLANKLINE>
+    An internal error occured due to a bug in either zc.buildout or in a
+    recipe being used:
+    <BLANKLINE>
+    OSError:
+    [Errno 17] File exists: '/sample-buildout/bin'
+
+    >>> os.path.exists('foo')
+    False
+
+Now, we'll fix the typo again and we'll get the directories we expect:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = foo bins
+    ... """)
+
+    >>> print system(buildout),
+    buildout: Develop: /sample-buildout/recipes
+    buildout: Installing data-dir
+    data-dir: Creating directory foo
+    data-dir: Creating directory bins
+
+    >>> os.path.exists('foo')
+    True
+    >>> os.path.exists('bins')
+    True
+
 Configuration file syntax
 -------------------------
 
