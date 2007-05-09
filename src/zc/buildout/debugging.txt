@@ -72,23 +72,25 @@ supply some input:
     ... p self.options.keys()
     ... q
     ... """),
-    buildout: Develop: /tmp/tmpozk_tH/_TEST_/sample-buildout/recipes
+    buildout: Develop: /sample-buildout/recipes
     buildout: Installing data-dir
     While:
       Installing data-dir
     Traceback (most recent call last):
-      File "/zc/buildout/buildout.py", line 1173, in main
+      File "/zc/buildout/buildout.py", line 1294, in main
         getattr(buildout, command)(args)
-      File "/zc/buildout/buildout.py", line 324, in install
-        installed_files = recipe.install()
+      File "/zc/buildout/buildout.py", line 371, in install
+        installed_files = self[part]._call(recipe.install)
+      File "/zc/buildout/buildout.py", line 929, in _call
+        return f()
       File "/sample-buildout/recipes/mkdir.py", line 14, in install
         directory = self.options['directory']
-      File "/zc/buildout/buildout.py", line 815, in __getitem__
+      File "/zc/buildout/buildout.py", line 895, in __getitem__
         raise MissingOption("Missing option: %s:%s" % (self.name, key))
     MissingOption: Missing option: data-dir:directory
     <BLANKLINE>
     Starting pdb:
-    > /zc/buildout/buildout.py(815)__getitem__()
+    > /Users/jim/p/buildout/trunk/src/zc/buildout/buildout.py(895)__getitem__()
     -> raise MissingOption("Missing option: %s:%s" % (self.name, key))
     (Pdb) > /sample-buildout/recipes/mkdir.py(14)install()
     -> directory = self.options['directory']

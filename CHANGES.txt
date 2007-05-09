@@ -11,7 +11,7 @@ priorities include:
 Change History
 **************
 
-1.0.0b23 (2007-05-??)
+1.0.0b23 (2007-05-09)
 =====================
 
 Feature Changes
@@ -20,10 +20,17 @@ Feature Changes
 - Improved error reporting by showing which packages require other
   packages that can't be found or that cause version conflicts.
 
+- Added an API for use by recipe writers to clean up created files
+  when recipe errors occur.
+
 Bugs Fixed
 ----------
 
 - 92891: bootstrap crashes with recipe option in buildout section.
+
+- 113085: Buildout exited with a zero exist status when internal errors
+  occured.
+
 
 1.0.0b23 (2007-03-19)
 =====================
