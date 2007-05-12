@@ -20,6 +20,12 @@ Feature Changes
 - buildout changes to the buildout directory before running recipe
   install and update methods.
 
+- Added a new init command for creating a new buildout. This creates
+  an empty configuration file and then bootstraps.
+
+- Except when using the new init command, it is now an error to run
+  buildout without a configuration file.
+
 Bugs Fixed
 ----------
 
@@ -29,6 +35,8 @@ Bugs Fixed
 
   setuptools requires that file urls that point to directories must
   end in a "/".  Added a workaround.
+
+- 75607: buildout should not run if it creates an empty buildout.cfg
 
 1.0.0b24 (2007-05-09)
 =====================

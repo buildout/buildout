@@ -606,170 +606,24 @@ if os.path.exists(bootstrap_py):
 
 def test_help():
     """
->>> print system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'),
-Usage: buildout [options] [assignments] [command [command arguments]]
-<BLANKLINE>
-Options:
-<BLANKLINE>
-  -h, --help
-<BLANKLINE>
-     Print this message and exit.
-<BLANKLINE>
-  -v
-<BLANKLINE>
-     Increase the level of verbosity.  This option can be used multiple times.
-<BLANKLINE>
-  -q
-<BLANKLINE>
-     Decrease the level of verbosity.  This option can be used multiple times.
-<BLANKLINE>
-  -c config_file
-<BLANKLINE>
-     Specify the path to the buildout configuration file to be used.
-     This defaults to the file named "buildout.cfg" in the current
-     working directory.
-<BLANKLINE>
-  -U
-<BLANKLINE>
-     Don't read user defaults.
-<BLANKLINE>
-  -o
-<BLANKLINE>
-    Run in off-line mode.  This is equivalent to the assignment 
-    buildout:offline=true.
-<BLANKLINE>
-  -O
-<BLANKLINE>
-    Run in non-off-line mode.  This is equivalent to the assignment 
-    buildout:offline=false.  This is the default buildout mode.  The
-    -O option would normally be used to override a true offline
-    setting in a configuration file.
-<BLANKLINE>
-  -n
-<BLANKLINE>
-    Run in newest mode.  This is equivalent to the assignment
-    buildout:newest=true.  With this setting, which is the default,
-    buildout will try to find the newest versions of distributions
-    available that satisfy its requirements.
-<BLANKLINE>
-  -N
-<BLANKLINE>
-    Run in non-newest mode.  This is equivalent to the assignment 
-    buildout:newest=false.  With this setting, buildout will not seek
-    new distributions if installed distributions satisfy it's
-    requirements. 
-<BLANKLINE>
-  -D
-<BLANKLINE>
-    Debug errors.  If an error occurs, then the post-mortem debugger
-    will be started. This is especially useful for debuging recipe
-    problems.
-<BLANKLINE>
-Assignments are of the form: section:option=value and are used to
-provide configuration options that override those given in the
-configuration file.  For example, to run the buildout in offline mode,
-use buildout:offline=true.
-<BLANKLINE>
-Options and assignments can be interspersed.
-<BLANKLINE>
-Commands:
-<BLANKLINE>
-  install [parts]
-<BLANKLINE>
-    Install parts.  If no command arguments are given, then the parts
-    definition from the configuration file is used.  Otherwise, the
-    arguments specify the parts to be installed.
-<BLANKLINE>
-  bootstrap
-<BLANKLINE>
-    Create a new buildout in the current working directory, copying
-    the buildout and setuptools eggs and, creating a basic directory
-    structure and a buildout-local buildout script.
-<BLANKLINE>
-<BLANKLINE>
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'),
+    ... # doctest: +ELLIPSIS
+    Usage: buildout [options] [assignments] [command [command arguments]]
+    <BLANKLINE>
+    Options:
+    <BLANKLINE>
+      -h, --help
+    ...
 
->>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
-...              +' --help'),
-Usage: buildout [options] [assignments] [command [command arguments]]
-<BLANKLINE>
-Options:
-<BLANKLINE>
-  -h, --help
-<BLANKLINE>
-     Print this message and exit.
-<BLANKLINE>
-  -v
-<BLANKLINE>
-     Increase the level of verbosity.  This option can be used multiple times.
-<BLANKLINE>
-  -q
-<BLANKLINE>
-     Decrease the level of verbosity.  This option can be used multiple times.
-<BLANKLINE>
-  -c config_file
-<BLANKLINE>
-     Specify the path to the buildout configuration file to be used.
-     This defaults to the file named "buildout.cfg" in the current
-     working directory.
-<BLANKLINE>
-  -U
-<BLANKLINE>
-     Don't read user defaults.
-<BLANKLINE>
-  -o
-<BLANKLINE>
-    Run in off-line mode.  This is equivalent to the assignment 
-    buildout:offline=true.
-<BLANKLINE>
-  -O
-<BLANKLINE>
-    Run in non-off-line mode.  This is equivalent to the assignment 
-    buildout:offline=false.  This is the default buildout mode.  The
-    -O option would normally be used to override a true offline
-    setting in a configuration file.
-<BLANKLINE>
-  -n
-<BLANKLINE>
-    Run in newest mode.  This is equivalent to the assignment
-    buildout:newest=true.  With this setting, which is the default,
-    buildout will try to find the newest versions of distributions
-    available that satisfy its requirements.
-<BLANKLINE>
-  -N
-<BLANKLINE>
-    Run in non-newest mode.  This is equivalent to the assignment 
-    buildout:newest=false.  With this setting, buildout will not seek
-    new distributions if installed distributions satisfy it's
-    requirements. 
-<BLANKLINE>
-  -D
-<BLANKLINE>
-    Debug errors.  If an error occurs, then the post-mortem debugger
-    will be started. This is especially useful for debuging recipe
-    problems.
-<BLANKLINE>
-Assignments are of the form: section:option=value and are used to
-provide configuration options that override those given in the
-configuration file.  For example, to run the buildout in offline mode,
-use buildout:offline=true.
-<BLANKLINE>
-Options and assignments can be interspersed.
-<BLANKLINE>
-Commands:
-<BLANKLINE>
-  install [parts]
-<BLANKLINE>
-    Install parts.  If no command arguments are given, then the parts
-    definition from the configuration file is used.  Otherwise, the
-    arguments specify the parts to be installed.
-<BLANKLINE>
-  bootstrap
-<BLANKLINE>
-    Create a new buildout in the current working directory, copying
-    the buildout and setuptools eggs and, creating a basic directory
-    structure and a buildout-local buildout script.
-<BLANKLINE>
-<BLANKLINE>
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')
+    ...              +' --help'),
+    ... # doctest: +ELLIPSIS
+    Usage: buildout [options] [assignments] [command [command arguments]]
+    <BLANKLINE>
+    Options:
+    <BLANKLINE>
+      -h, --help
+    ...
     """
 
 def test_bootstrap_with_extension():
@@ -2058,6 +1912,18 @@ def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
+    
+    """
+
+def bug_75607_buildout_should_not_run_if_it_creates_an_empty_buildout_cfg():
+    """
+    >>> remove('buildout.cfg')
+    >>> print system(buildout),
+    While:
+      Initializing
+    Error: Couldn't open /sample-buildout/buildout.cfg
+
+
     
     """
 
