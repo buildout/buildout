@@ -11,6 +11,20 @@ priorities include:
 Change History
 **************
 
+1.0.0b25 (2007-05-??)
+=====================
+
+Feature Changes
+---------------
+
+- buildout changes to the buildout directory before running recipe
+  install and update methods.
+
+Bugs Fixed
+----------
+
+- 59270: Buggy recipes can cause failures in later recipes via chdir
+
 1.0.0b24 (2007-05-09)
 =====================
 

@@ -172,6 +172,8 @@ class Buildout(UserDict.DictMixin):
         for name in _buildout_default_options:
             options[name]
 
+        os.chdir(options['directory'])
+
     def _buildout_path(self, *names):
         return os.path.join(self._buildout_dir, *names)
 
@@ -923,9 +925,11 @@ class Options(UserDict.DictMixin):
         return result
 
     def _call(self, f):
+        buildout_directory = self.buildout['buildout']['directory']
         self._created = []
         try:
             try:
+                os.chdir(buildout_directory)
                 return f()
             except:
                 for p in self._created:
@@ -938,6 +942,7 @@ class Options(UserDict.DictMixin):
                 raise
         finally:
             self._created = None
+            os.chdir(buildout_directory)
 
     def created(self, *paths):
         try:
