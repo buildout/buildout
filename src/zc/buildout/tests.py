@@ -584,6 +584,7 @@ if os.path.exists(bootstrap_py):
     buildout: Creating directory ...parts
     buildout: Creating directory ...eggs
     buildout: Creating directory ...develop-eggs
+    zc.buildout.easy_install: Generated script /sample/bin/buildout.
 
     >>> ls(sample_buildout)
     d  bin
@@ -1983,6 +1984,57 @@ if sys.version_info > (2, 4):
         Exit: True
 
         """
+
+def bug_59270_recipes_always_start_in_buildout_dir():
+    """
+    Recipes can rely on running from buildout directory
+
+    >>> mkdir('bad_start')
+    >>> write('bad_recipe.py',
+    ... '''
+    ... import os
+    ... class Bad:
+    ...     def __init__(self, *_):
+    ...         print os.getcwd()
+    ...     def install(self):
+    ...         print os.getcwd()
+    ...         os.chdir('bad_start')
+    ...         print os.getcwd()
+    ...         return ()
+    ... ''')
+
+    >>> write('setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='bad.test',
+    ...       entry_points={'zc.buildout': ['default=bad_recipe:Bad']},)
+    ... ''')
+    
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = .
+    ... parts = b1 b2
+    ... [b1]
+    ... recipe = bad.test
+    ... [b2]
+    ... recipe = bad.test
+    ... ''')
+
+    >>> os.chdir('bad_start')
+    >>> print system(join(sample_buildout, 'bin', 'buildout')
+    ...              +' -c '+join(sample_buildout, 'buildout.cfg')),
+    buildout: Develop: /tmp/tmpV9ptXUbuildoutSetUp/_TEST_/sample-buildout/.
+    /sample-buildout
+    /sample-buildout
+    buildout: Installing b1
+    /sample-buildout
+    /sample-buildout/bad_start
+    buildout: Installing b2
+    /sample-buildout
+    /sample-buildout/bad_start
+    
+    """
 
 
 ######################################################################
