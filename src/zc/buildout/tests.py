@@ -2036,6 +2036,30 @@ def bug_59270_recipes_always_start_in_buildout_dir():
     
     """
 
+def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
+    """
+    
+    This bug arises from the fact that setuptools is over restrictive
+    about file urls, requiring that file urls pointing at directories
+    must end in a slash.
+
+    >>> dest = tmpdir('sample-install')
+    >>> import zc.buildout.easy_install
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], dest,
+    ...     links=['file://'+sample_eggs], index=link_server+'index/')
+
+
+    >>> for dist in ws:
+    ...     print dist
+    demo 0.2
+    demoneeded 1.1
+
+    >>> ls(dest)
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+    
+    """
 
 ######################################################################
     
