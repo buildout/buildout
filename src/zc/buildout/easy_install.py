@@ -134,8 +134,10 @@ class Installer:
                                  " download cache")
             links = ()
             index = 'file://' + self._download_cache
+
         
-        self._links = links = list(links)
+        
+        self._links = links = list(_fix_file_links(links))
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
 
@@ -973,3 +975,11 @@ def _needed(ws, needed_dist, write, seen):
                 seen.append(dist)
                 _needed(ws, dist, write, seen)
                 seen.pop()
+
+def _fix_file_links(links):
+    for link in links:
+        if link.startswith('file://') and link[-1] != '/':
+            if os.path.isdir(link[7:]):
+                # work around excessive restriction in setuptools:
+                link += '/'
+        yield link
