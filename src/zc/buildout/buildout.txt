@@ -1968,8 +1968,8 @@ verbosity
    command-line options.
 
 
-Bootstrapping
--------------
+Creating new buildouts and bootstrapping
+----------------------------------------
 
 If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
@@ -1979,8 +1979,8 @@ local buildout scripts.
 
    >>> print system(buildout
    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-   ...              +' bootstrap'),
-   Warning: creating /sample-bootstrapped/setup.cfg
+   ...              +' init'),
+   Creating /sample-bootstrapped/setup.cfg
    buildout: Creating directory /sample-bootstrapped/bin
    buildout: Creating directory /sample-bootstrapped/parts
    buildout: Creating directory /sample-bootstrapped/eggs
@@ -2011,6 +2011,36 @@ buildout or setuptools.)
 
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.
+
+If we have an existing buildout that already has a buildout.cfg, we'll
+normally use the bootstrap command instead of init.  It will complain
+if there isn't a configuration file:
+
+    >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
+
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+    ...              +' bootstrap'),
+    While:
+      Initializing
+    Error: Couldn't open /sample-bootstrapped2/setup.cfg
+
+    >>> write(sample_bootstrapped2, 'setup.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+
+   >>> print system(buildout
+   ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+   ...              +' bootstrap'),
+   buildout: Creating directory /sample-bootstrapped2/bin
+   buildout: Creating directory /sample-bootstrapped2/parts
+   buildout: Creating directory /sample-bootstrapped2/eggs
+   buildout: Creating directory /sample-bootstrapped2/develop-eggs
+   zc.buildout.easy_install: Generated script /sample-bootstrapped2/bin/buildout.
+
+
 
 Newest and Offline Modes
 ------------------------

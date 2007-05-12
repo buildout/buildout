@@ -67,7 +67,7 @@ _buildout_default_options = {
 class Buildout(UserDict.DictMixin):
 
     def __init__(self, config_file, cloptions,
-                 user_defaults=True, windows_restart=False):
+                 user_defaults=True, windows_restart=False, command=None):
 
         __doing__ = 'Initializing'
         
@@ -80,9 +80,15 @@ class Buildout(UserDict.DictMixin):
             config_file = os.path.abspath(config_file)
             base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
-                print 'Warning: creating', config_file
-                open(config_file, 'w').write('[buildout]\nparts = \n')
-            data['buildout']['directory'] = os.path.dirname(config_file)
+                if command == 'init':
+                    print 'Creating', config_file
+                    open(config_file, 'w').write('[buildout]\nparts = \n')
+                else:
+                    raise zc.buildout.UserError(
+                        "Couldn't open %s" % config_file)
+
+            if config_file:
+                data['buildout']['directory'] = os.path.dirname(config_file)
         else:
             base = None
 
@@ -95,7 +101,8 @@ class Buildout(UserDict.DictMixin):
                                     []))
 
         # load configuration files
-        _update(data, _open(os.path.dirname(config_file), config_file, []))
+        if config_file:
+            _update(data, _open(os.path.dirname(config_file), config_file, []))
 
         # apply command-line options
         for (section, option, value) in cloptions:
@@ -208,6 +215,8 @@ class Buildout(UserDict.DictMixin):
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
             self['buildout']['bin-directory'])
+
+    init = bootstrap
 
     def install(self, install_args):
         __doing__ = 'Installing'
@@ -1211,12 +1220,34 @@ Commands:
     definition from the configuration file is used.  Otherwise, the
     arguments specify the parts to be installed.
 
+    Note that the semantics differ depending on whether any parts are
+    specified.  If parts are specified, then only those parts will be
+    installed. If no parts are specified, then the parts specified by
+    the buildout parts option will be installed along with all of
+    their dependencies.
+
   bootstrap
 
     Create a new buildout in the current working directory, copying
     the buildout and setuptools eggs and, creating a basic directory
     structure and a buildout-local buildout script.
 
+  init
+
+    Initialize a buildout, creating a buildout.cfg file if it doesn't
+    exist and then performing the same actions as for the buildout
+    command.
+
+  setup script [setup command and options]
+
+    Run a given setup script arranging that setuptools is in the
+    script's path and and that it has been imported so that
+    setuptools-provided commands (like bdist_egg) can be used even if
+    the setup script doesn't import setuptools itself.
+
+    The script can be given either as a script path or a path to a
+    directory containing a setup.py script.
+    
 """
 def _help():
     print _usage
@@ -1288,7 +1319,9 @@ def main(args=None):
 
     if args:
         command = args.pop(0)
-        if command not in ('install', 'bootstrap', 'runsetup', 'setup'):
+        if command not in (
+            'install', 'bootstrap', 'runsetup', 'setup', 'init',
+            ):
             _error('invalid command:', command)
     else:
         command = 'install'
@@ -1296,7 +1329,7 @@ def main(args=None):
     try:
         try:
             buildout = Buildout(config_file, options,
-                                user_defaults, windows_restart)
+                                user_defaults, windows_restart, command)
             getattr(buildout, command)(args)
         except SystemExit:
             pass
