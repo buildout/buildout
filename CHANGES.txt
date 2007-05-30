@@ -11,13 +11,13 @@ priorities include:
 Change History
 **************
 
-1.0.0b25 (2007-05-??)
+1.0.0b25 (2007-05-30)
 =====================
 
 Feature Changes
 ---------------
 
-- buildout changes to the buildout directory before running recipe
+- buildout now changes to the buildout directory before running recipe
   install and update methods.
 
 - Added a new init command for creating a new buildout. This creates
@@ -26,8 +26,22 @@ Feature Changes
 - Except when using the new init command, it is now an error to run
   buildout without a configuration file.
 
+- In verbose mode, when adding distributions to fulful requirements of
+  already-added distributions, we now show why the new distributions
+  are being added.
+
+- Changed the logging format to exclude the logger name for the
+  zc.buildout logger.  This reduces noise in the output.  
+
+- Clean up lots of messages, adding missing periods and adding quotes around
+  requirement strings and file paths.
+
 Bugs Fixed
 ----------
+
+- 114614: Buildouts could take a very long time if there were
+  dependency problems in large sets of pathologically interdependent
+  packages. 
 
 - 59270: Buggy recipes can cause failures in later recipes via chdir
 
