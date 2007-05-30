@@ -57,10 +57,10 @@ And create a buildout that uses it:
 If we run the buildout, we'll get an error:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     While:
-      Installing data-dir
+      Installing data-dir.
     Error: Missing option: data-dir:directory
 
 
@@ -72,10 +72,10 @@ supply some input:
     ... p self.options.keys()
     ... q
     ... """),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     While:
-      Installing data-dir
+      Installing data-dir.
     Traceback (most recent call last):
       File "/zc/buildout/buildout.py", line 1294, in main
         getattr(buildout, command)(args)

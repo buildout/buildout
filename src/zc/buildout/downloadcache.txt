@@ -59,12 +59,12 @@ server as usual:
     GET 200 /
     GET 200 /demo-0.2-py2.4.egg
     GET 200 /demoneeded-1.1.zip
-    buildout: Installing eggs
-    zc.buildout.easy_install: Getting new distribution for demo==0.2
-    zc.buildout.easy_install: Got demo 0.2
-    zc.buildout.easy_install: Getting new distribution for demoneeded
-    zc.buildout.easy_install: Got demoneeded 1.1
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Installing eggs.
+    Getting distribution for 'demo==0.2'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
+    Generated script '/sample-buildout/bin/demo'.
 
 We'll also get the download cache populated.  The buildout doesn't put
 files in the cache directly.  It creates an intermediate directory,
@@ -87,12 +87,11 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
    
     >>> print system(buildout),
     GET 200 /
-    buildout: Updating eggs
-    zc.buildout.easy_install: Getting new distribution for demo==0.2
-    zc.buildout.easy_install: Got demo 0.2
-    zc.buildout.easy_install: Getting new distribution for demoneeded
-    zc.buildout.easy_install: Got demoneeded 1.1
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Updating eggs.
+    Getting distribution for 'demo==0.2'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
 
 We see that the distributions aren't downloaded, because they're
 downloaded from the cache.
@@ -130,10 +129,10 @@ install-from-cache option set to true:
     ... ''' % globals())
 
     >>> print system(buildout),
-    buildout: Uninstalling eggs
-    buildout: Installing eggs
-    zc.buildout.easy_install: Getting new distribution for demo
-    zc.buildout.easy_install: Got demo 0.2
-    zc.buildout.easy_install: Getting new distribution for demoneeded
-    zc.buildout.easy_install: Got demoneeded 1.1
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Uninstalling eggs.
+    Installing eggs.
+    Getting distribution for 'demo'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
+    Generated script '/sample-buildout/bin/demo'.

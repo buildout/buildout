@@ -65,11 +65,11 @@ Let's run the buildout:
 
     >>> import os
     >>> print system(buildout),
-    buildout: Installing demo
-    zc.buildout.easy_install: Getting new distribution for demo<0.3
-    zc.buildout.easy_install: Got demo 0.2
-    zc.buildout.easy_install: Getting new distribution for demoneeded
-    zc.buildout.easy_install: Got demoneeded 1.1
+    Installing demo.
+    Getting distribution for 'demo<0.3'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
 
 Now, if we look at the buildout eggs directory:
 
@@ -109,9 +109,9 @@ scripts recipe:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
 
 Now we also see the script defined by the dmo script:
 
@@ -171,10 +171,10 @@ specification. We were able to do this because the scripts recipe if
 the default entry point for the zc.recipe.egg egg.
 
    >>> print system(buildout),
-   buildout: Uninstalling demo
-   buildout: Installing demo
-   zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
-   zc.buildout.easy_install: Generated interpreter /sample-buildout/bin/py-demo.
+   Uninstalling demo.
+   Installing demo.
+   Generated script '/sample-buildout/bin/demo'.
+   Generated interpreter '/sample-buildout/bin/py-demo'.
 
 Now we also get a py-demo script for giving us a Python prompt with
 the path for demo and any eggs it depends on included in sys.path.
@@ -229,9 +229,9 @@ remove the restriction on demo:
 and run the buildout in non-newest mode:
 
     >>> print system(buildout+' -N'),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
 
 Note that we removed the eggs option, and the eggs defaulted to the
 part name. Because we removed the eggs option, the demo was
@@ -240,8 +240,7 @@ reinstalled.
 We'll also run the buildout in off-line mode:
 
     >>> print system(buildout+' -o'),
-    buildout: Updating demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Updating demo.
 
 We didn't get an update for demo:
 
@@ -255,10 +254,10 @@ If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
 
     >>> print system(buildout),
-    buildout: Updating demo
-    zc.buildout.easy_install: Getting new distribution for demo
-    zc.buildout.easy_install: Got demo 0.3
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Updating demo.
+    Getting distribution for 'demo'.
+    Got demo 0.3.
+    Generated script '/sample-buildout/bin/demo'.
 
 Then we'll get a new demo egg:
 
@@ -295,8 +294,8 @@ arguments:
 
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
+    Uninstalling demo.
+    Installing demo.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -316,9 +315,9 @@ You can also control the name used for scripts:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/foo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -346,9 +345,9 @@ extra-paths option:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/foo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
 
 Let's look at the script that was generated:
 
@@ -395,9 +394,9 @@ to be included in generated scripts:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/foo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
@@ -445,11 +444,11 @@ declare entry points using the entry-points option:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/alt.
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/other.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
+    Generated script '/sample-buildout/bin/alt'.
+    Generated script '/sample-buildout/bin/other'.
 
     >>> ls(sample_buildout, 'bin')
     -  alt
@@ -492,6 +491,6 @@ be made to contact an index server:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Uninstalling demo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/foo.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.

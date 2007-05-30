@@ -1,4 +1,4 @@
-############################################################################
+##############################################################################
 #
 # Copyright (c) 2005 Zope Corporation and Contributors.
 # All Rights Reserved.
@@ -61,7 +61,7 @@ _buildout_default_options = {
     'python': 'buildout',
     'executable': sys.executable,
     'log-level': 'INFO',
-    'log-format': '%(name)s: %(message)s',
+    'log-format': '',
     }
 
 class Buildout(UserDict.DictMixin):
@@ -69,7 +69,7 @@ class Buildout(UserDict.DictMixin):
     def __init__(self, config_file, cloptions,
                  user_defaults=True, windows_restart=False, command=None):
 
-        __doing__ = 'Initializing'
+        __doing__ = 'Initializing.'
         
         self.__windows_restart = windows_restart
 
@@ -81,7 +81,7 @@ class Buildout(UserDict.DictMixin):
             base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
                 if command == 'init':
-                    print 'Creating', config_file
+                    print 'Creating %r.' % config_file
                     open(config_file, 'w').write('[buildout]\nparts = \n')
                 else:
                     raise zc.buildout.UserError(
@@ -185,7 +185,7 @@ class Buildout(UserDict.DictMixin):
         return os.path.join(self._buildout_dir, *names)
 
     def bootstrap(self, args):
-        __doing__ = 'Bootstraping'
+        __doing__ = 'Bootstraping.'
 
         self._setup_directories()
 
@@ -219,7 +219,7 @@ class Buildout(UserDict.DictMixin):
     init = bootstrap
 
     def install(self, install_args):
-        __doing__ = 'Installing'
+        __doing__ = 'Installing.'
 
         self._load_extensions()
         self._setup_directories()
@@ -268,7 +268,7 @@ class Buildout(UserDict.DictMixin):
         if not install_args:
             install_parts = self._parts
 
-        if self._log_level <= logging.DEBUG:
+        if self._log_level < logging.DEBUG:
             sections = list(self)
             sections.sort()
             print    
@@ -301,19 +301,20 @@ class Buildout(UserDict.DictMixin):
                         continue
 
                 # output debugging info
-                for k in old_options:
-                    if k not in new_options:
-                        self._logger.debug("Part: %s, dropped option %s",
-                                           part, k)
-                    elif old_options[k] != new_options[k]:
-                        self._logger.debug(
-                            "Part: %s, option %s, %r != %r",
-                            part, k, new_options[k], old_options[k],
-                            )
-                for k in new_options:
-                    if k not in old_options:
-                        self._logger.debug("Part: %s, new option %s",
-                                           part, k)
+                if self._logger.getEffectiveLevel() < logging.DEBUG:
+                    for k in old_options:
+                        if k not in new_options:
+                            self._logger.debug("Part %s, dropped option %s.",
+                                               part, k)
+                        elif old_options[k] != new_options[k]:
+                            self._logger.debug(
+                                "Part %s, option %s changed:\n%r != %r",
+                                part, k, new_options[k], old_options[k],
+                                )
+                    for k in new_options:
+                        if k not in old_options:
+                            self._logger.debug("Part %s, new option %s.",
+                                               part, k)
 
             elif not uninstall_missing:
                 continue
@@ -334,7 +335,7 @@ class Buildout(UserDict.DictMixin):
             recipe = self[part].recipe
             if part in installed_parts: # update
                 need_to_save_installed = False
-                __doing__ = 'Updating %s', part
+                __doing__ = 'Updating %s.', part
                 self._logger.info(*__doing__)
                 old_options = installed_part_options[part]
                 old_installed_files = old_options['__buildout_installed__']
@@ -377,7 +378,7 @@ class Buildout(UserDict.DictMixin):
 
             else: # install
                 need_to_save_installed = True
-                __doing__ = 'Installing %s', part
+                __doing__ = 'Installing %s.', part
                 self._logger.info(*__doing__)
                 installed_files = self[part]._call(recipe.install)
                 if installed_files is None:
@@ -425,7 +426,7 @@ class Buildout(UserDict.DictMixin):
 
     def _uninstall_part(self, part, installed_part_options):
         # ununstall part
-        __doing__ = 'Uninstalling %s', part
+        __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
 
         # run uinstall recipe
@@ -433,7 +434,7 @@ class Buildout(UserDict.DictMixin):
         try:
             uninstaller = _install_and_load(
                 recipe, 'zc.buildout.uninstall', entry, self)
-            self._logger.info('Running uninstall recipe')
+            self._logger.info('Running uninstall recipe.')
             uninstaller(part, installed_part_options[part])
         except (ImportError, pkg_resources.DistributionNotFound), v:
             pass
@@ -450,7 +451,7 @@ class Buildout(UserDict.DictMixin):
         for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
             d = self['buildout'][name+'-directory']
             if not os.path.exists(d):
-                self._logger.info('Creating directory %s', d)
+                self._logger.info('Creating directory %r.', d)
                 os.mkdir(d)
 
     def _develop(self):
@@ -471,8 +472,8 @@ class Buildout(UserDict.DictMixin):
             try:
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
-                    self._logger.info("Develop: %s", setup)
-                    __doing__ = 'Processing develop directory %s', setup
+                    self._logger.info("Develop: %r", setup)
+                    __doing__ = 'Processing develop directory %r.', setup
                     zc.buildout.easy_install.develop(setup, dest)
             except:
                 # if we had an error, we need to roll back changes, by
@@ -503,7 +504,7 @@ class Buildout(UserDict.DictMixin):
             if not (os.path.isfile(os.path.join(dest, f))
                     and f.endswith('.egg-link')):
                 self._logger.warning(
-                    "Unexpected entry, %s, in develop-eggs directory", f)
+                    "Unexpected entry, %r, in develop-eggs directory.", f)
 
     def _compute_part_signatures(self, parts):
         # Compute recipe signature and add to options
@@ -580,10 +581,21 @@ class Buildout(UserDict.DictMixin):
 
     def _setup_logging(self):
         root_logger = logging.getLogger()
+        self._logger = logging.getLogger('zc.buildout')
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter(self['buildout']['log-format']))
+        log_format = self['buildout']['log-format']
+        if not log_format:
+            # No format specified. Use different formatter for buildout
+            # and other modules, showing logger name except for buildout
+            log_format = '%(name)s: %(message)s'
+            buildout_handler = logging.StreamHandler(sys.stdout)
+            buildout_handler.setFormatter(logging.Formatter('%(message)s'))
+            self._logger.propagate = False
+            self._logger.addHandler(buildout_handler)
+            
+        handler.setFormatter(logging.Formatter(log_format))
         root_logger.addHandler(handler)
-        self._logger = logging.getLogger('buildout')
+
         level = self['buildout']['log-level']
         if level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'):
             level = getattr(logging, level)
@@ -605,7 +617,7 @@ class Buildout(UserDict.DictMixin):
     def _maybe_upgrade(self):
         # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
-        __doing__ = 'Checking for upgrades'
+        __doing__ = 'Checking for upgrades.'
 
         if not self.newest:
             return
@@ -630,7 +642,7 @@ class Buildout(UserDict.DictMixin):
         if not upgraded:
             return
 
-        __doing__ = 'Upgrading'
+        __doing__ = 'Upgrading.'
 
         should_run = realpath(
             os.path.join(os.path.abspath(self['buildout']['bin-directory']),
@@ -640,10 +652,10 @@ class Buildout(UserDict.DictMixin):
             should_run += '-script.py'
 
         if (realpath(os.path.abspath(sys.argv[0])) != should_run):
-            self._logger.debug("Running %r", realpath(sys.argv[0]))
-            self._logger.debug("Local buildout is %r", should_run)
+            self._logger.debug("Running %r.", realpath(sys.argv[0]))
+            self._logger.debug("Local buildout is %r.", should_run)
             self._logger.warn("Not upgrading because not running a local "
-                              "buildout command")
+                              "buildout command.")
             return
 
         if sys.platform == 'win32' and not self.__windows_restart:
@@ -678,7 +690,7 @@ class Buildout(UserDict.DictMixin):
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
     def _load_extensions(self):
-        __doing__ = 'Loading extensions'
+        __doing__ = 'Loading extensions.'
         specs = self['buildout'].get('extensions', '').split()
         if specs:
             path = [self['buildout']['develop-eggs-directory']]
@@ -688,7 +700,7 @@ class Buildout(UserDict.DictMixin):
             else:
                 dest = self['buildout']['eggs-directory']
                 if not os.path.exists(dest):
-                    self._logger.info('Creating directory %s', dest)
+                    self._logger.info('Creating directory %r.', dest)
                     os.mkdir(dest)
 
             zc.buildout.easy_install.install(
@@ -703,7 +715,7 @@ class Buildout(UserDict.DictMixin):
         if os.path.isdir(setup):
             setup = os.path.join(setup, 'setup.py')
 
-        self._logger.info("Running setup script %s", setup)
+        self._logger.info("Running setup script %r.", setup)
         setup = os.path.abspath(setup)
 
         fd, tsetup = tempfile.mkstemp()
@@ -724,7 +736,7 @@ class Buildout(UserDict.DictMixin):
     runsetup = setup # backward compat.
 
     def __getitem__(self, section):
-        __doing__ = 'Getting section %s', section
+        __doing__ = 'Getting section %s.', section
         try:
             return self._data[section]
         except KeyError:
@@ -754,13 +766,13 @@ class Buildout(UserDict.DictMixin):
 
 
 def _install_and_load(spec, group, entry, buildout):
-    __doing__ = 'Loading recipe %s', spec
+    __doing__ = 'Loading recipe %r.', spec
     try:
         req = pkg_resources.Requirement.parse(spec)
 
         buildout_options = buildout['buildout']
         if pkg_resources.working_set.find(req) is None:
-            __doing__ = 'Installing recipe %s', spec
+            __doing__ = 'Installing recipe %s.', spec
             if buildout.offline:
                 dest = None
                 path = [buildout_options['develop-eggs-directory'],
@@ -779,7 +791,7 @@ def _install_and_load(spec, group, entry, buildout):
                 newest=buildout.newest,
                 )
 
-        __doing__ = 'Loading %s recipe entry %s:%s', group, spec, entry
+        __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
         return pkg_resources.load_entry_point(
             req.project_name, group, entry)
 
@@ -801,7 +813,7 @@ class Options(UserDict.DictMixin):
 
     def _initialize(self):
         name = self.name
-        __doing__ = 'Initializing section %s', name
+        __doing__ = 'Initializing section %s.', name
         
         # force substitutions
         for k, v in self._raw.items():
@@ -819,12 +831,12 @@ class Options(UserDict.DictMixin):
         buildout = self.buildout
         recipe_class = _install_and_load(reqs, 'zc.buildout', entry, buildout)
 
-        __doing__ = 'Initializing part %s', name
+        __doing__ = 'Initializing part %s.', name
         self.recipe = recipe_class(buildout, name, self)
         buildout._parts.append(name)
 
     def _dosub(self, option, v):
-        __doing__ = 'Getting option %s:%s', self.name, option
+        __doing__ = 'Getting option %s:%s.', self.name, option
         seen = [(self.name, option)]
         v = '$$'.join([self._sub(s, seen) for s in v.split('$$')])
         self._cooked[option] = v
@@ -841,7 +853,7 @@ class Options(UserDict.DictMixin):
             if v is None:
                 return default
 
-        __doing__ = 'Getting option %s:%s', self.name, option
+        __doing__ = 'Getting option %s:%s.', self.name, option
 
         if '${' in v:
             key = self.name, option
@@ -947,7 +959,7 @@ class Options(UserDict.DictMixin):
                     elif os.path.isfile(p):
                         os.remove(p)
                     else:
-                        self._buildout._logger.warn("Couldn't clean up %s", p)
+                        self._buildout._logger.warn("Couldn't clean up %r.", p)
                 raise
         finally:
             self._created = None
@@ -1137,7 +1149,7 @@ def _check_for_unused_options_in_section(buildout, section):
     options = buildout[section]
     unused = [option for option in options._raw if option not in options._data]
     if unused:
-        buildout._logger.warn("Unused options for %s: %s"
+        buildout._logger.warn("Unused options for %s: %s."
                               % (section, ' '.join(map(repr, unused)))
                               )
 

@@ -133,7 +133,7 @@ the egg:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Installing extdemo
+    Installing extdemo.
     zip_safe flag not set; analyzing archive contents...
 
 We got the zip_safe warning because the source distribution we used
@@ -189,10 +189,10 @@ Let's define a script that uses out ext demo:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Updating extdemo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Develop: '/sample-buildout/demo'
+    Updating extdemo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
 
 When we run the script, we'll 42 printed:
 
@@ -212,16 +212,14 @@ distribution for extdemo:
 If we run the buildout in non-newest or offline modes:
 
     >>> print system(buildout+' -N'),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Updating extdemo
-    buildout: Updating demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Develop: '/sample-buildout/demo'
+    Updating extdemo.
+    Updating demo.
 
     >>> print system(buildout+' -o'),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Updating extdemo
-    buildout: Updating demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Develop: '/sample-buildout/demo'
+    Updating extdemo.
+    Updating demo.
 
 We won't get an update.
 
@@ -234,11 +232,11 @@ But if we run the buildout in the default on-line and newest modes, we
 will:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Updating extdemo
+    Develop: '/sample-buildout/demo'
+    Updating extdemo.
     zip_safe flag not set; analyzing archive contents...
-    buildout: Updating demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Updating demo.
+    Generated script '/sample-buildout/bin/demo'.
 
     >>> ls(sample_buildout, 'develop-eggs')
     -  demo.egg-link
@@ -272,13 +270,13 @@ We can specify a specific version using the egg option:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout+' -D'),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Uninstalling demo
-    buildout: Uninstalling extdemo
-    buildout: Installing extdemo
+    Develop: '/sample-buildout/demo'
+    Uninstalling demo.
+    Uninstalling extdemo.
+    Installing extdemo.
     zip_safe flag not set; analyzing archive contents...
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
 
     >>> ls(sample_buildout, 'develop-eggs')
     -  demo.egg-link
@@ -383,12 +381,12 @@ TWO to be defined.  This will cause the module-variable, 'val', to be
 set with a value of 2.
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/demo
-    buildout: Uninstalling demo
-    buildout: Uninstalling extdemo
-    buildout: Installing extdemo
-    buildout: Installing demo
-    zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
+    Develop: '/sample-buildout/demo'
+    Uninstalling demo.
+    Uninstalling extdemo.
+    Installing extdemo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
 
 Our develop-eggs now includes an egg link for extdemo:
 
