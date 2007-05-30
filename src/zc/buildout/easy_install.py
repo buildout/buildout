@@ -37,7 +37,6 @@ except AttributeError:
 default_index_url = os.environ.get('buildout-testing-index-url')
 
 logger = logging.getLogger('zc.buildout.easy_install')
-picked = logging.getLogger('zc.buildout.easy_install.picked')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 
@@ -161,8 +160,8 @@ class Installer:
     def _satisfied(self, req, source=None):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
         if not dists:
-            logger.debug('We have no distributions for %s that satisfies %s.',
-                         req.project_name, req)
+            logger.debug('We have no distributions for %s that satisfies %r.',
+                         req.project_name, str(req))
             return None, self._obtain(req, source)
 
         # Note that dists are sorted from best to worst, as promised by
@@ -170,7 +169,7 @@ class Installer:
 
         for dist in dists:
             if (dist.precedence == pkg_resources.DEVELOP_DIST):
-                logger.debug('We have a develop egg for %s', req)
+                logger.debug('We have a develop egg: %s', dist)
                 return dist, None
 
         if not self._newest:
@@ -210,8 +209,8 @@ class Installer:
 
         # Check if we have the upper limit
         if maxv is not None and best_we_have.version == maxv:
-            logger.debug('We have the best distribution that satisfies\n%s',
-                         req)
+            logger.debug('We have the best distribution that satisfies %r.',
+                         str(req))
             return best_we_have, None
 
         # We have some installed distros.  There might, theoretically, be
@@ -229,16 +228,17 @@ class Installer:
             # That's a bit odd.  There aren't any distros available.
             # We should use the best one we have that meets the requirement.
             logger.debug(
-                'There are no distros available that meet %s. Using our best.',
-                req)
+                'There are no distros available that meet %r.\n'
+                'Using our best, %s.',
+                str(req), best_available)
             return best_we_have, None
         else:
             # Let's find out if we already have the best available:
             if best_we_have.parsed_version >= best_available.parsed_version:
                 # Yup. Use it.
                 logger.debug(
-                    'We have the best distribution that satisfies\n%s',
-                    req)
+                    'We have the best distribution that satisfies %r.',
+                    str(req))
                 return best_we_have, None
 
         return None, best_available
@@ -381,7 +381,7 @@ class Installer:
 
     def _get_dist(self, requirement, ws, always_unzip):
 
-        __doing__ = 'Getting distribution for %s', requirement
+        __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
@@ -389,7 +389,7 @@ class Installer:
 
         if dist is None:
             if self._dest is not None:
-                logger.info("Getting new distribution for %s", requirement)
+                logger.info(*__doing__)
 
             # Retrieve the dist:
             if avail is None:
@@ -463,7 +463,7 @@ class Installer:
 
             self._env.scan([self._dest])
             dist = self._env.best_match(requirement, ws)
-            logger.info("Got %s", dist)            
+            logger.info("Got %s.", dist)            
 
         else:
             dists = [dist]
@@ -490,7 +490,8 @@ class Installer:
                  and
                  requirement.specs[0][0] == '==')
                 ):
-                picked.debug('%s = %s', dist.project_name, dist.version)
+                logger.debug('Picked: %s = %s',
+                             dist.project_name, dist.version)
 
         return dists
 
@@ -503,7 +504,7 @@ class Installer:
                 # We have a namespace package but no requirement for setuptools
                 if dist.precedence == pkg_resources.DEVELOP_DIST:
                     logger.warn(
-                        "Develop distribution for %s\n"
+                        "Develop distribution: %s\n"
                         "uses namespace packages but the distribution "
                         "does not require setuptools.",
                         dist)
@@ -520,7 +521,7 @@ class Installer:
         if version:
             if version not in requirement:
                 logger.error("The version, %s, is not consistent with the "
-                             "requirement, %s", version, requirement)
+                             "requirement, %r.", version, str(requirement))
                 raise IncompatibleVersionError("Bad version", version)
             
             requirement = pkg_resources.Requirement.parse(
@@ -530,7 +531,7 @@ class Installer:
 
     def install(self, specs, working_set=None):
 
-        logger.debug('Installing %r', specs)
+        logger.debug('Installing %s.', repr(specs)[1:-1])
 
         path = self._path
         dest = self._dest
@@ -567,9 +568,14 @@ class Installer:
                 [requirement] = err
                 requirement = self._constrain(requirement)
                 if dest:
-                    logger.debug('Getting required %s', requirement)
+                    logger.debug('Getting required %r', str(requirement))
+                else:
+                    logger.debug('Adding required %r', str(requirement))
+                _log_requirement(ws, requirement)
+                    
                 for dist in self._get_dist(requirement, ws, self._always_unzip
                                            ):
+                        
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict, err:
@@ -590,8 +596,8 @@ class Installer:
         # Retrieve the dist:
         if avail is None:
             raise zc.buildout.UserError(
-                "Couldn't find a source distribution for %s."
-                % requirement)
+                "Couldn't find a source distribution for %r."
+                % str(requirement))
 
         logger.debug('Building %r', spec)
 
@@ -760,7 +766,8 @@ def develop(setup, dest,
                 del args[1]
             else:
                 args[1] == '-v'
-        logger.debug("in: %s\n%r", directory, args)
+        if logger.getEffectiveLevel < logging.DEBUG:
+            logger.debug("in: %r\n%s", directory, ' '.join(args))
 
         assert os.spawnl(os.P_WAIT, executable, executable, *args) == 0
 
@@ -833,27 +840,34 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     generated = []
     script = dest
     if sys.platform == 'win32':
-        # generate exe file and give the script a magic name:
-        open(dest+'.exe', 'wb').write(
-            pkg_resources.resource_string('setuptools', 'cli.exe')
-            )
-        generated.append(dest+'.exe')
         dest += '-script.py'
-        
-    open(dest, 'w').write(script_template % dict(
+    contents = script_template % dict(
         python = executable,
         path = path,
         module_name = module_name,
         attrs = attrs,
         arguments = arguments,
         initialization = initialization,
-        ))
-    try:
-        os.chmod(dest, 0755)
-    except (AttributeError, os.error):
-        pass
+        )
+    changed = not (os.path.exists(dest) and open(dest).read() == contents)
+
+    if sys.platform == 'win32':
+        # generate exe file and give the script a magic name:
+        open(dest+'.exe', 'wb').write(
+            pkg_resources.resource_string('setuptools', 'cli.exe')
+            )
+        generated.append(dest+'.exe')
+        
+    if changed:
+        open(dest, 'w').write(contents)
+        logger.info("Generated script %r.", script)
+
+        try:
+            os.chmod(dest, 0755)
+        except (AttributeError, os.error):
+            pass
+        
     generated.append(dest)
-    logger.info("Generated script %s.", script)
     return generated
 
 script_template = '''\
@@ -875,23 +889,30 @@ def _pyscript(path, dest, executable):
     generated = []
     script = dest
     if sys.platform == 'win32':
+        dest += '-script.py'
+
+    contents = py_script_template % dict(
+        python = executable,
+        path = path,
+        )
+    changed = not (os.path.exists(dest) and open(dest).read() == contents)
+
+    if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
         open(dest+'.exe', 'wb').write(
             pkg_resources.resource_string('setuptools', 'cli.exe')
             )
         generated.append(dest+'.exe')
-        dest += '-script.py'
 
-    open(dest, 'w').write(py_script_template % dict(
-        python = executable,
-        path = path,
-        ))
-    try:
-        os.chmod(dest,0755)
-    except (AttributeError, os.error):
-        pass
+    if changed:
+        open(dest, 'w').write(contents)
+        try:
+            os.chmod(dest,0755)
+        except (AttributeError, os.error):
+            pass
+        logger.info("Generated interpreter %r.", script)
+
     generated.append(dest)
-    logger.info("Generated interpreter %s.", script)
     return generated
 
 py_script_template = '''\
@@ -937,6 +958,8 @@ execfile(%(setup)r)
 class VersionConflict(zc.buildout.UserError):
 
     def __init__(self, err, ws):
+        ws = list(ws)
+        ws.sort()
         self.err, self.ws = err, ws
 
     def __str__(self):
@@ -946,36 +969,27 @@ class VersionConflict(zc.buildout.UserError):
                   ]
         for dist in self.ws:
             if req in dist.requires():
-                result.append("but %s requires %s." % (dist, req))
-                _needed(self.ws, dist, result.append, [dist])
+                result.append("but %s requires %r." % (dist, str(req)))
         return '\n'.join(result)
 
 class MissingDistribution(zc.buildout.UserError):
 
     def __init__(self, req, ws):
+        ws = list(ws)
+        ws.sort()
         self.data = req, ws
 
     def __str__(self):
         req, ws = self.data
-        result = ["Couldn't find a distribution for %s." % req]
-        for dist in ws:
-            if req in dist.requires():
-                result.append("%s is required by %s." % (req, dist))
-                _needed(ws, dist, result.append, [dist])
-        return '\n'.join(result)
+        return "Couldn't find a distribution for %r." % str(req)
 
-        
-def _needed(ws, needed_dist, write, seen):
+def _log_requirement(ws, req):
+    ws = list(ws)
+    ws.sort()
     for dist in ws:
-        if dist in seen:
-            continue
-        for req in dist.requires():
-            if needed_dist in req:
-                write("%s is required by %s." % (needed_dist, dist))
-                seen.append(dist)
-                _needed(ws, dist, write, seen)
-                seen.pop()
-
+        if req in dist.requires():
+            logger.debug("  required by %s." % dist)
+    
 def _fix_file_links(links):
     for link in links:
         if link.startswith('file://') and link[-1] != '/':
@@ -983,3 +997,6 @@ def _fix_file_links(links):
                 # work around excessive restriction in setuptools:
                 link += '/'
         yield link
+
+
+

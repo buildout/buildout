@@ -285,8 +285,8 @@ buildout:
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     data-dir: Creating directory mystuff
 
 We see that the recipe created the directory, as expected:
@@ -334,9 +334,9 @@ we'll see that the directory gets removed and recreated:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling data-dir
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Uninstalling data-dir.
+    Installing data-dir.
     data-dir: Creating directory mydata
 
     >>> ls(sample_buildout)
@@ -354,9 +354,9 @@ the part will be reinstalled:
 
     >>> rmdir(sample_buildout, 'mydata')
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling data-dir
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Uninstalling data-dir.
+    Installing data-dir.
     data-dir: Creating directory mydata
 
 Error reporting
@@ -385,12 +385,12 @@ non-existant directory to create the directory in:
 We'll get a user error, not a traceback.
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
+    Develop: '/sample-buildout/recipes'
     data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
     While:
-      Installing
-      Getting section data-dir
-      Initializing part data-dir
+      Installing.
+      Getting section data-dir.
+      Initializing part data-dir.
     Error: Invalid Path
 
 
@@ -450,13 +450,13 @@ leave previously created paths in place:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling data-dir
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Uninstalling data-dir.
+    Installing data-dir.
     data-dir: Creating directory foo
     data-dir: Creating directory bin
     While:
-      Installing data-dir
+      Installing data-dir.
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
@@ -484,11 +484,11 @@ If we fix the typo:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     data-dir: Creating directory foo
     While:
-      Installing data-dir
+      Installing data-dir.
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
@@ -560,12 +560,12 @@ And put back the typo:
 When we rerun the buildout:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     data-dir: Creating directory foo
     data-dir: Creating directory bin
     While:
-      Installing data-dir
+      Installing data-dir.
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
@@ -636,12 +636,12 @@ If we rerun the buildout, again, we'll get the error and no
 directiories will be created:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     data-dir: Creating directory foo
     data-dir: Creating directory bin
     While:
-      Installing data-dir
+      Installing data-dir.
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
@@ -666,8 +666,8 @@ Now, we'll fix the typo again and we'll get the directories we expect:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
     data-dir: Creating directory foo
     data-dir: Creating directory bins
 
@@ -782,11 +782,11 @@ Now, if we run the buildout, we'll see the options with the values
 substituted. 
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling data-dir
-    buildout: Installing data-dir
+    Develop: '/sample-buildout/recipes'
+    Uninstalling data-dir.
+    Installing data-dir.
     data-dir: Creating directory mydata
-    buildout: Installing debug
+    Installing debug.
     File 1 /sample-buildout/mydata/file
     File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
@@ -801,9 +801,9 @@ recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Updating data-dir
-    buildout: Updating debug
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
     File 1 /sample-buildout/mydata/file
     File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
@@ -847,9 +847,9 @@ example, we can leave data-dir out of the parts list:
 It will still be treated as a part:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Updating data-dir
-    buildout: Updating debug
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
     File 1 /sample-buildout/mydata/file
     File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
@@ -885,9 +885,9 @@ the data-dir part after the debug part, it will be included before:
 It will still be treated as a part:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Updating data-dir
-    buildout: Updating debug
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
     File 1 /sample-buildout/mydata/file
     File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug
@@ -932,10 +932,10 @@ To see how this works, we use an example:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Uninstalling data-dir
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Uninstalling data-dir.
+    Installing debug.
     op buildout
     recipe recipes:debug
 
@@ -1004,9 +1004,9 @@ Here is a more elaborate example.
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     name base
     op buildout
     op1 b1 1
@@ -1066,9 +1066,9 @@ we'll set up a web server with some configuration files.
 
 
     >>> print system(buildout+ ' -c client.cfg'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     name base
     op1 r1 1
     op2 r2 2
@@ -1098,7 +1098,7 @@ buildout.
 
     >>> print system(buildout + ' -c ' + server_url + '/remote.cfg'),
     While:
-      Initializing
+      Initializing.
     Error: Missing option: buildout:directory
 
 Normally, the buildout directory defaults to directory
@@ -1110,9 +1110,9 @@ normally be defined on the command line:
     ...              + ' -c ' + server_url + '/remote.cfg'
     ...              + ' buildout:directory=' + sample_buildout
     ...              ),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     name remote
     op1 r1 1
     op2 r2 2
@@ -1138,9 +1138,9 @@ delimiter.)
 
     >>> os.environ['HOME'] = home
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     name base
     op buildout
     op1 b1 1
@@ -1155,9 +1155,9 @@ A buildout command-line argument, -U, can be used to suppress reading
 user defaults:
 
     >>> print system(buildout + ' -U'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     name base
     op buildout
     op1 b1 1
@@ -1274,9 +1274,9 @@ Here's how these recipes could be used in a buildout:
 When the buildout is run the service will be installed
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing service
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing service.
     chkconfig --add /path/to/script
     <BLANKLINE>
 
@@ -1284,8 +1284,8 @@ The service has been installed. If the buildout is run again with no
 changes, the serivce shouldn't be changed.
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Updating service
+    Develop: '/sample-buildout/recipes'
+    Updating service.
     <BLANKLINE>
 
 Now we change the service part to trigger uninstallation and
@@ -1303,11 +1303,11 @@ re-installation.
     ... """)
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling service
-    buildout: Running uninstall recipe
+    Develop: '/sample-buildout/recipes'
+    Uninstalling service.
+    Running uninstall recipe.
     chkconfig --del /path/to/script
-    buildout: Installing service
+    Installing service.
     chkconfig --add /path/to/a/different/script
     <BLANKLINE>
 
@@ -1324,11 +1324,11 @@ Now we remove the service part, and add another part.
     ... """)
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling service
-    buildout: Running uninstall recipe
+    Develop: '/sample-buildout/recipes'
+    Uninstalling service.
+    Running uninstall recipe.
     chkconfig --del /path/to/a/different/script
-    buildout: Installing debug
+    Installing debug.
     recipe recipes:debug
     <BLANKLINE>
 
@@ -1391,11 +1391,11 @@ Now we can use it with a mkdir part.
 Run the buildout to install the part.
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing dir
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing dir.
     dir: Creating directory my_directory
-    buildout: Installing debug
+    Installing debug.
     recipe recipes:debug
     <BLANKLINE>
 
@@ -1415,11 +1415,11 @@ When the buildout is run the part is removed, and the uninstall recipe
 is run before the directory is deleted.
 
     >>> print system(buildout)
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling dir
-    buildout: Running uninstall recipe
+    Develop: '/sample-buildout/recipes'
+    Uninstalling dir.
+    Running uninstall recipe.
     backing up directory /sample-buildout/my_directory of size 0
-    buildout: Updating debug
+    Updating debug.
     recipe recipes:debug
     <BLANKLINE>
 
@@ -1515,8 +1515,8 @@ Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
     
     >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
     name other
     op1 foo
     recipe recipes:debug
@@ -1528,8 +1528,8 @@ WARNING.
 Options can also be combined in the usual Unix way, as in:
     
     >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Updating debug
+    Develop: '/sample-buildout/recipes'
+    Updating debug.
     name other
     op1 foo
     recipe recipes:debug
@@ -1569,15 +1569,15 @@ the buildout in the usual way:
     ... """)
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
     recipe recipes:debug
-    buildout: Installing d1
+    Installing d1.
     d1: Creating directory d1
-    buildout: Installing d2
+    Installing d2.
     d2: Creating directory d2
-    buildout: Installing d3
+    Installing d3.
     d3: Creating directory d3
     
     >>> ls(sample_buildout)
@@ -1651,11 +1651,11 @@ Now we'll update our configuration file:
 and run the buildout specifying just d3 and d4:
 
     >>> print system(buildout+' install d3 d4'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling d3
-    buildout: Installing d3
+    Develop: '/sample-buildout/recipes'
+    Uninstalling d3.
+    Installing d3.
     d3: Creating directory data3
-    buildout: Installing d4
+    Installing d4.
     d4: Creating directory data2-extra
     
     >>> ls(sample_buildout)
@@ -1720,17 +1720,17 @@ directories are still there.
 Now, if we run the buildout without the install command:
 
     >>> print system(buildout),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling d2
-    buildout: Uninstalling d1
-    buildout: Uninstalling debug
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Uninstalling d2.
+    Uninstalling d1.
+    Uninstalling debug.
+    Installing debug.
     recipe recipes:debug
     x 1
-    buildout: Installing d2
+    Installing d2.
     d2: Creating directory data2
-    buildout: Updating d3
-    buildout: Updating d4
+    Updating d3.
+    Updating d4.
 
 We see the output of the debug recipe and that data2 was created.  We
 also see that d1 and d2 have gone away:
@@ -1776,15 +1776,15 @@ provide alternate locations, and even names for these directories.
     ... ))
 
     >>> print system(buildout),
-    buildout: Creating directory /sample-alt/scripts
-    buildout: Creating directory /sample-alt/work
-    buildout: Creating directory /sample-alt/basket
-    buildout: Creating directory /sample-alt/developbasket
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Uninstalling d4
-    buildout: Uninstalling d3
-    buildout: Uninstalling d2
-    buildout: Uninstalling debug
+    Creating directory '/sample-alt/scripts'.
+    Creating directory '/sample-alt/work'.
+    Creating directory '/sample-alt/basket'.
+    Creating directory '/sample-alt/developbasket'.
+    Develop: '/sample-buildout/recipes'
+    Uninstalling d4.
+    Uninstalling d3.
+    Uninstalling d2.
+    Uninstalling debug.
 
     >>> ls(alt)
     d  basket
@@ -1812,11 +1812,11 @@ You can also specify an alternate buildout directory:
     ...    ))
  
     >>> print system(buildout),
-    buildout: Creating directory /sample-alt/bin
-    buildout: Creating directory /sample-alt/parts
-    buildout: Creating directory /sample-alt/eggs
-    buildout: Creating directory /sample-alt/develop-eggs
-    buildout: Develop: /sample-buildout/recipes
+    Creating directory '/sample-alt/bin'.
+    Creating directory '/sample-alt/parts'.
+    Creating directory '/sample-alt/eggs'.
+    Creating directory '/sample-alt/develop-eggs'.
+    Develop: '/sample-buildout/recipes'
 
     >>> ls(alt)
     -  .installed.cfg
@@ -1864,7 +1864,7 @@ configuration file.  Because the verbosity is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
     >>> print system(buildout),
-    INFO Develop: /sample-buildout/recipes
+    INFO Develop: '/sample-buildout/recipes'
 
 Predefined buildout options
 ---------------------------
@@ -1881,12 +1881,11 @@ database is shown.
     ... parts =
     ... """)
 
-    >>> print system(buildout+' -v'),
-    zc.buildout.easy_install: Installing ['zc.buildout', 'setuptools']
-    zc.buildout.easy_install: We have a develop egg for zc.buildout
-    zc.buildout.easy_install: We have the best distribution that satisfies
-    setuptools
-    zc.buildout.easy_install.picked: setuptools = 0.6
+    >>> print system(buildout+' -vv'),
+    Installing 'zc.buildout', 'setuptools'.
+    We have a develop egg: zc.buildout 1.0.0.
+    We have the best distribution that satisfies 'setuptools'.
+    Picked: setuptools = 0.6
     <BLANKLINE>
     Configuration data:
     [buildout]
@@ -1896,14 +1895,14 @@ database is shown.
     eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
     installed = /sample-buildout/.installed.cfg
-    log-format = %(name)s: %(message)s
+    log-format = 
     log-level = INFO
     newest = true
     offline = false
     parts = 
     parts-directory = /sample-buildout/parts
     python = buildout
-    verbosity = 10
+    verbosity = 20
     <BLANKLINE>
  
 All of these options can be overridden by configuration files or by
@@ -1975,17 +1974,17 @@ If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
 local buildout scripts. 
 
-   >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
+    >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
-   >>> print system(buildout
-   ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-   ...              +' init'),
-   Creating /sample-bootstrapped/setup.cfg
-   buildout: Creating directory /sample-bootstrapped/bin
-   buildout: Creating directory /sample-bootstrapped/parts
-   buildout: Creating directory /sample-bootstrapped/eggs
-   buildout: Creating directory /sample-bootstrapped/develop-eggs
-   zc.buildout.easy_install: Generated script /sample-bootstrapped/bin/buildout.
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' init'),
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Creating directory '/sample-bootstrapped/bin'.
+    Creating directory '/sample-bootstrapped/parts'.
+    Creating directory '/sample-bootstrapped/eggs'.
+    Creating directory '/sample-bootstrapped/develop-eggs'.
+    Generated script '/sample-bootstrapped/bin/buildout'.
 
 Note that a basic setup.cfg was created for us.
 
@@ -2016,30 +2015,29 @@ If we have an existing buildout that already has a buildout.cfg, we'll
 normally use the bootstrap command instead of init.  It will complain
 if there isn't a configuration file:
 
-    >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
+     >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
+
+     >>> print system(buildout
+     ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+     ...              +' bootstrap'),
+     While:
+       Initializing.
+     Error: Couldn't open /sample-bootstrapped2/setup.cfg
+
+     >>> write(sample_bootstrapped2, 'setup.cfg',
+     ... """
+     ... [buildout]
+     ... parts =
+     ... """)
 
     >>> print system(buildout
     ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
     ...              +' bootstrap'),
-    While:
-      Initializing
-    Error: Couldn't open /sample-bootstrapped2/setup.cfg
-
-    >>> write(sample_bootstrapped2, 'setup.cfg',
-    ... """
-    ... [buildout]
-    ... parts =
-    ... """)
-
-   >>> print system(buildout
-   ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-   ...              +' bootstrap'),
-   buildout: Creating directory /sample-bootstrapped2/bin
-   buildout: Creating directory /sample-bootstrapped2/parts
-   buildout: Creating directory /sample-bootstrapped2/eggs
-   buildout: Creating directory /sample-bootstrapped2/develop-eggs
-   zc.buildout.easy_install: Generated script /sample-bootstrapped2/bin/buildout.
-
+    Creating directory '/sample-bootstrapped2/bin'.
+    Creating directory '/sample-bootstrapped2/parts'.
+    Creating directory '/sample-bootstrapped2/eggs'.
+    Creating directory '/sample-bootstrapped2/develop-eggs'.
+    Generated script '/sample-bootstrapped2/bin/buildout'.
 
 
 Newest and Offline Modes
@@ -2080,8 +2078,8 @@ or on the command line:
     ... """)
 
     >>> print system(buildout+' buildout:installed=inst.cfg'),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
     recipe recipes:debug
 
     >>> ls(sample_buildout)
@@ -2101,8 +2099,8 @@ buildout installed opttion:
 
     >>> os.remove('inst.cfg')
     >>> print system(buildout+' buildout:installed='),
-    buildout: Develop: /sample-buildout/recipes
-    buildout: Installing debug
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
     recipe recipes:debug
 
     >>> ls(sample_buildout)
@@ -2188,7 +2186,7 @@ egg to be built:
 
     >>> os.chdir(sample_bootstrapped)
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
-    buildout: Develop: /sample-bootstrapped/demo
+    Develop: '/sample-bootstrapped/demo'
 
 Now we can add the extensions option.  We were a bit tricly and ran
 the buildout once with the demo develop egg defined but without the
@@ -2209,7 +2207,7 @@ We see that our extension is loaded and executed:
 
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ext ['buildout']
-    buildout: Develop: /sample-bootstrapped/demo
+    Develop: '/sample-bootstrapped/demo'
 
 
 

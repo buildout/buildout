@@ -48,15 +48,15 @@ Now, if we run the buildout:
    >>> os.chdir(sample_buildout)
    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
    >>> print system(buildout),
-   buildout: Installing demo
-   zc.buildout.easy_install: Getting new distribution for demo<0.3
-   zc.buildout.easy_install: Got demo 0.2
-   zc.buildout.easy_install: Getting new distribution for demoneeded
-   zc.buildout.easy_install: Getting new distribution for setuptools
-   zc.buildout.easy_install: Got setuptools 0.6
-   zc.buildout.easy_install: Got demoneeded 1.1
-   zc.buildout.easy_install: Generated script /sample-buildout/bin/demo.
-   zc.buildout.easy_install: Generated interpreter /sample-buildout/bin/py-demo.
+   Installing demo.
+   Getting distribution for 'demo<0.3'.
+   Got demo 0.2.
+   Getting distribution for 'demoneeded'.
+   Getting distribution for 'setuptools'.
+   Got setuptools 0.6.
+   Got demoneeded 1.1.
+   Generated script '/sample-buildout/bin/demo'.
+   Generated interpreter '/sample-buildout/bin/py-demo'.
 
 we'll get the Python 2.3 eggs for demo and demoneeded:
 

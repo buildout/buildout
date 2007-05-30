@@ -228,9 +228,9 @@ we'll get an error:
 
     >>> print handler
     zc.buildout.easy_install DEBUG
-      Installing ['demo >0.2']
+      Installing 'demo >0.2'.
     zc.buildout.easy_install ERROR
-      The version, 0.2, is not consistent with the requirement, demo>0.2
+      The version, 0.2, is not consistent with the requirement, 'demo>0.2'.
 
     >>> handler.clear()
 
@@ -243,19 +243,19 @@ reporting that a version was picked automatically:
 
     >>> print handler
     zc.buildout.easy_install DEBUG
-      Installing ['demo']
+      Installing 'demo'.
     zc.buildout.easy_install DEBUG
-      We have the best distribution that satisfies
-    demo
-    zc.buildout.easy_install.picked DEBUG
-      demo = 0.3
+      We have the best distribution that satisfies 'demo'.
     zc.buildout.easy_install DEBUG
-      Getting required demoneeded
+      Picked: demo = 0.3
     zc.buildout.easy_install DEBUG
-      We have the best distribution that satisfies
-    demoneeded
-    zc.buildout.easy_install.picked DEBUG
-      demoneeded = 1.1
+      Getting required 'demoneeded'
+    zc.buildout.easy_install DEBUG
+        required by demo 0.3.
+    zc.buildout.easy_install DEBUG
+      We have the best distribution that satisfies 'demoneeded'.
+    zc.buildout.easy_install DEBUG
+      Picked: demoneeded = 1.1
 
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
