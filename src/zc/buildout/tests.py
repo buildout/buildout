@@ -1683,7 +1683,7 @@ def install_source_dist_with_bad_py():
     ... scripts = buildout=bo
     ... ''' % globals())
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +NORMALIZE_WHITESPACE
     Installing eggs.
     Getting distribution for 'badegg'.
       File "build/bdist.linux-i686/egg/badegg/scripts/one.py", line 2
