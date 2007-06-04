@@ -10,7 +10,7 @@ Introduction to zc.buildout
 
 Jim Fulton, Zope Corporation
 
-PyCon 2007
+DZUG 2007
 
 What is zc.buildout?
 ====================
@@ -125,7 +125,7 @@ Working with eggs
 
      I often switch between develop and non-develop eggs.  I may be
      using a regular egg and realize I need to fix it.  I checkout the
-     eggs project into my buildout and tell buildout to treat it as a
+     egg's project into my buildout and tell buildout to treat it as a
      develop egg.  It creates the egg link in develop eggs and will
      load the develop egg in preference to the non-develop egg.
 
@@ -161,23 +161,6 @@ zc.buildout current status
 
 - A number of "recipes" available
 
-- Error reporting needs **a lot** of improvement
-
-  .. class:: handout
-
-     This will be a focus in the coming weeks.
-
-- Need a way to record versions used for repeatability
-
-  .. class:: handout
-
-     A benefit of using eggs is that dependencies are installed
-     automatically.  To make buildouts repeatable, we need a way to
-     capture the versions used in development, so we can include them
-     in a buildout specification that we can check in.  Of course, we
-     can do this manually today, but it needs to be automated.
-
-
 A Python Egg Primer
 ===================
 
@@ -193,7 +176,7 @@ Eggs are simple!
 
   - dependencies
 
-  - entry point
+  - entry points
 
 - May be distributed as source distributions
 
@@ -203,7 +186,6 @@ Eggs are simple!
      distributions as easily as installing eggs.  I've found that
      source distributions are more convenient to distribute in a lot
      of ways.
-
 
 - Automatic discovery through PyPI
 
@@ -346,7 +328,7 @@ Buildout overview
 
   .. class:: handout
 
-     If a part is removed from a specification, or is uninstalled.
+     If a part is removed from a specification, it is uninstalled.
 
      If a part's recipe or configuration changes, it is uninstalled
      and reinstalled.
@@ -483,9 +465,9 @@ zope.event buildout.cfg
 
      eggs = zope.event
 
-   The zc.recipe.testrunnner recipe has an eggs option for specifying which eggs should
-   be tested.  The generated test script will load these eggs along
-   with their dependencies.
+   The zc.recipe.testrunnner recipe has an eggs option for specifying
+   which eggs should be tested.  The generated test script will load
+   these eggs along with their dependencies.
 
    For more information on the ``zc.recipe.testrunner`` recipe, see
    http://www.python.org/pypi/zc.recipe.testrunner.
@@ -521,7 +503,7 @@ Buildout steps
 
   ::
 
-    bin/buildout setup . egg_info -r sdist register upload
+    bin/buildout setup . egg_info -rbdev sdist register upload
 
   .. class:: handout
 
@@ -547,7 +529,10 @@ Buildout steps
      The egg_info command allows control of egg meta-data.  The -r
      option to the egg_info command causes the distribution to have a
      version number that includes the subversion revision number of
-     the project.  This is useful when making development releases.
+     the project.  The -b option specified a revision tag. Here we
+     specified a revision tag of "dev", which marks the release as a
+     devlopment release. These are useful when making development
+     releases.
 
 Exercise 1
 ===========
@@ -736,27 +721,7 @@ Polished ``setup.py`` (1/3)
   def read(*rnames):
       return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-  name='zope.event'
-  setup(
-      name=name,
-      version='3.3.0',
-      url='http://www.python.org/pypi/'+name,
-      license='ZPL 2.1',
-      description='Zope Event Publication',
-      author='Zope Corporation and Contributors',
-      author_email='zope3-dev@zope.org',
-
-
-.. class:: handout
-
-In the polished version we flesh out the meta data a bit more.
-
-Polished ``setup.py`` (2/3)
-===========================
-
-  .. code-block:: Python
-
-      long_description=(
+  long_description=(
           read('README.txt')
           + '\n' +
           'Detailed Documentation\n'
@@ -766,26 +731,41 @@ Polished ``setup.py`` (2/3)
           + '\n' +
           'Download\n'
           '**********************\n'
-          ),
+          )
+
+  open('documentation.txt', 'w').write(long_description)
 
 .. class:: handout
 
-   When I create distributions that I consider ready for broader use
-   and upload to PyPI, I like to include the full documentation in the
-   long description so PyPI serves it for me.
+In the polished version we flesh out the meta data a bit more.
 
-Polished ``setup.py`` (3/3)
+When I create distributions that I consider ready for broader use and
+upload to PyPI, I like to include the full documentation in the long
+description so PyPI serves it for me.
+
+Polished ``setup.py`` (2/3)
 ===========================
 
-  .. code-block:: Python
+.. code-block:: Python
 
-        packages=find_packages('src'),
-        package_dir = {'': 'src'},
-        namespace_packages=['zope',],
-        include_package_data = True,
-        install_requires=['setuptools'],
-        zip_safe = False,
-        )
+  name='zope.event'
+  setup(
+      name=name,
+      version='3.3.0',
+      url='http://www.python.org/pypi/'+name,
+      license='ZPL 2.1',
+      description='Zope Event Publication',
+      author='Zope Corporation and Contributors',
+      author_email='zope3-dev@zope.org',
+      long_description=long_description,
+
+      packages=find_packages('src'),
+      package_dir = {'': 'src'},
+      namespace_packages=['zope',],
+      include_package_data = True,
+      install_requires=['setuptools'],
+      zip_safe = False,
+      )
 
 Extras
 ======
@@ -823,8 +803,7 @@ Extras
    depenencies.  A package may provide other optional features that
    cause other dependencies.  For example, the zcml module in
    zope.component adds lots of depenencies that we don't want to
-   impose on people that don't use it. 
-
+   impose on people that don't use it.
 
 ``zc.recipe.egg``
 =================
@@ -971,6 +950,7 @@ Custom egg building
   find-links = http://www.python.org/other/spread/
   include-dirs = ${spreadtoolkit:location}/include
   library-dirs = ${spreadtoolkit:location}/lib
+  rpath = ${spreadtoolkit:location}/lib
 
 .. class:: handout
 
@@ -1478,9 +1458,15 @@ RPM experiments
 
 Initial work creating RPMs for deployment in our hosting environment:
 
+- Separation of software and configuration
+
 - Buildout used to create rpm containing software 
 
 - Later, the installed buildout is used to set up specific processes
+
+  - Run as root in offline mode
+
+  - Uses network configuration server
 
 .. class:: handout
 
@@ -1640,7 +1626,35 @@ ZRS spec file (3/3)
 
    We specify the files to be installed. This is just the buildout
    directory and a configuration script.
-   
+
+Repeatability
+=============
+
+We want to be able to check certtain configuration into svn that can
+be checked out and reproduced.
+
+- We let buildout tell is what versions it picked for distributions
+
+  - Run with -v
+  
+  - Look for outout lines of form:
+  
+    ::
+
+      Picked: foo = 1.2
+
+- Include a versions section:
+
+  ::
+
+    [buildout]
+    ...
+    versions = myversions
+
+    [myversions]
+    foo = 1.2
+    ...
+ 
 Deployment issues
 =================
 
