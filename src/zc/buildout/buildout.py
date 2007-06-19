@@ -706,7 +706,14 @@ class Buildout(UserDict.DictMixin):
             zc.buildout.easy_install.install(
                 specs, dest, path=path,
                 working_set=pkg_resources.working_set,
+                links = self['buildout'].get('find-links', '').split(),
+                index = self['buildout'].get('index'),
                 newest=self.newest)
+
+            # Clear cache because extensions might now let us read pages we
+            # couldn't read before.
+            zc.buildout.easy_install.clear_index_cache()
+
             for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
                 ep.load()(self)
 
