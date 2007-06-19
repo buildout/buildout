@@ -584,17 +584,22 @@ bootstrap_py = os.path.join(
              )
           ),
        'bootstrap', 'bootstrap.py')
+
 if os.path.exists(bootstrap_py):
     def test_bootstrap_py():
         """Make sure the bootstrap script actually works
 
     >>> sample_buildout = tmpdir('sample')
     >>> os.chdir(sample_buildout)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print system(sys.executable+' '+'bootstrap.py'), # doctest: +ELLIPSIS
     Downloading ...
-    Warning: creating ...buildout.cfg
-    ...Generated script /sample/bin/buildout.
+    Generated script '/sample/bin/buildout'.
 
     >>> ls(sample_buildout)
     d  bin
@@ -1375,23 +1380,6 @@ def internal_errors():
     global name 'os' is not defined
     """
 
-def download_errors():
-    """
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts = 
-    ... find-links = http://127.0.0.1/no-shuch-thing
-    ... ''')
-
-    >>> print system(buildout), # doctest: +ELLIPSIS
-    While:
-      Installing.
-      Checking for upgrades.
-      Getting distribution for 'setuptools'.
-    Error: Download error...
-    """
-
 def whine_about_unused_options():
     '''
 
@@ -2029,6 +2017,61 @@ def dealing_with_extremely_insane_dependencies():
     Error: Couldn't find a distribution for 'pack5'.
     """
 
+def read_find_links_to_load_extensions():
+    """
+We'll create a wacky buildout extension that is just another name for http:
+
+    >>> src = tmpdir('src')
+    >>> write(src, 'wacky_handler.py',
+    ... '''
+    ... import urllib2
+    ... class Wacky(urllib2.HTTPHandler):
+    ...     wacky_open = urllib2.HTTPHandler.http_open
+    ... def install(buildout=None):
+    ...     urllib2.install_opener(urllib2.build_opener(Wacky))
+    ... ''')
+    >>> write(src, 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='wackyextension', version='1',
+    ...       py_modules=['wacky_handler'],
+    ...       entry_points = {'zc.buildout.extension':
+    ...             ['default = wacky_handler:install']
+    ...             },
+    ...       )
+    ... ''')
+    >>> print system(buildout+' setup '+src+' bdist_egg'),
+    ... # doctest: +ELLIPSIS
+    Running setup ...
+    creating 'dist/wackyextension-1-...
+
+Now we'll create a buildout that uses this extension to load other packages:
+
+    >>> wacky_server = link_server.replace('http', 'wacky')
+    >>> dist = 'file://'+join(src, 'dist')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = demo
+    ... extensions = wackyextension
+    ... find-links = %(wacky_server)s/demoneeded-1.0.zip
+    ...              %(dist)s
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+When we run the buildout. it will load the extension from the dist
+directory and then use the wacky extension to load the demo package
+
+    >>> print system(buildout),
+    Getting distribution for 'wackyextension'.
+    Got wackyextension 1.
+    Installing demo.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.0.
+    
+    """
 
 ######################################################################
     
