@@ -8,8 +8,27 @@ priorities include:
 
 - Adding support for making distributions from buildouts
 
+I recently broke buildout on Windows pretty badly.  My apologies!  I
+plan to get builout working on Windows again in 1.0.0b27. (Actually,
+I'm hoping to end this prolonged "beta" cycle and produce a 1.0.0
+final soon.) 
+
 Change History
 **************
+
+1.0.0b26 (2007-06-19)
+=====================
+
+Feature Changes
+---------------
+
+- Thanks to recent fixes in setuptools, I was able to change buildout
+  to use find-link and index information when searching extensions.
+
+  Sadly, this work, especially the timing, was motivated my the need
+  to use alternate indexes due to performance problems in the cheese
+  shop (http://www.python.org/pypi/).  I really home we can address
+  these performance problems soon.
 
 1.0.0b25 (2007-05-31)
 =====================
