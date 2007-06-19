@@ -2150,7 +2150,7 @@ more distribution requirements, on separate lines.  The distributions
 named will be loaded and any zc.buildout.extensions entry points found
 will be called with the buildout as an argument.
 
-Let's create a sample extension in out sample buildout created in the
+Let's create a sample extension in our sample buildout created in the
 previous section:
 
     >>> mkdir(sample_bootstrapped, 'demo')
