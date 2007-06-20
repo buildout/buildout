@@ -526,9 +526,9 @@ We'll start by creating a faux 'python' that executable that prints a
     >>> import zc.buildout.easy_install
     >>> ws = zc.buildout.easy_install.working_set(
     ...    ['demo'], sys.executable, ['develop-eggs'])
-    >>> zc.buildout.easy_install.scripts(
-    ...    ['demo'], ws, sys.executable, 'bin')
-    ['bin/demo']
+    >>> bool(zc.buildout.easy_install.scripts(
+    ...      ['demo'], ws, sys.executable, 'bin'))
+    True
 
     >>> print system(join('bin', 'demo')),
     Python 2.5
@@ -1789,7 +1789,7 @@ if sys.version_info > (2, 4):
         ... parts = x
         ... ''')
 
-        >>> call(buildout)
+        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
         While:
           Installing.
           Getting section x.
@@ -1819,7 +1819,7 @@ if sys.version_info > (2, 4):
         ... recipe = zc.buildout.testexit
         ... ''')
 
-        >>> call(buildout)
+        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
         Develop: '/sample-buildout/.'
         While:
           Installing.
@@ -2280,7 +2280,7 @@ def test_suite():
                 'Picked: \\1 = V.V'),
                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
                 'We have a develop egg: zc.buildout X.X.'),
-               
+               (re.compile(r'\\[\\]?'), '/'),
                ])
             ),
         doctest.DocFileSuite(
@@ -2346,7 +2346,7 @@ def test_suite():
                 r'We have a develop egg: \1 V'),
                (re.compile('Picked: setuptools = \S+'),
                 'Picked: setuptools = V'),
-               
+               (re.compile(r'\\[\\]?'), '/'),               
                ]),
             ),
         ))
