@@ -41,4 +41,6 @@ pkg_resources.working_set.add_entry('src')
 import zc.buildout.easy_install
 zc.buildout.easy_install.scripts(
     ['zc.buildout'], pkg_resources.working_set , sys.executable, 'bin')
-sys.exit(os.spawnl(os.P_WAIT, 'bin/buildout', 'bin/buildout'))
+
+bin_buildout = os.path.join('bin', 'buildout')
+sys.exit(os.spawnl(os.P_WAIT, bin_buildout, bin_buildout))
