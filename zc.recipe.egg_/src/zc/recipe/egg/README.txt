@@ -403,8 +403,8 @@ to be included in generated scripts:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/tmp/tmpmypJLx/_TEST_/sample-buildout/eggs/demo-0.3-py2.4.egg',
-      '/tmp/tmpmypJLx/_TEST_/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/spam/eggs',
       ]
