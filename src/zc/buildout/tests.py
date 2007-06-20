@@ -1674,15 +1674,15 @@ def install_source_dist_with_bad_py():
     >>> print system(buildout), # doctest: +NORMALIZE_WHITESPACE
     Installing eggs.
     Getting distribution for 'badegg'.
-      File "build/bdist.linux-i686/egg/badegg/scripts/one.py", line 2
-        return 1
-    SyntaxError: 'return' outside function
-      File "/sample-buildout/eggs/badegg-1-py2.4.egg/badegg/scripts/one.py", line 2
-        return 1
-    SyntaxError: 'return' outside function
     Got badegg 1.
     Installing bo.
     Generated script '/sample-buildout/bin/bo'.
+      File "build/bdist.linux-i686/egg/badegg/scripts/one.py", line 2
+        return 1
+    SyntaxError: 'return' outside function
+      File "/sample-buildout/eggs/tmppsHubz/badegg-1-py2.4.egg/badegg/scripts/one.py", line 2
+        return 1
+    SyntaxError: 'return' outside function
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
