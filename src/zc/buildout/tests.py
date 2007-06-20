@@ -1285,11 +1285,11 @@ uninstall
     ... ''')
 
     >>> print system(buildout),
-    Develop: '/tmp/tmpbHOHnU/_TEST_/sample-buildout/recipe'
+    Develop: '/sample-buildout/recipe'
     Installing foo.
 
     >>> print system(buildout),
-    Develop: '/tmp/tmpbHOHnU/_TEST_/sample-buildout/recipe'
+    Develop: '/sample-buildout/recipe'
     Updating foo.
 
     >>> cat('.installed.cfg') # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
@@ -1419,7 +1419,7 @@ def whine_about_unused_options():
     ... """)
 
     >>> print system(buildout),
-    Develop: '/tmp/tmpsueWpG/_TEST_/sample-buildout/.'
+    Develop: '/sample-buildout/.'
     Unused options for buildout: 'a'.
     Installing foo.
     Unused options for foo: 'z'.
@@ -1876,7 +1876,7 @@ def bug_59270_recipes_always_start_in_buildout_dir():
     >>> os.chdir('bad_start')
     >>> print system(join(sample_buildout, 'bin', 'buildout')
     ...              +' -c '+join(sample_buildout, 'buildout.cfg')),
-    Develop: '/tmp/tmpV9ptXUbuildoutSetUp/_TEST_/sample-buildout/.'
+    Develop: '/sample-buildout/.'
     /sample-buildout
     /sample-buildout
     Installing b1.
