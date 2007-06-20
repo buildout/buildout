@@ -28,11 +28,13 @@ import setuptools.package_index
 import setuptools.archive_util
 import zc.buildout
 
+def realpath(path):
+    return path
+
 try:
     realpath = os.path.realpath
 except AttributeError:
-    def realpath(path):
-        return path
+    pass
 
 default_index_url = os.environ.get('buildout-testing-index-url')
 
@@ -841,6 +843,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     script = dest
     if sys.platform == 'win32':
         dest += '-script.py'
+
     contents = script_template % dict(
         python = executable,
         path = path,
@@ -853,10 +856,11 @@ def _script(module_name, attrs, path, dest, executable, arguments,
 
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
-        open(dest+'.exe', 'wb').write(
+        exe = script+'.exe'
+        open(exe, 'wb').write(
             pkg_resources.resource_string('setuptools', 'cli.exe')
             )
-        generated.append(dest+'.exe')
+        generated.append(exe)
         
     if changed:
         open(dest, 'w').write(contents)
@@ -899,10 +903,11 @@ def _pyscript(path, dest, executable):
 
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
-        open(dest+'.exe', 'wb').write(
+        exe = script + '.exe'
+        open(exe, 'wb').write(
             pkg_resources.resource_string('setuptools', 'cli.exe')
             )
-        generated.append(dest+'.exe')
+        generated.append(exe)
 
     if changed:
         open(dest, 'w').write(contents)
