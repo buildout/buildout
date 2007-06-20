@@ -72,27 +72,26 @@ supply some input:
     ... p self.options.keys()
     ... q
     ... """),
-    Develop: '/sample-buildout/recipes'
+    Develop: '/tmp/tmp6YPc7CbuildoutSetUp/_TEST_/sample-buildout/recipes'
     Installing data-dir.
-    While:
+    > /home/jim/p/zc/buildout/trunk/src/zc/buildout/buildout.py(925)__getitem__()
+    -> raise MissingOption("Missing option: %s:%s" % (self.name, key))
+    (Pdb) > /tmp/tmp6YPc7CbuildoutSetUp/_TEST_/sample-buildout/recipes/mkdir.py(14)install()
+    -> directory = self.options['directory']
+    (Pdb) ['path', 'recipe']
+    (Pdb) While:
       Installing data-dir.
     Traceback (most recent call last):
-      File "/zc/buildout/buildout.py", line 1294, in main
+      File "/zc/buildout/buildout.py", line 1352, in main
         getattr(buildout, command)(args)
-      File "/zc/buildout/buildout.py", line 371, in install
+      File "/zc/buildout/buildout.py", line 383, in install
         installed_files = self[part]._call(recipe.install)
-      File "/zc/buildout/buildout.py", line 929, in _call
+      File "/zc/buildout/buildout.py", line 961, in _call
         return f()
       File "/sample-buildout/recipes/mkdir.py", line 14, in install
         directory = self.options['directory']
-      File "/zc/buildout/buildout.py", line 895, in __getitem__
+      File "/zc/buildout/buildout.py", line 925, in __getitem__
         raise MissingOption("Missing option: %s:%s" % (self.name, key))
     MissingOption: Missing option: data-dir:directory
     <BLANKLINE>
     Starting pdb:
-    > /Users/jim/p/buildout/trunk/src/zc/buildout/buildout.py(895)__getitem__()
-    -> raise MissingOption("Missing option: %s:%s" % (self.name, key))
-    (Pdb) > /sample-buildout/recipes/mkdir.py(14)install()
-    -> directory = self.options['directory']
-    (Pdb) ['path', 'recipe']
-    (Pdb) 

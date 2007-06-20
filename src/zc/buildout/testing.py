@@ -73,12 +73,16 @@ def write(dir, *args):
     fsync(f.fileno())
     f.close()
 
+
 def system(command, input=''):
-    i, o = os.popen4(command)
+    i, o, e = os.popen3(command)
     if input:
         i.write(input)
     i.close()
-    return o.read()
+    result = o.read()+e.read()
+    o.close()
+    e.close()
+    return result
 
 def get(url):
     return urllib2.urlopen(url).read()
