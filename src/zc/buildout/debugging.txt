@@ -72,11 +72,11 @@ supply some input:
     ... p self.options.keys()
     ... q
     ... """),
-    Develop: '/tmp/tmp6YPc7CbuildoutSetUp/_TEST_/sample-buildout/recipes'
+    Develop: '/sample-buildout/recipes'
     Installing data-dir.
-    > /home/jim/p/zc/buildout/trunk/src/zc/buildout/buildout.py(925)__getitem__()
+    > /zc/buildout/buildout.py(925)__getitem__()
     -> raise MissingOption("Missing option: %s:%s" % (self.name, key))
-    (Pdb) > /tmp/tmp6YPc7CbuildoutSetUp/_TEST_/sample-buildout/recipes/mkdir.py(14)install()
+    (Pdb) > /sample-buildout/recipes/mkdir.py(14)install()
     -> directory = self.options['directory']
     (Pdb) ['path', 'recipe']
     (Pdb) While:
