@@ -16,6 +16,15 @@ final soon.)
 Change History
 **************
 
+1.0.0b27 (2007-06-20)
+=====================
+
+Bugs Fixed
+----------
+
+- Scripts were generated incorrectly on Windows.  This included the
+  buildout script itself, making buildout completely unusable.
+
 1.0.0b26 (2007-06-19)
 =====================
 
