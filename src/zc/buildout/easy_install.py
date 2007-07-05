@@ -180,46 +180,19 @@ class Installer:
             # Environment.__getitem__.
             return dists[0], None
 
-        # Find an upper limit in the specs, if there is one:
-        specs = [(pkg_resources.parse_version(v), op) for (op, v) in req.specs]
-        specs.sort()
-        maxv = None
-        greater = False
-        lastv = None
-        for v, op in specs:
-            if op == '==' and not greater:
-                maxv = v
-            elif op in ('>', '>=', '!='):
-                maxv = None
-                greater == True
-            elif op == '<':
-                maxv = None
-                greater == False
-            elif op == '<=':
-                maxv = v
-                greater == False
-
-            if v == lastv:
-                # Repeated versions values are undefined, so
-                # all bets are off
-                maxv = None
-                greater = True
-            else:
-                lastv = v
+        # Special common case, we have a specification for a single version:
+        specs = req.specs
+        if len(specs) == 1 and specs[0][0] == '==':
+            logger.debug('We have the distribution that satisfies %r.',
+                         str(req))
+            return dists[0], None
 
         best_we_have = dists[0] # Because dists are sorted from best to worst
-
-        # Check if we have the upper limit
-        if maxv is not None and best_we_have.version == maxv:
-            logger.debug('We have the best distribution that satisfies %r.',
-                         str(req))
-            return best_we_have, None
 
         # We have some installed distros.  There might, theoretically, be
         # newer ones.  Let's find out which ones are available and see if
         # any are newer.  We only do this if we're willing to install
         # something, which is only true if dest is not None:
-
         
         if self._dest is not None:
             best_available = self._obtain(req, source)

@@ -16,6 +16,15 @@ final soon.)
 Change History
 **************
 
+1.0.0b28 (2007-07-05)
+=====================
+
+Bugs Fixed
+----------
+
+- When requiring a specific version, buildout looked for new versions
+  even if that single version was already installed.
+
 1.0.0b27 (2007-06-20)
 =====================
 

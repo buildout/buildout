@@ -151,7 +151,7 @@ If we run the buildout with the versions section:
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
     Installing 'spam'.
-    We have the best distribution that satisfies 'spam==1'.
+    We have the distribution that satisfies 'spam==1'.
     Uninstalling foo.
     Installing foo.
     recipe v1
