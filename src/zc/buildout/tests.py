@@ -325,7 +325,7 @@ If we use the verbose switch, we can see where requirements are comning from:
     We have a develop egg: samplez 1
     Getting required 'demoneeded==1.1'
       required by samplez 1.
-    We have the best distribution that satisfies 'demoneeded==1.1'.
+    We have the distribution that satisfies 'demoneeded==1.1'.
     Getting required 'sampleb'
       required by samplea 1.
     We have a develop egg: sampleb 1
