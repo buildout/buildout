@@ -25,12 +25,15 @@ for d in 'eggs', 'develop-eggs', 'bin':
     if not os.path.exists(d):
         os.mkdir(d)
 
-ez = {}
-exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
-                     ).read() in ez
-ez['use_setuptools'](to_dir='eggs', download_delay=0)
+try:
+    import pkg_resources
+except ImportError:
+    ez = {}
+    exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
+                         ).read() in ez
+    ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
-import pkg_resources
+    import pkg_resources
 
 os.spawnle(os.P_WAIT, sys.executable, sys.executable, 'setup.py',
            '-q', 'develop', '-m', '-x', '-d', 'develop-eggs',
