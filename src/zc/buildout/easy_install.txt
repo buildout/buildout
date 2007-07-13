@@ -54,7 +54,7 @@ index
    will make our examples run a little bit faster.
 
 executable
-   A path to a Python executable.  Distributions will ne installed
+   A path to a Python executable.  Distributions will be installed
    using this executable and will be for the matching Python version.
 
 path
