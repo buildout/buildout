@@ -35,7 +35,7 @@ open('doc.txt', 'w').write(long_description)
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b28",
+    version = "1.0.0b29",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
