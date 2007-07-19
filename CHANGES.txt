@@ -16,6 +16,14 @@ final soon.)
 Change History
 **************
 
+1.0.0b29 (unreleased)
+=====================
+
+Bugs Fixed
+----------
+
+- 126441: Look for default.cfg in the right place on Windows.
+
 1.0.0b28 (2007-07-05)
 =====================
 
