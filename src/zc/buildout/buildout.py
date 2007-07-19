@@ -93,8 +93,8 @@ class Buildout(UserDict.DictMixin):
             base = None
 
         # load user defaults, which override defaults
-        if user_defaults and 'HOME' in os.environ:
-            user_config = os.path.join(os.environ['HOME'],
+        if user_defaults:
+            user_config = os.path.join(os.path.expanduser('~'),
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
