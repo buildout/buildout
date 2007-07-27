@@ -42,7 +42,7 @@ setup(
     long_description=long_description,
     license = "ZPL 2.1",
     keywords = "development build",
-    url='http://svn.zope.org/zc.buildout',
+    url='http://www.python.org/pypi/zc.buildout',
 
     data_files = [('.', ['README.txt'])],
     packages = ['zc', 'zc.buildout'],
