@@ -93,7 +93,7 @@ I often work on packages that are managed separately.  They don't have
 scripts to be installed, but I want to be able to run their tests
 using the `zope.testing test runner
 <http://www.python.org/pypi/zope.testing>`_.  In this kind of
-application, the program to be instaleld is the test runner.  A good
+application, the program to be installed is the test runner.  A good
 example of this is `zc.ngi <http://svn.zope.org/zc.ngi/trunk/>`_.
 
 Here I have a subversion project for the zc.ngi package.  The software
