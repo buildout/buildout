@@ -1122,7 +1122,7 @@ normally be defined on the command line:
 User defaults
 -------------
 
-If the file $HOME/.buildout/defaults.cfg, exists, it is read before
+If the file $HOME/.buildout/default.cfg, exists, it is read before
 reading the configuration file.  ($HOME is the value of the HOME
 environment variable. The '/' is replaced by the operating system file
 delimiter.)
