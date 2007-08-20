@@ -11,7 +11,7 @@ priorities include:
 Change History
 **************
 
-1.0.0b29 (unreleased)
+1.0.0b29 (2007-08-20)
 =====================
 
 Feature Changes
