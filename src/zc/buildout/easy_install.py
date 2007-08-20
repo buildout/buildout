@@ -116,6 +116,7 @@ class Installer:
     _versions = {}
     _download_cache = None
     _install_from_cache = False
+    _prefer_final = True
 
     def __init__(self,
                  dest=None,
@@ -166,6 +167,7 @@ class Installer:
                          req.project_name, str(req))
             return None, self._obtain(req, source)
 
+
         # Note that dists are sorted from best to worst, as promised by
         # env.__getitem__
 
@@ -174,17 +176,25 @@ class Installer:
                 logger.debug('We have a develop egg: %s', dist)
                 return dist, None
 
-        if not self._newest:
-            # We don't need the newest, so we'll use the newest one we
-            # find, which is the first returned by
-            # Environment.__getitem__.
-            return dists[0], None
-
         # Special common case, we have a specification for a single version:
         specs = req.specs
         if len(specs) == 1 and specs[0][0] == '==':
             logger.debug('We have the distribution that satisfies %r.',
                          str(req))
+            return dists[0], None
+
+        if self._prefer_final:
+            fdists = [dist for dist in dists
+                      if _final_version(dist.parsed_version)
+                      ]
+            if fdists:
+                # There are final dists, so only use those
+                dists = fdists
+
+        if not self._newest:
+            # We don't need the newest, so we'll use the newest one we
+            # find, which is the first returned by
+            # Environment.__getitem__.
             return dists[0], None
 
         best_we_have = dists[0] # Because dists are sorted from best to worst
@@ -207,16 +217,37 @@ class Installer:
                 'Using our best, %s.',
                 str(req), best_available)
             return best_we_have, None
-        else:
-            # Let's find out if we already have the best available:
-            if best_we_have.parsed_version >= best_available.parsed_version:
-                # Yup. Use it.
-                logger.debug(
-                    'We have the best distribution that satisfies %r.',
-                    str(req))
-                return best_we_have, None
 
-        return None, best_available
+        if self._prefer_final:
+            if _final_version(best_available.parsed_version):
+                if _final_version(best_we_have.parsed_version):
+                    if (best_we_have.parsed_version
+                        <
+                        best_available.parsed_version
+                        ):
+                        return None, best_available
+                else:
+                    return None, best_available
+            else:
+                if (not _final_version(best_we_have.parsed_version)
+                    and
+                    (best_we_have.parsed_version
+                     <
+                     best_available.parsed_version
+                     )
+                    ):
+                    return None, best_available
+        else:
+            if (best_we_have.parsed_version
+                <
+                best_available.parsed_version
+                ):
+                return None, best_available
+            
+        logger.debug(
+            'We have the best distribution that satisfies %r.',
+            str(req))
+        return best_we_have, None
 
     def _load_dist(self, dist):
         dists = pkg_resources.Environment(
@@ -316,17 +347,37 @@ class Installer:
             shutil.rmtree(tmp)
             
     def _obtain(self, requirement, source=None):
+
+        # initialize out index for this project:
         index = self._index
         if index.obtain(requirement) is None:
+            # Nothing is available.
             return None
-        
+
+        # Filter the available dists for the requirement and source flag
+        dists = [dist for dist in index[requirement.project_name]
+                 if ((dist in requirement)
+                     and
+                     ((not source) or
+                      (dist.precedence == pkg_resources.SOURCE_DIST)
+                      )
+                     )
+                 ]
+
+        # If we prefer final dists, filter for final and use the
+        # result if it is non empty.
+        if self._prefer_final:
+            fdists = [dist for dist in dists
+                      if _final_version(dist.parsed_version)
+                      ]
+            if fdists:
+                # There are final dists, so only use those
+                dists = fdists
+
+        # Now find the best one:
         best = []
         bestv = ()
-        for dist in index[requirement.project_name]:
-            if dist not in requirement:
-                continue
-            if source and dist.precedence != pkg_resources.SOURCE_DIST:
-                continue
+        for dist in dists:
             distv = dist.parsed_version
             if distv > bestv:
                 best = [dist]
@@ -645,6 +696,12 @@ def install_from_cache(setting=None):
     old = Installer._install_from_cache
     if setting is not None:
         Installer._install_from_cache = bool(setting)
+    return old
+
+def prefer_final(setting=None):
+    old = Installer._prefer_final
+    if setting is not None:
+        Installer._prefer_final = bool(setting)
     return old
 
 def install(specs, dest,
@@ -976,5 +1033,9 @@ def _fix_file_links(links):
                 link += '/'
         yield link
 
-
-
+_final_parts = '*final-', '*final'
+def _final_version(parsed_version):
+    for part in parsed_version:
+        if (part[:1] == '*') and (part not in _final_parts):
+            return False
+    return True

@@ -93,8 +93,10 @@ We have a link server that has a number of eggs:
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
+    <a href="demo-0.4c1-py2.4.egg">demo-0.4c1-py2.4.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
@@ -120,6 +122,8 @@ The working set contains the distributions we retrieved.
     demo 0.2
     demoneeded 1.1
 
+We got demoneeded because it was a dependency of demo.
+
 And the actual eggs were added to the eggs directory.
 
     >>> ls(dest)
@@ -127,7 +131,7 @@ And the actual eggs were added to the eggs directory.
     -  demoneeded-1.1-py2.4.egg
 
 If we remove the version restriction on demo, but specify a false
-value for newest, no new didstributions will be installed:
+value for newest, no new distributions will be installed:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
@@ -144,6 +148,36 @@ If we leave off the newst option, we'll get an update for demo:
     -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
+
+Note that we didn't get the newest versions available.  There were
+release candidated for newer versions of both packages. By default,
+final releases are prefered.  We can change this behavior using the
+prefer_final function:
+
+    >>> zc.buildout.easy_install.prefer_final(False)
+    True
+
+The old setting is returned.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
+    >>> for dist in ws:
+    ...     print dist
+    demo 0.4c1
+    demoneeded 1.2c1
+
+    >>> ls(dest)
+    -  demo-0.2-py2.4.egg
+    -  demo-0.3-py2.4.egg
+    -  demo-0.4c1-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+    -  demoneeded-1.2c1-py2.4.egg
+
+Let's put the setting back to the default.
+
+    >>> zc.buildout.easy_install.prefer_final(True)
+    False
+
 
 We can supply additional distributions.  We can also supply
 specifications for distributions that would normally be found via
@@ -162,8 +196,10 @@ dependencies.  We might do this to specify a sprcific version.
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.4.egg
+    -  demo-0.4c1-py2.4.egg
     -  demoneeded-1.0-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
+    -  demoneeded-1.2c1-py2.4.egg
     d  other-1.0-py2.4.egg
 
 We can request that eggs be unzipped even if they are zip safe.  This
@@ -685,8 +721,10 @@ Let's update our link server with a new version of extdemo:
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
+    <a href="demo-0.4c1-py2.4.egg">demo-0.4c1-py2.4.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
+    <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>
     <a href="index/">index/</a><br>

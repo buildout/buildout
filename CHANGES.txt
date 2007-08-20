@@ -1,23 +1,35 @@
 Status
 ******
 
-The buildout system is under active development. Some near term
+The buildout system is under active development. Some near-term
 priorities include:
 
 - Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
 
 - Adding support for making distributions from buildouts
 
-I recently broke buildout on Windows pretty badly.  My apologies!  I
-plan to get builout working on Windows again in 1.0.0b27. (Actually,
-I'm hoping to end this prolonged "beta" cycle and produce a 1.0.0
-final soon.) 
-
 Change History
 **************
 
 1.0.0b29 (unreleased)
 =====================
+
+Feature Changes
+---------------
+
+- Now, final distributions are prefered over non-final versions.  If
+  both final and non-final versions satisfy a requirement, then the
+  final version will be used even if it is older.  The normal way to
+  override this for specific packages is to specifically require a
+  non-final version, either specifically or via a lower bound.
+
+- There is a buildout prefer-final version that can be used with a
+  value of "false"::
+
+    prefer-final = false
+
+  To prefer newer versions, regardless of whether or not they are
+  final, buildout-wide.
 
 Bugs Fixed
 ----------
