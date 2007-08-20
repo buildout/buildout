@@ -31,6 +31,14 @@ Feature Changes
   To prefer newer versions, regardless of whether or not they are
   final, buildout-wide.
 
+- The new simple Python index, http://cheeseshop.python.org/simple, is
+  used as the default index.  This will provide better performance
+  than the human package index interface,
+  http://pypi.python.org/pypi. More importantly, it lists hidden
+  distributions, so buildouts with fixed distribution versions will be
+  able to find old distributions even if the distributions have been
+  hidden in the human PyPI interface.
+
 Bugs Fixed
 ----------
 
