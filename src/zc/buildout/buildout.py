@@ -152,7 +152,7 @@ class Buildout(UserDict.DictMixin):
         if versions:
             zc.buildout.easy_install.default_versions(dict(self[versions]))
 
-        prefer_final = options.get('prefer-final', 'true')
+        prefer_final = options.get('prefer-final', 'false')
         if prefer_final not in ('true', 'false'):
             self._error('Invalid value for prefer-final option: %s',
                         prefer_final)

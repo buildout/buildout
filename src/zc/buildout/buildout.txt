@@ -2060,16 +2060,28 @@ running the buildout when not connected to the internet.  It also
 makes buildouts run much faster. This option is typically set using
 the buildout -o option.
 
-Final releases prefered
------------------------
+Prefering Final Releases
+------------------------
 
-By default, when searching for new releases, final releases are
-prefered.  If there are final releases that satisfy distribution
-requirements, then those releases are used even if newer non-final
-releases are available.  The buildout prefer-final option can be used
-to override this behavior.  If a buildout prefer-final option is given
-with the value "false", then, when looking for distributions, the
-newest will be used regardless of whether or not they are final. 
+Currently, when searching for new releases, the newest available
+release is used.  This isn't usually ideal, as you may get development
+releaes or alpha releases not ready to be widely used.  You can
+request that final releases be prefered using the prefer final option
+in the buildout section::
+
+  [buildout]
+  ...
+  prefer-final = true
+
+When the prefer-final option is set to true, then when searching for
+new releases, final releases are prefered.  If there are final
+releases that satisfy distribution requirements, then those releases
+are used even if newer non-final releases are available.  The buildout
+prefer-final option can be used to override this behavior.
+
+In buildout version 2, final releases will be prefered by default.
+You will then need to use a false value for prefer-final to get the
+newset releases.
 
 Controlling the installation database
 -------------------------------------

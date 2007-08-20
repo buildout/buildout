@@ -1,4 +1,4 @@
-##############################################################################
+#############################################################################
 #
 # Copyright (c) 2004 Zope Corporation and Contributors.
 # All Rights Reserved.
@@ -153,6 +153,11 @@ def buildoutSetUp(test):
     test.globs['__tear_downs'] = __tear_downs = []
     test.globs['register_teardown'] = register_teardown = __tear_downs.append
 
+    prefer_final = zc.buildout.easy_install.prefer_final()
+    register_teardown(
+        lambda: zc.buildout.easy_install.prefer_final(prefer_final)
+        )
+
     here = os.getcwd()
     register_teardown(lambda: os.chdir(here))
 
@@ -202,6 +207,8 @@ def buildoutSetUp(test):
          ('buildout', 'develop-eggs-directory', 'eggs'),
          ]
         ).bootstrap([])
+
+    
     
     # Create the develop-eggs dir, which didn't get created the usual
     # way due to thr trick above:
@@ -231,6 +238,8 @@ def buildoutSetUp(test):
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         ))
+    
+    zc.buildout.easy_install.prefer_final(prefer_final)
 
 def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:

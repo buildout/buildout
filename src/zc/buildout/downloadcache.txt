@@ -60,12 +60,12 @@ server as usual:
     >>> print system(buildout),
     GET 200 /
     GET 200 /demo-0.2-py2.4.egg
-    GET 200 /demoneeded-1.1.zip
+    GET 200 /demoneeded-1.2c1.zip
     Installing eggs.
     Getting distribution for 'demo==0.2'.
     Got demo 0.2.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.2c1.
     Generated script '/sample-buildout/bin/demo'.
 
 We'll also get the download cache populated.  The buildout doesn't put
@@ -78,7 +78,7 @@ dist:
 
     >>> ls(cache, 'dist')
     -  demo-0.2-py2.4.egg
-    -  demoneeded-1.1.zip
+    -  demoneeded-1.2c1.zip
 
 If we remove the installed eggs from eggs directory and re-run the buildout:
 
@@ -93,7 +93,7 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
     Getting distribution for 'demo==0.2'.
     Got demo 0.2.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.2c1.
 
 We see that the distributions aren't downloaded, because they're
 downloaded from the cache.
@@ -136,5 +136,5 @@ install-from-cache option set to true:
     Getting distribution for 'demo'.
     Got demo 0.2.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.2c1.
     Generated script '/sample-buildout/bin/demo'.
