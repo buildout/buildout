@@ -156,13 +156,19 @@ def buildoutSetUp(test):
     here = os.getcwd()
     register_teardown(lambda: os.chdir(here))
 
-    old_home = os.environ.get('HOME')
-    if old_home is not None:
-        del os.environ['HOME'] # pop doesn't truly remove it :(
-        register_teardown(lambda: os.environ.__setitem__('HOME', old_home))
 
     base = tempfile.mkdtemp('buildoutSetUp')
     register_teardown(lambda base=base: shutil.rmtree(base))
+
+    old_home = os.environ.get('HOME')
+    os.environ['HOME'] = os.path.join(base, 'bbbBadHome')
+    def restore_home():
+        if old_home is None:
+            del os.environ['HOME']
+        else:
+            os.environ['HOME'] = old_home
+    register_teardown(restore_home)
+
     base = os.path.join(base, '_TEST_')
     os.mkdir(base)
 

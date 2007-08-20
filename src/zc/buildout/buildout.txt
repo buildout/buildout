@@ -1127,6 +1127,7 @@ reading the configuration file.  ($HOME is the value of the HOME
 environment variable. The '/' is replaced by the operating system file
 delimiter.)
 
+    >>> old_home = os.environ['HOME']
     >>> home = tmpdir('home')
     >>> mkdir(home, '.buildout')
     >>> write(home, '.buildout', 'default.cfg',
@@ -1167,7 +1168,7 @@ user defaults:
     op5 b3base 5
     recipe recipes:debug
 
-    >>> del os.environ['HOME']
+    >>> os.environ['HOME'] = old_home
 
 Log level
 ---------
