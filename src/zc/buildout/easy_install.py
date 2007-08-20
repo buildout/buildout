@@ -36,7 +36,10 @@ try:
 except AttributeError:
     pass
 
-default_index_url = os.environ.get('buildout-testing-index-url')
+default_index_url = os.environ.get(
+    'buildout-testing-index-url',
+    'http://cheeseshop.python.org/simple',
+    )
 
 logger = logging.getLogger('zc.buildout.easy_install')
 
@@ -82,14 +85,9 @@ def _get_index(executable, index_url, find_links):
     if index_url is None:
         index_url = default_index_url
 
-    if index_url is None:
-        index = setuptools.package_index.PackageIndex(
-            python=_get_version(executable)
-            )
-    else:
-        index = setuptools.package_index.PackageIndex(
-            index_url, python=_get_version(executable)
-            )
+    index = setuptools.package_index.PackageIndex(
+        index_url, python=_get_version(executable)
+        )
         
     if find_links:
         index.add_find_links(find_links)
