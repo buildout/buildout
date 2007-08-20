@@ -558,23 +558,6 @@ def create_sections_on_command_line():
     
     """
 
-# Why?
-## def error_for_undefined_install_parts():
-##     """
-## Any parts we pass to install on the command line must be
-## listed in the configuration.
-
-##     >>> print system(join('bin', 'buildout') + ' install foo'),
-##     Invalid install parts: foo.
-##     Install parts must be listed in the configuration.
-
-##     >>> print system(join('bin', 'buildout') + ' install foo bar'),
-##     Invalid install parts: foo bar.
-##     Install parts must be listed in the configuration.
-    
-##     """
-
-
 bootstrap_py = os.path.join(
        os.path.dirname(
           os.path.dirname(
@@ -2073,6 +2056,241 @@ directory and then use the wacky extension to load the demo package
     
     """
 
+
+def create_egg(name, version, dest):
+    d = tempfile.mkdtemp()
+    if dest=='available':
+        extras = dict(x=['x'])
+    else:
+        extras = {}
+        
+    try:
+        open(os.path.join(d, 'setup.py'), 'w').write(
+            'from setuptools import setup\n'
+            'setup(name=%r, version=%r, extras_require=%r, zip_safe=True,\n'
+            '      py_modules=["setup"]\n)'
+            % (name, str(version), extras)
+            )
+        zc.buildout.testing.bdist_egg(d, sys.executable, os.path.abspath(dest))
+    finally:
+        shutil.rmtree(d)
+
+def prefer_final_permutation(existing, available):
+    for d in ('existing', 'available'):
+        if os.path.exists(d):
+            shutil.rmtree(d)
+        os.mkdir(d)
+    for version in existing:
+        create_egg('spam', version, 'existing')
+    for version in available:
+        create_egg('spam', version, 'available')
+
+    zc.buildout.easy_install.clear_index_cache()
+    [dist] = list(
+        zc.buildout.easy_install.install(['spam'], 'existing', ['available'],
+                                         always_unzip=True)
+        )
+
+    if dist.extras:
+        print 'downloaded', dist.version
+    else:
+        print 'had', dist.version
+    sys.path_importer_cache.clear()
+
+def prefer_final():
+    """
+This test tests several permutations:
+
+Using different version numbers to work around zip impporter cache problems. :(
+
+- With prefer final:
+
+    - no existing and newer dev available
+    >>> prefer_final_permutation((), [1, '2a1'])
+    downloaded 1
+
+    - no existing and only dev available
+    >>> prefer_final_permutation((), ['3a1'])
+    downloaded 3a1
+
+    - final existing and only dev acailable
+    >>> prefer_final_permutation([4], ['5a1'])
+    had 4
+
+    - final existing and newer final available
+    >>> prefer_final_permutation([6], [7])
+    downloaded 7
+
+    - final existing and same final available
+    >>> prefer_final_permutation([8], [8])
+    had 8
+
+    - final existing and older final available
+    >>> prefer_final_permutation([10], [9])
+    had 10
+
+    - only dev existing and final available
+    >>> prefer_final_permutation(['12a1'], [11])
+    downloaded 11
+
+    - only dev existing and no final available newer dev available
+    >>> prefer_final_permutation(['13a1'], ['13a2'])
+    downloaded 13a2
+
+    - only dev existing and no final available older dev available
+    >>> prefer_final_permutation(['15a1'], ['14a1'])
+    had 15a1
+
+    - only dev existing and no final available same dev available
+    >>> prefer_final_permutation(['16a1'], ['16a1'])
+    had 16a1
+
+- Without prefer final:
+
+    >>> _ = zc.buildout.easy_install.prefer_final(False)
+
+    - no existing and newer dev available
+    >>> prefer_final_permutation((), [18, '19a1'])
+    downloaded 19a1
+
+    - no existing and only dev available
+    >>> prefer_final_permutation((), ['20a1'])
+    downloaded 20a1
+
+    - final existing and only dev acailable
+    >>> prefer_final_permutation([21], ['22a1'])
+    downloaded 22a1
+
+    - final existing and newer final available
+    >>> prefer_final_permutation([23], [24])
+    downloaded 24
+
+    - final existing and same final available
+    >>> prefer_final_permutation([25], [25])
+    had 25
+
+    - final existing and older final available
+    >>> prefer_final_permutation([27], [26])
+    had 27
+
+    - only dev existing and final available
+    >>> prefer_final_permutation(['29a1'], [28])
+    had 29a1
+
+    - only dev existing and no final available newer dev available
+    >>> prefer_final_permutation(['30a1'], ['30a2'])
+    downloaded 30a2
+
+    - only dev existing and no final available older dev available
+    >>> prefer_final_permutation(['32a1'], ['31a1'])
+    had 32a1
+
+    - only dev existing and no final available same dev available
+    >>> prefer_final_permutation(['33a1'], ['33a1'])
+    had 33a1
+
+    >>> _ = zc.buildout.easy_install.prefer_final(True)
+    
+    """
+
+def buildout_prefer_final_option():
+    """
+The prefer-final buildout option can be used for override the default
+preference for newer distributions. 
+
+The default is prefer-final = true:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing 'zc.buildout', 'setuptools'.
+    ...
+    Picked: demo = 0.3
+    ...
+    Picked: demoneeded = 1.1
+
+
+Here we see that the final versions of demo and demoneeded are used.
+We get the same behavior if we add prefer-final = true
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... prefer-final = true
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing 'zc.buildout', 'setuptools'.
+    ...
+    Picked: demo = 0.3
+    ...
+    Picked: demoneeded = 1.1
+
+If we specify prefer-final = false, we'll get the newest
+distributions:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... prefer-final = false
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing 'zc.buildout', 'setuptools'.
+    ...
+    Picked: demo = 0.4c1
+    ...
+    Picked: demoneeded = 1.2c1
+
+We get an error if we specify anything but true or false:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... prefer-final = no
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    While:
+      Initializing.
+    Error: Invalid value for prefer-final option: no
+
+    """
+
+
+# XXX Tests needed:
+
+# Link added from package meta data
+
+
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
@@ -2082,15 +2300,16 @@ def create_sample_eggs(test, executable=sys.executable):
     try:
         write(tmp, 'README.txt', '')
 
-        for i in (0, 1):
+        for i in (0, 1, 2):
             write(tmp, 'eggrecipedemobeeded.py', 'y=%s\n' % i)
+            c1 = i==2 and 'c1' or ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
                 "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
-                " zip_safe=True, version='1.%s', author='bob', url='bob', "
+                " zip_safe=True, version='1.%s%s', author='bob', url='bob', "
                 "author_email='bob')\n"
-                % i
+                % (i, c1)
                 )
             zc.buildout.testing.sdist(tmp, dest)
 
@@ -2104,13 +2323,14 @@ def create_sample_eggs(test, executable=sys.executable):
 
         os.remove(os.path.join(tmp, 'eggrecipedemobeeded.py'))
 
-        for i in (1, 2, 3):
+        for i in (1, 2, 3, 4):
             write(
                 tmp, 'eggrecipedemo.py',
                 'import eggrecipedemobeeded\n'
                 'x=%s\n'
                 'def main(): print x, eggrecipedemobeeded.y\n'
                 % i)
+            c1 = i==4 and 'c1' or ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
@@ -2118,7 +2338,7 @@ def create_sample_eggs(test, executable=sys.executable):
                 " install_requires = 'demoneeded',"
                 " entry_points={'console_scripts': "
                      "['demo = eggrecipedemo:main']},"
-                " zip_safe=True, version='0.%s')\n" % i
+                " zip_safe=True, version='0.%s%s')\n" % (i, c1)
                 )
             zc.buildout.testing.bdist_egg(tmp, executable, dest)
     finally:

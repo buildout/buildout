@@ -152,6 +152,13 @@ class Buildout(UserDict.DictMixin):
         if versions:
             zc.buildout.easy_install.default_versions(dict(self[versions]))
 
+        prefer_final = options.get('prefer-final', 'true')
+        if prefer_final not in ('true', 'false'):
+            self._error('Invalid value for prefer-final option: %s',
+                        prefer_final)
+        zc.buildout.easy_install.prefer_final(prefer_final=='true')
+        
+
         download_cache = options.get('download-cache')
         if download_cache:
             download_cache = os.path.join(options['directory'], download_cache)
