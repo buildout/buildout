@@ -11,6 +11,21 @@ priorities include:
 Change History
 **************
 
+1.0.0b30 (2007-08-20)
+=====================
+
+Feature Changes
+---------------
+
+- Changed the default policy back to what it was to avoid breakage in
+  existing buildouts.  Use::
+
+    [buildout]
+    prefer-final = true
+
+  to get the new policy.  The new policy will go into effect in
+  buildout 2.
+
 1.0.0b29 (2007-08-20)
 =====================
 
