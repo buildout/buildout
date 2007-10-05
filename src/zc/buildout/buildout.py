@@ -725,6 +725,10 @@ class Buildout(UserDict.DictMixin):
                 ep.load()(self)
 
     def setup(self, args):
+        if not args:
+            raise zc.buildout.UserError(
+                "setup command expects one or more arguments.\n"
+                )
         setup = args.pop(0)
         if os.path.isdir(setup):
             setup = os.path.join(setup, 'setup.py')
