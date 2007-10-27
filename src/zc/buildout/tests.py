@@ -2479,7 +2479,7 @@ def test_suite():
     import zc.buildout.testselectingpython
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
-            'buildout.txt', 'runsetup.txt', 'repeatable.txt',
+            'buildout.txt', 'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([

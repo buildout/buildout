@@ -11,6 +11,19 @@ priorities include:
 Change History
 **************
 
+1.0.0b31 (2007-???)
+=====================
+
+Bugs Fixed
+----------
+
+- The setup command wasn't documented.
+
+- The setup command failed if run in a directory without specifying a
+  configuration file.
+
+- The setup command raised a stupid exception if run without arguments.
+
 1.0.0b30 (2007-08-20)
 =====================
 

@@ -83,6 +83,11 @@ class Buildout(UserDict.DictMixin):
                 if command == 'init':
                     print 'Creating %r.' % config_file
                     open(config_file, 'w').write('[buildout]\nparts = \n')
+                elif command == 'setup':
+                    # Sigh. this model of a buildout nstance
+                    # with methods is breaking down :(
+                    config_file = None
+                    data['buildout']['directory'] = '.'
                 else:
                     raise zc.buildout.UserError(
                         "Couldn't open %s" % config_file)
@@ -727,7 +732,8 @@ class Buildout(UserDict.DictMixin):
     def setup(self, args):
         if not args:
             raise zc.buildout.UserError(
-                "setup command expects one or more arguments.\n"
+                "The setup command requires the path to a setup script or \n"
+                "directory containing a setup script, and it's arguments."
                 )
         setup = args.pop(0)
         if os.path.isdir(setup):
