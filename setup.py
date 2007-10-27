@@ -7,8 +7,6 @@ def read(*rnames):
 long_description=(
         read('README.txt')
         + '\n' +
-        read('CHANGES.txt')
-        + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +
@@ -18,6 +16,8 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'downloadcache.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'setup.txt')
+        + '\n' +
         read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'debugging.txt')
@@ -25,6 +25,8 @@ long_description=(
         read('src', 'zc', 'buildout', 'testing.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'easy_install.txt')
+        + '\n' +
+        read('CHANGES.txt')
         + '\n' +
         'Download\n'
         '**********************\n'
@@ -35,7 +37,7 @@ open('doc.txt', 'w').write(long_description)
 name = "zc.buildout"
 setup(
     name = name,
-    version = "1.0.0b30",
+    version = "1.0.0b31",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
