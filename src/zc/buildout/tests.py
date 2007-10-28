@@ -2056,6 +2056,36 @@ directory and then use the wacky extension to load the demo package
     
     """
 
+def distributions_from_local_find_links_make_it_to_download_cache():
+    """
+
+If we specify a local directory in find links, distors found there
+need to make it to the download cache.
+
+    >>> mkdir('test')
+    >>> write('test', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='foo')
+    ... ''')
+
+    >>> print system(buildout+' setup test bdist_egg'), # doctest: +ELLIPSIS
+    Running setup script 'test/setup.py'.
+    ...
+
+
+    >>> mkdir('cache')
+    >>> old_cache = zc.buildout.easy_install.download_cache('cache')
+    >>> list(zc.buildout.easy_install.install(['foo'], 'eggs',
+    ...          links=[join('test', 'dist')])) # doctest: +ELLIPSIS
+    [foo 0.0.0 ...
+        
+    >>> ls('cache')
+    -  foo-0.0.0-py2.4.egg
+
+    >>> _ = zc.buildout.easy_install.download_cache(old_cache)
+    
+    """
 
 def create_egg(name, version, dest):
     d = tempfile.mkdtemp()
