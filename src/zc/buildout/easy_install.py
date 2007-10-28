@@ -400,8 +400,23 @@ class Installer:
         best.sort()
         return best[-1]
 
-    def _fetch(self, dist, tmp):
-        return dist.clone(location=self._index.download(dist.location, tmp))
+    def _fetch(self, dist, tmp, download_cache):
+        if (download_cache
+            and (os.path.dirname(dist.location) == download_cache)
+            ):
+            return dist
+
+        new_location = self._index.download(dist.location, tmp)
+        if (download_cache
+            and (new_location == dist.location)
+            and os.path.isfile(new_location)
+            ):
+            # setuptools avoids making extra copies, but we want to copy
+            # to the download cache
+            shutil.copy2(new_location, tmp)
+            new_location = os.path.join(tmp, os.path.basename(new_location))
+            
+        return dist.clone(location=new_location)
 
     def _get_dist(self, requirement, ws, always_unzip):
 
@@ -424,15 +439,11 @@ class Installer:
             sys.path_importer_cache.clear()
 
             tmp = self._download_cache
+            if tmp is None:
+                tmp = tempfile.mkdtemp('get_dist')
+
             try:
-                if tmp:
-                    if os.path.dirname(avail.location) == tmp:
-                        dist = avail
-                    else:
-                        dist = self._fetch(avail, tmp)
-                else:
-                    tmp = tempfile.mkdtemp('get_dist')
-                    dist = self._fetch(avail, tmp)
+                dist = self._fetch(avail, tmp, self._download_cache)
 
                 if dist is None:
                     raise zc.buildout.UserError(
@@ -626,15 +637,11 @@ class Installer:
         logger.debug('Building %r', spec)
 
         tmp = self._download_cache
+        if tmp is None:
+            tmp = tempfile.mkdtemp('get_dist')
+
         try:
-            if tmp:
-                if os.path.dirname(avail.location) == tmp:
-                    dist = avail
-                else:
-                    dist = self._fetch(avail, tmp)
-            else:
-                tmp = tempfile.mkdtemp('get_dist')
-                dist = self._fetch(avail, tmp)
+            dist = self._fetch(avail, tmp, self._download_cache)
 
             build_tmp = tempfile.mkdtemp('build')
             try:

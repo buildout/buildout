@@ -24,6 +24,9 @@ Bugs Fixed
 
 - The setup command raised a stupid exception if run without arguments.
 
+- When using a local find links or index, distributions weren't copied
+  to the download cache.
+
 1.0.0b30 (2007-08-20)
 =====================
 
