@@ -1,0 +1,200 @@
+Dependency links
+----------------
+
+By default buildout will obey the setuptools dependency_links metadata
+when it looks for dependencies. This behavior can be controlled with
+the use-dependency-links buildout option.
+
+  [buildout]
+  ...
+  use-dependency-links = false
+
+The option defaults to true. If you set it to false, then dependency
+links are only looked for in the locations specified by find-links.
+
+Let's see this feature in action.  To begin, let's create a new egg
+repository. This repository uses the same sample eggs as the normal
+testing repository.
+
+    >>> link_server2 = start_server(sample_eggs)
+
+Turn on logging on this server so that we can see when eggs are pulled
+from it.
+    
+    >>> get(link_server2 + 'enable_server_logging')
+    GET 200 /enable_server_logging
+    ''
+
+Let's create a develop egg in our buildout that specifies
+dependency_links which point to the new server.
+
+    >>> mkdir(sample_buildout, 'depdemo')
+    >>> write(sample_buildout, 'depdemo', 'dependencydemo.py',
+    ...       'import eggrecipedemoneeded')
+    >>> write(sample_buildout, 'depdemo', 'setup.py',
+    ... '''from setuptools import setup; setup(
+    ...     name='depdemo', py_modules=['dependencydemo'],
+    ...     install_requires = 'demoneeded',
+    ...     dependency_links = ['%s'],
+    ...     zip_safe=True, version='1')
+    ... ''' % link_server2)
+
+Now let's configure the buildout to use the develop egg.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = depdemo
+    ... parts = eggs
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = depdemo
+    ... ''')
+
+Now we can run the buildout.
+
+    >>> print system(buildout)
+    GET 200 /
+    GET 200 /demoneeded-1.2c1.zip
+    Develop: '/sample-buildout/depdemo'
+    Installing eggs.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    <BLANKLINE>
+
+Notice that the egg was retrieved from the logging server.
+
+Now let's change the egg so that it doesn't specify dependency links.
+
+    >>> write(sample_buildout, 'depdemo', 'setup.py',
+    ... '''from setuptools import setup; setup(
+    ...     name='depdemo', py_modules=['dependencydemo'],
+    ...     install_requires = 'demoneeded',
+    ...     zip_safe=True, version='1')
+    ... ''')
+
+Now we'll remove the existing dependency egg, and rerunning the
+buildout to see where the egg comes from this time.
+
+    >>> from glob import glob
+    >>> from os.path import join
+    >>> def remove_demoneeded_egg():
+    ...     for egg in glob(join(sample_buildout, 'eggs', 'demoneeded*.egg')):
+    ...         remove(sample_buildout, 'eggs', egg)
+    >>> remove_demoneeded_egg()
+    >>> print system(buildout)
+    Develop: '/sample-buildout/depdemo'
+    Updating eggs.
+    Couldn't find index page for 'demoneeded' (maybe misspelled?)
+    Getting distribution for 'demoneeded'.
+    While:
+      Updating eggs.
+      Getting distribution for 'demoneeded'.
+    Error: Couldn't find a distribution for 'demoneeded'.
+    <BLANKLINE>
+
+Now it can't find the dependency since neither the buildout
+configuration nor setup specifies where to look.
+
+Let's change things so that the buildout configuration specifies where
+to look for eggs.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = depdemo
+    ... parts = eggs
+    ... find-links = %s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = depdemo
+    ... ''' % link_server)
+
+    >>> print system(buildout)
+    Develop: '/sample-buildout/depdemo'
+    Installing eggs.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    <BLANKLINE>
+
+This time the dependency egg was found on the server without logging
+configured.
+
+Now let's change things once again so that both buildout and setup
+specify different places to look for the dependency egg.
+
+    >>> write(sample_buildout, 'depdemo', 'setup.py',
+    ... '''from setuptools import setup; setup(
+    ...     name='depdemo', py_modules=['dependencydemo'],
+    ...     install_requires = 'demoneeded',
+    ...     dependency_links = ['%s'],
+    ...     zip_safe=True, version='1')
+    ... '''  % link_server2)
+
+    >>> remove_demoneeded_egg()
+    >>> print system(buildout) #doctest: +ELLIPSIS
+    GET 200 /...
+    Develop: '/sample-buildout/depdemo'
+    Updating eggs.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    <BLANKLINE>
+
+So when both setuptools and buildout specify places to search for
+eggs, the dependency_links takes precedence over find-links.
+
+There is a buildout option that you can specify to change this
+behavior. It is the use-dependency-links option. This option defaults
+to true. When you specify false for this option, buildout will ignore
+dependency_links and only look for eggs using find-links.
+
+Here is an example of using this option to disable dependency_links.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = depdemo
+    ... parts = eggs
+    ... find-links = %s
+    ... use-dependency-links = false
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = depdemo
+    ... ''' % link_server)
+
+    >>> remove_demoneeded_egg()
+    >>> print system(buildout)
+    Develop: '/sample-buildout/depdemo'
+    Updating eggs.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    <BLANKLINE>
+
+Notice that this time the egg isn't downloaded from the logging server.
+
+If we set the option to true, things return to the way they were
+before. The dependency's are looked for first in the logging server.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = depdemo
+    ... parts = eggs
+    ... find-links = %s
+    ... use-dependency-links = true
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = depdemo
+    ... ''' % link_server)
+    >>> remove_demoneeded_egg()
+    >>> print system(buildout) #doctest: +ELLIPSIS
+    GET 200 /...
+    Develop: '/sample-buildout/depdemo'
+    Updating eggs.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    <BLANKLINE>

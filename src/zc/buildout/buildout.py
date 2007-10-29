@@ -163,6 +163,12 @@ class Buildout(UserDict.DictMixin):
                         prefer_final)
         zc.buildout.easy_install.prefer_final(prefer_final=='true')
         
+        use_dependency_links = options.get('use-dependency-links', 'true')
+        if use_dependency_links not in ('true', 'false'):
+            self._error('Invalid value for use-dependency-links option: %s',
+                        use_dependency_links)
+        zc.buildout.easy_install.use_dependency_links(
+            use_dependency_links == 'true')
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -642,7 +648,7 @@ class Buildout(UserDict.DictMixin):
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
-            path = [self['buildout']['develop-eggs-directory']],
+            path = [self['buildout']['develop-eggs-directory']]
             )
 
         upgraded = []

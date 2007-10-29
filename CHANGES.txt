@@ -14,6 +14,22 @@ Change History
 1.0.0b31 (2007-???)
 =====================
 
+Feature Changes
+---------------
+
+- Added a configuration option that allows buildouts to ignore
+  dependency_links metadata specified in setup. By default
+  dependency_links in setup are used in addition to buildout specified
+  find-links. This can make it hard to control where eggs come
+  from. Here's how to tell buildout to ignore URLs in
+  dependency_links::
+
+    [buildout]
+    use-dependency-links = false
+
+  By default use-dependency-links is true, which matches the behavior
+  of previous versions of buildout.
+
 Bugs Fixed
 ----------
 

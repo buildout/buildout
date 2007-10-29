@@ -34,11 +34,11 @@ positional arguments:
 - A destination directory to install to and to satisfy requirements
   from.  The destination directory can be None, in which case, no new
   distributions are downloaded and there will be an error if the
-  needed distributions can't be found amoung those already installed.
+  needed distributions can't be found among those already installed.
 
 It supports a number of optional keyword arguments:
 
-find-links
+links
    A sequence of URLs, file names, or directories to look for
    links to distributions.
 
@@ -66,13 +66,13 @@ always_unzip
    directories even if they could be installed as zip files.
 
 working_set
-   An exsiting working set to be augmented with additional
+   An existing working set to be augmented with additional
    distributions, if necessary to satisfy requirements.  This allows
    you to call install multiple times, if necessary, to gather
    multiple sets of requirements.
 
 newest
-   A boolian value indicating whether to search for new distributions
+   A boolean value indicating whether to search for new distributions
    when already-installed distributions meet the requirement.  When
    this is true, the default, and when the destination directory is
    not None, then the install function will search for the newest
@@ -82,6 +82,12 @@ versions
    A dictionary mapping project names to version numbers to be used
    when selecting distributions.  This can be used to specify a set of
    distribution versions independent of other requirements.
+
+use_dependency_links
+   A flag indicating whether to search for dependencies using the
+   setup dependency_links metadata or not. If true, links are searched
+   for using dependency_links in preference to other
+   locations. Defaults to true.
 
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
@@ -140,7 +146,7 @@ value for newest, no new distributions will be installed:
     -  demo-0.2-py2.4.egg
     -  demoneeded-1.1-py2.4.egg
 
-If we leave off the newst option, we'll get an update for demo:
+If we leave off the newest option, we'll get an update for demo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
@@ -150,8 +156,8 @@ If we leave off the newst option, we'll get an update for demo:
     -  demoneeded-1.1-py2.4.egg
 
 Note that we didn't get the newest versions available.  There were
-release candidated for newer versions of both packages. By default,
-final releases are prefered.  We can change this behavior using the
+release candidates for newer versions of both packages. By default,
+final releases are preferred.  We can change this behavior using the
 prefer_final function:
 
     >>> zc.buildout.easy_install.prefer_final(False)
@@ -178,10 +184,9 @@ Let's put the setting back to the default.
     >>> zc.buildout.easy_install.prefer_final(True)
     False
 
-
 We can supply additional distributions.  We can also supply
 specifications for distributions that would normally be found via
-dependencies.  We might do this to specify a sprcific version.
+dependencies.  We might do this to specify a specific version.
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo', 'other', 'demoneeded==1.0'], dest,
@@ -214,7 +219,6 @@ can be useful when debugging.
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
-
     
     >>> rmdir(dest)
     >>> dest = tmpdir('sample-install')
@@ -226,10 +230,10 @@ can be useful when debugging.
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
 
-Specifying version information indepenent of requirements
+Specifying version information independent of requirements
 ---------------------------------------------------------
 
-Sometimes it's useful to specify version information indepenent of
+Sometimes it's useful to specify version information independent of
 normal requirements specifications.  For example, a buildout may need
 to lock down a set of versions, without having to put put version
 numbers in setup files or part definitions.  If a dictionary is passed
@@ -244,7 +248,7 @@ then the versions numbers will be used.
 
 In this example, we specified a version for demoneeded, even though we
 didn't define a requirement for it.  The versions specified apply to
-depenencies as well as the specified requirements.
+dependencies as well as the specified requirements.
 
 If we specify a version that's incompatible with a requirement, then
 we'll get an error:
@@ -332,7 +336,125 @@ dictionary:
 
     >>> [d.version for d in ws]
     ['0.3', '1.1']
+
+Dependency links
+----------------
+
+Setuptools allows metadata that describes where to search for package
+dependencies. This option is called dependency_links. Buildout has its
+own notion of where to look for dependencies, but it also uses the
+setup tools dependency_links information if it's available.
+
+Let's demo this by creating an egg that specifies dependency_links. 
+
+To begin, let's create a new egg repository. This repository hold a
+newer version of the 'demoneeded' egg than the sample repository does.
+
+    >>> repoloc = tmpdir('repo')
+    >>> from zc.buildout.tests import create_egg
+    >>> create_egg('demoneeded', '1.2', repoloc)
+    >>> link_server2 = start_server(repoloc)
+
+Turn on logging on this server so that we can see when eggs are pulled
+from it.
     
+    >>> get(link_server2 + 'enable_server_logging')
+    GET 200 /enable_server_logging
+    ''
+
+Now we can create an egg that specifies that its dependencies are
+found on this server.
+
+    >>> repoloc = tmpdir('repo2')
+    >>> create_egg('hasdeps', '1.0', repoloc, 
+    ...            install_requires = "'demoneeded'",
+    ...            dependency_links = [link_server2])
+
+Let's add the egg to another repository.
+
+    >>> link_server3 = start_server(repoloc)
+
+Now let's install the egg.
+
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest,
+    ...     links=[link_server3], index=link_server3+'index/')
+    GET 200 /
+    GET 200 /demoneeded-1.2-pyN.N.egg
+
+The server logs show that the dependency was retrieved from the server
+specified in the dependency_links.
+
+Now let's see what happens if we provide two different ways to retrieve
+the dependencies.
+
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest, index=link_server+'index/',
+    ...     links=[link_server, link_server3])
+    GET 200 /
+    GET 200 /demoneeded-1.2-pyN.N.egg
+
+Once again the dependency is fetched from the logging server even
+though it is also available from the non-logging server. This is
+because the version on the logging server is newer and buildout
+normally chooses the newest egg available.
+
+If you wish to control where dependencies come from regardless of
+dependency_links setup metadata use the 'use_dependency_links' option
+to zc.buildout.easy_install.install().
+
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest, index=link_server+'index/',
+    ...     links=[link_server, link_server3],
+    ...     use_dependency_links=False)
+
+Notice that this time the dependency egg is not fetched from the
+logging server. When you specify not to use dependency_links, eggs
+will only be searched for using the links you explicitly provide.
+
+Another way to control this option is with the
+zc.buildout.easy_install.use_dependency_links() function. This
+function sets the default behavior for the zc.buildout.easy_install()
+function.
+
+    >>> zc.buildout.easy_install.use_dependency_links(False)
+    True
+
+The function returns its previous setting.
+
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest, index=link_server+'index/',
+    ...     links=[link_server, link_server3])
+
+It can be overridden by passing a keyword argument to the install
+function.
+
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest, index=link_server+'index/',
+    ...     links=[link_server, link_server3],
+    ...	    use_dependency_links=True)
+    GET 200 /demoneeded-1.2-pyN.N.egg
+
+To return the dependency_links behavior to normal call the function again.
+
+    >>> zc.buildout.easy_install.use_dependency_links(True)
+    False
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['hasdeps'], example_dest, index=link_server+'index/',
+    ...     links=[link_server, link_server3])
+    GET 200 /demoneeded-1.2-pyN.N.egg
+
 
 Script generation
 -----------------
@@ -426,7 +548,7 @@ strings:
 
   - An attribute expression for an entry point within the module.
 
-For example, we could have passed antry point information directly
+For example, we could have passed entry point information directly
 rather than passing a requirement:
 
     >>> scripts = zc.buildout.easy_install.scripts(
@@ -507,7 +629,7 @@ the path set:
 
 If invoked with a script name and arguments, it will run that script, instead.
 
-An additional argumnet can be passed to define which scripts to install
+An additional argument can be passed to define which scripts to install
 and to provide script names. The argument is a dictionary mapping
 original script names to new script names.
 
@@ -530,7 +652,7 @@ original script names to new script names.
 Including extra paths in scripts
 --------------------------------
 
-We can pass a keyword argument, extra paths, to caue additional paths
+We can pass a keyword argument, extra paths, to cause additional paths
 to be included in the a generated script:
 
     >>> scripts = zc.buildout.easy_install.scripts(
@@ -641,7 +763,7 @@ index
    will make our examples run a little bit faster.
 
 executable
-   A path to a Python executable.  Distributions will ne installed
+   A path to a Python executable.  Distributions will be installed
    using this executable and will be for the matching Python version.
 
 path
@@ -649,7 +771,7 @@ path
    distributions.
 
 newest
-   A boolian value indicating whether to search for new distributions
+   A boolean value indicating whether to search for new distributions
    when already-installed distributions meet the requirement.  When
    this is true, the default, and when the destination directory is
    not None, then the install function will search for the newest
@@ -772,7 +894,7 @@ get an updated egg:
 
 The versions option also influences the versions used.  For example,
 if we specify a version for extdemo, then that will be used, even
-though it isn't the newest.  Let's clean out the destimation directory
+though it isn't the newest.  Let's clean out the destination directory
 first:
 
     >>> import os
@@ -812,7 +934,7 @@ build_ext
    command when building extensions.
 
 executable
-   A path to a Python executable.  Distributions will ne installed
+   A path to a Python executable.  Distributions will be installed
    using this executable and will be for the matching Python version.
 
 We have a local directory containing the extdemo source:
@@ -966,7 +1088,7 @@ from the link server:
     ...     always_unzip=True)
     GET 200 /demo-0.3-py2.4.egg
 
-Normally, the download cache is the prefered source of downloads, but
+Normally, the download cache is the preferred source of downloads, but
 not the only one.
 
 Installing solely from a download cache

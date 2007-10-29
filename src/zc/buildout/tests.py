@@ -2087,19 +2087,27 @@ need to make it to the download cache.
     
     """
 
-def create_egg(name, version, dest):
+def create_egg(name, version, dest, install_requires=None,
+               dependency_links=None):
     d = tempfile.mkdtemp()
     if dest=='available':
         extras = dict(x=['x'])
     else:
         extras = {}
-        
+    if dependency_links:
+        links = 'dependency_links = %s, ' % dependency_links
+    else:
+        links = ''
+    if install_requires:
+        requires = 'install_requires = %s, ' % install_requires
+    else:
+        requires = ''
     try:
         open(os.path.join(d, 'setup.py'), 'w').write(
             'from setuptools import setup\n'
             'setup(name=%r, version=%r, extras_require=%r, zip_safe=True,\n'
-            '      py_modules=["setup"]\n)'
-            % (name, str(version), extras)
+            '      %s %s py_modules=["setup"]\n)'
+            % (name, str(version), extras, requires, links)
             )
         zc.buildout.testing.bdist_egg(d, sys.executable, os.path.abspath(dest))
     finally:
@@ -2314,9 +2322,7 @@ We get an error if we specify anything but true or false:
     """
 
 
-# XXX Tests needed:
 
-# Link added from package meta data
 
 
 
@@ -2330,12 +2336,12 @@ def create_sample_eggs(test, executable=sys.executable):
         write(tmp, 'README.txt', '')
 
         for i in (0, 1, 2):
-            write(tmp, 'eggrecipedemobeeded.py', 'y=%s\n' % i)
+            write(tmp, 'eggrecipedemoneeded.py', 'y=%s\n' % i)
             c1 = i==2 and 'c1' or ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
-                "setup(name='demoneeded', py_modules=['eggrecipedemobeeded'],"
+                "setup(name='demoneeded', py_modules=['eggrecipedemoneeded'],"
                 " zip_safe=True, version='1.%s%s', author='bob', url='bob', "
                 "author_email='bob')\n"
                 % (i, c1)
@@ -2346,18 +2352,18 @@ def create_sample_eggs(test, executable=sys.executable):
             tmp, 'setup.py',
             "from setuptools import setup\n"
             "setup(name='other', zip_safe=False, version='1.0', "
-            "py_modules=['eggrecipedemobeeded'])\n"
+            "py_modules=['eggrecipedemoneeded'])\n"
             )
         zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
-        os.remove(os.path.join(tmp, 'eggrecipedemobeeded.py'))
+        os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
 
         for i in (1, 2, 3, 4):
             write(
                 tmp, 'eggrecipedemo.py',
-                'import eggrecipedemobeeded\n'
+                'import eggrecipedemoneeded\n'
                 'x=%s\n'
-                'def main(): print x, eggrecipedemobeeded.y\n'
+                'def main(): print x, eggrecipedemoneeded.y\n'
                 % i)
             c1 = i==4 and 'c1' or ''
             write(
@@ -2564,7 +2570,7 @@ def test_suite():
             ),
         
         doctest.DocFileSuite(
-            'easy_install.txt', 'downloadcache.txt',
+            'easy_install.txt', 'downloadcache.txt', 'dependencylinks.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
 
