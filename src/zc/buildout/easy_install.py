@@ -115,7 +115,8 @@ class Installer:
     _download_cache = None
     _install_from_cache = False
     _prefer_final = True
-
+    _use_dependency_links = True
+    
     def __init__(self,
                  dest=None,
                  links=(),
@@ -125,6 +126,7 @@ class Installer:
                  path=None,
                  newest=True,
                  versions=None,
+                 use_dependency_links=None,
                  ):
         self._dest = dest
 
@@ -135,8 +137,8 @@ class Installer:
             links = ()
             index = 'file://' + self._download_cache
 
-        
-        
+        if use_dependency_links is not None:
+            self._use_dependency_links = use_dependency_links
         self._links = links = list(_fix_file_links(links))
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
@@ -503,10 +505,10 @@ class Installer:
         else:
             dists = [dist]
 
-        # XXX Need test for this
         for dist in dists:
             if (dist.has_metadata('dependency_links.txt')
                 and not self._install_from_cache
+                and self._use_dependency_links
                 ):
                 for link in dist.get_metadata_lines('dependency_links.txt'):
                     link = link.strip()
@@ -709,12 +711,19 @@ def prefer_final(setting=None):
         Installer._prefer_final = bool(setting)
     return old
 
+def use_dependency_links(setting=None):
+    old = Installer._use_dependency_links
+    if setting is not None:
+        Installer._use_dependency_links = bool(setting)
+    return old
+
 def install(specs, dest,
             links=(), index=None,
             executable=sys.executable, always_unzip=False,
-            path=None, working_set=None, newest=True, versions=None):
+            path=None, working_set=None, newest=True, versions=None,
+            use_dependency_links=None):
     installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest, versions)
+                          newest, versions, use_dependency_links)
     return installer.install(specs, working_set)
 
 

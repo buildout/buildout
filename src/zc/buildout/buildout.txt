@@ -154,7 +154,7 @@ Currently, recipes must define 3 methods [#future_recipe_methods]_:
 The constructor is responsible for updating a parts options to reflect
 data read from other sections.  The buildout system keeps track of
 whether a part specification has changed.  A part specification has
-changed if it's options, after ajusting for data read from other
+changed if it's options, after adjusting for data read from other
 sections, has changed, or if the recipe has changed.  Only the options
 for the part are considered.  If data are read from other sections,
 then that information has to be reflected in the parts options.  In
@@ -174,7 +174,7 @@ has changed, then the part is uninstalled and reinstalled.  The
 buildout only looks at the part's options, so any data used to
 configure the part needs to be reflected in the part's options.  It is
 the job of a recipe constructor to make sure that the options include
-all relevent data.
+all relevant data.
 
 Of course, parts are also uninstalled if they are no-longer used.
 
@@ -368,7 +368,7 @@ then raising a (or an instance of a subclass of a)
 zc.buildout.UserError exception.  Raising an error other than a
 UserError still displays the error, but labels it as a bug in the
 buildout software or recipe. In the sample above, of someone gives a
-non-existant directory to create the directory in:
+non-existent directory to create the directory in:
 
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -464,7 +464,7 @@ leave previously created paths in place:
     OSError:
     [Errno 17] File exists: '/sample-buildout/bin'
 
-We meant to create a directiry bins, but typed bin.  Now foo was
+We meant to create a directory bins, but typed bin.  Now foo was
 left behind.
 
     >>> os.path.exists('foo')
@@ -582,7 +582,7 @@ It's critical that recipes clean up partial effects when errors
 occur.  Because recipes most commonly create files and directories,
 buildout provides a helper API for removing created files when an
 error occurs.  Option objects have a created method that can be called
-to record files as they are created.  If the install or update methof
+to record files as they are created.  If the install or update method
 returns with an error, then any registered paths are removed
 automatically.  The method returns the files registered and can be
 used to return the files created.  Let's use this API to simplify the
@@ -633,7 +633,7 @@ returns the registered paths.  We did this for illustrative purposes.
 It would be simpler just to return the paths as before.
 
 If we rerun the buildout, again, we'll get the error and no
-directiories will be created:
+directories will be created:
 
     >>> print system(buildout),
     Develop: '/sample-buildout/recipes'
@@ -685,7 +685,7 @@ extensions are:
 
 - option names are case sensitive
 
-- option values can ue a substitution syntax, described below, to
+- option values can use a substitution syntax, described below, to
   refer to option values in specific sections.
 
 The ConfigParser syntax is very flexible.  Section names can contain
@@ -821,7 +821,7 @@ restriction might be relaxed in future releases.
 Automatic part selection and ordering
 -------------------------------------
 
-When a section with a recipe is refered to, either through variable
+When a section with a recipe is referred to, either through variable
 substitution or by an initializing recipe, the section is treated as a
 part and added to the part list before the referencing part.  For
 example, we can leave data-dir out of the parts list:
@@ -1076,7 +1076,7 @@ we'll set up a web server with some configuration files.
     recipe recipes:debug
 
 Here we specified a URL for the file we extended.  The file we
-downloaded, itself refered to a file on the server using a relative
+downloaded, itself referred to a file on the server using a relative
 URL reference.  Relative references are interpreted relative to the
 base URL when they appear in configuration files loaded via URL.
 
@@ -1282,7 +1282,7 @@ When the buildout is run the service will be installed
     <BLANKLINE>
 
 The service has been installed. If the buildout is run again with no
-changes, the serivce shouldn't be changed.
+changes, the service shouldn't be changed.
 
     >>> print system(buildout)
     Develop: '/sample-buildout/recipes'
@@ -1424,7 +1424,7 @@ is run before the directory is deleted.
     recipe recipes:debug
     <BLANKLINE>
 
-Now we will return the registeration to normal for the benefit of the
+Now we will return the registration to normal for the benefit of the
 rest of the examples.
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
@@ -2004,7 +2004,7 @@ Note that a basic setup.cfg was created for us.
     -  setuptools-0.6-py2.3.egg
     -  zc.buildout-1.0-py2.3.egg
 
-(We list both the eggs and develop-eggs diectories because the
+(We list both the eggs and develop-eggs directories because the
 buildout or setuptools egg could be installed in the develop-eggs
 directory if the original buildout had develop eggs for either
 buildout or setuptools.)
@@ -2060,35 +2060,49 @@ running the buildout when not connected to the internet.  It also
 makes buildouts run much faster. This option is typically set using
 the buildout -o option.
 
-Prefering Final Releases
-------------------------
+Preferring Final Releases
+-------------------------
 
 Currently, when searching for new releases, the newest available
-release is used.  This isn't usually ideal, as you may get development
-releaes or alpha releases not ready to be widely used.  You can
-request that final releases be prefered using the prefer final option
-in the buildout section::
+release is used.  This isn't usually ideal, as you may get a
+development release or alpha releases not ready to be widely used.
+You can request that final releases be preferred using the prefer
+final option in the buildout section::
 
   [buildout]
   ...
   prefer-final = true
 
 When the prefer-final option is set to true, then when searching for
-new releases, final releases are prefered.  If there are final
+new releases, final releases are preferred.  If there are final
 releases that satisfy distribution requirements, then those releases
 are used even if newer non-final releases are available.  The buildout
 prefer-final option can be used to override this behavior.
 
-In buildout version 2, final releases will be prefered by default.
+In buildout version 2, final releases will be preferred by default.
 You will then need to use a false value for prefer-final to get the
-newset releases.
+newest releases.
+
+Dependency links
+----------------
+
+By default buildout will obey the setuptools dependency_links metadata
+when it looks for dependencies. This behavior can be controlled with
+the use-dependency-links buildout option::
+
+  [buildout]
+  ...
+  use-dependency-links = false
+
+The option defaults to true. If you set it to false, then dependency
+links are only looked for in the locations specified by find-links.
 
 Controlling the installation database
 -------------------------------------
 
-The buildout installed uption is used to specify the file used to save
+The buildout installed option is used to specify the file used to save
 information on installed parts.  This option is initialized to
-".installed.cfg", but it can be overridded in the configuration file
+".installed.cfg", but it can be overridden in the configuration file
 or on the command line:
 
     >>> write('buildout.cfg', 
@@ -2119,7 +2133,7 @@ or on the command line:
     d  recipes
 
 The installation database can be disabled by supplying an empty
-buildout installed opttion:
+buildout installed option:
 
     >>> os.remove('inst.cfg')
     >>> print system(buildout+' buildout:installed='),
@@ -2212,7 +2226,7 @@ egg to be built:
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     Develop: '/sample-bootstrapped/demo'
 
-Now we can add the extensions option.  We were a bit tricly and ran
+Now we can add the extensions option.  We were a bit tricky and ran
 the buildout once with the demo develop egg defined but without the
 extension option.  This is because extensions are loaded before the
 buildout creates develop eggs. We needed to use a separate buildout
@@ -2235,7 +2249,7 @@ We see that our extension is loaded and executed:
 
 
 
-.. [#future_recipe_methods] In the future, additional mathods may be
+.. [#future_recipe_methods] In the future, additional methods may be
        added. Older recipes with fewer methods will still be
        supported.
 

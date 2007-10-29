@@ -97,7 +97,7 @@ number of names to the test namespace:
 
     and:
 
-       >>> get(server_url+'enable_server_logging')
+       >>> get(server_url+'disable_server_logging')
 
     This can be useful to see how buildout is interacting with a
     server.
