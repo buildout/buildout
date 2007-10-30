@@ -994,6 +994,7 @@ if _interactive:
         
 runsetup_template = """
 import sys
+sys.path.insert(0, %(setupdir)r)
 sys.path.insert(0, %(setuptools)r)
 import os, setuptools
 

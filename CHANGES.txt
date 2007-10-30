@@ -33,6 +33,9 @@ Feature Changes
 Bugs Fixed
 ----------
 
+- 151820: Develop failed if the setup.py script imported modules in
+  the distribution directory.
+
 - The setup command wasn't documented.
 
 - The setup command failed if run in a directory without specifying a
