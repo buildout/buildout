@@ -812,7 +812,7 @@ def develop(setup, dest,
                 del args[1]
             else:
                 args[1] == '-v'
-        if logger.getEffectiveLevel < logging.DEBUG:
+        if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
         assert os.spawnl(os.P_WAIT, executable, executable, *args) == 0

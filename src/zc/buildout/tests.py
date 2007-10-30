@@ -82,6 +82,13 @@ We should be able to deal with setup scripts that aren't setuptools based.
     -  foo.egg-link
     -  zc.recipe.egg.egg-link
 
+    >>> print system(join('bin', 'buildout')+' -vvv'), # doctest: +ELLIPSIS
+    Installing...
+    Develop: '/sample-buildout/foo'
+    in: '/sample-buildout/foo'
+    ... -q develop -mxN -d /sample-buildout/develop-eggs/...
+
+
     """
 
 def buildout_error_handling():
