@@ -2328,9 +2328,37 @@ We get an error if we specify anything but true or false:
 
     """
 
+def develop_with_modules():
+    """
+Distribution setup scripts can import modules in the distribution directory:
 
+    >>> mkdir('foo')
+    >>> write('foo', 'bar.py',
+    ... '''# empty
+    ... ''')
 
+    >>> write('foo', 'setup.py',
+    ... '''
+    ... import bar
+    ... from setuptools import setup
+    ... setup(name="foo")
+    ... ''')
 
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = foo
+    ... parts = 
+    ... ''')
+
+    >>> print system(join('bin', 'buildout')),
+    Develop: '/sample-buildout/foo'
+
+    >>> ls('develop-eggs')
+    -  foo.egg-link
+    -  zc.recipe.egg.egg-link
+
+    """
 
 
 ######################################################################
