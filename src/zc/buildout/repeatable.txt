@@ -160,3 +160,21 @@ We won't get output for the spam distribution, which we didn't pick,
 but we will get output for setuptools, which we didn't specify
 versions for.
 
+You can request buildout to generate an error if it picks any
+versions:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... versions = release-1
+    ... allow-picked-versions = false
+    ...
+    ... [release-1]
+    ... spam = 1
+    ... eggs = 2.2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))

@@ -300,6 +300,23 @@ reporting that a version was picked automatically:
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
+We can request that we get an error if versions are picked:
+
+    >>> zc.buildout.easy_install.allow_picked_versions(False)
+    True
+
+(The old setting is returned.)
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     )
+    Traceback (most recent call last):
+    ...
+    UserError: Picked: demo = 0.3
+
+    >>> zc.buildout.easy_install.allow_picked_versions(True)
+    False
+
 The function default_versions can be used to get and set default
 version information to be used when no version information is passes.
 If called with an argument, it sets the default versions:
