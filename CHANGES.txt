@@ -30,6 +30,10 @@ Feature Changes
   By default use-dependency-links is true, which matches the behavior
   of previous versions of buildout.
 
+- Added a configuration option that causes buildout to error if a
+  version is picked. This is a nice safety belt when fixing all
+  versions is intented, especially whan creating releases.
+
 Bugs Fixed
 ----------
 
@@ -48,6 +52,10 @@ Bugs Fixed
 
 - When using a local find links or index, distributions weren't copied
   to the download cache.
+
+- When installing from source releases, a version specification (via a
+  buildout versions section) for setuptools was ignored when deciding
+  which setuptools to use to build an egg from the source release.
 
 1.0.0b30 (2007-08-20)
 =====================

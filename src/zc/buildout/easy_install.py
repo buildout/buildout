@@ -116,6 +116,7 @@ class Installer:
     _install_from_cache = False
     _prefer_final = True
     _use_dependency_links = True
+    _allow_picked_versions = True
     
     def __init__(self,
                  dest=None,
@@ -262,7 +263,8 @@ class Installer:
         tmp = tempfile.mkdtemp(dir=dest)
         try:
             path = self._get_dist(
-                pkg_resources.Requirement.parse('setuptools'), ws, False,
+                self._constrain(pkg_resources.Requirement.parse('setuptools')),
+                ws, False,
                 )[0].location
 
             args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
@@ -529,6 +531,10 @@ class Installer:
                 ):
                 logger.debug('Picked: %s = %s',
                              dist.project_name, dist.version)
+                if not self._allow_picked_versions:
+                    raise zc.buildout.UserError(
+                        'Picked: %s = %s' % (dist.project_name, dist.version)
+                        )
 
         return dists
 
@@ -715,6 +721,12 @@ def use_dependency_links(setting=None):
     old = Installer._use_dependency_links
     if setting is not None:
         Installer._use_dependency_links = bool(setting)
+    return old
+
+def allow_picked_versions(setting=None):
+    old = Installer._allow_picked_versions
+    if setting is not None:
+        Installer._allow_picked_versions = bool(setting)
     return old
 
 def install(specs, dest,

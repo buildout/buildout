@@ -170,6 +170,13 @@ class Buildout(UserDict.DictMixin):
         zc.buildout.easy_install.use_dependency_links(
             use_dependency_links == 'true')
 
+        allow_picked_versions = options.get('allow-picked-versions', 'true')
+        if allow_picked_versions not in ('true', 'false'):
+            self._error('Invalid value for allow-picked-versions option: %s',
+                        allow_picked_versions)
+        zc.buildout.easy_install.allow_picked_versions(
+            allow_picked_versions=='true')
+
         download_cache = options.get('download-cache')
         if download_cache:
             download_cache = os.path.join(options['directory'], download_cache)

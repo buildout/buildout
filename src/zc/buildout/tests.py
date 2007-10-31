@@ -2360,6 +2360,44 @@ Distribution setup scripts can import modules in the distribution directory:
 
     """
 
+def dont_pick_setuptools_if_version_is_specified_when_required_by_src_dist():
+    """
+When installing a source distribution, we got setuptools without
+honoring our version specification.
+
+    >>> mkdir('dist')
+    >>> write('setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='foo', version='1', py_modules=['foo'], zip_safe=True)
+    ... ''')
+    >>> write('foo.py', '')
+    >>> _ = system(buildout+' setup . sdist')
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = dist
+    ... versions = versions
+    ... allow-picked-versions = false
+    ...
+    ... [versions]
+    ... setuptools = %s
+    ... foo = 1
+    ...
+    ... [foo]
+    ... recipe = zc.recipe.egg
+    ... eggs = foo
+    ... ''' % pkg_resources.working_set.find(
+    ...    pkg_resources.Requirement.parse('setuptools')).version)
+
+    >>> print system(buildout),
+    Installing foo.
+    Getting distribution for 'foo==1'.
+    Got foo 1.
+    
+    """
 
 ######################################################################
     
