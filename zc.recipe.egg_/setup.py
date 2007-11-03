@@ -1,3 +1,20 @@
+##############################################################################
+#
+# Copyright (c) 2007 Zope Corporation and Contributors.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the Zope Public License,
+# Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
+# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+# FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
+"""Setup for zc.recipe.egg package
+
+$Id$
+"""
 import os
 from setuptools import setup, find_packages
 
@@ -7,7 +24,7 @@ def read(*rnames):
 name = "zc.recipe.egg"
 setup(
     name = name,
-    version = "1.0.0b6",
+    version = "1.0.0",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
@@ -28,17 +45,26 @@ setup(
         read('src', 'zc', 'recipe', 'egg', 'api.txt')
         + '\n' +
         'Download\n'
-        '**********************\n'
+        '*********\n'
         ),
-    license = "ZPL 2.1",
     keywords = "development build",
-    url='http://svn.zope.org/zc.buildout',
+    classifiers = [
+       'Development Status :: 5 - Production/Stable',
+       'Framework :: Buildout',
+       'Intended Audience :: Developers',
+       'License :: OSI Approved :: Zope Public License',
+       'Topic :: Software Development :: Build Tools',
+       'Topic :: Software Development :: Libraries :: Python Modules',
+       ],
+    url='http://cheeseshop.python.org/pypi/zc.recipe.egg',
+    license = "ZPL 2.1",
 
     packages = find_packages('src'),
-    include_package_data = True,
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    install_requires = ['zc.buildout >=1.0.0b3', 'setuptools'],
+    install_requires = [
+        'zc.buildout >=1.0.0b3',
+        'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Scripts' % name,
@@ -49,13 +75,6 @@ setup(
                                     'develop = %s:Develop' % name,
                                     ]
                     },
+    include_package_data = True,
     zip_safe=False,
-    classifiers = [
-       'Framework :: Buildout',
-       'Development Status :: 4 - Beta',
-       'Intended Audience :: Developers',
-       'License :: OSI Approved :: Zope Public License',
-       'Topic :: Software Development :: Build Tools',
-       'Topic :: Software Development :: Libraries :: Python Modules',
-       ],
     )

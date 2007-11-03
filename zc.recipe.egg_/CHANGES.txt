@@ -8,6 +8,12 @@ To do
 Change History
 **************
 
+1.0.0 (2007-11-03)
+==================
+
+- No code changes from last beta, just some small package meta-data
+  improvements.
+
 1.0.0b5 (2007-02-08)
 ====================
 
