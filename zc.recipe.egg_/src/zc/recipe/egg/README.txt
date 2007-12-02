@@ -358,9 +358,9 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
+      '/foo/bar',
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-      '/foo/bar',
       '/spam/eggs',
       ]
     <BLANKLINE>
@@ -405,9 +405,9 @@ to be included in generated scripts:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
+      '/foo/bar',
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-      '/foo/bar',
       '/spam/eggs',
       ]
     <BLANKLINE>
@@ -463,9 +463,9 @@ declare entry points using the entry-points option:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
+      '/foo/bar',
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-      '/foo/bar',
       '/spam/eggs',
       ]
     <BLANKLINE>
