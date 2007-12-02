@@ -14,6 +14,10 @@ Change History
 1.0.0b32 (2007-???)
 =====================
 
+- The list of eggs in generated scripts is sorted and duplicates
+  removed. This prevents problems in WingIDE and makes it easier for
+  humans to look at and use the list of eggs.
+
 1.0.0b31 (2007-11-01)
 =====================
 
