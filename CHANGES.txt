@@ -18,6 +18,8 @@ Change History
   removed. This prevents problems in WingIDE and makes it easier for
   humans to look at and use the list of eggs.
 
+- Added a french translation of the buildout tutorial
+
 1.0.0b31 (2007-11-01)
 =====================
 
