@@ -15,7 +15,7 @@ DZUG 2007
 What is zc.buildout?
 ====================
 
-- Course-grained python-based configuration-driven build tool
+- Coarse-grained python-based configuration-driven build tool
 
 - Tool for working with eggs
 
@@ -29,7 +29,7 @@ What is zc.buildout?
 
 - Developer oriented
 
-Course-grained building
+Coarse-grained building
 =======================
 
 - make and scons (and distutils) are fine grained
@@ -44,7 +44,7 @@ Course-grained building
 
   - dependency and change driven
 
-- zc.buildout is course-grained
+- zc.buildout is coarse-grained
 
   - Build large components of a system
 
@@ -232,7 +232,7 @@ Egg jargon
 
   .. class:: handout
 
-     Requirements are strings that name distributions.  This consist
+     Requirements are strings that name distributions.  They consist
      of a project name, optional version specifiers, and optional
      extras specifiers.  Extras are names of features of a package
      that may have special dependencies.
@@ -531,7 +531,7 @@ Buildout steps
      version number that includes the subversion revision number of
      the project.  The -b option specified a revision tag. Here we
      specified a revision tag of "dev", which marks the release as a
-     devlopment release. These are useful when making development
+     development release. These are useful when making development
      releases.
 
 Exercise 1
@@ -636,7 +636,7 @@ A Minimal/Develop ``setup.py``
 
 .. class:: handout
 
-   If we're only going to use a package as a devlop egg, we just need
+   If we're only going to use a package as a develop egg, we just need
    to specify the project name, and, if there is a separate source
    directory, then we need to specify that location.
 
@@ -787,7 +787,7 @@ Extras
             test = ['zope.testing', 'ZODB3',
                     'zope.configuration', 'zope.security', 'zope.proxy',
                     'zope.i18nmessageid',
-                    'zope.location', # should be depenency of zope.security
+                    'zope.location', # should be dependency of zope.security
                     ],
             hook = ['zope.hookable'],
             persistentregistry = ['ZODB3'],
@@ -800,9 +800,9 @@ Extras
    Extras provide a way to help manage dependencies.
 
    A common use of extras is to separate test dependencies from normal
-   depenencies.  A package may provide other optional features that
+   dependencies.  A package may provide other optional features that
    cause other dependencies.  For example, the zcml module in
-   zope.component adds lots of depenencies that we don't want to
+   zope.component adds lots of dependencies that we don't want to
    impose on people that don't use it.
 
 ``zc.recipe.egg``
@@ -858,7 +858,7 @@ Installing scripts
 
 .. class:: handout
 
-   If any of the of the named eggs have ``console_script`` entry
+   If any of the named eggs have ``console_script`` entry
    points, then scripts will be generated for the entry points.
 
    If a distribution doesn't use setuptools, it may not declare it's
@@ -961,7 +961,7 @@ Custom egg building
    eggs are buildout specific.
 
    This example illustrates use of the zc.recipe.cmmi recipe with
-   supports installation of software that uses configure and make.
+   supports installation of software that uses configure, make, make install.
    Here, we used the recipe to install the spread toolkit, which is
    installed in the parts directory.
 
@@ -982,7 +982,7 @@ Part dependencies
    In the previous example, we used the spread toolkit location in the
    spreadmodule part definition. This reference was sufficient to make
    the spreadtoolkit part a dependency of the spreadmodule part and
-   cause it to be installed first,
+   cause it to be installed first.
 
 Custom develop eggs
 ===================
@@ -1051,7 +1051,7 @@ Writing recipes
     .. class:: handout
 
        Most recipes simply create files or directories and the
-       build-in buildout uninstall support is sufficient.  If a recipe
+       built-in buildout uninstall support is sufficient.  If a recipe
        does more than simply create files, then an uninstall recipe
        will likely be needed.
 
@@ -1088,7 +1088,7 @@ Install Recipes
 
      - Log error details using the Python logger module.
 
-     - Raise a zc.buildout.UserErrpr exception.
+     - Raise a zc.buildout.UserError exception.
 
 ``mkdirrecipe``.py continued
 ============================
@@ -1214,7 +1214,7 @@ Buildout modes
 
   - Disabled by default
 
-  - If enabled with -o or buildout offline option set to false.
+  - If enabled, turn off with -o or buildout offline option set to false.
 
 .. class:: handout
 
@@ -1381,7 +1381,7 @@ Example: zc.sharing (1/2)
 
    You can largely ignore the details of the Zope 3 instance  recipe.
    If you aren't a Zope user, you don't care.  If you are a Zope user,
-   you should be aware that much better recipes are in development. 
+   you should be aware that much better recipes have been developped. 
 
    This project uses multiple source directories, the current
    directory and the zc.security directory, which is a subversion
@@ -1427,7 +1427,7 @@ Example: zc.sharing (2/2)
 
    - We've used the extra-paths option to tell the test runner to
      include the Zope 3 checkout source directory in sys.path.  This
-     won't be necessary when Zope 3 is available entirely as eggs.
+     is not necessary as Zope 3 is now available entirely as eggs.
 
 Source vs Binary
 ================
@@ -1608,7 +1608,7 @@ ZRS spec file (3/3)
    - Reruns the buildout:
 
      - Using a post-installation configuration that specified the
-       parts who's paths need to be adjusted.
+       parts whose paths need to be adjusted.
 
      - In offline mode because we don't want any network access or new
        software installed that isn't in the RPM.
@@ -1630,10 +1630,10 @@ ZRS spec file (3/3)
 Repeatability
 =============
 
-We want to be able to check certtain configuration into svn that can
+We want to be able to check certain configuration into svn that can
 be checked out and reproduced.
 
-- We let buildout tell is what versions it picked for distributions
+- We let buildout tell what versions it picked for distributions
 
   - Run with -v
   
