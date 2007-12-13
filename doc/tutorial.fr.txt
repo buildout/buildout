@@ -1,0 +1,1693 @@
+.. include:: <s5defs.txt>
+
+==========================
+Introduction à zc.buildout
+==========================
+
+.. raw:: html
+
+   <br /><br /><br />
+
+Jim Fulton, Zope Corporation
+
+DZUG 2007
+
+.. contents::
+
+Qu'est-ce que zc.buildout?
+==========================
+
+- Outil de construction dirigée par de la configuration, basé sur python et de haut-niveau
+
+- Outil pour travailler avec des eggs
+
+- Répétable
+
+  .. class:: handout
+
+     Il devrait être possible d'intégrer une spécification dans un dépôt et de refabriquer
+     le même logiciel plus tard en extrayant la spécification et en lançant la reconstruction.
+
+- À destination des développeurs
+
+construction de haut-niveau
+===========================
+
+- make et scons (et distutils) sont de plus bas niveau :
+
+  - Orienté vers les fichiers individuels
+
+  - Pratique lorsqu'un fichier est calculé à partir d'un autre
+
+    .c → .o → .so
+
+  - dirigée par des règles
+
+  - dirigée par des modifications et des dépendances
+
+- zc.buildout est de plus haut niveau
+
+  - Fabrication des grands composants d'un système
+
+    - applications
+
+    - fichiers de configuration
+
+    - bases de données
+
+  - dirigée par une configuration
+
+Basé sur Python
+===============
+
+- make est un langage de script horrible
+
+  - utilise le shell 
+
+  - non portable
+
+- Python est un excellent langage de script
+
+  .. class:: handout
+
+     Heureusement, distutils résout la plupart de mes besoins en construction.
+     Si j'avais besoin d'écrire ma propre définition de construction à
+     bas-niveau, j'utiliserais scons.
+
+Travailler avec des eggs
+========================
+
+- Les Eggs roxent !
+
+- easy_install
+
+  - Facile !
+
+  - Installation dans le python global du système
+
+  - Peu de possibilités de contrôle
+
+- workingenv améliore nettement les possibilités d'easy_install
+
+  - Évite d'installer dans le python global du système
+
+  - Évite les conflits avec les paquets installés dans le répertoire ``site_packages``
+
+  - Vraiment bien pour de l'expérimentation
+
+  - Facile !
+
+  - Peu de possibilités de contrôle
+
+``zc.buildout`` et les eggs
+===========================
+
+- Contrôle
+
+  - Dirigé par une configuration
+
+    - Plus facile de contrôler les versions utilisées
+
+    - Vérifie toujours par défaut la version la plus récente
+
+      .. class:: handout
+      
+         Lors d'une passage à une version supérieure, ``easy_install`` ne met pas à jour
+         les dépendances
+
+    - Prise en charge des options personnalisées de construction
+
+- Accent plus fort mis sur les eggs en développement
+
+  - Automatise les installations/désinstallations
+
+  - Préférence envers les eggs en développement
+
+  .. class:: handout
+
+     Je permute souvent entre des eggs en développement et des eggs normaux.
+     Je peux être en train d'utiliser un egg normal et réaliser que j'ai besoin
+     de le réparer.  J'extrais par checkout le projet correspondant à l'egg
+     dans mon buildout et j'indique à buildout de le traiter comme un egg
+     en développement. Il crée le lien vers l'egg parmi les eggs en
+     développement et utilisera ainsi cet egg en développement plutôt que l'egg
+     normal.
+
+     (``easy_install`` utilise plutôt les eggs publiés ayant la même version.) 
+
+     Lorsque j'ai fini mes changements, je crée une nouvelle publication de l'egg et j'indique
+     à buildout de ne plus utiliser l'egg en développement.
+
+
+.. class:: handout
+
+   ``zc.buildout`` est basé sur setuptools and ``easy_install``.
+
+
+État actuel de zc.buildout
+==========================
+
+- Utilisé activement pour le développement et le déploiement
+
+- Troisième génération d'outils de buildout de la Zope Corporation
+
+  .. class:: handout
+
+     Nos buildouts initiaux utilisaient make.  Ils étaient difficile à maintenir et
+     à réutiliser.
+
+     Il y a deux ans, nous avons créé un prototype de buildout basé sur python. 
+
+     ``zc.buildout`` n'est plus un prototype et est issu de l'expérience acquise
+     en utilisant le prototype.
+
+- De nombreuses recettes (« recipes ») sont disponibles
+
+Les Eggs Python en résumé
+=========================
+
+Les Eggs sont simples !
+
+- ce sont des répertoires à ajouter au chemin python
+
+  - ils peuvent être compressés
+
+  - « zéro » installation
+
+- Meta-données
+
+  - dépendances
+
+  - points d'entrée
+
+- Peuvent être distribués sous forme de sources
+
+  .. class:: handout
+
+     ``easy_install`` et ``zc.buildout`` peuvent installer des distributions sources
+     aussi facilement que d'installer des eggs. Je trouve que les distributions sources
+     sont plus pratiques à distribuer pour de nombreuses raisons.
+
+- Découverte automatique via PyPI (Python Package Index)
+
+Jargon des Eggs
+===============
+
+- Distribution
+
+  .. class:: handout
+
+     « distribution » est le nom utilisé par distutils pour quelque chose qui peut
+     être distribué.  Il existe plusieurs types de distributions pouvant être créées
+     par distutils, comme les distributions sources, les distributions binaires,
+     les eggs, etc.
+
+- distributions sources et binaires
+
+  .. class:: handout
+
+     Une distribution source contient les sources d'un projet.
+
+     Une distribution binaire contient une version compilée d'un projet,
+     contenant les fichiers .pyc et les modules d'extension construits.
+
+     Les Eggs sont un type de distribution binaire.
+
+- Eggs dépendants ou non de la plateforme
+
+  .. class:: handout
+
+     Les eggs dépendants de la plateforme contiennent des modules d'extension construits,
+     ils sont donc liés à un système d'exploitation en particulier.  En outre, ils peuvent
+     dépendre d'options de construction qui ne sont pas reflétées dans le nom de l'egg.
+  
+- Liens d'eggs en développement
+
+  .. class:: handout
+
+     Les liens d'eggs en développement (ou eggs en développement) sont des fichiers spéciaux
+     qui permettent à un répertoire source d'être traité comme un egg. Un lien d'egg
+     en développement est un fichier contenant le chemin d'un répertoire de sources.
+  
+- Exigences (Requirements)
+
+  .. class:: handout
+
+     Les exigences sont des chaînes de caractères qui nomment les distributions. Elles
+     consistent en le nom du projet, des spécifications optionnelles de version
+     et d'autres spécifications optionnelles. Les ``extras`` sont des noms de
+     fonctionnalités d'un paquet pouvant avoir des dépendances spéciales.
+
+- Serveurs d'index et de liens
+
+  ``easy_install`` et ``zc.buildout`` téléchargent automatiquement des distributions
+  depuis l'internet. Lorsqu'ils cherchent des distributions, ils peuvent chercher des
+  serveurs de liens pour trouver des liens vers des distributions.
+
+  Ils cherchent également sur un serveur unique, typiquement (toujours)
+  http://www.python.org/pypi. Les serveurs d'index sont nécessaires à la fourniture d'une
+  interface web spécifique.
+
+Points d'entrée
+===============
+
+- Très similaires à des utilitaires
+
+  - Des groupes nommés de points d'entrée définissent des types de point d'entrée
+
+  - Des points d'entrée nommés à l'intérieur d'un groupe fournissent des composants nommés
+    d'un type donné.
+
+- Permet la génération automatique de script
+
+  Script englobant :
+
+  - Définit les chemins
+
+    .. class:: handout
+
+       ``easy_install`` et ``zc.buildout`` ont une approche très différente de ceci.
+
+       ``easy_install`` génère des scripts qui font appel à une API qui charge des eggs
+       dynamiquement pendant le fonctionnement.
+
+       ``zc.buildout`` détermine au moment de la construction les eggs nécessaires et
+       génère du code dans les scripts pour ajouter explicitement ces eggs à ``sys.path``.
+
+       L'approche de ``zc,buildout`` est destinée à rendre déterministe l'exécution de script
+       et moins sujette à des mises à jours accidentelles.
+
+  - Importe les points d'entrée
+
+  - Appelle un point d'entrée sans argument
+
+    .. class:: handout
+
+       Buildout permet plus de contrôle sur la génération de script.
+       Le code d'initialisation et les arguments des points d'entrée peuvent être précisés. 
+
+
+Survol de Buildout
+==================
+
+- Dirigé par une configuration
+
+  - ConfigParser légèrement étendu
+
+    .. class:: handout
+
+       Buildout utilise le format brut de ConfigParser, étendu avec une syntaxe de
+       substitution de variables qui permet la référence vers des variables
+       par section et option::
+
+          ${sectionname:optionname}
+
+  - Permet à un système entier d'être défini avec un simple fichier
+
+    .. class:: handout
+
+       Cela-dit, il est possible et courant de factoriser ceci dans des fichiers multiples. 
+
+- spécifie un ensemble de ``parts``
+
+  - une recette (« recipe »)
+ 
+  - données de configuration
+
+  .. class:: handout
+  
+     Chaque part est définie par une recette (« recipe »), qui est un programme Python
+     permettant d'installer ou de désinstaller la part, ainsi que des données utilisées
+     par la recette.
+
+- Installation et désinstallation
+
+  .. class:: handout
+
+     Si une part est retirée d'une spécification, elle est désinstallée.
+
+     Si la recette ou la configuration d'une part est modifiée, elle est désinstallée et réinstallée.
+     
+
+survol de Buildout (suite)
+==========================
+
+- Recettes (« recipes »)
+
+  - Écrites en python
+
+  - Distribuées comme des eggs
+
+- Prise en charge des Eggs
+
+  - Eggs en développement
+
+  - Recettes de prise en charge des Eggs
+
+Brève introduction
+==================
+
+- Cas le plus courant
+
+  - Travail sur un paquet
+
+  - Vouloir faire marcher des tests
+
+  - Vouloir générer des distributions
+
+- buildout est le projet source
+
+- Exemple : ``zope.event``
+
+Fichiers du projet ``zope.event``
+=================================
+
+- sources dans le répertoire ``src``
+
+  .. class:: handout
+
+     Une convention habituelle est de placer les sources dans un répertoire
+     séparé ``src``. Ceci viole la règle «  mieux vaut peu profond qu'imbriqué ».
+     Des projets plus petits peuvent trouver avantageux de mettre les sources dans
+     le répertoire racine,
+
+- ``setup.py`` pour définir l'egg
+
+  .. class:: handout
+
+    En supposant que le projet va effectivement produire un egg, nous avons un fichier de
+    setup pour le projet. Comme on le verra plus tard, ceci peut être le strict minimum pour
+    démarrer.
+
+- ``README.txt``
+
+  .. class:: handout
+
+     On place par convention un fichier README.txt à la racine du projet.
+     distutils a l'habitude de se plaindre s'il n'est pas disponible.
+  
+- ``bootstrap.py`` pour amorcer le buildout
+
+  .. class:: handout
+
+     Le script d'amorçage facilite l'installation du buildout. Nous verrons
+     plus loin un autre moyen de faire ceci.
+
+- ``buildout.cfg`` donne la définition du buildout
+
+buildout.cfg pour zope.event
+============================
+
+::
+  
+  [buildout]
+  parts = test
+  develop = .
+
+  [test]
+  recipe = zc.recipe.testrunner
+  eggs = zope.event
+
+.. class:: handout
+
+   Voyons ceci ligne par ligne.
+
+   ::
+
+     [buildout]
+
+   définit la section buildout. C'est la seule section obligatoire du
+   fichier de configuration. Ce sont les options de cette section qui
+   permettent aux autres sections d'être utilisées.
+
+   ::
+
+     parts = test
+
+   Chaque buildout doit définir obligatoirement une liste de ``parts``, mais
+   cette liste peut être vide. La liste indique ce qui doit être construit. 
+   Si l'une des parts de la liste dépend d'autre parts, les autres parts
+   seront elles-aussi construites.
+
+   ::
+
+     develop = .
+
+   L'option develop est utilisée pour définir un ou plusieurs répertoires
+   à partir desquels on va créer des eggs en développement. Dans le cas présent,
+   on indique qu'il faut utiliser le répertoire courant. Chacun de ces répertoires
+   doit posséder un fichier de setup.
+
+   ::
+
+     [test]
+
+   La section ``test`` est utilisée pour définir notre part servant aux tests.
+
+   ::
+
+     recipe = zc.recipe.testrunner
+
+   chaque définition de part doit donner une recette.  La recette
+   contient le code Python avec la logique d'installation de la part. Une
+   spécification de recette est une 'exigence' de distribution. L'exigence
+   peut être suivie d'une virgule ou d'un nom de recette. Les eggs de recette
+   peuvent contenir plusieurs recettes et peuvent définir une recette par défaut.
+   
+   L'egg ``zc.recipe.testrunner`` définit une recette par défaut qui crée un
+   lanceur de tests en utilisant le framework ``zope.testing.testrunner``.
+
+   ::
+
+     eggs = zope.event
+
+   La recette zc.recipe.testrunnner possède une option ``eggs`` pour indiquer
+   quels eggs doivent être testés. Le script de test généré chargera ces eggs
+   ainsi que leurs dépendances.
+
+   Pour obtenir des détails sur la recette ``zc.recipe.testrunner``, consultez
+   la page http://www.python.org/pypi/zc.recipe.testrunner.
+
+Étapes du Buildout
+==================
+
+- Amorçage du buildout::
+
+    python bootstrap.py
+
+  .. class:: handout
+
+       Ceci installe setuptools et zc.buildout de manière locale, dans votre
+       buildout, et évite de modifier vos paquets systèmes.
+
+- Lancement du buildout::
+
+    bin/buildout
+
+  .. class:: handout
+
+       Ceci génère le script pour les tests, ``bin/test``.
+
+- Lancement des tests::
+
+    bin/test
+
+- Génération d'une distribution::
+
+    bin/buildout setup . sdist register upload
+    bin/buildout setup . bdist_egg register upload
+
+  ::
+
+    bin/buildout setup . egg_info -rbdev sdist register upload
+
+  .. class:: handout
+
+     Buildout accepte plusieurs commandes. L'une d'entre elles est
+     ``setup``.  La commande ``setup`` prend un nom de répertoire et
+     lance le script de setup trouvé à cet endroit. Il fait en sorte 
+     d'importer setuptools avant le lancement du script. Ceci permet aux
+     commandes définies par setuptools de fonctionner même pour les 
+     distributions qui n'utilisent pas setuptools.
+
+     Les commandes sdist, register, upload, bdist_egg et egg_info sont
+     des commandes définies par setuptools et distutils.
+
+     La commande sdist crée une distribution source.
+
+     La commande register inscrit une publication sur PyPI
+     et la commande upload y téléverse la distribution générée.
+     Vous devez posséder un compte sur PyPI pour effectuer ces actions,
+     mais ces commandes vous aideront à paramétrer un compte.
+
+     La commande bdist_egg génère un egg.
+
+     La commande egg_info permet de contrôler les meta-données de l'egg.
+     L'option -r de la commande egg_info permet d'inclure le numéro de
+     révision SVN du projet dans le numéro de version de la distribution.
+     L'option -b précise un tag de révision. Ici on a spécifié un tag de
+     révision « dev » qui marque la publication comme une publication de 
+     développement.
+
+Exercice 1
+==========
+
+.. class:: handout
+
+   Nous n'aurons pas le temps d'interrompre la présentation pendant que
+   vous faites les exercices. Si vous pouvez jouer et écouter en même temps,
+   vous pouvez essayer de les faire pendant que je parle. Sinon je vous
+   recommande de les faire plus tard dans la semaine. N'hésitez pas à poser
+   des questions si vous avez des problèmes.
+
+On essaye le buildout de ``zope.event``
+
+- D'abord on extrait : svn://svn.zope.org/repos/main/zope.event/trunk
+
+- Amorçage
+
+- Lancement du buildout
+
+- Lancement des tests
+
+- Regardez autour du buildout pour voir comment les choses sont arrangées.
+
+- Jetez un oeil aux scripts du répertoire bin.
+
+Organisation du buildout
+========================
+
+- répertoire ``bin`` pour les scripts générés
+
+- répertoire ``parts`` pour les données générées des parts
+
+  Peu de parts l'utilisent.
+
+- répertoire ``eggs`` pour la plupart des eggs installés
+
+  - Peut être partagé entre plusieurs buildouts.
+
+- ``develop-eggs`` directory
+
+  - liens pour les eggs en développement
+
+  - eggs personnalisés
+
+- ``.installed.cfg`` enregistre ce qui a été installé
+
+.. class:: handout
+
+   Certaines personnes trouvent l'organisation du buildout surprenant, car elle 
+   n'est pas semblable à l'organisation des répertoires d'un système unix. Cette
+   organisation a été guidée par la règle « Mieux vaut plat qu'imbriqué ».
+   ("Shallow is better than nested")
+
+   Si vous préférez un arrangement différent, vous pouvez en spécifier un autre
+   avec des options de buildout. Vous pouvez régler ces options de manière globale
+   de façon que tous vos buildouts aient la même organisation.
+
+Cas d'utilisation courants de buildout
+======================================
+
+- Travail sur un paquet unique
+
+  .. class:: handout
+
+     zope.event est un exemple de ce cas d'utilisation.
+
+- Assemblage de système
+
+- Essai sur des nouveaux paquets
+
+  - workingenv est généralement mieux pour ça
+
+  - buildout est préférable lorsque des options de construction
+    personnalisées sont nécessaires
+
+- Installation de scripts sous forme d'eggs pour usage personnel
+
+  le répertoire ``~/bin`` est un buildout
+
+Création d'eggs
+===============
+
+Trois niveaux de développement d'egg
+
+- Eggs en développement, un point de départ minimal
+
+- Ajout de données nécessaires à la distribution
+
+- Distributions soignées
+
+Un ``setup.py`` minimal ou de développement
+===========================================
+
+::
+
+   from setuptools import setup
+   setup(
+       name='foo',
+       package_dir = {'':'src'},
+       )
+
+.. class:: handout
+
+   Si un paquet ne doit être utilisé que comme un egg en développement,
+   on a juste besoin de donner le nom de projet et, s'il y a un répertoire
+   séparé pour les sources, l'emplacement de ce répertoire.
+
+   Il faudrait aussi préciser les points d'entrée le cas échéant. Nous verrons
+   ceci dans un exemple plus tard.
+
+   Consultez la doc de setuptools et de distutils pour avoir plus d'infos.
+
+``setup.py`` distribuable
+=========================
+
+::
+
+  from setuptools import setup, find_packages
+  name='zope.event'
+  setup(
+      name=name,
+      version='3.3.0',
+      url='http://www.python.org/pypi/'+name,
+      author='Zope Corporation and Contributors',
+      author_email='zope3-dev@zope.org',
+      package_dir = {'': 'src'},
+      packages=find_packages('src'),
+      namespace_packages=['zope',],
+      include_package_data = True,
+      install_requires=['setuptools'],
+      zip_safe = False,
+      )
+
+.. class:: handout
+
+   Si on veut être capable de créer une distribution, il faut ajouter beaucoup
+   plus d'informations.
+
+   Les options utilisées sont expliquées dans la documentation de distutils ou
+   de setuptools. La plupart sont relativement évidentes.
+
+   On doit spécifier les paquets python utilisés. La fonction ``find_packages``
+   peut faire ce boulot à notre place, bien que c'est souvent assez facile de
+   le faire soi-même. Par exemple on pourrait avoir spécifié ::
+
+      packages=['zope', 'zope.event'],
+
+   Le paquet zope est un paquet correspondant à un espace de nom. Cela signifie
+   qu'il n'existe qu'en tant que conteneur pour d'autre paquets. Il ne contient
+   aucun fichier ni module en soi. Il contient seulement un module  `__init__`
+   avec::
+
+     pkg_resources.declare_namespace(__name__)
+
+   ou, peut-être ::
+
+     # this is a namespace package
+     try:
+         import pkg_resources
+         pkg_resources.declare_namespace(__name__)
+     except ImportError:
+         import pkgutil
+         __path__ = pkgutil.extend_path(__path__, __name__)
+
+   Les paquets d'espace de nom doivent être déclarés, comme on l'a fait ici.
+  
+   Nous avons toujours intérêt à inclure les données du paquet.
+
+   Comme le module `__init__` utilise setuptools, on le déclare comme dépendance,
+   en utilisant ``install_requires``.
+
+   On a aussi intérêt à préciser si le paquet est « zip safe ».
+   Un paquet « zip safe » ne tente pas d'accéder au paquet comme à un répertoire.
+   Dans le doute, mettez False. Si vous ne spécifiez rien, setuptools jouera aux
+   devinettes.
+
+``setup.py`` soigné (1/3)
+===========================
+
+::
+
+  import os
+  from setuptools import setup, find_packages
+
+  def read(*rnames):
+      return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+
+  long_description=(
+          read('README.txt')
+          + '\n' +
+          'Detailed Documentation\n'
+          '**********************\n'
+          + '\n' +
+          read('src', 'zope', 'event', 'README.txt')
+          + '\n' +
+          'Download\n'
+          '**********************\n'
+          )
+
+  open('documentation.txt', 'w').write(long_description)
+
+.. class:: handout
+
+Dans la version soignée, on étoffe un peu plus les meta-données.
+
+Quand je crée une distribution que je considère prête à être utilisée par
+plus de monde et que je la téléverse sur PyPI, j'aime bien inclure la
+documentation complète dans la description longue de façon que PyPI puisse
+la présenter.
+
+``setup.py`` soigné (2/3)
+===========================
+
+::
+
+  name='zope.event'
+  setup(
+      name=name,
+      version='3.3.0',
+      url='http://www.python.org/pypi/'+name,
+      license='ZPL 2.1',
+      description='Zope Event Publication',
+      author='Zope Corporation and Contributors',
+      author_email='zope3-dev@zope.org',
+      long_description=long_description,
+
+      packages=find_packages('src'),
+      package_dir = {'': 'src'},
+      namespace_packages=['zope',],
+      include_package_data = True,
+      install_requires=['setuptools'],
+      zip_safe = False,
+      )
+
+Extras
+======
+
+::
+
+  name = 'zope.component'
+  setup(name=name,
+        ...
+        namespace_packages=['zope',],
+        install_requires=['zope.deprecation', 'zope.interface',
+                          'zope.deferredimport', 'zope.event',
+                          'setuptools', ],
+        extras_require = dict(
+            service = ['zope.exceptions'],
+            zcml = ['zope.configuration', 'zope.security', 'zope.proxy',
+                    'zope.i18nmessageid',
+                    ],
+            test = ['zope.testing', 'ZODB3',
+                    'zope.configuration', 'zope.security', 'zope.proxy',
+                    'zope.i18nmessageid',
+                    'zope.location', # should be depenency of zope.security
+                    ],
+            hook = ['zope.hookable'],
+            persistentregistry = ['ZODB3'],
+            ),
+        )
+
+
+.. class:: handout
+
+   Les extras fournissent un moyen d'aider à la gestion des dépendances.
+
+   Une utilisation courante des extras est de séparer les dépendances des
+   tests des dépendances normales. Un paquet peut fournir des fonctionnalités
+   optionnelles qui créent des dépendances supplémentaires. Par exemple, le
+   module zcml de zope.component ajoute de nombreuses dépendances qu'on ne
+   veut pas imposer aux gens qui ne les utilisent pas.
+
+``zc.recipe.egg``
+=================
+
+Un ensemble de recettes pour:
+
+- installer des eggs
+
+- générer des scripts
+
+- compiler des eggs personnalisés
+
+- des interpréteurs personnalisés
+
+Consultez : http://www.python.org/pypi/zc.recipe.egg.
+
+Installation d'eggs
+===================
+
+::
+
+  [buildout]
+  parts = some-eggs
+
+  [some-eggs]
+  recipe = zc.recipe.egg:eggs
+  eggs = docutils
+         ZODB3 <=3.8
+         zope.event
+
+.. class:: handout
+
+   L'option eggs accepte une ou plusieurs exigences de distribution.
+   Comme les exigences peuvent contenir des espaces, on les place sur des
+   lignes séparées. Ici, on a utilisé l'option egg pour spécifier les eggs
+   qu'on veut.
+
+   Toutes les dépendances des eggs nommés seront également installées.
+
+
+Installation de scripts
+=======================
+
+::
+
+  [buildout]
+  parts = rst2
+
+  [rst2]
+  recipe = zc.recipe.egg:scripts
+  eggs = zc.rst2
+
+.. class:: handout
+
+   Si l'un des eggs nommés possède un point d'entrée ``console_script``,
+   les scripts seront générés à partir des points d'entrée.
+
+   Si une distribution n'utilise pas setuptools, elle peut ne pas déclarer
+   ses points d'entrée. Dans ce cas, vous pouvez spécifier les points d'entrée
+   dans les données de la recette.
+  
+Initialisation des scripts
+==========================
+
+::
+
+  [buildout]
+  develop = codeblock
+  parts = rst2
+  find-links = http://sourceforge.net/project/showfiles.php?group_id=45693
+
+  [rst2]
+  recipe = zc.recipe.egg
+  eggs = zc.rst2 
+         codeblock
+  initialization = 
+      sys.argv[1:1] = (
+        's5 '
+        '--stylesheet ${buildout:directory}/zope/docutils.css '
+        '--theme-url file://${buildout:directory}/zope' 
+        ).split()
+  scripts = rst2=s5
+
+.. class:: handout
+
+   Dans cet exemple, on a omis le nom du point d'entrée de la recette car
+   la recette de scripts est la recette par défaut pour l'egg zc.recipe.egg.
+
+   L'option d'initialisation nous permet de spécifier du code python à inclure.
+
+   Avec l'option 'scripts' on peut contrôler quels scripts sont installés et 
+   quels sont leur nom. Dans cet exemple, on a utilisé l'option 'scripts' pour
+   demander un script nommé ``s5`` depuis le point d'entrée ``rst2``.
+
+Interpréteurs personnalisés
+===========================
+
+La recette 'script' permet de créer un script interpréteur.
+
+::
+
+  [buildout]
+  parts = mypy
+
+  [mypy]
+  recipe = zc.recipe.egg:script
+  eggs = zope.component
+  interpreter = py
+
+Ceci entraînera la création d'un script ``bin/py``.
+
+.. class:: handout
+
+   Les interpréteurs personnalisés peuvent être utilisés pour obtenir
+   une invite python avec les eggs spécifiés et leurs dépendances dans
+   le ``sys.path``.
+   
+   Vous pouvez aussi utiliser des interpréteurs personnalisés pour lancer
+   des scripts, comme vous feriez avec l'interpréteur python habituel. Il
+   suffit d'appeler l'interpréteur avec le chemin du script et ses arguments.
+
+Exercice 2
+==========
+
+- ajoutez une part au projet ``zope.event`` pour créer un interpréteur personnalisé.
+
+- Démarrez l'interpréteur et vérifiez que vous pouvez importer zope.event.
+
+Construction d'egg personnalisé
+===============================
+
+::
+
+  [buildout]
+  parts = spreadmodule
+
+  [spreadtoolkit]
+  recipe = zc.recipe.cmmi
+  url = http://yum.zope.com/buildout/spread-src-3.17.1.tar.gz
+
+  [spreadmodule]
+  recipe = zc.recipe.egg:custom
+  egg = SpreadModule ==1.4
+  find-links = http://www.python.org/other/spread/
+  include-dirs = ${spreadtoolkit:location}/include
+  library-dirs = ${spreadtoolkit:location}/lib
+  rpath = ${spreadtoolkit:location}/lib
+
+.. class:: handout
+
+   Parfois une distribution a des modules d'extension qui ont besoin
+   d'être compilés avec des options spéciales, comme l'emplacement des
+   fichiers et des bibliothèques d'inclusion. La recette personnalisée
+   prend ceci en charge. Les eggs résultants sont placés dans le répertoire
+   develop-eggs car les eggs sont spécifiques au buildout.
+
+   Cet exemple illustre l'utilisation de la recette zc.recipe.cmmi qui autorise
+   l'installation de programmes qui utilisent configure, make, make install.
+   Ici, nous avons utilisé cette recette pour installer la boîte à outils Spread,
+   qui est installée dans le répertoire ``parts``
+
+Dépendances d'une part
+======================
+
+- Les parts peuvent lire de la configuration dans d'autres parts
+
+- Les part lues deviennent des dépendances des parts qui lisent
+
+  - Des dépendances sont ajoutées à la liste des parts si nécessaire
+
+  - Les dépendaces sont installées en premier
+
+
+.. class:: handout
+
+   Dans l'exemple précédent, on a utilisé l'emplacement de ``spreadtoolkit``
+   dans la définition de la part ``spreadmodule``. Cette référence est
+   suffisante pour que ``spreadtoolkit`` deviennent une dépendance de la
+   part ``spreadmodule`` et soit installé en premier.
+
+Personnalisation des Eggs en développement
+==========================================
+
+::
+
+  [buildout]
+  parts = zodb
+
+  [zodb]
+  recipe = zc.recipe.egg:develop
+  setup = zodb
+  define = ZODB_64BIT_INTS
+
+.. class:: handout
+
+   On peut également préciser des options de construction personnalisées
+   pour les eggs en développement. Ici on a utilisé un egg en développement
+   uniquement pour être sûr que notre construction personnalisé de la ZODB
+   soit prioritaire devant les eggs normaux de la ZODB situés dans le dossier
+   des eggs partagés.
+
+Écriture de recettes
+====================
+
+- L'API des recettes
+
+  - install
+
+    - __init__
+
+      .. class:: handout
+
+         L'initialisateur est responsable du calcul des options d'une part
+         Après son appel, le répertoire d'options doit refléter toute la
+         configuration d'une part. En particulier, si une recette lit
+         des données depuis d'autres sections, ceci doit se retrouver
+         dans les options. Les données des options sont utilisées après
+         l'appel de l'initialisateur pour déterminer si une configuration
+         a changé afin de savoir si une part doit être réinstallée.
+         Une part est désinstallée avant d'être réinstallée.
+      
+    - install
+
+      .. class:: handout
+
+         Cette méthode installe une part. Elle est utilisée quand une part
+         est ajoutée à un buildout ou quand une part est réinstallée.
+
+         La recette d'installation doit renvoyer une séquence de chemins
+         qui doivent être supprimés quand la part est désinstallée. La plupart
+         des recettes se contentent de créer des fichiers ou des répertoires
+         et leur suppression est suffisante pour désinstaller la part.
+
+    - update
+
+      .. class:: handout
+
+         Cette méthode est utilisée quand une part est déjà installée et
+         quand sa configuration n'a pas changé depuis le buildout précédent.
+         Elle doit renvoyer ``None`` ou une séquence de chemins. Si des chemins
+         sont renvoyés, ils sont ajoutés aux chemins déjà installés.
+
+  - uninstall
+
+    .. class:: handout
+
+       La plupart des recettes ne font que créer des fichiers ou des
+       répertoires et la procédure de désinstallation intégrée à buildout
+       doit etre suffisante. Si une recette fait plus de choses, il est
+       possible qu'une recette de désinstallation soit nécessaire.
+
+Recettes d'installation
+=======================
+
+``mkdirrecipe``.py:
+
+::
+
+  import logging, os, zc.buildout
+
+  class Mkdir:
+
+      def __init__(self, buildout, name, options):
+          self.name, self.options = name, options
+          options['path'] = os.path.join(
+                                buildout['buildout']['directory'],
+                                options['path'],
+                                )
+          if not os.path.isdir(os.path.dirname(options['path'])):
+              logging.getLogger(self.name).error(
+                  'Cannot create %s. %s is not a directory.',
+                  options['path'], os.path.dirname(options['path']))
+              raise zc.buildout.UserError('Invalid Path')
+
+.. class:: handout
+
+   - L'option ``path`` dans notre recette est interprétée de manière relative
+     au buildout. On reflète ceci en sauvant le chemin modifié dans les
+     options.
+
+   - Si une erreur d'utilisateur survient:
+
+     - On enregistre le détail de l'erreur avec le module logger de Python.
+
+     - On déclenche une exception zc.buildout.UserError.
+
+suite de ``mkdirrecipe``.py
+===========================
+
+  ::
+
+        def install(self):
+            path = self.options['path']
+            logging.getLogger(self.name).info(
+                'Creating directory %s', os.path.basename(path))
+            os.mkdir(path)
+            return path
+
+        def update(self):
+            pass
+
+.. class:: handout
+
+   Une recette bien écrite enregistre ce qu'elle fait.
+
+   La méthode update est souvent vide, comme ici.
+
+Recettes de désinstallation
+===========================
+
+``servicerecipe.py``:
+
+::
+
+   import os
+
+   class Service:
+   
+       def __init__(self, buildout, name, options):
+           self.options = options
+   
+       def install(self):
+           os.system("chkconfig --add %s" % self.options['script'])         
+           return ()
+   
+       def update(self):
+           pass
+   
+   def uninstall_service(name, options):
+       os.system("chkconfig --del %s" % options['script'])
+
+.. class:: handout
+
+   Les recettes de désinstallation sont des objets pouvant être appelés
+   et à qui l'ont transmet le nom de la part et les **options d'origine**.
+
+Points d'entrée de Buildout
+===========================
+
+``setup.py``:
+
+::
+
+   from setuptools import setup
+
+   entry_points = """
+   [zc.buildout]
+   mkdir = mkdirrecipe:Mkdir
+   service = servicerecipe:Service
+   default = mkdirrecipe:Mkdir
+
+   [zc.buildout.uninstall]
+   service = servicerecipe:uninstall_service
+   """
+
+   setup(name='recipes', entry_points=entry_points)
+   
+Exercice 3
+==========
+
+- Écrivez une recette qui crée un fichier depuis la source donnée dans une
+  option de configuration.
+
+- Essayez ceci dans un buildout, soit en créant un nouveau buildout ou par une
+  extension du buildout de ``zope.event``.
+
+Options de la ligne de commande
+===============================
+
+Ligne de commande buildout :
+
+- Options de la ligne de commande et paramètres d'options
+
+- commande et arguments
+
+::
+
+  bin/buildout -U -c rpm.cfg install zrs
+
+.. class:: handout
+
+   Les paramètres d'option sont de la forme suivante::
+
+     section:option=value
+
+   Une option qu'on peut définir dans le fichier de configuration peut toujours
+   être définie depuis la ligne de commandes. Les paramètres d'option précisés
+   sur la ligne de commande sont prioritaires par rapport à celles des fichiers
+   de configuration.
+
+   Il existe quelques options en ligne de commande, comme -c pour spécifier un 
+   fichier de configuration ou -U pour désactiver la lecture des réglages par
+   défaut de l'utilisateur.
+
+   Consultez la documentation de buildout ou utilisez l'option -h pour obtenir
+   une liste des options disponibles.
+
+Modes de Buildout
+=================
+
+- newest
+
+  - le mode par défaut essaie toujours d'obtenir les versions les plus récentes
+
+  - Peut être désactivé avec l'option -N ou avec l'option ``newest`` de buildout
+    réglée sur ``false``.
+
+- offline
+
+  - Si activé, les accès réseau ne sont pas tentés
+
+  - Désactivé par défaut
+
+  - Peut être désactivé avec l'option -o ou avec l'option ``offline`` de buildout
+    réglée sur ``false``.
+
+.. class:: handout
+
+   Par défaut, buildout essaie toujours de trouver les distributions les plus
+   récentes qui satisfassent les exigences. La recherche de nouvelles 
+   distributions peut prendre beaucoup de temps. De nombreuses personnes 
+   auront intérêt à utiliser l'option -N pour désactiver cette recherche.
+   On verra plus loin comment modifier ce comportement par défaut.
+
+   Si vous n'êtes pas connecté à un réseau, vous avez intérêt à utiliser le
+   mode offline, -o.
+
+``~/.buildout/default.cfg``
+===========================
+
+Fournit des réglages par défaut pour buildout (à moins que l'option -U soit activée) :
+
+::
+
+    [buildout]
+    # Shared eggs directory:
+    eggs-directory = /home/jim/.eggs
+    # Newest mode off, reenable with -n
+    newst = false
+
+    [python24]
+    executabe = /usr/local/python/2.4/bin/python
+
+    [python25]
+    executabe = /usr/local/python/2.5/bin/python
+
+.. class:: handout
+
+   À moins que l'option -U ne soit utilisée sur la ligne de commande,
+   les réglages par défaut de l'utilisateur sont lus avant les fichiers
+   classiques de configuration. Ces réglages par défaut sont lus dans le
+   fichier default.cfg du sous-répertoire .buildout du répertoire donné
+   par la variable d'environnement HOME si elle existe.
+
+   Dans cet exemple :
+
+   - J'ai défini un répertoire pour les eggs partagés.
+
+   - J'ai modifié le mode par défaut à non-newest de façon que buildout
+     ne recherche pas de nouvelle distribution si celles qu'il trouve lui
+     suffisent (vis à vis des exigences). Pour obtenir les distributions les
+     plus récentes, j'aurais dû utiliser l'option -n..
+
+   - J'ai spécifié des sections Python 2.4 et 2.5 qui donnent l'emplacement
+     des interpréteurs python. Il peut arriver qu'un buildout utilise plusieurs
+     versions de python. La plupart des recettes acceptent une option python
+     qui donne le nom d'une section possédant elle-même une option ``executable``
+     qui donne l'emplacement d'un interpréteur python.
+
+Extension des configurations
+============================
+
+L'option ``extends`` permet à un fichier de configuration d'en étendre un autre
+
+Par exemple :
+
+- ``base.cfg`` possède des définitions et des réglages courants
+
+- ``dev.cfg`` ajoute des options utiles pendant le développement::
+
+   [buildout]
+   extends = base.cfg
+
+   ...
+
+- ``rpm.cfg`` possède des options pour générer des paquets RPM à partir d'un
+  buildout.
+
+Amorçage depuis un buildout existant
+====================================
+
+- Le script buildout possède une commande ``bootstrap``
+
+- Elle peut être utilisée pour amorcer n'importe quel répertoire.
+
+- Beaucoup plus rapide que de lancer ``bootstrap.py`` car elle peut utiliser
+  un egg ``setuptools`` déjà installé.
+
+Exemple : répertoire ~/bin
+==========================
+
+::
+
+  [buildout]
+  parts = rst2 buildout24 buildout25
+  bin-directory = .
+
+  [rst2]
+  recipe = zc.recipe.egg
+  eggs = zc.rst2
+
+  [buildout24]
+  recipe = zc.recipe.egg
+  eggs = zc.buildout
+  scripts = buildout=buildout24
+  python = python24
+
+  [buildout25]
+  recipe = zc.recipe.egg
+  eggs = zc.buildout
+  scripts = buildout=buildout25
+  python = python25
+
+
+.. class:: handout
+
+   De nombreuses personnes ont un répertoire de scripts personnel.
+
+   J'ai converti le mien en buildout en utilisant une configuration de buildout
+   qui ressemble à celle ci-dessus.
+
+   J'ai surchargé l'emplacement pour ``bin-directory`` de façon que les scripts
+   soient installés directement dans le répertoire du buildout.
+
+   J'ai précisé que je veux que la distribution zc.rst2 soit installée.
+   La distribution rst2 dispose d'une version généralisée des scripts de
+   traitement du « restructured text » sous une forme qui peut être installée
+   par buildout (ou easy_install).
+
+   J'ai précisé que je veux avoir les scripts de buildout pour Python 2.4 et
+   2.5. (Dans mon buildout, j'en crée aussi un pour Python 2.3). Ces scripts de
+   buildout me permettent d'amorcer rapidement des buildouts ou de lancer des
+   fichiers de setup pour une version donnée de python.  Par exemple, pour
+   amorcer un buildout avec python 2.4, je lance::
+
+     buildout24 bootstrap
+
+   dans le répertoire contenant le buildout. Ceci peut aussi être utilisé pour
+   convertir un répertoire en buildout, en créant le fichier buildout.cfg s'il
+   n'existe pas.
+
+Exemple: zc.sharing (1/2)
+=========================
+
+::
+
+  [buildout]
+  develop = . zc.security 
+  parts = instance test
+  find-links = http://download.zope.org/distribution/
+
+  [instance]
+  recipe = zc.recipe.zope3instance
+  database = data
+  user = jim:123
+  eggs = zc.sharing
+  zcml = 
+    zc.resourcelibrary zc.resourcelibrary-meta
+    zc.sharing-overrides:configure.zcml zc.sharing-meta
+    zc.sharing:privs.zcml zc.sharing:zope.manager-admin.zcml
+    zc.security zc.table zope.app.securitypolicy-meta zope.app.twisted
+    zope.app.authentication
+
+.. class:: handout
+
+   C'est un court exemple du cas d'utilisation « assemblage de système ». Dans
+   ce cas, on définit une instance Zope 3 et un script de test.
+
+   Vous pouvez ignorer en grande partie les détails de la recette pour
+   l'instance Zope 3. Si vous n'êtes pas un utilisateur de Zope, vous n'avez
+   pas besoin de les connaître. Si vous êtes utilisateur de Zope, vous devez
+   savoir que de bien meilleures recettes sont développées. 
+
+   Ce projet utilise plusieurs répertoire sources, le répertoire courant et le
+   répertoire zc.security qui est une référence subversion externe vers un
+   projet n'ayant pas sa propre distribution. Les deux ont été listées dans
+   l'option ``develop``.
+
+   On a demandé les parts ``instance`` et ``test``. Des parts supplémentaires
+   seront installées à cause des dépendances de la part ``instance``. En 
+   particulier, on va obtenir un checkout de Zope3 parce que la recette
+   ``instance`` fait référence à la part ``zope3``. On va obtenir une part
+   ``database`` à cause de la référence de la recette ``instance`` dans l'option
+   ``database``.
+
+   Le buildout va chercher des distributionsn à l'adresse
+   http://download.zope.org/distribution/. 
+
+Exemple: zc.sharing (2/2)
+=========================
+
+::
+
+  [zope3]
+  recipe = zc.recipe.zope3checkout
+  url = svn://svn.zope.org/repos/main/Zope3/branches/3.3
+
+  [data]
+  recipe = zc.recipe.filestorage
+
+  [test]
+  recipe = zc.recipe.testrunner
+  defaults = ['--tests-pattern', 'f?tests$']
+  eggs = zc.sharing 
+         zc.security
+  extra-paths = ${zope3:location}/src
+
+.. class:: handout
+
+   Ici on peut voir la définition des parts restantes.
+
+   La part ``test`` possède des options qu'on n'a pas encore vues.
+
+   - On a personnalisé la façon dont le lanceur de tests trouve les tests
+     en lui fournissant des arguments par défaut.
+
+   - On a utilisé l'option ``extra-paths`` pour indiquer au lanceur de tests
+     d'inclure le répertoire source du checkout de Zope 3  dans sys.path.
+     Ce n'est plus nécessaire puisque Zope 3 est maintenant disponible 
+     entièrement sous forme d'eggs.
+
+Source ou Binaire
+=================
+
+- Les distributions binaires sont spécifiques à une version de python et
+  à une plateforme.
+
+- Les distributions spécifiques à une plateforme peuvent comporter des réglages
+  issus de la construction mais non présents dans la spécification de l'egg.
+
+  - taille d'Unicode
+
+  - Emplacement et nom des bibliothèques
+
+- Les distributions sources sont plus souples
+
+- Les eggs binaires peuvent devenir moisis si les bibliothèques systèmes
+  sont modifiées
+
+  .. class:: handout
+
+     Récemment, j'ai dû supprimer des eggs de mon répertoire d'eggs partagés.
+     J'avais installé une mise à jour du système d'exploitation qui a causé
+     des changements dans le nom des fichiers de la bibliothèque open-ssl.
+     Les eggs construits en utilisant la bibliothèque précédente ne 
+     fonctionnaient plus. 
+
+
+Expériences avec RPM
+====================
+
+Travaux initiaux de création de RPMs pour le déploiement dans nos 
+environnements d'hébergement:
+
+- Séparation du logiciel et de sa configuration
+
+- Utilisation de Buildout pour créer des rpm contenant des programmes
+
+- Plus tard, le buildout installé est utilisé pour établir des procédures 
+  spécifiques
+
+  - Fonctionne en tant que root en mode hors-ligne
+
+  - Utilise un serveur de configuration réseau
+
+.. class:: handout
+
+   Notre philosophie est de séparer le logiciel et sa configuration.  On
+   installe des programmes avec RPM. Ensuite on configure l'utilisation de ces
+   programmes à l'aide d'une base de donnée centralisée de configuration.
+
+   Je vais brièvement présenter la procédure de construction RPM plus bas.
+   Le côté intéressant est que ça illustre certains problèmes.
+
+
+fichier de spec pour ZRS (1/3)
+==============================
+
+::
+
+  %define python zpython
+  %define svn_url svn+ssh://svn.zope.com/repos/main/ZRS-buildout/trunk
+  requires: zpython
+  Name: zrs15
+  Version: 1.5.1
+  Release: 1
+  Summary: Zope Replication Service
+  URL: http://www.zope.com/products/zope_replication_services.html
+
+  Copyright: ZVSL
+  Vendor: Zope Corporation
+  Packager: Zope Corporation <sales@zope.com>
+  Buildroot: /tmp/buildroot
+  Prefix: /opt
+  Group: Applications/Database
+  AutoReqProv: no
+
+.. class:: handout
+
+   La plupart des options ci-dessus sont plus ou moins brutes de décoffrage.
+
+   On indique le Python qu'on va utiliser comme dépendance. On construit nos
+   RPMs python de façon à contrôler ce qu'ils contiennent. Les mainteneurs
+   de paquets systèmes on tendance à être trop créatifs pour nous.
+
+   Habituellement, pendant la construction, RPM installe les fichiers dans 
+   leur emplacement réel de fonctionnement. Ceci n'est pas acceptable pour de
+   nombreuses raisons. J'ai ici utilisé le mécanisme build-root de RPM pour
+   que les fichiers soient construits dans une arborescence temporaire..
+
+   Comme l'emplacement de la construction est différent de l'installation
+   finale, les chemins écrits par le buildout, comme ceux des eggs dans
+   les scripts, sont faux. Il existe deux moyens de pallier ce problème :
+
+   - Je pourrais essayer de corriger les chemins au moment de la construction, 
+
+   - je pourrais corriger les chemins au moment de l'installation.
+
+   Modifier les chemins au moment de la construction signifie que les
+   emplacements d'installation ne peuvent pas être contrôlés à l'installation.
+   Cela compliquerait aussi toutes les recettes qui doivent gérer des chemins.
+   Ajuster les chemins à l'installation nécessite juste de relancer certaines
+   des recettes pour générer les chemins.
+
+   Pour renforcer ce dernier choix, le RPM a été rendu relocalisable en utilisant
+   l'option ``prefix``.
+
+fichier de spec pour ZRS (2/3)
+==============================
+
+::
+
+  %description
+  %{summary}
+
+  %build
+  rm -rf $RPM_BUILD_ROOT
+  mkdir $RPM_BUILD_ROOT
+  mkdir $RPM_BUILD_ROOT/opt
+  mkdir $RPM_BUILD_ROOT/etc
+  mkdir $RPM_BUILD_ROOT/etc/init.d
+  touch $RPM_BUILD_ROOT/etc/init.d/%{name}
+  svn export %{svn_url} $RPM_BUILD_ROOT/opt/%{name}
+  cd $RPM_BUILD_ROOT/opt/%{name}
+  %{python} bootstrap.py -Uc rpm.cfg
+  bin/buildout -Uc rpm.cfg buildout:installed= \
+     bootstrap:recipe=zc.rebootstrap
+
+.. class:: handout
+
+   Je ne suis pas un expert de RPM, et de vrais experts en RPM auraient 
+   peut-être une contraction de l'estomac en voyant mon fichier de spec.
+   RPM spécifie normalement plusieurs étapes de construction que j'ai 
+   contractées en une seule.
+
+   - Les premières lignes établissent une racine de construction.
+
+   - On exporte le buildout dans la racine de construction.
+
+   - On lance le buildout
+
+     - L'option -U est utilisée principalement pour éviter d'utiliser un
+       répertoire d'eggs partagés
+
+     - L'option -c est utilisée pour renseigner un fichier de buildout
+       spécifique à RPM qui installe uniquement des programmes, en incluant
+       les recettes d'installation qui seront nécessaires après l'installation
+       pour la configuration.
+
+     - On désactive la création d'un fichier .installed.cfg
+
+     - On spécifie une recette pour une part spéciale ``bootstrap``. Cette part
+       est un script qui va ajuster les chemins dans le script de buildout
+       après l'installation du rpm.
+
+fichier de spec pour ZRS (3/3)
+==============================
+
+::
+
+  %post
+  cd $RPM_INSTALL_PREFIX/%{name}
+  %{python} bin/bootstrap -Uc rpmpost.cfg
+  bin/buildout -Uc rpmpost.cfg \
+     buildout:offline=true buildout:find-links= buildout:installed= \
+     mercury:name=%{name} mercury:recipe=buildoutmercury
+  chmod -R -w . 
+
+  %preun
+  cd $RPM_INSTALL_PREFIX/%{name}
+  chmod -R +w . 
+  find . -name \*.pyc | xargs rm -f
+
+  %files
+  %attr(-, root, root) /opt/%{name}
+  %attr(744, root, root) /etc/init.d/%{name}
+
+.. class:: handout
+
+   On spécifie un script de post-installation qui:
+
+   - Réamorçe le buildout en utilisant le script d'amorçage installé dans
+     le RPM.
+
+   - Relance le buildout :
+
+     - en utilisant une configuration de post-installation qui spécifiait
+       les parts dont les chemins doivent être ajustés.
+
+     - en mode hors-ligne car on ne veut pas d'accès réseau ni de nouveau
+       programme installé qui ne soit pas dans le RPM.
+
+     - en retirant les liens ``find-links``. Ceci est principalement dû à un
+       détail particulier de nos configurations.
+
+     - en désactivant la création du fichier .installed.cfg
+
+     - en spécifiant des informations sur l'installation d'un script spécial
+       qui lit notre base de données centralisée de configuration pour pouvoir
+       configurer l'application après que le RPM a été installé.
+
+   On a un script de pré-désinstallation qui nettoie les fichiers « .pyc ».
+
+   On spécifie les fichiers à installer. Il s'agit juste du répertoire de
+   buildout et d'un script de configuration.
+
+Répétabilité
+============
+
+On veut avoir la possibilité d'intégrer une certaine configuration dans le svn
+puis d'être capable de l'extraire et de la reproduire..
+
+- On demande au buildout de dire quelles versions il a piochées pour les
+  distributions
+
+  - On le lance avec l'option -v
+  
+  - On recherche dans la sortie les lignes de la forme :
+  
+    ::
+
+      Picked: foo = 1.2
+
+- On inclut un section ``versions``:
+
+  ::
+
+    [buildout]
+    ...
+    versions = myversions
+
+    [myversions]
+    foo = 1.2
+    ...
+ 
+Problèmes de déploiement
+========================
+
+- Besoin d'un moyen d'enregistrer les versions des eggs utilisés.
+
+- Besoin d'un moyen de générer des buildouts distribuables qui contiennent 
+  toutes les distributions sources nécessaires à la construction sur une 
+  machine cible (par ex les RPMS sources).
+
+- Besoin d'un moyen de générer des distributions sources. Il faudrait pouvoir
+  rassembler les sources utilisées par un buildout de façon qu'elles puissent
+  être distribuées avec lui.
+
+disponibilité de PyPI
+=====================
+
+Un problème particulièrement sensible est la disponibilité de PyPI. PyPI est
+parfois indisponible pendant quelques minutes ou même quelques heures. Ceci
+peut rendre buildout inutilisable.
+
+Pour avoir plus d'informations
+==============================
+
+Consultez http://www.python.org/pypi/zc.buildout
+
+Traduction basée sur la version SVN 82275 : Christophe Combelles <ccomb@free.fr>
