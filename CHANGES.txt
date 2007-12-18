@@ -41,7 +41,7 @@ Feature Changes
 
 - Added a configuration option that causes buildout to error if a
   version is picked. This is a nice safety belt when fixing all
-  versions is intented, especially whan creating releases.
+  versions is intended, especially when creating releases.
 
 Bugs Fixed
 ----------
