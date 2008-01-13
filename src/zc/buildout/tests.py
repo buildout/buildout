@@ -1881,12 +1881,13 @@ def bug_59270_recipes_always_start_in_buildout_dir():
 def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
     """
     
-    This bug arises from the fact that setuptools is over restrictive
+    This bug arises from the fact that setuptools is overly restrictive
     about file urls, requiring that file urls pointing at directories
     must end in a slash.
 
     >>> dest = tmpdir('sample-install')
     >>> import zc.buildout.easy_install
+    >>> sample_eggs = sample_eggs.replace(os.path.sep, '/')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
     ...     links=['file://'+sample_eggs], index=link_server+'index/')
@@ -2038,7 +2039,7 @@ We'll create a wacky buildout extension that is just another name for http:
 Now we'll create a buildout that uses this extension to load other packages:
 
     >>> wacky_server = link_server.replace('http', 'wacky')
-    >>> dist = 'file://'+join(src, 'dist')
+    >>> dist = 'file://' + join(src, 'dist').replace(os.path.sep, '/')
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -2609,6 +2610,11 @@ def test_suite():
                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
+               (re.compile('WindowsError'), 'OSError'),
+               (re.compile(r'\[Error 17\] Cannot create a file '
+                           r'when that file already exists: '),
+                '[Errno 17] File exists: '
+                ),
                ])
             ),
         doctest.DocFileSuite(
@@ -2674,7 +2680,11 @@ def test_suite():
                 r'We have a develop egg: \1 V'),
                (re.compile('Picked: setuptools = \S+'),
                 'Picked: setuptools = V'),
-               (re.compile(r'\\[\\]?'), '/'),               
+               (re.compile(r'\\[\\]?'), '/'),
+               (re.compile(
+                   '-q develop -mxN -d "/sample-buildout/develop-eggs'),
+                   '-q develop -mxN -d /sample-buildout/develop-eggs'
+                ),
                ]),
             ),
         ))
