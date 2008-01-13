@@ -6,8 +6,6 @@ priorities include:
 
 - Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
 
-- Adding support for making distributions from buildouts
-
 Change History
 **************
 
