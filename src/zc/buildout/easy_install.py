@@ -849,9 +849,6 @@ def scripts(reqs, working_set, executable, dest,
     
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    # sort and remove duplicates
-    path = list(set(path))
-    path.sort()
     path = repr(path)[1:-1].replace(', ', ',\n  ')
     generated = []
 
