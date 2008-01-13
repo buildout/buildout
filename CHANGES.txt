@@ -1,11 +1,6 @@
 Status
 ******
 
-The buildout system is under active development. Some near-term
-priorities include:
-
-- Fixing `bugs <https://launchpad.net/products/zc.buildout/+bugs>`_
-
 Change History
 **************
 
