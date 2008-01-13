@@ -38,7 +38,7 @@ except AttributeError:
 
 default_index_url = os.environ.get(
     'buildout-testing-index-url',
-    'http://cheeseshop.python.org/simple',
+    'http://pypi.python.org/simple',
     )
 
 logger = logging.getLogger('zc.buildout.easy_install')
