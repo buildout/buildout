@@ -681,9 +681,9 @@ to be included in the a generated script:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/foo/bar',
       '/sample-install/demo-0.3-py2.4.egg',
       '/sample-install/demoneeded-1.1-py2.4.egg',
+      '/foo/bar',
       ]
     <BLANKLINE>
     import eggrecipedemo
