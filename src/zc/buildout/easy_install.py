@@ -28,13 +28,9 @@ import setuptools.package_index
 import setuptools.archive_util
 import zc.buildout
 
+_oprp = getattr(os.path, 'realpath', lambda path: path)
 def realpath(path):
-    return path
-
-try:
-    realpath = os.path.realpath
-except AttributeError:
-    pass
+    return os.path.normcase(os.path.abspath(_oprp(path)))
 
 default_index_url = os.environ.get(
     'buildout-testing-index-url',
@@ -397,7 +393,7 @@ class Installer:
             for dist in best:
                 if (realpath(os.path.dirname(dist.location))
                     ==
-                    realpath(self._download_cache)
+                    self._download_cache
                     ):
                     return dist
 
@@ -406,13 +402,13 @@ class Installer:
 
     def _fetch(self, dist, tmp, download_cache):
         if (download_cache
-            and (os.path.dirname(dist.location) == download_cache)
+            and (realpath(os.path.dirname(dist.location)) == download_cache)
             ):
             return dist
 
         new_location = self._index.download(dist.location, tmp)
         if (download_cache
-            and (new_location == dist.location)
+            and (realpath(new_location) == realpath(dist.location))
             and os.path.isfile(new_location)
             ):
             # setuptools avoids making extra copies, but we want to copy
@@ -701,7 +697,7 @@ def download_cache(path=-1):
     old = Installer._download_cache
     if path != -1:
         if path:
-            path = os.path.abspath(path)
+            path = realpath(path)
         Installer._download_cache = path
     return old
 
