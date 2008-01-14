@@ -21,6 +21,8 @@ from zope.testing import doctest, renormalizing
 import pkg_resources
 import zc.buildout.testing, zc.buildout.easy_install
 
+import zc.buildout.testselectingpython
+
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
     os_path_sep *= 2
@@ -2586,8 +2588,7 @@ normalize_bang = (
     )
 
 def test_suite():
-    import zc.buildout.testselectingpython
-    suite = unittest.TestSuite((
+    return unittest.TestSuite((
         doctest.DocFileSuite(
             'buildout.txt', 'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
@@ -2687,11 +2688,7 @@ def test_suite():
                 ),
                ]),
             ),
+        zc.buildout.testselectingpython.test_suite(),
         ))
-
-    if sys.version_info[:2] != (2, 3):
-        # Only run selecting python tests if not 2.3, since
-        # 2.3 is the alternate python used in the tests.
-        suite.addTest(zc.buildout.testselectingpython.test_suite())
 
     return suite

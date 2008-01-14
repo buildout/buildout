@@ -89,9 +89,9 @@ def test_suite():
         
         ))
 
-    if sys.version_info[:2] != (2, 3):
-        # Only run selecting python tests if not 2.3, since
-        # 2.3 is the alternate python used in the tests.
+    if sys.version_info[:2] == (2, 5):
+        # Only run selecting python tests if not 2.4, since
+        # 2.4 is the alternate python used in the tests.
         suite.addTest(
             doctest.DocFileSuite(
                 'selecting-python.txt',
@@ -102,7 +102,7 @@ def test_suite():
                    zc.buildout.testing.normalize_script,
                    (re.compile('Got setuptools \S+'), 'Got setuptools V'),
                    (re.compile('([d-]  )?setuptools-\S+-py'), 'setuptools-V-py'),
-                   (re.compile('-py2[.][0-24-9][.]'), 'py2.4.'),
+                   (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
                    (re.compile('zc.buildout-\S+[.]egg'),
                     'zc.buildout.egg'),
                    (re.compile('zc.buildout[.]egg-link'),
