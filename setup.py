@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-version = "1.0.0b32"
+version = "1.0.0"
 
 import os
 from setuptools import setup, find_packages

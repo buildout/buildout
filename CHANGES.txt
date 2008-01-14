@@ -4,8 +4,8 @@ Status
 Change History
 **************
 
-1.0.0b32 (2007-???)
-=====================
+1.0.0 (2008-01-13)
+==================
 
 - Added a french translation of the buildout tutorial
 
