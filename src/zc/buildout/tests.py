@@ -2599,7 +2599,7 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('executable = \S+python\S*'),
+               (re.compile('executable = \S+python\S*', re.I),
                 'executable = python'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
