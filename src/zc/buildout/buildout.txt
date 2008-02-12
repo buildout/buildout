@@ -768,15 +768,10 @@ examples:
     ... path = mydata
     ... """)
 
-In this example, we've used ConfigParser substitutions for file2 and
-file3.  This type of substitution uses Python string format syntax.
-Valid names are options in the same section and options defined in the
-DEFAULT section.  
-
-We used a string-template substitution for file1.  This type of
-substitution uses the string.Template syntax.  Names substituted are
-qualified option names, consisting of a section name and option name
-joined by a colon.
+We used a string-template substitution for File 1 and File 2.  This
+type of substitution uses the string.Template syntax.  Names
+substituted are qualified option names, consisting of a section name
+and option name joined by a colon.
 
 Now, if we run the buildout, we'll see the options with the values
 substituted. 
