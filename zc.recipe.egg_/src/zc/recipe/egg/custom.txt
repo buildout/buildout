@@ -83,7 +83,7 @@ python
    section. 
 
 environment
-   The name of a section wich additional environment variables. The
+   The name of a section with additional environment variables. The
    envirionment variables are set before the egg is built.
 
 To illustrate this, we'll define a buildout that builds an egg for a
@@ -129,19 +129,28 @@ the egg:
     ... [buildout]
     ... parts = extdemo
     ...
+    ... [extdemo-env]
+    ... test-variable = foo
+    ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... include-dirs = include
+    ... envirionment = extdemo-env
+    ...
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
     Installing extdemo.
+    Have environment test-variable: foo
     zip_safe flag not set; analyzing archive contents...
 
 We got the zip_safe warning because the source distribution we used
 wasn't setuptools based and thus didn't set the option.
+
+The setup.py also printed out that we have set the environment `test-variable`
+to foo.
 
 The egg is created in the develop-eggs directory *not* the eggs
 directory because it depends on buildout-specific parameters and the
@@ -179,11 +188,15 @@ Let's define a script that uses out ext demo:
     ... develop = demo
     ... parts = extdemo demo
     ...
+    ... [extdemo-env]
+    ... test-variable = foo
+    ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... include-dirs = include
+    ... envirionment = extdemo-env
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
@@ -233,11 +246,13 @@ We won't get an update.
     -  zc.recipe.egg.egg-link
 
 But if we run the buildout in the default on-line and newest modes, we
-will:
+will. This time we also get the test-variable message again, because the new
+version is imported:
 
     >>> print system(buildout),
     Develop: '/sample-buildout/demo'
     Updating extdemo.
+    Have environment test-variable: foo
     zip_safe flag not set; analyzing archive contents...
     Updating demo.
     Generated script '/sample-buildout/bin/demo'.
