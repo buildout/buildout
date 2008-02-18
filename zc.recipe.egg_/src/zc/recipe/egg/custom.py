@@ -57,10 +57,14 @@ class Custom(Base):
             options['index'] = index
         self.index = index
 
-        environment_section = options.get('envirionment')
+        environment_section = options.get('environment')
         if environment_section:
-            for key, value in buildout[environment_section].items():
-                os.environ[key] = value
+            self.environment = buildout[environment_section]
+        else:
+            self.environment = {}
+        environment_data = self.environment.items()
+        environment_data.sort()
+        options['_environment-data'] = repr(environment_data)
 
         options['_e'] = buildout['buildout']['eggs-directory']
 
@@ -84,11 +88,36 @@ class Custom(Base):
 
         distribution = options.get('egg', options.get('eggs', self.name)
                                    ).strip()
-        return zc.buildout.easy_install.build(
-            distribution, options['_d'], self.build_ext,
-            self.links, self.index, options['executable'], [options['_e']],
-            newest=self.newest,
-            )
+        self._set_environment()
+        try:
+            return zc.buildout.easy_install.build(
+                distribution, options['_d'], self.build_ext,
+                self.links, self.index, options['executable'], [options['_e']],
+                newest=self.newest,
+                )
+        finally:
+            self._restore_environment()
+
+
+    def _set_environment(self):
+        self._saved_environment = {}
+        for key, value in self.environment.items():
+            if key in os.environ:
+                self._saved_environment[key] = os.environ[key]
+            # Interpolate value with variables from environment. Maybe there
+            # should be a general way of doing this in buildout with something
+            # like ${environ:foo}:
+            os.environ[key] = value % os.environ
+
+    def _restore_environment(self):
+        for key in self.environment:
+            if key in self._saved_environment:
+                os.environ[key] = self._saved_environment[key]
+            else:
+                try:
+                    del os.environ[key]
+                except KeyError:
+                    pass
 
 
 class Develop(Base):

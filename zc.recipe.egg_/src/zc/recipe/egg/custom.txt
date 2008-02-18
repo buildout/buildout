@@ -84,7 +84,7 @@ python
 
 environment
    The name of a section with additional environment variables. The
-   envirionment variables are set before the egg is built.
+   environment variables are set before the egg is built.
 
 To illustrate this, we'll define a buildout that builds an egg for a
 package that has a simple extension module::
@@ -129,28 +129,20 @@ the egg:
     ... [buildout]
     ... parts = extdemo
     ...
-    ... [extdemo-env]
-    ... test-variable = foo
-    ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... include-dirs = include
-    ... envirionment = extdemo-env
     ...
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
     Installing extdemo.
-    Have environment test-variable: foo
     zip_safe flag not set; analyzing archive contents...
 
 We got the zip_safe warning because the source distribution we used
 wasn't setuptools based and thus didn't set the option.
-
-The setup.py also printed out that we have set the environment `test-variable`
-to foo.
 
 The egg is created in the develop-eggs directory *not* the eggs
 directory because it depends on buildout-specific parameters and the
@@ -188,15 +180,11 @@ Let's define a script that uses out ext demo:
     ... develop = demo
     ... parts = extdemo demo
     ...
-    ... [extdemo-env]
-    ... test-variable = foo
-    ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
     ... find-links = %(server)s
     ... index = %(server)s/index
     ... include-dirs = include
-    ... envirionment = extdemo-env
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
@@ -252,7 +240,6 @@ version is imported:
     >>> print system(buildout),
     Develop: '/sample-buildout/demo'
     Updating extdemo.
-    Have environment test-variable: foo
     zip_safe flag not set; analyzing archive contents...
     Updating demo.
     Generated script '/sample-buildout/bin/demo'.
@@ -301,6 +288,161 @@ We can specify a specific version using the egg option:
     -  demo.egg-link
     d  extdemo-1.4-py2.4-linux-i686.egg
     -  zc.recipe.egg.egg-link
+
+
+Controlling environment variables
++++++++++++++++++++++++++++++++++
+
+To set additional environment variables, the `environment` option is used.
+
+Let's create a recipe which prints out environment variables. We need this to
+make sure the set envirionment variables are removed after the egg:custom
+recipe was run.
+
+    >>> mkdir(sample_buildout, 'recipes')
+    >>> write(sample_buildout, 'recipes', 'environ.py',
+    ... """
+    ... import logging, os, zc.buildout
+    ...
+    ... class Environ:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.name = name
+    ...
+    ...     def install(self):
+    ...         logging.getLogger(self.name).info(
+    ...             'test-variable left over: %s' % (
+    ...                 'test-variable' in os.environ))
+    ...         return []
+    ...
+    ...     def update(self):
+    ...         self.install()
+    ... """)
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "recipes",
+    ...     entry_points = {'zc.buildout': ['environ = environ:Environ']},
+    ...     )
+    ... """)
+
+
+Create our buildout:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = extdemo checkenv
+    ...
+    ... [extdemo-env]
+    ... test-variable = foo
+    ...
+    ... [extdemo]
+    ... recipe = zc.recipe.egg:custom
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... include-dirs = include
+    ... environment = extdemo-env
+    ...
+    ... [checkenv]
+    ... recipe = recipes:environ
+    ...
+    ... """ % dict(server=link_server))
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling demo.
+    Uninstalling extdemo.
+    Installing extdemo.
+    Have environment test-variable: foo
+    zip_safe flag not set; analyzing archive contents...
+    Installing checkenv.
+    checkenv: test-variable left over: False
+
+
+The setup.py also printed out that we have set the environment `test-variable`
+to foo. After the buildout the variable is reset to its original value (i.e.
+removed).
+
+When an environment variable has a value before zc.recipe.egg:custom is run,
+the original value will be restored:
+
+    >>> import os
+    >>> os.environ['test-variable'] = 'bar'
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Updating extdemo.
+    Updating checkenv.
+    checkenv: test-variable left over: True
+
+    >>> os.environ['test-variable']
+    'bar'
+
+
+Sometimes it is required to prepend or append to an existing environment
+variable, for instance for adding something to the PATH. Therefor all variables
+are interpolated with os.environ before the're set:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = extdemo checkenv
+    ...
+    ... [extdemo-env]
+    ... test-variable = foo:%%(test-variable)s
+    ...
+    ... [extdemo]
+    ... recipe = zc.recipe.egg:custom
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... include-dirs = include
+    ... environment = extdemo-env
+    ...
+    ... [checkenv]
+    ... recipe = recipes:environ
+    ...
+    ... """ % dict(server=link_server))
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling extdemo.
+    Installing extdemo.
+    Have environment test-variable: foo:bar
+    zip_safe flag not set; analyzing archive contents...
+    Updating checkenv.
+    checkenv: test-variable left over: True
+
+    >>> os.environ['test-variable']
+    'bar'
+    >>> del os.environ['test-variable']
+
+
+Create a clean buildout.cfg w/o the checkenv recipe, and delete the recipe:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = extdemo
+    ...
+    ... [extdemo]
+    ... recipe = zc.recipe.egg:custom
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... include-dirs = include
+    ...
+    ... """ % dict(server=link_server))
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling checkenv.
+    Uninstalling extdemo.
+    Installing extdemo.
+    zip_safe flag not set; analyzing archive contents...
+    
+    >>> rmdir(sample_buildout, 'recipes')
+
 
 Controlling develop-egg generation
 ==================================
@@ -401,7 +543,6 @@ set with a value of 2.
 
     >>> print system(buildout),
     Develop: '/sample-buildout/demo'
-    Uninstalling demo.
     Uninstalling extdemo.
     Installing extdemo.
     Installing demo.
