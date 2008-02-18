@@ -21,6 +21,7 @@ import zc.buildout.easy_install
 
 logger = logging.getLogger(__name__)
 
+
 class Base:
 
     def __init__(self, buildout, name, options):
@@ -33,9 +34,9 @@ class Base:
 
         self.build_ext = build_ext(buildout, options)
 
-
     def update(self):
         return self.install()
+
 
 class Custom(Base):
 
@@ -74,8 +75,8 @@ class Custom(Base):
                 distribution = self.name
             else:
                 logger.warn("The eggs option is deprecated. Use egg instead")
-            
-        
+
+
         distribution = options.get('egg', options.get('eggs', self.name)
                                    ).strip()
         return zc.buildout.easy_install.build(
@@ -83,7 +84,8 @@ class Custom(Base):
             self.links, self.index, options['executable'], [options['_e']],
             newest=self.newest,
             )
-        
+
+
 class Develop(Base):
 
     def __init__(self, buildout, name, options):
@@ -97,7 +99,7 @@ class Develop(Base):
             options['setup'], options['_d'], self.build_ext,
             options['executable'],
             )
-        
+
 
 def build_ext(buildout, options):
     result = {}
