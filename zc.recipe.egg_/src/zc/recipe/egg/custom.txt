@@ -82,6 +82,10 @@ python
    Python executable is found in the executable option of the named
    section. 
 
+environment
+   The name of a section wich additional environment variables. The
+   envirionment variables are set before the egg is built.
+
 To illustrate this, we'll define a buildout that builds an egg for a
 package that has a simple extension module::
 
@@ -102,7 +106,7 @@ package that has a simple extension module::
   #endif
   }
 
-The extension depends on a system-dependnt include file, extdemo.h,
+The extension depends on a system-dependent include file, extdemo.h,
 that defines a constant, EXTDEMO, that is exposed by the extension.
 
 The extension module is available as a source distribution,
