@@ -57,6 +57,11 @@ class Custom(Base):
             options['index'] = index
         self.index = index
 
+        environment_section = options.get('envirionment')
+        if environment_section:
+            for key, value in buildout[environment_section].items():
+                os.environ[key] = value
+
         options['_e'] = buildout['buildout']['eggs-directory']
 
         assert options.get('unzip') in ('true', 'false', None)
