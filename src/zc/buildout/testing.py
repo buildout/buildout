@@ -87,6 +87,13 @@ def system(command, input=''):
 def get(url):
     return urllib2.urlopen(url).read()
 
+def _rmtree (path):
+    def retry_writeable (func, path, exc):
+        os.chmod (path, 0600)
+        func (path)
+
+    shutil.rmtree (path, onerror = retry_writeable)
+
 def _runsetup(setup, executable, *args):
     if os.path.isdir(setup):
         setup = os.path.join(setup, 'setup.py')
@@ -102,7 +109,7 @@ def _runsetup(setup, executable, *args):
         os.chdir(d)
         os.spawnle(os.P_WAIT, executable, executable, setup, *args)
         if os.path.exists('build'):
-            shutil.rmtree('build')
+            _rmtree('build')
     finally:
         os.chdir(here)
 
@@ -163,7 +170,7 @@ def buildoutSetUp(test):
 
 
     base = tempfile.mkdtemp('buildoutSetUp')
-    register_teardown(lambda base=base: shutil.rmtree(base))
+    register_teardown(lambda base=base: _rmtree(base))
 
     old_home = os.environ.get('HOME')
     os.environ['HOME'] = os.path.join(base, 'bbbBadHome')
@@ -178,7 +185,7 @@ def buildoutSetUp(test):
     os.mkdir(base)
 
     tmp = tempfile.mkdtemp('buildouttests')
-    register_teardown(lambda: shutil.rmtree(tmp))
+    register_teardown(lambda: _rmtree(tmp))
     
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
     os.environ['buildout-testing-index-url'] = (

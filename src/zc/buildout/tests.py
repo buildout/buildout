@@ -2693,6 +2693,35 @@ def test_suite():
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),
+        doctest.DocFileSuite(
+            'windows.txt',
+            setUp=zc.buildout.testing.buildoutSetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               zc.buildout.testing.normalize_egg_py,
+               (re.compile('__buildout_signature__ = recipes-\S+'),
+                '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+               (re.compile('executable = \S+python\S*'),
+                'executable = python'),
+               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                'zc.buildout.egg'),
+               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
+               (re.compile('Picked: (\S+) = \S+'),
+                'Picked: \\1 = V.V'),
+               (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
+                'We have a develop egg: zc.buildout X.X.'),
+               (re.compile(r'\\[\\]?'), '/'),
+               (re.compile('WindowsError'), 'OSError'),
+               (re.compile(r'\[Error 17\] Cannot create a file '
+                           r'when that file already exists: '),
+                '[Errno 17] File exists: '
+                ),
+               ])
+            ), 
         ))
 
     return suite

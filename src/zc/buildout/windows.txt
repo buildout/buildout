@@ -1,0 +1,66 @@
+zc.buildout on MS-Windows
+=========================
+
+Certain aspects of every software project are dependent on the
+operating system used.
+The same - of course - applies to zc.buildout.
+
+To test that windows doesn't get in the way, we'll test some system
+dependent aspects.
+The following recipe will create a read-only file which shutil.rmtree
+can't delete.
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'recipe.py',
+    ... '''
+    ... import os
+    ... class Recipe:
+    ...     def __init__(self, buildout, name, options):
+    ...         self.location = os.path.join(
+    ...              buildout['buildout']['parts-directory'],
+    ...              name)
+    ...
+    ...     def install(self):
+    ...         print "can't remove read only files"
+    ...         if not os.path.exists (self.location):
+    ...             os.makedirs (self.location)
+    ...
+    ...         name = os.path.join (self.location, 'readonly.txt')
+    ...         open (name, 'w').write ('this is a read only file')
+    ...         os.chmod (name, 0400)
+    ...         return ()
+    ...
+    ...     update = install
+    ... ''')
+
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='spam', version='1', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+    >>> write('recipe', 'README', '')
+
+    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    Running setup script 'recipe/setup.py'.
+    ...
+
+and we'll configure a buildout to use it:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+
+    >>> print system(buildout),
+    Getting distribution for 'spam'.
+    Got spam 1.
+    Installing foo.
+    can't remove read only files

@@ -4,6 +4,12 @@ Status
 Change History
 **************
 
+1.0.1 (unreleased)
+==================
+
+- applied patch fixing rmtree issues on Windows (patch by
+  Gottfried Ganssauge) (ajung)
+
 1.0.0 (2008-01-13)
 ==================
 
