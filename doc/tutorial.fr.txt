@@ -970,7 +970,7 @@ Dépendances d'une part
 
   - Des dépendances sont ajoutées à la liste des parts si nécessaire
 
-  - Les dépendaces sont installées en premier
+  - Les dépendances sont installées en premier
 
 
 .. class:: handout
