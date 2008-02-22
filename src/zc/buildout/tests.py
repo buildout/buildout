@@ -2693,6 +2693,7 @@ def test_suite():
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),
+        zc.buildout.rmtree.test_suite(),
         doctest.DocFileSuite(
             'windows.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
