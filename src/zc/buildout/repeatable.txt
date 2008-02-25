@@ -178,3 +178,60 @@ versions:
     ... [foo]
     ... recipe = spam
     ... ''' % join('recipe', 'dist'))
+
+When you have a develop section and a versions section in the same
+buildout, the versions listed in the versions are still picked and the
+develop egg is not picked up. Let's create an egg for ``spam`` in
+develop mode::
+
+    >>> mkdir('devrecipe')
+    >>> write('devrecipe', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v3'
+    ...         return ()
+    ...     update = install
+    ... ''')
+
+    >>> write('devrecipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='spam', version='3dev', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+    >>> write('devrecipe', 'README', '') 
+
+We'll set up this recipe in development mode::
+   
+    >>> print system(buildout+' setup devrecipe develop') # doctest: +ELLIPSIS
+    Running setup script 'devrecipe/setup.py'.
+    ...
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... develop = devrecipe 
+    ... find-links = %s
+    ... versions = versions
+    ...
+    ... [versions]
+    ... spam = 1.5
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+
+Now we'll run buildout. We expect version 1 of spam to be picked, not
+3dev, which is listed under develop::
+
+    >>> print system(buildout)
+    Getting distribution for 'spam==1'.
+    Got spam 1.
+    Uninstalling foo.
+    Installing foo.
+    recipe v1
+
