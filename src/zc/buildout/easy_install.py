@@ -67,7 +67,7 @@ def _get_version(executable):
         o.close()
         pystring, version = version.split()
         assert pystring == 'Python'
-        version = re.match('(\d[.]\d)([.]\d)?$', version).group(1)
+        version = re.match('(\d[.]\d)([.].*\d)?$', version).group(1)
         _versions[executable] = version
         return version
 

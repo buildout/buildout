@@ -7,6 +7,9 @@ Change History
 1.0.1 (unreleased)
 ==================
 
+- Made easy_install.py's _get_version except non final releases of Python,
+  like 2.4.4c0. (hannosch)
+
 - applied patch fixing rmtree issues on Windows (patch by
   Gottfried Ganssauge) (ajung)
 
