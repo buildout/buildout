@@ -2556,7 +2556,7 @@ def updateSetup(test):
         here = os.getcwd()
         os.chdir(os.path.dirname(dist.location))
         assert os.spawnle(
-            os.P_WAIT, sys.executable, sys.executable,
+            os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable),
             os.path.join(os.path.dirname(dist.location), 'setup.py'),
             '-q', 'bdist_egg', '-d', eggs,
             dict(os.environ,
