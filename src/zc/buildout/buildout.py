@@ -690,7 +690,7 @@ class Buildout(UserDict.DictMixin):
             args.insert(1, '-W')
             if not __debug__:
                 args.insert(0, '-O')
-            args.insert(0, sys.executable)
+            args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
             os.execv(sys.executable, args)            
         
         self._logger.info("Upgraded:\n  %s;\nrestarting.",
@@ -713,7 +713,7 @@ class Buildout(UserDict.DictMixin):
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
         if not __debug__:
             args.insert(0, '-O')
-        args.insert(0, sys.executable)
+        args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
     def _load_extensions(self):
@@ -765,7 +765,7 @@ class Buildout(UserDict.DictMixin):
                 setup=setup,
                 __file__ = setup,
                 ))
-            os.spawnl(os.P_WAIT, sys.executable, sys.executable, tsetup,
+            os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
                       *[zc.buildout.easy_install._safe_arg(a)
                         for a in args])
         finally:

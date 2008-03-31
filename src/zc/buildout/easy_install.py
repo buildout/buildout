@@ -281,7 +281,7 @@ class Installer:
             args += (dict(os.environ, PYTHONPATH=path), )
             sys.stdout.flush() # We want any pending output first
             exit_code = os.spawnle(
-                os.P_WAIT, self._executable, self._executable,
+                os.P_WAIT, self._executable, _safe_arg (self._executable),
                 *args)
 
             dists = []
@@ -823,7 +823,7 @@ def develop(setup, dest,
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        assert os.spawnl(os.P_WAIT, executable, executable, *args) == 0
+        assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 

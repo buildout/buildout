@@ -102,7 +102,7 @@ def _runsetup(setup, executable, *args):
     here = os.getcwd()
     try:
         os.chdir(d)
-        os.spawnle(os.P_WAIT, executable, executable, setup, *args)
+        os.spawnle(os.P_WAIT, executable, zc.buildout.easy_install._safe_arg (executable), setup, *args)
         if os.path.exists('build'):
             rmtree('build')
     finally:
