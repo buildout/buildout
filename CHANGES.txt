@@ -4,7 +4,7 @@ Status
 Change History
 **************
 
-1.0.1 (unreleased)
+1.0.1 (2008-04-02)
 ==================
 
 - Made easy_install.py's _get_version except non final releases of Python,
