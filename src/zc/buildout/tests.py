@@ -589,7 +589,8 @@ if os.path.exists(bootstrap_py):
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print system(sys.executable+' '+'bootstrap.py'), # doctest: +ELLIPSIS
+    >>> print system(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...              'bootstrap.py'), # doctest: +ELLIPSIS
     Downloading ...
     Generated script '/sample/bin/buildout'.
 
@@ -2584,10 +2585,11 @@ def updateSetup(test):
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
     os.mkdir(os.path.join(new_releases, 'setuptools'))
 
-    
-    
+
+
 normalize_bang = (
-    re.compile(re.escape('#!'+sys.executable)),
+    re.compile(re.escape('#!'+
+                         zc.buildout.easy_install._safe_arg(sys.executable))),
     '#!/usr/local/bin/python2.4',
     )
 

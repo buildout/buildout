@@ -7,6 +7,8 @@ Change History
 1.0.2 (unreleased)
 ==================
 
+- More fixes for Windows. A quoted sha-bang is now used on Windows to make the
+  .exe files work with a Python executable in 'program files'.
 
 1.0.1 (2008-04-02)
 ==================
