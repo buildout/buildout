@@ -897,7 +897,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
         dest += '-script.py'
 
     contents = script_template % dict(
-        python = executable,
+        python = _safe_arg(executable),
         path = path,
         module_name = module_name,
         attrs = attrs,
@@ -948,7 +948,7 @@ def _pyscript(path, dest, executable):
         dest += '-script.py'
 
     contents = py_script_template % dict(
-        python = executable,
+        python = _safe_arg(executable),
         path = path,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
