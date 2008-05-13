@@ -1453,6 +1453,11 @@ The following options are supported:
     The -c option can be used to specify a configuration file, rather than
     buildout.cfg in the current directory.  
 
+
+-t socket_timeout
+
+   Specify the socket timeout in seconds.
+
 -v
     Increment the verbosity by 10.  The verbosity is used to adjust
     the logging level.  The verbosity is subtracted from the numeric
