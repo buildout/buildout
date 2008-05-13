@@ -1220,6 +1220,10 @@ Options:
      This defaults to the file named "buildout.cfg" in the current
      working directory.
 
+  -t socket_timeout
+
+     Specify the socket timeout in seconds.
+
   -U
 
      Don't read user defaults.
@@ -1341,15 +1345,30 @@ def main(args=None):
                     _help()
                 op = op[1:]
                 
-            if op[:1] == 'c':
+            if op[:1] in  ('c', 't'):
+                op_ = op[:1]
                 op = op[1:]
-                if op:
-                    config_file = op
-                else:
-                    if args:
-                        config_file = args.pop(0)
+
+                if op_ == 'c':
+                    if op:
+                        config_file = op
                     else:
-                        _error("No file name specified for option", orig_op)
+                        if args:
+                            config_file = args.pop(0)
+                        else:
+                            _error("No file name specified for option", orig_op)
+                elif op_ == 't':
+                    try:
+                        timeout = int(args.pop(0))
+                    except IndexError:
+                        _error("No timeout value specified for option", orig_op)
+                    except ValueError:
+                        _error("No timeout value must be numeric", orig_op)
+
+                    import socket
+                    print 'Setting socket time out to %d seconds' % timeout
+                    socket.setdefaulttimeout(timeout)
+
             elif op:
                 if orig_op == '--help':
                     _help()

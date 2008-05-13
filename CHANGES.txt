@@ -4,11 +4,13 @@ Status
 Change History
 **************
 
-1.0.2 (unreleased)
+1.0.2 (2008-05-13)
 ==================
 
 - More fixes for Windows. A quoted sha-bang is now used on Windows to make the
   .exe files work with a Python executable in 'program files'.
+
+- added "-t <timeout_in_seconde>" option for specifying the socket timeout 
 
 1.0.1 (2008-04-02)
 ==================
