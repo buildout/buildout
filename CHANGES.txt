@@ -7,26 +7,26 @@ Change History
 1.0.2 (2008-05-13)
 ==================
 
-- More fixes for Windows. A quoted sha-bang is now used on Windows to make the
+- More fixes for Windows. A quoted sh-bang is now used on Windows to make the
   .exe files work with a Python executable in 'program files'.
 
-- added "-t <timeout_in_seconde>" option for specifying the socket timeout 
+- Added "-t <timeout_in_seconds>" option for specifying the socket timeout.
 
 1.0.1 (2008-04-02)
 ==================
 
-- Made easy_install.py's _get_version except non final releases of Python,
+- Made easy_install.py's _get_version accept non-final releases of Python,
   like 2.4.4c0. (hannosch)
 
-- various patches for Windows (patch by Gottfried Ganssauge) (ajung)
+- Applied various patches for Windows (patch by Gottfried Ganssauge). (ajung)
 
-- applied patch fixing rmtree issues on Windows (patch by
-  Gottfried Ganssauge) (ajung)
+- Applied patch fixing rmtree issues on Windows (patch by
+  Gottfried Ganssauge).  (ajung)
 
 1.0.0 (2008-01-13)
 ==================
 
-- Added a french translation of the buildout tutorial
+- Added a French translation of the buildout tutorial.
 
 1.0.0b31 (2007-11-01)
 =====================
