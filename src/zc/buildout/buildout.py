@@ -122,6 +122,14 @@ class Buildout(UserDict.DictMixin):
         self._raw = data
         self._data = {}
         self._parts = []
+        # provide some defaults before options are parsed
+        # because while parsing options those attributes might be
+        # used already (Gottfried Ganssauage)
+        self._links = ()
+        self._buildout_dir = os.getcwd()
+        self._logger = logging.getLogger('zc.buildout')
+        self.offline = False
+        self.newest = True
         
         # initialize some attrs and buildout directories.
         options = self['buildout']
