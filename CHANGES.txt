@@ -3,6 +3,12 @@ Status
 
 Change History
 **************
+1.0.3 (2008-06-01)
+==================
+
+- fix for """AttributeError: Buildout instance has no attribute '_logger'""" 
+  by providing reasonable defaults within the Buildout constructor.
+  (patch by Gottfried Ganssauge) (ajung)
 
 1.0.2 (2008-05-13)
 ==================
@@ -11,6 +17,7 @@ Change History
   .exe files work with a Python executable in 'program files'.
 
 - Added "-t <timeout_in_seconds>" option for specifying the socket timeout.
+  (ajung)
 
 1.0.1 (2008-04-02)
 ==================
