@@ -1146,10 +1146,25 @@ def _dists_sig(dists):
             result.append(os.path.basename(location))
     return result
 
+def _update_section(s1, s2):
+    for k, v in s2.items():
+        if k.endswith('+'):
+            key = k.rstrip(' +')
+            s2[key] = "\n".join(s1.get(key, "").split() + s2[k].split())
+            del s2[k]
+        elif k.endswith('-'):
+            key = k.rstrip(' -')
+            s2[key] = "\n".join([v for v in s1.get(key, "").split()
+                                 if v not in s2[k].split()])
+            del s2[k]
+                
+    s1.update(s2)
+    return s1
+
 def _update(d1, d2):
     for section in d2:
         if section in d1:
-            d1[section].update(d2[section])
+            d1[section] = _update_section(d1[section], d2[section])
         else:
             d1[section] = d2[section]
     return d1

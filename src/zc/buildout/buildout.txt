@@ -688,6 +688,9 @@ extensions are:
 - option values can use a substitution syntax, described below, to
   refer to option values in specific sections.
 
+- option values can be appended or removed using the - and +
+  operators.
+
 The ConfigParser syntax is very flexible.  Section names can contain
 any characters other than newlines and right square braces ("]").
 Option names can contain any characters other than newlines, colons,
@@ -893,6 +896,137 @@ It will still be treated as a part:
     parts = data-dir debug
     ...
 
+
+Adding and removing options
+---------------------------
+
+We can append and remove values to an option by using the + and -
+operators.
+
+This is illustrated below; first we define a base configuration.
+
+    >>> write(sample_buildout, 'base.cfg',  
+    ... """
+    ... [buildout]
+    ... parts = part1 part2 part3
+    ...
+    ... [part1]
+    ... recipe = 
+    ... option = a1 a2
+    ...
+    ... [part2]
+    ... recipe = 
+    ... option = b1 b2 b3 b4
+    ... 
+    ... [part3]
+    ... recipe = 
+    ... option = c1 c2
+    ... 
+    ... """)
+
+Extending this configuration, we can "adjust" the values set in the
+base configuration file.
+
+    >>> write(sample_buildout, 'extension1.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... # appending values
+    ... [part1]
+    ... option += a3 a4
+    ...
+    ... # removing values
+    ... [part2]
+    ... option -= b1 b2
+    ...
+    ... # alt. spelling
+    ... [part3]
+    ... option+=c3 c4 c5
+    ...
+    ... # normal assignment
+    ... [part4]
+    ... option = h1 h2
+    ...
+    ... """)
+
+An additional extension.
+
+    >>> write(sample_buildout, 'extension2.cfg',
+    ... """
+    ... [buildout]
+    ... extends = extension1.cfg
+    ...
+    ... # appending values
+    ... [part1]
+    ... option += a5
+    ...
+    ... # removing values
+    ... [part2]
+    ... option -= b1 b2 b3
+    ...
+    ... """)
+    
+To verify that the options are adjusted correctly, we'll set up an
+extension that prints out the options.
+    
+    >>> mkdir(sample_buildout, 'demo')
+    >>> write(sample_buildout, 'demo', 'demo.py',
+    ... """
+    ... def ext(buildout):
+    ...     print [part['option'] for name, part in buildout.items() \
+    ...           if name.startswith('part')]
+    ... """)
+
+    >>> write(sample_buildout, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name="demo",
+    ...     entry_points={'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+Set up a buildout configuration for this extension.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts = 
+    ... """)
+
+    >>> os.chdir(sample_buildout)
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    Develop: '/sample-buildout/demo'
+    Uninstalling debug.
+    Getting distribution for 'recipes'.
+    zip_safe flag not set; analyzing archive contents...
+    Got recipes 0.0.0.
+    Uninstalling data-dir.
+    warning: install_lib: 'build/lib' does not exist -- no Python modules to install
+
+Verify option values.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... extends = extension2.cfg
+    ... """)
+    
+    >>> print system(os.path.join('bin', 'buildout')),
+    ['a1/na2/na3/na4/na5', 'b4', 'c1/nc2/nc3/nc4/nc5', 'h1 h2']
+    Develop: '/sample-buildout/demo'
+
+Cleanup.
+
+    >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
+    >>> os.remove(os.path.join(sample_buildout, 'extension1.cfg'))
+    >>> os.remove(os.path.join(sample_buildout, 'extension2.cfg'))
+    
 Multiple configuration files
 ----------------------------
 
@@ -928,8 +1062,6 @@ To see how this works, we use an example:
 
     >>> print system(buildout),
     Develop: '/sample-buildout/recipes'
-    Uninstalling debug.
-    Uninstalling data-dir.
     Installing debug.
     op buildout
     recipe recipes:debug
@@ -1591,6 +1723,7 @@ the buildout in the usual way:
     d  d1
     d  d2
     d  d3
+    d  demo
     d  develop-eggs
     d  eggs
     d  parts
@@ -1670,6 +1803,7 @@ and run the buildout specifying just d3 and d4:
     d  d2
     d  data2-extra
     d  data3
+    d  demo
     d  develop-eggs
     d  eggs
     d  parts
@@ -1746,6 +1880,7 @@ also see that d1 and d2 have gone away:
     d  data2
     d  data2-extra
     d  data3
+    d  demo
     d  develop-eggs
     d  eggs
     d  parts
@@ -2126,6 +2261,7 @@ or on the command line:
     -  base.cfg
     d  bin
     -  buildout.cfg
+    d  demo
     d  develop-eggs
     d  eggs
     -  inst.cfg
@@ -2147,6 +2283,7 @@ buildout installed option:
     -  base.cfg
     d  bin
     -  buildout.cfg
+    d  demo
     d  develop-eggs
     d  eggs
     d  parts
@@ -2170,6 +2307,7 @@ parts:
     -  base.cfg
     d  bin
     -  buildout.cfg
+    d  demo
     d  develop-eggs
     d  eggs
     d  parts
