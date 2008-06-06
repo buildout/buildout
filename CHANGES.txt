@@ -7,6 +7,8 @@ Change History
 1.0.4 (unreleased)
 ==================
 
+- Extended configuration syntax to allow -= and += operators (malthe).
+  
 1.0.3 (2008-06-01)
 ==================
 
