@@ -7,6 +7,9 @@ Change History
 1.0.4 (unreleased)
 ==================
 
+- Quote the 'executable' argument when trying to detect the python 
+  version using popen4. (sidnei)
+
 - Quote the 'spec' argument, as in the case of installing an egg from
   the buildout-cache, if the filename contains spaces it would fail (sidnei)
 
