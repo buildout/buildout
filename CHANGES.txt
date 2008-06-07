@@ -7,6 +7,8 @@ Change History
 1.0.4 (unreleased)
 ==================
 
+- Added the `allow-hosts` option (tarek)
+
 - Quote the 'executable' argument when trying to detect the python 
   version using popen4. (sidnei)
 

@@ -2385,7 +2385,31 @@ We see that our extension is loaded and executed:
     ext ['buildout']
     Develop: '/sample-bootstrapped/demo'
 
+Allow hosts
+-----------
 
+On some environments the links visited by `zc.buildout` can be forbidden
+by paranoiac firewalls. These URL might be on the chain of links 
+visited by `zc.buildout` wheter they are defined in the `find-links` option,
+wheter they are defined by various eggs in their `url`, `download_url`, 
+`dependency_links` metadata.
+
+It is even harder to track that package_index works like a spider and 
+might visit links and go to other location.
+
+The `allow-hosts` option provides a way to prevent this, and 
+works exactly like the one provided in `easy_install`.
+
+You can provide a list of allowed host, together with wildcards::
+
+    [buildout]
+    ...
+    
+    allow-hosts =
+        *.python.org
+        example.com
+
+All urls that does not match these hosts will not be visited.
 
 .. [#future_recipe_methods] In the future, additional methods may be
        added. Older recipes with fewer methods will still be

@@ -39,6 +39,11 @@ class Eggs(object):
             options['index'] = index
         self.index = index
 
+        allow_hosts = buildout['buildout'].get('allow-hosts', '*')
+        allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
+                               if host.strip()!=''])
+        self.allow_hosts = allow_hosts 
+
         options['eggs-directory'] = buildout['buildout']['eggs-directory']
         options['_e'] = options['eggs-directory'] # backward compat.
         options['develop-eggs-directory'
@@ -78,6 +83,7 @@ class Eggs(object):
                 always_unzip=options.get('unzip') == 'true',
                 path=[options['develop-eggs-directory']],
                 newest=self.buildout['buildout'].get('newest') == 'true',
+                allow_hosts=self.allow_hosts
                 )
 
         return orig_distributions, ws
