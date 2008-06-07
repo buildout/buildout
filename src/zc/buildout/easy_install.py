@@ -61,7 +61,7 @@ def _get_version(executable):
     try:
         return _versions[executable]
     except KeyError:
-        i, o = os.popen4(executable + ' -V')
+        i, o = os.popen4(_safe_arg(executable) + ' -V')
         i.close()
         version = o.read().strip()
         o.close()
