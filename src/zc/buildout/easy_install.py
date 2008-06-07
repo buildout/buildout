@@ -71,8 +71,21 @@ def _get_version(executable):
         _versions[executable] = version
         return version
 
+FILE_SCHEME = re.compile('file://', re.I).match
+
+class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
+    """Will allow urls that are local to the system.
+
+    No matter what is allow_hosts.
+    """
+    def url_ok(self, url, fatal=False):
+        if FILE_SCHEME(url):
+            return True
+        return setuptools.package_index.PackageIndex.url_ok(self, url, False)
+        
+
 _indexes = {}
-def _get_index(executable, index_url, find_links):
+def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
     key = executable, index_url, tuple(find_links)
     index = _indexes.get(key)
     if index is not None:
@@ -80,9 +93,8 @@ def _get_index(executable, index_url, find_links):
 
     if index_url is None:
         index_url = default_index_url
-
-    index = setuptools.package_index.PackageIndex(
-        index_url, python=_get_version(executable)
+    index = AllowHostsPackageIndex(
+        index_url, hosts=allow_hosts, python=_get_version(executable)
         )
         
     if find_links:
@@ -124,8 +136,10 @@ class Installer:
                  newest=True,
                  versions=None,
                  use_dependency_links=None,
+                 allow_hosts=('*',)
                  ):
         self._dest = dest
+        self._allow_hosts = allow_hosts
 
         if self._install_from_cache:
             if not self._download_cache:
@@ -152,7 +166,7 @@ class Installer:
         self._newest = newest
         self._env = pkg_resources.Environment(path,
                                               python=_get_version(executable))
-        self._index = _get_index(executable, index, links)
+        self._index = _get_index(executable, index, links, self._allow_hosts)
 
         if versions is not None:
             self._versions = versions
@@ -162,8 +176,8 @@ class Installer:
         if not dists:
             logger.debug('We have no distributions for %s that satisfies %r.',
                          req.project_name, str(req))
+            
             return None, self._obtain(req, source)
-
 
         # Note that dists are sorted from best to worst, as promised by
         # env.__getitem__
@@ -345,9 +359,9 @@ class Installer:
             shutil.rmtree(tmp)
             
     def _obtain(self, requirement, source=None):
-
         # initialize out index for this project:
         index = self._index
+        
         if index.obtain(requirement) is None:
             # Nothing is available.
             return None
@@ -425,7 +439,7 @@ class Installer:
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
         dist, avail = self._satisfied(requirement)
-
+        
         if dist is None:
             if self._dest is not None:
                 logger.info(*__doing__)
@@ -514,7 +528,8 @@ class Installer:
                         logger.debug('Adding find link %r from %s', link, dist)
                         self._links.append(link)
                         self._index = _get_index(self._executable,
-                                                 self._index_url, self._links)
+                                                 self._index_url, self._links, 
+                                                 self._allow_hosts)
 
         for dist in dists:
             # Check whether we picked a version and, if we did, report it:
@@ -729,18 +744,19 @@ def install(specs, dest,
             links=(), index=None,
             executable=sys.executable, always_unzip=False,
             path=None, working_set=None, newest=True, versions=None,
-            use_dependency_links=None):
+            use_dependency_links=None, allow_hosts=('*',)):
     installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest, versions, use_dependency_links)
+                          newest, versions, use_dependency_links, 
+                          allow_hosts=allow_hosts)
     return installer.install(specs, working_set)
 
 
 def build(spec, dest, build_ext,
           links=(), index=None,
           executable=sys.executable,
-          path=None, newest=True, versions=None):
+          path=None, newest=True, versions=None, allow_hosts=('*',)):
     installer = Installer(dest, links, index, executable, True, path, newest,
-                          versions)
+                          versions, allow_hosts=allow_hosts)
     return installer.build(spec, build_ext)
 
         
