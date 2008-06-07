@@ -272,7 +272,7 @@ class Installer:
             elif level < 0:
                 args += ('-v', )
 
-            args += (spec, )
+            args += (_safe_arg(spec), )
 
             if level <= logging.DEBUG:
                 logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
