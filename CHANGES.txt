@@ -15,8 +15,8 @@ Change History
 - Quote the 'spec' argument, as in the case of installing an egg from
   the buildout-cache, if the filename contains spaces it would fail (sidnei)
 
-- Extended configuration syntax to allow -= and += operators (malthe).
-  
+- Extended configuration syntax to allow -= and += operators (malthe, mustapha).
+
 1.0.3 (2008-06-01)
 ==================
 
