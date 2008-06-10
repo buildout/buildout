@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-version = "1.0.4-dev"
+version = "1.0.4"
 
 import os
 from setuptools import setup, find_packages
