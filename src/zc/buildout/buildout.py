@@ -1156,12 +1156,12 @@ def _update_section(s1, s2):
     for k, v in s2.items():
         if k.endswith('+'):
             key = k.rstrip(' +')
-            s2[key] = "\n".join(s1.get(key, "").split() + s2[k].split())
+            s2[key] = "\n".join(s1.get(key, "").split('\n') + s2[k].split('\n'))
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
-            s2[key] = "\n".join([v for v in s1.get(key, "").split()
-                                 if v not in s2[k].split()])
+            s2[key] = "\n".join([v for v in s1.get(key, "").split('\n')
+                                 if v not in s2[k].split('\n')])
             del s2[k]
                 
     s1.update(s2)
