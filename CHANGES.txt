@@ -4,7 +4,7 @@ Status
 Change History
 **************
 
-1.0.4 (unreleased)
+1.0.4 (2008-06-10)
 ==================
 
 - Added the `allow-hosts` option (tarek)
