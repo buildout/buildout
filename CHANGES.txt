@@ -4,9 +4,10 @@ Status
 Change History
 **************
 
-1.0.5 (unreleased)
+1.0.5 (2008-06-10)
 ==================
 
+- Fixed wrong split when using the += and -= syntax (mustapha)
 
 1.0.4 (2008-06-10)
 ==================
