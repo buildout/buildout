@@ -7,6 +7,11 @@ Change History
 1.0.6 (unreleased)
 ==================
 
+- further fixes for """AttributeError: Buildout instance has no 
+  attribute '_logger'""" by providing reasonable defaults 
+  within the Buildout constructor (related to the new 'allow-hosts' option)
+  (patch by Gottfried Ganssauge) (ajung)
+
 
 1.0.5 (2008-06-10)
 ==================

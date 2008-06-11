@@ -124,16 +124,30 @@ class Buildout(UserDict.DictMixin):
         self._parts = []
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
-        # used already (Gottfried Ganssauage)
-        self._links = ()
+        # used already (Gottfried Ganssauge)
+        buildout_section = data.get ('buildout')
+        links = buildout_section and buildout_section.get('find-links', '')
+        self._links = links and links.split() or ()
+
+        allow_hosts = buildout_section and buildout_section.get(
+             'allow-hosts', '*').split('\n')
+        self._allow_hosts = tuple([host.strip() for host in allow_hosts 
+                                   if host.strip() != ''])
+
         self._buildout_dir = os.getcwd()
         self._logger = logging.getLogger('zc.buildout')
         self.offline = False
         self.newest = True
         
+        ##################################################################
+        ## WARNING!!!
+        ## ALL ATTRIBUTES MUST HAVE REASONABLE DEFAULTS AT THIS POINT
+        ## OTHERWISE ATTRIBUTEERRORS MIGHT HAPPEN ANY TIME
+        ##################################################################
         # initialize some attrs and buildout directories.
         options = self['buildout']
 
+        # now reinitialize
         links = options.get('find-links', '')
         self._links = links and links.split() or ()
         
