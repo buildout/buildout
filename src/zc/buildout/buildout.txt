@@ -905,23 +905,23 @@ operators.
 
 This is illustrated below; first we define a base configuration.
 
-    >>> write(sample_buildout, 'base.cfg',  
+    >>> write(sample_buildout, 'base.cfg',
     ... """
     ... [buildout]
     ... parts = part1 part2 part3
     ...
     ... [part1]
-    ... recipe = 
+    ... recipe =
     ... option = a1 a2
     ...
     ... [part2]
-    ... recipe = 
+    ... recipe =
     ... option = b1 b2 b3 b4
-    ... 
+    ...
     ... [part3]
-    ... recipe = 
+    ... recipe =
     ... option = c1 c2
-    ... 
+    ...
     ... """)
 
 Extending this configuration, we can "adjust" the values set in the
@@ -966,10 +966,10 @@ An additional extension.
     ... option -= b1 b2 b3
     ...
     ... """)
-    
+
 To verify that the options are adjusted correctly, we'll set up an
 extension that prints out the options.
-    
+
     >>> mkdir(sample_buildout, 'demo')
     >>> write(sample_buildout, 'demo', 'demo.py',
     ... """
@@ -994,7 +994,7 @@ Set up a buildout configuration for this extension.
     ... """
     ... [buildout]
     ... develop = demo
-    ... parts = 
+    ... parts =
     ... """)
 
     >>> os.chdir(sample_buildout)
@@ -1016,9 +1016,9 @@ Verify option values.
     ... extensions = demo
     ... extends = extension2.cfg
     ... """)
-    
+
     >>> print system(os.path.join('bin', 'buildout')),
-    ['a1/na2/na3/na4/na5', 'b4', 'c1/nc2/nc3/nc4/nc5', 'h1 h2']
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'h1 h2']
     Develop: '/sample-buildout/demo'
 
 Cleanup.
@@ -1026,7 +1026,7 @@ Cleanup.
     >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
     >>> os.remove(os.path.join(sample_buildout, 'extension1.cfg'))
     >>> os.remove(os.path.join(sample_buildout, 'extension2.cfg'))
-    
+
 Multiple configuration files
 ----------------------------
 
