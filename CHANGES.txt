@@ -7,6 +7,12 @@ Change History
 1.0.6 (unreleased)
 ==================
 
+- Manually reverted the changeset for the fix for
+  https://bugs.launchpad.net/zc.buildout/+bug/239212 to verify thet the test
+  actually fails with the changeset:
+  http://svn.zope.org/zc.buildout/trunk/src/zc/buildout/buildout.py?rev=87309&r1=87277&r2=87309
+  Thanks tarek for pointing this out. (seletz)
+
 - fixed the test for the += -= syntax in buildout.txt as the test
   was actually wronng. The original implementation did a split/join
   on whitespace, and later on that was corrected to respect the original
