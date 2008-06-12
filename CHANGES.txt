@@ -7,6 +7,14 @@ Change History
 1.0.6 (unreleased)
 ==================
 
+- fixed the test for the += -= syntax in buildout.txt as the test
+  was actually wronng. The original implementation did a split/join
+  on whitespace, and later on that was corrected to respect the original
+  EOL setting, the test was not updated, though. (seletz)
+
+- added a test to verify against https://bugs.launchpad.net/zc.buildout/+bug/239212
+  in allowhosts.txt (seletz)
+
 - further fixes for """AttributeError: Buildout instance has no 
   attribute '_logger'""" by providing reasonable defaults 
   within the Buildout constructor (related to the new 'allow-hosts' option)

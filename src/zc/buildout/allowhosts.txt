@@ -106,4 +106,32 @@ Now we can run the buildout and make sure all attempts to dist.plone.org fails::
     Error: Couldn't find a distribution for 'kss.core'.
     <BLANKLINE>
 
+Test for issues
+---------------
 
+Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts=
+    ...     python
+    ...      
+    ... foo = ${python:interpreter}
+    ...      
+    ... [python]
+    ... recipe=zc.recipe.egg
+    ... eggs=ipython
+    ... interpreter=python
+    ... ''')
+    >>> print system(buildout)
+    Unused options for buildout: 'foo'.
+    Installing python.
+    Getting distribution for 'ipython'.
+    Got ipython 0.8.3.
+    Generated script 'bin/ipython'.
+    Generated script 'bin/pycolor'.
+    Generated interpreter 'bin/python'.
+    <BLANKLINE>
+
+The bug 239212 above would have got us an *AttrubuteError* on *buildout._allow_hosts*.
