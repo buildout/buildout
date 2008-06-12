@@ -135,3 +135,5 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     <BLANKLINE>
 
 The bug 239212 above would have got us an *AttrubuteError* on *buildout._allow_hosts*.
+This was fixed in thhis changeset:
+http://svn.zope.org/zc.buildout/trunk/src/zc/buildout/buildout.py?rev=87309&r1=87277&r2=87309
