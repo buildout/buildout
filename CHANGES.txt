@@ -4,7 +4,7 @@ Status
 Change History
 **************
 
-1.0.6 (unreleased)
+1.0.6 (2008-06-13)
 ==================
 
 - Manually reverted the changeset for the fix for
