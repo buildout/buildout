@@ -114,26 +114,22 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
     ... [buildout]
-    ... parts=
-    ...     python
-    ...      
+    ... parts=python     
     ... foo = ${python:interpreter}
     ...      
     ... [python]
     ... recipe=zc.recipe.egg
-    ... eggs=ipython
+    ... eggs=zc.buildout
     ... interpreter=python
     ... ''')
     >>> print system(buildout)
     Unused options for buildout: 'foo'.
     Installing python.
-    Getting distribution for 'ipython'.
-    Got ipython 0.8.3.
-    Generated script 'bin/ipython'.
-    Generated script 'bin/pycolor'.
+    Generated script 'bin/buildout'.
     Generated interpreter 'bin/python'.
     <BLANKLINE>
 
-The bug 239212 above would have got us an *AttrubuteError* on *buildout._allow_hosts*.
-This was fixed in thhis changeset:
+The bug 239212 above would have got us an *AttributeError* on *buildout._allow_hosts*.
+This was fixed in this changeset:
 http://svn.zope.org/zc.buildout/trunk/src/zc/buildout/buildout.py?rev=87309&r1=87277&r2=87309
+
