@@ -8,7 +8,11 @@ To do
 Change History
 **************
 
-1.1.0b1 (unreleased)
+1.1.0b2 (unreleased)
+====================
+
+
+1.1.0b1 (2008-06-27)
 ====================
 
 - Added `environment` option to custom extension building options.
