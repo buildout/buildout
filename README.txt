@@ -137,7 +137,7 @@ a buildout with a configuration file that looks like::
   [foo]
   ...
 
-whwre foo and bar are packages with scripts that I want available.  As
+where foo and bar are packages with scripts that I want available.  As
 I need new scripts, I can add additional sections.  The bin-directory
 option specified that scripts should be installed into the current
 directory.
