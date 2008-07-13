@@ -16,11 +16,8 @@
 $Id$
 """
 
-
-import BaseHTTPServer, ConfigParser, os, random, re, shutil, socket, sys
-import tempfile, threading, time, urllib2, unittest
-
-from zope.testing import doctest, renormalizing
+import BaseHTTPServer, os, random, re, shutil, socket, sys
+import tempfile, threading, time, urllib2, errno
 import pkg_resources
 
 import zc.buildout.buildout
