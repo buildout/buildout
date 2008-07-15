@@ -112,7 +112,7 @@ buildout will install earlier versions of these packages:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-Now we can see that We actually "upgrade" to an earlier version.
+Now we can see that we actually "upgrade" to an earlier version.
 
     >>> print system(buildout),
     Upgraded:
