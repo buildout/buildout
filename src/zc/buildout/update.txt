@@ -94,11 +94,9 @@ Our buildout script has been updated to use the new eggs:
     if __name__ == '__main__':
         zc.buildout.buildout.main()
 
-There are a number of cases in which the updates don't happen.
-Let's recreate the sample buildout. One case is the one in which we
-specify versions of zc.buildout and setuptools for which the don't
-match. If we update out configuration file to specify an older
-version:
+Now, let's recreate the sample buildout. If we specify constraints on
+the versions of zc.buildout and setuptools to use, running the
+buildout will install earlier versions of these packages:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -114,7 +112,7 @@ version:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-We'll actually "upgrade" to an earlier version.
+Now we can see that We actually "upgrade" to an earlier version.
 
     >>> print system(buildout),
     Upgraded:
@@ -126,6 +124,9 @@ We'll actually "upgrade" to an earlier version.
     Updating show-versions.
     zc.buildout 1.0.0
     setuptools 0.6
+
+There are a number of cases, described below, in which the updates
+don't happen. 
 
 We won't upgrade in offline mode:
 
