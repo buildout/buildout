@@ -156,7 +156,7 @@ Or in non-newest mode:
     zc.buildout 1.0.0
     setuptools 0.6
 
-We also won't upgrade if the buildout script bing run isn't in the
+We also won't upgrade if the buildout script being run isn't in the
 buildouts bin directory.  To see this we'll create a new buildout
 directory:
 
