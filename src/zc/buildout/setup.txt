@@ -3,16 +3,16 @@ Using zc.buildout to run setup scripts
 
 zc buildout has a convenience command for running setup scripts.  Why?
 There are two reasons.  If a setup script doesn't import setuptools,
-you can't use aby setuptools-provided commands, like bdist_egg.  When
+you can't use any setuptools-provided commands, like bdist_egg.  When
 buildut runs a setup script, it arranges to import setuptools before
 running the script so setuptools-provided commands are available.
 
-If you use a squeaky-clean Python to do your development, the a setup
+If you use a squeaky-clean Python to do your development, the setup
 script that would import setuptools because setuptools isn't in the
 path.  Because buildout requires setuptools and knows where it has
-installed a setuptools egg, it add the setuptools egg to the Python
+installed a setuptools egg, it adds the setuptools egg to the Python
 path before running the script.  To run a setup script, use the
-buildout setup command, passing the name of a secript or a directory
+buildout setup command, passing the name of a script or a directory
 containing a setup script and arguments to the script.  Let's look at
 an example:
 
