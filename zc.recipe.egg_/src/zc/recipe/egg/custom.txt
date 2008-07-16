@@ -1,4 +1,4 @@
-Creating eggs with extensions neededing custom build settings
+Creating eggs with extensions needing custom build settings
 =============================================================
 
 Sometimes, It's necessary to provide extra control over how an egg is
