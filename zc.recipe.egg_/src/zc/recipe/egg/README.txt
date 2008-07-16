@@ -115,7 +115,7 @@ scripts recipe:
     Installing demo.
     Generated script '/sample-buildout/bin/demo'.
 
-Now we also see the script defined by the dmo script:
+Now we also see the script defined by the demo script:
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -126,7 +126,7 @@ The scripts recipe defines some additional options:
 entry-points
    A list of entry-point identifiers of the form name=module#attrs,
    name is a script name, module is a module name, and a attrs is a
-   (possibly dotted) name of an object wihin the module.  This option
+   (possibly dotted) name of an object within the module.  This option
    is useful when working with distributions that don't declare entry
    points, such as distributions not written to work with setuptools.
 
@@ -143,7 +143,7 @@ interpreter
    interpreter that has the path set based on the eggs installed.
 
 extra-paths
-   Extra paths to include in a generates script.
+   Extra paths to include in a generated script.
 
 initialization
    Specify some Python initialization code.  This is very limited.  In
@@ -169,7 +169,7 @@ Let's add an interpreter option:
     ... """ % dict(server=link_server))
 
 Note that we ommitted the entry point name from the recipe
-specification. We were able to do this because the scripts recipe if
+specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
    >>> print system(buildout),
@@ -372,7 +372,7 @@ Let's look at the script that was generated:
 Specifying initialialization code and arguments
 -----------------------------------------------
 
-Sometimes, we ned to do more than just calling entry points.  We can
+Sometimes, we need to do more than just calling entry points.  We can
 use the initialialization and arguments options to specify extra code
 to be included in generated scripts:
 
@@ -420,7 +420,7 @@ to be included in generated scripts:
         eggrecipedemo.main(a, 2)
 
 Here we see that the initialization code we specified was added after
-setting the path.  Note, as mentioennd above, that leading whitespace
+setting the path.  Note, as mentioned above, that leading whitespace
 has been stripped.  Similarly, the argument code we specified was
 added in the entry point call (to main).
 

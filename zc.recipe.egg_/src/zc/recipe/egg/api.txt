@@ -91,7 +91,7 @@ of extra requirements to be included in the working set.
     demoneeded 1.2c1
     extra paths: []
 
-We can see that the options were augmented with additionl data
+We can see that the options were augmented with additional data
 computed by the egg recipe by looking at .installed.cfg:
 
     >>> cat(sample_buildout, '.installed.cfg')
