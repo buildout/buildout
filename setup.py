@@ -68,8 +68,6 @@ setup(
     namespace_packages = ['zc'],
     install_requires = 'setuptools',
     include_package_data = True,
-    tests_require = ['zope.testing'],
-    test_suite = name+'.tests.test_suite',
     entry_points = {'console_scripts':
                     ['buildout = %s.buildout:main' % name]}, 
     zip_safe=False,
