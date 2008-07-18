@@ -8,8 +8,10 @@ To do
 Change History
 **************
 
-1.1.0b2 (unreleased)
+1.1.0 (unreleased)
 ====================
+
+- Refactored to work honor the new buildout-level unzip option.
 
 
 1.1.0b1 (2008-06-27)
