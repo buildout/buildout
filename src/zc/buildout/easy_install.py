@@ -125,13 +125,14 @@ class Installer:
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
+    _always_unzip = False
     
     def __init__(self,
                  dest=None,
                  links=(),
                  index=None,
                  executable=sys.executable,
-                 always_unzip=False,
+                 always_unzip=None,
                  path=None,
                  newest=True,
                  versions=None,
@@ -156,7 +157,8 @@ class Installer:
 
         self._index_url = index
         self._executable = executable
-        self._always_unzip = always_unzip
+        if always_unzip is not None:
+            self._always_unzip = always_unzip
         path = (path and path[:] or []) + buildout_and_setuptools_path
         if dest is not None and dest not in path:
             path.insert(0, dest)
@@ -740,9 +742,15 @@ def allow_picked_versions(setting=None):
         Installer._allow_picked_versions = bool(setting)
     return old
 
+def always_unzip(setting=None):
+    old = Installer._always_unzip
+    if setting is not None:
+        Installer._always_unzip = bool(setting)
+    return old
+
 def install(specs, dest,
             links=(), index=None,
-            executable=sys.executable, always_unzip=False,
+            executable=sys.executable, always_unzip=None,
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',)):
     installer = Installer(dest, links, index, executable, always_unzip, path,
