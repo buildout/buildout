@@ -114,9 +114,9 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
     ... [buildout]
-    ... parts=python     
+    ... parts=python
     ... foo = ${python:interpreter}
-    ...      
+    ... 
     ... [python]
     ... recipe=zc.recipe.egg
     ... eggs=zc.buildout
@@ -125,8 +125,8 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     >>> print system(buildout)
     Unused options for buildout: 'foo'.
     Installing python.
-    Generated script 'bin/buildout'.
-    Generated interpreter 'bin/python'.
+    Generated script '/sample-buildout/bin/buildout'.
+    Generated interpreter '/sample-buildout/bin/python'.
     <BLANKLINE>
 
 The bug 239212 above would have got us an *AttributeError* on *buildout._allow_hosts*.
