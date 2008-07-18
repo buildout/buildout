@@ -925,9 +925,10 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     if sys.platform == 'win32':
         # generate exe file and give the script a magic name:
         exe = script+'.exe'
-        open(exe, 'wb').write(
-            pkg_resources.resource_string('setuptools', 'cli.exe')
-            )
+        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
+            # Only write it if it's different.
+            open(exe, 'wb').write(new_data)
         generated.append(exe)
         
     if changed:
