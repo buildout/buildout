@@ -4,9 +4,11 @@ Status
 Change History
 **************
 
-1.0.7 (unreleased)
+1.1 (unreleased)
 ==================
 
+- Added a buildout-level unzip option tp change the default policy for
+  unzipping zip-safe eggs.
 
 1.0.6 (2008-06-13)
 ==================
