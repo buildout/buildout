@@ -77,6 +77,7 @@ class Buildout(UserDict.DictMixin):
 
         # default options
         data = dict(buildout=_buildout_default_options.copy())
+        self._buildout_dir = os.getcwd()
 
         if not _isurl(config_file):
             config_file = os.path.abspath(config_file)
@@ -125,7 +126,16 @@ class Buildout(UserDict.DictMixin):
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
         # used already (Gottfried Ganssauge)
-        buildout_section = data.get ('buildout')
+        buildout_section = data.get('buildout')
+            
+        # Try to make sure we have absolute paths for standard directories. We do this
+        # before doing substitutions, in case a one of these gets read by another section.
+        if 'directory' in buildout_section:
+            self._buildout_dir = buildout_section['directory']
+            for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
+                d = self._buildout_path(buildout_section[name+'-directory'])
+                buildout_section[name+'-directory'] = d
+
         links = buildout_section and buildout_section.get('find-links', '')
         self._links = links and links.split() or ()
 
@@ -134,7 +144,6 @@ class Buildout(UserDict.DictMixin):
         self._allow_hosts = tuple([host.strip() for host in allow_hosts 
                                    if host.strip() != ''])
 
-        self._buildout_dir = os.getcwd()
         self._logger = logging.getLogger('zc.buildout')
         self.offline = False
         self.newest = True
@@ -156,6 +165,9 @@ class Buildout(UserDict.DictMixin):
                                    if host.strip() != ''])
 
         self._buildout_dir = options['directory']
+
+        # Make sure we have absolute paths for standard directories.  We do this
+        # a second time here in case someone overrode these in their configs.
         for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
             d = self._buildout_path(options[name+'-directory'])
             options[name+'-directory'] = d
@@ -600,7 +612,20 @@ class Buildout(UserDict.DictMixin):
             if os.path.isdir(f):
                 rmtree(f)
             elif os.path.isfile(f):
-                os.remove(f)
+                try:
+                    os.remove(f)
+                except OSError:
+                    if not (
+                        sys.platform == 'win32' and
+                        (realpath(os.path.join(os.path.dirname(sys.argv[0]),
+                                               'buildout.exe'))
+                         ==
+                         realpath(f)
+                         )
+                        # Sigh. This is the exectable used to run the buildout
+                        # and, of course, it's in use. Leave it.
+                        ):
+                        raise                    
                 
     def _install(self, part):
         options = self[part]
