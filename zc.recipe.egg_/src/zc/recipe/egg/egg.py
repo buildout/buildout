@@ -75,16 +75,23 @@ class Eggs(object):
                 [options['develop-eggs-directory'], options['eggs-directory']]
                 )
         else:
+            kw = {}
+            always_unzip = options.get('unzip')
+            if always_unzip is not None:
+                if always_unzip not in ('true', 'false'):
+                    raise zc.buildout.UserError("Invalid value for unzip, %s"
+                                                % always_unzip)
+                kw['always_unzip'] = always_unzip == 'true'
+
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
                 links = self.links,
                 index = self.index, 
                 executable = options['executable'],
-                always_unzip=options.get('unzip') == 'true',
                 path=[options['develop-eggs-directory']],
                 newest=self.buildout['buildout'].get('newest') == 'true',
-                allow_hosts=self.allow_hosts
-                )
+                allow_hosts=self.allow_hosts,
+                **kw)
 
         return orig_distributions, ws
 
