@@ -224,6 +224,45 @@ can be useful when debugging.
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
+    ...     always_unzip=False)
+
+    >>> ls(dest)
+    -  demo-0.3-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+
+We can also set a default by calling the always_unzip function:
+
+    >>> zc.buildout.easy_install.always_unzip(True)
+    False
+
+The old default is returned:
+
+    >>> rmdir(dest)
+    >>> dest = tmpdir('sample-install')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
+
+    >>> ls(dest)
+    d  demo-0.3-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+
+
+    >>> zc.buildout.easy_install.always_unzip(False)
+    True
+
+    >>> rmdir(dest)
+    >>> dest = tmpdir('sample-install')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
+
+    >>> ls(dest)
+    -  demo-0.3-py2.4.egg
+    -  demoneeded-1.1-py2.4.egg
+
+    >>> rmdir(dest)
+    >>> dest = tmpdir('sample-install')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     always_unzip=True)
 
     >>> ls(dest)
