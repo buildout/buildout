@@ -240,6 +240,15 @@ class Buildout(UserDict.DictMixin):
             if install_from_cache == 'true':
                 zc.buildout.easy_install.install_from_cache(True)
 
+
+        always_unzip = options.get('unzip')
+        if always_unzip:
+            if always_unzip not in ('true', 'false'):
+                self._error('Invalid value for unzip option: %s',
+                            always_unzip)
+            if always_unzip == 'true':
+                zc.buildout.easy_install.always_unzip(True)
+
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]

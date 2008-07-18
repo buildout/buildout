@@ -1,0 +1,55 @@
+Always unzipping eggs
+=====================
+
+By default, zc.buildout doesn't unzip zip-safe eggs.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> _ = system(buildout)
+    >>> ls('eggs')
+    -  demo-0.4c1-py2.4.egg
+    -  demoneeded-1.2c1-py2.4.egg
+    d  setuptools-0.6c8-py2.4.egg
+    -  zc.buildout.egg-link
+
+This follows the
+policy followed by setuptools itself.  Experience shows this policy
+to to be inconvenient.  Zipped eggs make debugging more difficult and
+often import more slowly.
+
+You can include an unzip option in the buildout section to change the
+default unzipping policy.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... unzip = true
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''' % globals())
+
+
+    >>> import os
+    >>> for name in os.listdir('eggs'):
+    ...     if name.startswith('demo'):
+    ...         remove('eggs', name)
+
+    >>> _ = system(buildout)
+    >>> ls('eggs')
+    d  demo-0.4c1-py2.4.egg
+    d  demoneeded-1.2c1-py2.4.egg
+    d  setuptools-0.6c8-py2.4.egg
+    -  zc.buildout.egg-link
