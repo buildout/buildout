@@ -24,38 +24,32 @@ def rmtree (path):
     read only file.
     This tries to chmod the file to writeable and retries before giving up.
 
-    >>> import shutil
     >>> from tempfile import mkdtemp
 
     Let's make a directory ...
+
     >>> d = mkdtemp()
 
     and make sure it is actually there
+
     >>> os.path.isdir (d)
     1
 
     Now create a file ...
+
     >>> foo = os.path.join (d, 'foo')
     >>> open (foo, 'w').write ('huhu')
 
     and make it unwriteable
+
     >>> os.chmod (foo, 0400)
 
-    now let's see how shutil.rmtree behaves
+    rmtree should be able to remove it:
 
-    >>> shutil.rmtree (d) # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-    ...
-    OSError: [Errno 13] Permission denied: '...foo'
-
-    the directory is still there!
-    >>> os.path.isdir (d)
-    1
-
-    the new function should be able to solve this for us
     >>> rmtree (d)
 
     and now the directory is gone
+
     >>> os.path.isdir (d)
     0
     """
