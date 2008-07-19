@@ -1359,7 +1359,7 @@ def internal_errors():
     ... recipe = recipes:mkdir
     ... ''')
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     While:
       Installing.
@@ -1368,9 +1368,9 @@ def internal_errors():
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
-    <BLANKLINE>
-    NameError:
-    global name 'os' is not defined
+    Traceback (most recent call last):
+    ...
+    NameError: global name 'os' is not defined
     """
 
 def whine_about_unused_options():
@@ -1812,7 +1812,7 @@ if sys.version_info > (2, 4):
         ... recipe = zc.buildout.testexit
         ... ''')
 
-        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
+        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
         Develop: '/sample-buildout/.'
         While:
           Installing.
@@ -1822,12 +1822,13 @@ if sys.version_info > (2, 4):
         <BLANKLINE>
         An internal error occured due to a bug in either zc.buildout or in a
         recipe being used:
-        <BLANKLINE>
-        SyntaxError:
-        invalid syntax (testexitrecipe.py, line 2)
+        Traceback (most recent call last):
+        ...
+             x y
+               ^
+         SyntaxError: invalid syntax
         <BLANKLINE>
         Exit: True
-
         """
 
 def bug_59270_recipes_always_start_in_buildout_dir():
@@ -2403,6 +2404,43 @@ honoring our version specification.
     
     """
 
+def pyc_and_pyo_files_have_correct_paths():
+    r"""
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... unzip = true
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... interpreter = py
+    ... ''' % globals())
+
+    >>> _ = system(buildout)
+
+    >>> write('t.py',
+    ... '''
+    ... import eggrecipedemo, eggrecipedemoneeded
+    ... print eggrecipedemo.main.func_code.co_filename
+    ... print eggrecipedemoneeded.f.func_code.co_filename
+    ... ''')
+
+    >>> print system(join('bin', 'py')+ ' t.py'),
+    /sample-buildout/eggs/demo-0.4c1-py2.4.egg/eggrecipedemo.py
+    /sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg/eggrecipedemoneeded.py
+
+    >>> ls('eggs', 'demoneeded-1.2c1-py2.4.egg')
+    d  EGG-INFO
+    -  eggrecipedemoneeded.py
+    -  eggrecipedemoneeded.pyc
+    -  eggrecipedemoneeded.pyo
+
+    """
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
@@ -2413,7 +2451,7 @@ def create_sample_eggs(test, executable=sys.executable):
         write(tmp, 'README.txt', '')
 
         for i in (0, 1, 2):
-            write(tmp, 'eggrecipedemoneeded.py', 'y=%s\n' % i)
+            write(tmp, 'eggrecipedemoneeded.py', 'y=%s\ndef f():\n  pass' % i)
             c1 = i==2 and 'c1' or ''
             write(
                 tmp, 'setup.py',

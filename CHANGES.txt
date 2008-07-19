@@ -4,11 +4,17 @@ Status
 Change History
 **************
 
-1.1 (unreleased)
-==================
+1.1 (2008-07-19)
+================
 
 - Added a buildout-level unzip option tp change the default policy for
   unzipping zip-safe eggs.
+
+- Tracebacks are now printed for internal errors (as opposed to user
+  errors) even without the -D option.
+
+- pyc and pyo files are regenerated for installed eggs so that the
+  stored path in code objects matches the the install location.
 
 1.0.6 (2008-06-13)
 ==================
