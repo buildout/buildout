@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-version = "1.0.7-dev"
+version = "0"
 
 import os
 from setuptools import setup, find_packages
@@ -27,6 +27,8 @@ long_description=(
         '**********************\n'
         + '\n' +
         read('src', 'zc', 'buildout', 'buildout.txt')
+        + '\n' +
+        read('src', 'zc', 'buildout', 'unzip.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'repeatable.txt')
         + '\n' +
