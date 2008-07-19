@@ -2698,13 +2698,13 @@ def test_suite():
             'allowhosts.txt', 'unzip.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
-
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                normalize_bang,
-               (re.compile('extdemo[.]pyd'), 'extdemo.so')
+               (re.compile('extdemo[.]pyd'), 'extdemo.so'),
+               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                ]),
             ),
         doctest.DocTestSuite(
