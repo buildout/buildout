@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-version = "1.0.7-dev"
+version = "1.1.0"
 
 import os
 from setuptools import setup, find_packages
