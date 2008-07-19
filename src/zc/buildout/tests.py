@@ -2433,7 +2433,10 @@ def pyc_and_pyo_files_have_correct_paths():
     /sample-buildout/eggs/demo-0.4c1-py2.4.egg/eggrecipedemo.py
     /sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg/eggrecipedemoneeded.py
 
-    >>> ls('eggs', 'demoneeded-1.2c1-py2.4.egg')
+    >>> import os
+    >>> for name in os.listdir('eggs'):
+    ...     if name.startswith('demoneeded'):
+    ...         ls('eggs', name)
     d  EGG-INFO
     -  eggrecipedemoneeded.py
     -  eggrecipedemoneeded.pyc
