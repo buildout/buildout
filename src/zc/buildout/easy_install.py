@@ -504,6 +504,8 @@ class Installer:
                         else:
                             shutil.copyfile(dist.location, newloc)
 
+                    redo_pyc(newloc)
+
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
                     # good enough.
@@ -516,6 +518,8 @@ class Installer:
                     # deal with it:
                     dists = self._call_easy_install(
                         dist.location, ws, self._dest, dist)
+                    for dist in dists:
+                        redo_pyc(dist.location)
 
             finally:
                 if tmp != self._download_cache:
@@ -579,7 +583,6 @@ class Installer:
                 if ws.find(requirement) is None:
                     for dist in self._get_dist(requirement, ws, False):
                         ws.add(dist)
-                        redo_pyc(dist.location)
 
 
     def _constrain(self, requirement):
@@ -617,7 +620,6 @@ class Installer:
         for requirement in requirements:
             for dist in self._get_dist(requirement, ws, self._always_unzip):
                 ws.add(dist)
-                redo_pyc(dist.location)
                 self._maybe_add_setuptools(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
@@ -644,7 +646,6 @@ class Installer:
                                            ):
                         
                     ws.add(dist)
-                    redo_pyc(dist.location)
                     self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict, err:
                 raise VersionConflict(err, ws)
