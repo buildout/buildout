@@ -449,7 +449,7 @@ leave previously created paths in place:
     ... path = foo bin
     ... """)
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Uninstalling data-dir.
     Installing data-dir.
@@ -460,9 +460,9 @@ leave previously created paths in place:
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
-    <BLANKLINE>
-    OSError:
-    [Errno 17] File exists: '/sample-buildout/bin'
+    Traceback (most recent call last):
+      ...
+    OSError: [Errno 17] File exists: '/sample-buildout/bin'
 
 We meant to create a directory bins, but typed bin.  Now foo was
 left behind.
@@ -483,7 +483,7 @@ If we fix the typo:
     ... path = foo bins
     ... """)
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -492,9 +492,9 @@ If we fix the typo:
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
-    <BLANKLINE>
-    OSError:
-    [Errno 17] File exists: '/sample-buildout/foo'
+    Traceback (most recent call last):
+    ...
+    OSError: [Errno 17] File exists: '/sample-buildout/foo'
 
 Now they fail because foo exists, because it was left behind.
 
@@ -559,7 +559,7 @@ And put back the typo:
 
 When we rerun the buildout:
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -569,9 +569,9 @@ When we rerun the buildout:
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
-    <BLANKLINE>
-    OSError:
-    [Errno 17] File exists: '/sample-buildout/bin'
+    Traceback (most recent call last):
+    ...
+    OSError: [Errno 17] File exists: '/sample-buildout/bin'
 
 we get the same error, but we don't get the directory left behind:
 
@@ -635,7 +635,7 @@ It would be simpler just to return the paths as before.
 If we rerun the buildout, again, we'll get the error and no
 directories will be created:
 
-    >>> print system(buildout),
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -645,9 +645,9 @@ directories will be created:
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
-    <BLANKLINE>
-    OSError:
-    [Errno 17] File exists: '/sample-buildout/bin'
+    Traceback (most recent call last):
+    ...
+    OSError: [Errno 17] File exists: '/sample-buildout/bin'
 
     >>> os.path.exists('foo')
     False

@@ -20,13 +20,22 @@ installed.
 $Id$
 """
 
-import glob, logging, os, re, shutil, sys, tempfile, urlparse, zipimport
 import distutils.errors
+import glob
+import logging
+import os
 import pkg_resources
+import py_compile
+import re
+import setuptools.archive_util
 import setuptools.command.setopt
 import setuptools.package_index
-import setuptools.archive_util
+import shutil
+import sys
+import tempfile
+import urlparse
 import zc.buildout
+import zipimport
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
 def realpath(path):
@@ -570,6 +579,7 @@ class Installer:
                 if ws.find(requirement) is None:
                     for dist in self._get_dist(requirement, ws, False):
                         ws.add(dist)
+                        redo_pyc(dist.location)
 
 
     def _constrain(self, requirement):
@@ -607,6 +617,7 @@ class Installer:
         for requirement in requirements:
             for dist in self._get_dist(requirement, ws, self._always_unzip):
                 ws.add(dist)
+                redo_pyc(dist.location)
                 self._maybe_add_setuptools(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
@@ -633,6 +644,7 @@ class Installer:
                                            ):
                         
                     ws.add(dist)
+                    redo_pyc(dist.location)
                     self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict, err:
                 raise VersionConflict(err, ws)
@@ -695,6 +707,9 @@ class Installer:
                 dists = self._call_easy_install(
                     base, pkg_resources.WorkingSet(),
                     self._dest, dist)
+
+                for dist in dists:
+                    redo_pyc(dist.location)
 
                 return [dist.location for dist in dists]
             finally:
@@ -1087,3 +1102,37 @@ def _final_version(parsed_version):
         if (part[:1] == '*') and (part not in _final_parts):
             return False
     return True
+
+def redo_pyc(egg):
+    if not os.path.isdir(egg):
+        return
+    for dirpath, dirnames, filenames in os.walk(egg):
+        for filename in filenames:
+            if not filename.endswith('.py'):
+                continue
+            filepath = os.path.join(dirpath, filename)
+            if not (os.path.exists(filepath+'c')
+                    or os.path.exists(filepath+'o')):
+                # If it wasn't compiled, it may not be compilable 
+                continue
+
+            # OK, it looks like we should try to compile.
+
+            # Remove old files.
+            for suffix in 'co':
+                if os.path.exists(filepath+suffix):
+                    os.remove(filepath+suffix)
+
+            # Compile under current optimization
+            try:
+                py_compile.compile(filepath)
+            except py_compile.PyCompileError:
+                logger.warning("Couldn't compile %s", filepath)
+            else:
+                # Recompile under other optimization. :)
+                args = [sys.executable]
+                if __debug__:
+                    args.append('-O')
+                args.extend(['-m', 'py_compile', filepath])
+                os.spawnv(os.P_WAIT, sys.executable, args)
+                      

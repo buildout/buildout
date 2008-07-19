@@ -1256,9 +1256,6 @@ def _error(*message):
 _internal_error_template = """
 An internal error occured due to a bug in either zc.buildout or in a
 recipe being used:
-
-%s:
-%s
 """
 
 def _check_for_unused_options_in_section(buildout, section):
@@ -1268,11 +1265,6 @@ def _check_for_unused_options_in_section(buildout, section):
         buildout._logger.warn("Unused options for %s: %s."
                               % (section, ' '.join(map(repr, unused)))
                               )
-
-def _internal_error(v):
-    sys.stderr.write(_internal_error_template % (v.__class__.__name__, v))
-    sys.exit(1)
-    
 
 _usage = """\
 Usage: buildout [options] [assignments] [command [command arguments]]
@@ -1482,9 +1474,9 @@ def main(args=None):
             pass
         except Exception, v:
             _doing()
+            exc_info = sys.exc_info()
+            import pdb, traceback
             if debug:
-                exc_info = sys.exc_info()
-                import pdb, traceback
                 traceback.print_exception(*exc_info)
                 sys.stderr.write('\nStarting pdb:\n')
                 pdb.post_mortem(exc_info[2])
@@ -1495,7 +1487,10 @@ def main(args=None):
                               ):
                     _error(str(v))
                 else:
-                    _internal_error(v)
+                    sys.stderr.write(_internal_error_template)
+                    traceback.print_exception(*exc_info)
+                    sys.exit(1)
+    
             
     finally:
             logging.shutdown()
