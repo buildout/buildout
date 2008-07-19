@@ -24,7 +24,7 @@ def read(*rnames):
 name = "zc.recipe.egg"
 setup(
     name = name,
-    version = "1.1.0dev",
+    version = "0",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
