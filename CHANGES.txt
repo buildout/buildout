@@ -4,8 +4,17 @@ Status
 Change History
 **************
 
-1.1 (2008-07-19)
-================
+1.1.1 (2008-07-28)
+==================
+
+- Fixed a bug that caused buildouts to fail when variable
+  substitutions are used to name standard directories, as in::
+
+    [buildout]
+    eggs-directory = ${buildout:directory}/develop-eggs
+
+1.1.0 (2008-07-19)
+==================
 
 - Added a buildout-level unzip option tp change the default policy for
   unzipping zip-safe eggs.
