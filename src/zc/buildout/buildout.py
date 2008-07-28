@@ -128,8 +128,11 @@ class Buildout(UserDict.DictMixin):
         # used already (Gottfried Ganssauge)
         buildout_section = data.get('buildout')
             
-        # Try to make sure we have absolute paths for standard directories. We do this
-        # before doing substitutions, in case a one of these gets read by another section.
+        # Try to make sure we have absolute paths for standard
+        # directories. We do this before doing substitutions, in case
+        # a one of these gets read by another section.  If any
+        # variable references are used though, we leave it as is in
+        # _buildout_path.
         if 'directory' in buildout_section:
             self._buildout_dir = buildout_section['directory']
             for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
@@ -255,8 +258,10 @@ class Buildout(UserDict.DictMixin):
 
         os.chdir(options['directory'])
 
-    def _buildout_path(self, *names):
-        return os.path.join(self._buildout_dir, *names)
+    def _buildout_path(self, name):
+        if '${' in name:
+            return name
+        return os.path.join(self._buildout_dir, name)
 
     def bootstrap(self, args):
         __doing__ = 'Bootstraping.'

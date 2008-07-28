@@ -2444,6 +2444,19 @@ def pyc_and_pyo_files_have_correct_paths():
 
     """
 
+def dont_mess_with_standard_dirs_with_variable_refs():
+    """
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... eggs-directory = ${buildout:directory}/develop-eggs
+    ... parts = 
+    ... ''' % globals())
+    >>> print system(buildout),
+    
+    """
+
+
 ######################################################################
     
 def create_sample_eggs(test, executable=sys.executable):
