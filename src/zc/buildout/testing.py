@@ -47,6 +47,8 @@ def ls(dir, *subs):
     for name in names:
         if os.path.isdir(os.path.join(dir, name)):
             print 'd ',
+        elif os.path.islink(os.path.join(dir, name)):
+            print 'l ',
         else:
             print '- ',
         print name

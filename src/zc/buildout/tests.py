@@ -1108,6 +1108,62 @@ changes in .svn or CVS directories.
 
     """
 
+def bug_250537_broken_symlink_doesnt_affect_sig():
+    """
+    
+If we have a develop recipe, it's signature shouldn't be affected by
+broken symlinks, and better yet, computing the hash should not break
+because of the missing target file.
+
+    >>> mkdir('recipe')
+    >>> write('recipe', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='recipe',
+    ...       entry_points={'zc.buildout': ['default=foo:Foo']})
+    ... ''')
+    >>> write('recipe', 'foo.py',
+    ... '''
+    ... class Foo:
+    ...     def __init__(*args): pass
+    ...     def install(*args): return ()
+    ...     update = install
+    ... ''')
+    
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipe
+    ... parts = foo
+    ... 
+    ... [foo]
+    ... recipe = recipe
+    ... ''')
+
+
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    Develop: '/sample-buildout/recipe'
+    Installing foo.
+
+    >>> write('recipe', 'some-file', '1')
+    >>> os.symlink(join('recipe', 'some-file'), 
+    ...            join('recipe', 'another-file'))
+    >>> ls('recipe')
+    l  another-file
+    -  foo.py
+    -  foo.pyc
+    d  recipe.egg-info
+    -  setup.py
+    -  some-file
+
+    >>> remove('recipe', 'some-file')
+
+    >>> print system(join(sample_buildout, 'bin', 'buildout')),
+    Develop: '/sample-buildout/recipe'
+    Updating foo.
+
+    """
+
 def o_option_sets_offline():
     """
     >>> print system(join(sample_buildout, 'bin', 'buildout')+' -vvo'),

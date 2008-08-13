@@ -1187,7 +1187,8 @@ def _dir_hash(dir):
     for (dirpath, dirnames, filenames) in os.walk(dir):
         dirnames[:] = [n for n in dirnames if n not in ignore_directories]
         filenames[:] = [f for f in filenames
-                        if not (f.endswith('pyc') or f.endswith('pyo'))
+                        if (not (f.endswith('pyc') or f.endswith('pyo'))
+                            and os.path.exists(os.path.join(dirpath, f)))
                         ]
         hash.update(' '.join(dirnames))
         hash.update(' '.join(filenames))
