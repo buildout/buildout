@@ -1108,9 +1108,9 @@ changes in .svn or CVS directories.
 
     """
 
-def bug_250537_broken_symlink_doesnt_affect_sig():
-    """
-    
+if hasattr(os, 'symlink'):
+    def bug_250537_broken_symlink_doesnt_affect_sig():
+        """
 If we have a develop recipe, it's signature shouldn't be affected by
 broken symlinks, and better yet, computing the hash should not break
 because of the missing target file.
