@@ -124,11 +124,19 @@ Now we also see the script defined by the demo script:
 The scripts recipe defines some additional options:
 
 entry-points
-   A list of entry-point identifiers of the form name=module#attrs,
-   name is a script name, module is a module name, and a attrs is a
-   (possibly dotted) name of an object within the module.  This option
-   is useful when working with distributions that don't declare entry
-   points, such as distributions not written to work with setuptools.
+   A list of entry-point identifiers of the form:
+
+   name=module:attrs
+
+   where name is a script name, module is a dotted name resolving to a
+   module name, and a attrs is a dotted name resolving to a callable
+   object within a module.
+
+   This option is useful when working with distributions that don't
+   declare entry points, such as distributions not written to work
+   with setuptools. 
+
+   Examples can be seen in the section "Specifying entry points" below.
 
 scripts
    Control which scripts are generated.  The value should be a list of
