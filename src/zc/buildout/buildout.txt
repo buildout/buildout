@@ -2218,6 +2218,47 @@ In buildout version 2, final releases will be preferred by default.
 You will then need to use a false value for prefer-final to get the
 newest releases.
 
+Finding distributions
+---------------------
+
+By default, buildout searches the Python Package Index when looking
+for distributions. The `find-links` options allows the addition of
+more locations to search and is used extensively in this
+documentation. 
+
+These can be urls::
+
+  [buildout]
+  ...
+  find-links = http://download.zope.org/distribution/
+
+They can also be directories on disk::
+
+  [buildout]
+  ...
+  find-links = /some/path
+
+Finally, direct paths to distributions can be specified::
+
+  [buildout]
+  ...
+  find-links = /some/path/someegg-1.0.0-py2.3.egg
+
+You can also specify more than one place to look::
+
+  [buildout]
+  ...
+  find-links = 
+      http://download.zope.org/distribution/
+      /some/otherpath
+      /some/path/someegg-1.0.0-py2.3.egg
+
+In this case, distribution sources are searched in the order
+specified. In the event that a distribution cannot be found in any of
+the locations specified, the python package index will still be
+searched unless other buildout configuration options have prevented
+this.
+
 Dependency links
 ----------------
 
