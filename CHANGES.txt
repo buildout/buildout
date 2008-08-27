@@ -7,6 +7,9 @@ Change History
 1.1.2 (Unreleased)
 ==================
 
+- Added Jython support for bootstrap, development bootstrap
+  and zc.buildout support on Jython
+
 - Fixed a bug that would cause buildout to break while computing a
   directory hash if it found a broken symlink (Launchpad #250573)
 
