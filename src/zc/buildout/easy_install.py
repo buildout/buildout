@@ -50,6 +50,14 @@ logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 
+is_jython = sys.platform.startswith('java')
+
+if is_jython:
+    import subprocess
+    import java.lang.System
+    jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
+
+
 setuptools_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')
     ).location
@@ -303,11 +311,21 @@ class Installer:
                 logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
                              self._executable, '" "'.join(args), path)
 
-            args += (dict(os.environ, PYTHONPATH=path), )
+            if is_jython:
+                extra_env = dict(os.environ, PYTHONPATH=path)
+            else:
+                args += (dict(os.environ, PYTHONPATH=path), )
+
             sys.stdout.flush() # We want any pending output first
-            exit_code = os.spawnle(
-                os.P_WAIT, self._executable, _safe_arg (self._executable),
-                *args)
+            
+            if is_jython:
+                exit_code = subprocess.Popen(
+                [_safe_arg(self._executable)] + list(args), 
+                env=extra_env).wait()
+            else:
+                exit_code = os.spawnle(
+                    os.P_WAIT, self._executable, _safe_arg (self._executable),
+                    *args)
 
             dists = []
             env = pkg_resources.Environment(
@@ -863,7 +881,10 @@ def develop(setup, dest,
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
+        if is_jython:
+            assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
+        else:
+            assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
@@ -967,8 +988,13 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     generated.append(dest)
     return generated
 
-script_template = '''\
-#!%(python)s
+if is_jython and jython_os_name == 'linux':
+    script_header = '#!/usr/bin/env %(python)s'
+else:
+    script_header = '#!%(python)s'
+
+script_template = script_header + '''\
+
 
 import sys
 sys.path[0:0] = [
@@ -1013,8 +1039,9 @@ def _pyscript(path, dest, executable):
     generated.append(dest)
     return generated
 
-py_script_template = '''\
-#!%(python)s
+py_script_template = script_header + '''\
+
+
 import sys
     
 sys.path[0:0] = [
@@ -1135,5 +1162,9 @@ def redo_pyc(egg):
                 if __debug__:
                     args.append('-O')
                 args.extend(['-m', 'py_compile', filepath])
-                os.spawnv(os.P_WAIT, sys.executable, args)
-                      
+                
+                if is_jython:
+                    subprocess.call([sys.executable, args])
+                else:
+                    os.spawnv(os.P_WAIT, sys.executable, args)
+                    
