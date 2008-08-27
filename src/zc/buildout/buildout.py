@@ -43,6 +43,11 @@ pkg_resources_loc = pkg_resources.working_set.find(
 
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
+is_jython = sys.platform.startswith('java')
+
+if is_jython:
+    import subprocess
+
 class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing
     """
@@ -780,7 +785,11 @@ class Buildout(UserDict.DictMixin):
         if not __debug__:
             args.insert(0, '-O')
         args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-        sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+
+        if is_jython:
+            sys.exit(subprocess.Popen([sys.executable] + list(args)).wait())
+        else:
+            sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -831,9 +840,19 @@ class Buildout(UserDict.DictMixin):
                 setup=setup,
                 __file__ = setup,
                 ))
-            os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
-                      *[zc.buildout.easy_install._safe_arg(a)
-                        for a in args])
+            if is_jython:
+                arg_list = list()
+                
+                for a in args:
+                    add_args.append(zc.buildout.easy_install._safe_arg(a))
+                
+                subprocess.Popen([zc.buildout.easy_install._safe_arg(sys.executable)] + list(tsetup) +
+                                arg_list).wait()
+            
+            else:
+                os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
+                        *[zc.buildout.easy_install._safe_arg(a)
+                            for a in args])
         finally:
             os.close(fd)
             os.remove(tsetup)
