@@ -24,6 +24,8 @@ import os, shutil, sys, tempfile, urllib2
 
 tmpeggs = tempfile.mkdtemp()
 
+is_jython = sys.platform.startswith('java')
+
 try:
     import pkg_resources
 except ImportError:
@@ -46,14 +48,27 @@ else:
 
 cmd = 'from setuptools.command.easy_install import main; main()'
 ws  = pkg_resources.working_set
-assert os.spawnle(
-    os.P_WAIT, sys.executable, quote (sys.executable),
-    '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout',
-    dict(os.environ,
-         PYTHONPATH=
-         ws.find(pkg_resources.Requirement.parse('setuptools')).location
-         ),
-    ) == 0
+
+if is_jython:
+    import subprocess
+    
+    assert subprocess.Popen([sys.executable] + ['-c', quote(cmd), '-mqNxd', 
+           quote(tmpeggs), 'zc.buildout'], 
+           env=dict(os.environ,
+               PYTHONPATH=
+               ws.find(pkg_resources.Requirement.parse('setuptools')).location
+               ),
+           ).wait() == 0
+
+else:
+    assert os.spawnle(
+        os.P_WAIT, sys.executable, quote (sys.executable),
+        '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout',
+        dict(os.environ,
+            PYTHONPATH=
+            ws.find(pkg_resources.Requirement.parse('setuptools')).location
+            ),
+        ) == 0
 
 ws.add_entry(tmpeggs)
 ws.require('zc.buildout')
