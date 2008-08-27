@@ -34,7 +34,7 @@ libraries
    can be specified.
 
 link-objects
-   The name of an link object to link afainst.  Due to limitations
+   The name of an link object to link against.  Due to limitations
    in distutils and desprite the option name, only a single link object
    can be specified.
 
@@ -480,7 +480,7 @@ libraries
    can be specified.
 
 link-objects
-   The name of an link object to link afainst.  Due to limitations
+   The name of an link object to link against.  Due to limitations
    in distutils and desprite the option name, only a single link object
    can be specified.
 
