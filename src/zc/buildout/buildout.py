@@ -18,7 +18,6 @@ $Id$
 
 import distutils.errors
 import logging
-import md5
 import os
 import pprint
 import re
@@ -35,6 +34,12 @@ import zc.buildout
 import zc.buildout.easy_install
 
 from rmtree import rmtree
+
+try:
+    from hashlib import md5
+except ImportError:
+    # Python 2.4 and older
+    from md5 import md5
 
 realpath = zc.buildout.easy_install.realpath
 
@@ -1202,7 +1207,7 @@ def _open(base, filename, seen):
 
 ignore_directories = '.svn', 'CVS'
 def _dir_hash(dir):
-    hash = md5.new()
+    hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
         dirnames[:] = [n for n in dirnames if n not in ignore_directories]
         filenames[:] = [f for f in filenames
