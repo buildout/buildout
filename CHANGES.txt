@@ -7,6 +7,9 @@ Change History
 1.1.2 (Unreleased)
 ==================
 
+- Conditionally import and use hashlib.md5 when it's available instead
+  of md5 module, which is deprecated in Python 2.6.
+
 - Added Jython support for bootstrap, development bootstrap
   and zc.buildout support on Jython
 
