@@ -28,6 +28,7 @@ import tempfile
 import urllib2
 import ConfigParser
 import UserDict
+import glob
 
 import pkg_resources
 import zc.buildout
@@ -561,9 +562,13 @@ class Buildout(UserDict.DictMixin):
             try:
                 for setup in develop.split():
                     setup = self._buildout_path(setup)
-                    self._logger.info("Develop: %r", setup)
-                    __doing__ = 'Processing develop directory %r.', setup
-                    zc.buildout.easy_install.develop(setup, dest)
+                    files = glob.glob(setup)
+                    if not files:
+                        self._logger.warn("Couldn't develop %r (not found)", setup)
+                    for setup in files:
+                        self._logger.info("Develop: %r", setup)
+                        __doing__ = 'Processing develop directory %r.', setup
+                        zc.buildout.easy_install.develop(setup, dest)
             except:
                 # if we had an error, we need to roll back changes, by
                 # removing any files we created.
