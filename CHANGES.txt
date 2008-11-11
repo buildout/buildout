@@ -7,6 +7,11 @@ Change History
 1.1.2 (Unreleased)
 ==================
 
+- Expand shell patterns when processing the list of paths in `develop`, e.g::
+
+    [buildout]
+    develop = ./local-checkouts/*
+
 - Conditionally import and use hashlib.md5 when it's available instead
   of md5 module, which is deprecated in Python 2.6.
 
