@@ -2512,6 +2512,72 @@ def dont_mess_with_standard_dirs_with_variable_refs():
     
     """
 
+def expand_shell_patterns_in_develop_paths():
+    """
+    Sometimes we want to include a number of eggs in some directory as
+    develop eggs, without explicitly listing all of them in our
+    buildout.cfg
+
+    >>> make_dist_that_requires(sample_buildout, 'sampley')
+    >>> make_dist_that_requires(sample_buildout, 'samplez')
+
+    Now, let's create a buildout that has a shell pattern that matches
+    both:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... develop = sample*
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = sampley
+    ...        samplez
+    ... ''' % globals())
+
+    We can see that both eggs were found:
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/sampley'
+    Develop: '/sample-buildout/samplez'
+    Installing eggs.
+
+    """
+
+def warn_users_when_expanding_shell_patterns_yields_no_results():
+    """
+    Sometimes shell patterns do not match anything, so we want to warn
+    our users about it...
+
+    >>> make_dist_that_requires(sample_buildout, 'samplea')
+
+    So if we have 2 patterns, one that has a matching directory, and
+    another one that does not
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... develop = samplea grumble*
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = samplea
+    ... ''' % globals())
+
+    We should get one of the eggs, and a warning for the pattern that
+    did not match anything.
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/samplea'
+    Couldn't develop '/sample-buildout/grumble*' (not found)
+    Installing eggs.
+
+    """
+
 
 ######################################################################
     
