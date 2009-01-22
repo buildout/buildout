@@ -23,7 +23,7 @@ buildout software and create a buildout instance:
    The buildout script is installed into your buildout local scripts
    area.
 
-3. Use a buildoput command from an already installed buildout to 
+3. Use a buildout command from an already installed buildout to
    bootstrap a new buildout.  (See the section on bootstraping later
    in this document.)
 
