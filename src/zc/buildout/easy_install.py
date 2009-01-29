@@ -50,14 +50,6 @@ logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 
-is_jython = sys.platform.startswith('java')
-
-if is_jython:
-    import subprocess
-    import java.lang.System
-    jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
-
-
 setuptools_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')
     ).location
@@ -68,6 +60,8 @@ buildout_and_setuptools_path = [
     pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
+
+distribution_cache = {}
 
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
@@ -99,7 +93,7 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
         if FILE_SCHEME(url):
             return True
         return setuptools.package_index.PackageIndex.url_ok(self, url, False)
-        
+
 
 _indexes = {}
 def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
@@ -113,7 +107,7 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
     index = AllowHostsPackageIndex(
         index_url, hosts=allow_hosts, python=_get_version(executable)
         )
-        
+
     if find_links:
         index.add_find_links(find_links)
 
@@ -143,7 +137,7 @@ class Installer:
     _use_dependency_links = True
     _allow_picked_versions = True
     _always_unzip = False
-    
+
     def __init__(self,
                  dest=None,
                  links=(),
@@ -195,7 +189,7 @@ class Installer:
         if not dists:
             logger.debug('We have no distributions for %s that satisfies %r.',
                          req.project_name, str(req))
-            
+
             return None, self._obtain(req, source)
 
         # Note that dists are sorted from best to worst, as promised by
@@ -233,7 +227,7 @@ class Installer:
         # newer ones.  Let's find out which ones are available and see if
         # any are newer.  We only do this if we're willing to install
         # something, which is only true if dest is not None:
-        
+
         if self._dest is not None:
             best_available = self._obtain(req, source)
         else:
@@ -273,7 +267,7 @@ class Installer:
                 best_available.parsed_version
                 ):
                 return None, best_available
-            
+
         logger.debug(
             'We have the best distribution that satisfies %r.',
             str(req))
@@ -311,21 +305,11 @@ class Installer:
                 logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
                              self._executable, '" "'.join(args), path)
 
-            if is_jython:
-                extra_env = dict(os.environ, PYTHONPATH=path)
-            else:
-                args += (dict(os.environ, PYTHONPATH=path), )
-
+            args += (dict(os.environ, PYTHONPATH=path), )
             sys.stdout.flush() # We want any pending output first
-            
-            if is_jython:
-                exit_code = subprocess.Popen(
-                [_safe_arg(self._executable)] + list(args), 
-                env=extra_env).wait()
-            else:
-                exit_code = os.spawnle(
-                    os.P_WAIT, self._executable, _safe_arg (self._executable),
-                    *args)
+            exit_code = os.spawnle(
+                os.P_WAIT, self._executable, _safe_arg (self._executable),
+                *args)
 
             dists = []
             env = pkg_resources.Environment(
@@ -334,7 +318,7 @@ class Installer:
                 )
             for project in env:
                 dists.extend(env[project])
-                
+
             if exit_code:
                 logger.error(
                     "An error occured when trying to install %s."
@@ -379,18 +363,18 @@ class Installer:
                     [newloc],
                     python=_get_version(self._executable),
                     )[d.project_name]
-                    
+
                 result.append(d)
 
             return result
 
         finally:
             shutil.rmtree(tmp)
-            
+
     def _obtain(self, requirement, source=None):
         # initialize out index for this project:
         index = self._index
-        
+
         if index.obtain(requirement) is None:
             # Nothing is available.
             return None
@@ -431,7 +415,7 @@ class Installer:
 
         if len(best) == 1:
             return best[0]
-        
+
         if self._download_cache:
             for dist in best:
                 if (realpath(os.path.dirname(dist.location))
@@ -458,7 +442,7 @@ class Installer:
             # to the download cache
             shutil.copy2(new_location, tmp)
             new_location = os.path.join(tmp, os.path.basename(new_location))
-            
+
         return dist.clone(location=new_location)
 
     def _get_dist(self, requirement, ws, always_unzip):
@@ -468,7 +452,7 @@ class Installer:
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
         dist, avail = self._satisfied(requirement)
-        
+
         if dist is None:
             if self._dest is not None:
                 logger.info(*__doing__)
@@ -545,7 +529,7 @@ class Installer:
 
             self._env.scan([self._dest])
             dist = self._env.best_match(requirement, ws)
-            logger.info("Got %s.", dist)            
+            logger.info("Got %s.", dist)
 
         else:
             dists = [dist]
@@ -561,7 +545,7 @@ class Installer:
                         logger.debug('Adding find link %r from %s', link, dist)
                         self._links.append(link)
                         self._index = _get_index(self._executable,
-                                                 self._index_url, self._links, 
+                                                 self._index_url, self._links,
                                                  self._allow_hosts)
 
         for dist in dists:
@@ -610,7 +594,7 @@ class Installer:
                 logger.error("The version, %s, is not consistent with the "
                              "requirement, %r.", version, str(requirement))
                 raise IncompatibleVersionError("Bad version", version)
-            
+
             requirement = pkg_resources.Requirement.parse(
                 "%s ==%s" % (requirement.project_name, version))
 
@@ -628,48 +612,79 @@ class Installer:
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
 
-        
-
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
         else:
             ws = working_set
 
+        dists_ws = []
         for requirement in requirements:
-            for dist in self._get_dist(requirement, ws, self._always_unzip):
-                ws.add(dist)
-                self._maybe_add_setuptools(ws, dist)
+            spec = str(requirement)
 
-        # OK, we have the requested distributions and they're in the working
-        # set, but they may have unmet requirements.  We'll simply keep
-        # trying to resolve requirements, adding missing requirements as they
-        # are reported.
-        #
-        # Note that we don't pass in the environment, because we want
-        # to look for new eggs unless what we have is the best that
-        # matches the requirement.
-        while 1:
-            try:
-                ws.resolve(requirements)
-            except pkg_resources.DistributionNotFound, err:
-                [requirement] = err
-                requirement = self._constrain(requirement)
-                if dest:
-                    logger.debug('Getting required %r', str(requirement))
+            if distribution_cache.has_key(spec):
+                logger.debug(
+                    "Hit distribution cache for %r", spec)
+                dists_ws.extend(distribution_cache[spec])
+                continue
+
+            # That's a problem. Two different requirements can pick
+            # incompatible dependencies.
+
+            tmp_ws = pkg_resources.WorkingSet([])
+            tmp_dists = []
+
+            for dist in self._get_dist(
+                requirement, tmp_ws, self._always_unzip):
+
+                tmp_ws.add(dist)
+                tmp_dists.append(dist)
+                self._maybe_add_setuptools(tmp_ws, dist)
+
+            # OK, we have the requested distributions and they're in
+            # the working set, but they may have unmet requirements.
+            # We'll simply keep trying to resolve requirements, adding
+            # missing requirements as they are reported.
+            #
+            # Note that we don't pass in the environment, because we want
+            # to look for new eggs unless what we have is the best that
+            # matches the requirement.
+            while 1:
+                try:
+                    tmp_ws.resolve([requirement])
+                except pkg_resources.DistributionNotFound, err:
+                    [missing_requirement] = err
+                    missing_requirement = self._constrain(missing_requirement)
+                    missing_spec = str(missing_requirement)
+                    if dest:
+                        logger.debug('Getting required %r', missing_spec)
+                    else:
+                        logger.debug('Adding required %r', missing_spec)
+                    _log_requirement(tmp_ws, missing_requirement)
+
+                    if distribution_cache.has_key(missing_spec):
+                        logger.debug(
+                            "Hit distribution cache for %r", missing_spec)
+                        tmp_dists.extend(distribution_cache[missing_spec])
+                        for missing_dist in distribution_cache[missing_spec]:
+                            tmp_ws.add(missing_dist)
+                        continue
+
+                    for dist in self._get_dist(
+                        missing_requirement, tmp_ws, self._always_unzip):
+
+                        tmp_ws.add(dist)
+                        tmp_dists.append(dist)
+                        self._maybe_add_setuptools(tmp_ws, dist)
+                except pkg_resources.VersionConflict, err:
+                    raise VersionConflict(err, tmp_ws)
                 else:
-                    logger.debug('Adding required %r', str(requirement))
-                _log_requirement(ws, requirement)
-                    
-                for dist in self._get_dist(requirement, ws, self._always_unzip
-                                           ):
-                        
-                    ws.add(dist)
-                    self._maybe_add_setuptools(ws, dist)
-            except pkg_resources.VersionConflict, err:
-                raise VersionConflict(err, ws)
-            else:
-                break
+                    break
 
+            dists_ws.extend(tmp_dists)
+            distribution_cache[spec] = tmp_dists
+
+        for dist in dists_ws:
+            ws.add(dist)
         return ws
 
     def build(self, spec, build_ext):
@@ -715,7 +730,7 @@ class Installer:
                             % os.path.basename(dist.location)
                             )
                     base = os.path.dirname(setups[0])
-            
+
                 setup_cfg = os.path.join(base, 'setup.cfg')
                 if not os.path.exists(setup_cfg):
                     f = open(setup_cfg, 'w')
@@ -788,7 +803,7 @@ def install(specs, dest,
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',)):
     installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest, versions, use_dependency_links, 
+                          newest, versions, use_dependency_links,
                           allow_hosts=allow_hosts)
     return installer.install(specs, working_set)
 
@@ -801,7 +816,7 @@ def build(spec, dest, build_ext,
                           versions, allow_hosts=allow_hosts)
     return installer.build(spec, build_ext)
 
-        
+
 
 def _rm(*paths):
     for path in paths:
@@ -819,10 +834,10 @@ def _copyeggs(src, dest, suffix, undo):
             _rm(new)
             os.rename(os.path.join(src, name), new)
             result.append(new)
-        
+
     assert len(result) == 1, str(result)
     undo.pop()
-    
+
     return result[0]
 
 def develop(setup, dest,
@@ -834,7 +849,7 @@ def develop(setup, dest,
         setup = os.path.join(directory, 'setup.py')
     else:
         directory = os.path.dirname(setup)
-        
+
     undo = []
     try:
         if build_ext:
@@ -864,7 +879,7 @@ def develop(setup, dest,
             ))
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
-        undo.append(lambda : shutil.rmtree(tmp3)) 
+        undo.append(lambda : shutil.rmtree(tmp3))
 
         args = [
             zc.buildout.easy_install._safe_arg(tsetup),
@@ -881,18 +896,15 @@ def develop(setup, dest,
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        if is_jython:
-            assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
-        else:
-            assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
+        assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
         undo.reverse()
         [f() for f in undo]
-            
-            
+
+
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)
 
@@ -903,7 +915,7 @@ def scripts(reqs, working_set, executable, dest,
             interpreter=None,
             initialization='',
             ):
-    
+
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
     path = repr(path)[1:-1].replace(', ', ',\n  ')
@@ -929,7 +941,7 @@ def scripts(reqs, working_set, executable, dest,
                     )
         else:
             entry_points.append(req)
-                
+
     for name, module_name, attrs in entry_points:
         if scripts is not None:
             sname = scripts.get(name)
@@ -975,7 +987,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
         generated.append(exe)
-        
+
     if changed:
         open(dest, 'w').write(contents)
         logger.info("Generated script %r.", script)
@@ -984,17 +996,12 @@ def _script(module_name, attrs, path, dest, executable, arguments,
             os.chmod(dest, 0755)
         except (AttributeError, os.error):
             pass
-        
+
     generated.append(dest)
     return generated
 
-if is_jython and jython_os_name == 'linux':
-    script_header = '#!/usr/bin/env %(python)s'
-else:
-    script_header = '#!%(python)s'
-
-script_template = script_header + '''\
-
+script_template = '''\
+#!%(python)s
 
 import sys
 sys.path[0:0] = [
@@ -1039,11 +1046,10 @@ def _pyscript(path, dest, executable):
     generated.append(dest)
     return generated
 
-py_script_template = script_header + '''\
-
-
+py_script_template = '''\
+#!%(python)s
 import sys
-    
+
 sys.path[0:0] = [
   %(path)s,
   ]
@@ -1058,7 +1064,7 @@ if len(sys.argv) > 1:
             _interactive = True
         elif _opt == '-c':
             exec _val
-            
+
     if _args:
         sys.argv[:] = _args
         execfile(sys.argv[0])
@@ -1067,7 +1073,7 @@ if _interactive:
     import code
     code.interact(banner="", local=globals())
 '''
-        
+
 runsetup_template = """
 import sys
 sys.path.insert(0, %(setupdir)r)
@@ -1115,7 +1121,7 @@ def _log_requirement(ws, req):
     for dist in ws:
         if req in dist.requires():
             logger.debug("  required by %s." % dist)
-    
+
 def _fix_file_links(links):
     for link in links:
         if link.startswith('file://') and link[-1] != '/':
@@ -1141,7 +1147,7 @@ def redo_pyc(egg):
             filepath = os.path.join(dirpath, filename)
             if not (os.path.exists(filepath+'c')
                     or os.path.exists(filepath+'o')):
-                # If it wasn't compiled, it may not be compilable 
+                # If it wasn't compiled, it may not be compilable
                 continue
 
             # OK, it looks like we should try to compile.
@@ -1162,9 +1168,5 @@ def redo_pyc(egg):
                 if __debug__:
                     args.append('-O')
                 args.extend(['-m', 'py_compile', filepath])
-                
-                if is_jython:
-                    subprocess.call([sys.executable, args])
-                else:
-                    os.spawnv(os.P_WAIT, sys.executable, args)
-                    
+                os.spawnv(os.P_WAIT, sys.executable, args)
+
