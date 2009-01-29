@@ -159,7 +159,7 @@ class RequirementSet:
             if dist_requirements and dist in ws:
                 try:
                     for requirement in dist_requirements:
-                        ws.find(requirement):
+                        ws.find(requirement)
                 except pkg_resources.VersionConflict, err:
                     # TODO We can have a better conflict resolution
                     # here. For the moment this works like the trunk,
