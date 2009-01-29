@@ -141,7 +141,7 @@ Travailler avec des eggs
 
 .. class:: handout
 
-   ``zc.buildout`` est basé sur setuptools and ``easy_install``.
+   ``zc.buildout`` est basé sur setuptools et ``easy_install``.
 
 
 État actuel de zc.buildout
