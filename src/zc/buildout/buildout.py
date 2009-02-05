@@ -565,6 +565,8 @@ class Buildout(UserDict.DictMixin):
                     files = glob.glob(setup)
                     if not files:
                         self._logger.warn("Couldn't develop %r (not found)", setup)
+                    else:
+                        files.sort()
                     for setup in files:
                         self._logger.info("Develop: %r", setup)
                         __doing__ = 'Processing develop directory %r.', setup
