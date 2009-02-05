@@ -317,7 +317,7 @@ def show_who_requires_when_there_is_a_conflict():
 
 If we use the verbose switch, we can see where requirements are comning from:
 
-    >>> print system(buildout+' -v'),
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
@@ -326,9 +326,7 @@ If we use the verbose switch, we can see where requirements are comning from:
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
     Develop: '/sample-buildout/sampleb'
-    Installing 'zc.recipe.egg'.
-    We have a develop egg: zc.recipe.egg 1.0.0
-    Installing eggs.
+    ...Installing eggs.
     Installing 'samplea', 'samplez'.
     We have a develop egg: samplea 1
     We have a develop egg: samplez 1
@@ -591,7 +589,10 @@ if os.path.exists(bootstrap_py):
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print system(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...              'bootstrap.py'), # doctest: +ELLIPSIS
-    Downloading ...
+    Creating directory '/sample/bin'.
+    Creating directory '/sample/parts'.
+    Creating directory '/sample/eggs'.
+    Creating directory '/sample/develop-eggs'.
     Generated script '/sample/bin/buildout'.
 
     >>> ls(sample_buildout)
@@ -606,8 +607,8 @@ if os.path.exists(bootstrap_py):
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
-    >>> ls(sample_buildout, 'eggs')
-    -  setuptools-0.6-py2.4.egg
+    >>> ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
+    ...
     d  zc.buildout-1.0-py2.4.egg
 
     """
@@ -2024,7 +2025,7 @@ def dealing_with_extremely_insane_dependencies():
 
     However, if we run in verbose mode, we can see why packages were included:
 
-    >>> print system(buildout+' -v'),
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
@@ -2034,9 +2035,7 @@ def dealing_with_extremely_insane_dependencies():
     Develop: '/sample-buildout/pack2'
     Develop: '/sample-buildout/pack3'
     Develop: '/sample-buildout/pack4'
-    Installing 'zc.recipe.egg'.
-    We have a develop egg: zc.recipe.egg 1.0.0
-    Installing pack1.
+    ...Installing pack1.
     Installing 'pack0'.
     We have a develop egg: pack0 0.0.0
     Getting required 'pack4'

@@ -147,7 +147,7 @@ def find_python(version):
         "Couldn't figure out the executable for Python %(version)s.\n"
         "Set the environment variable PYTHON%(version)s to the location\n"
         "of the Python %(version)s executable before running the tests."
-        )
+        % {'version': version})
 
 def buildoutSetUp(test):
 
