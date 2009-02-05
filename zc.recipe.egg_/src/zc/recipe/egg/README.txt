@@ -33,6 +33,7 @@ We have a link server that has a number of distributions:
 
     >>> print get(link_server),
     <html><body>
+    <a href="bigdemo-0.1-py2.3.egg">bigdemo-0.1-py2.3.egg</a><br>
     <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
     <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
     <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
@@ -129,7 +130,7 @@ entry-points
    name=module:attrs
 
    where name is a script name, module is a dotted name resolving to a
-   module name, and a attrs is a dotted name resolving to a callable
+   module name, and attrs is a dotted name resolving to a callable
    object within a module.
 
    This option is useful when working with distributions that don't
@@ -145,6 +146,10 @@ scripts
    generated.  If no tokens are given, then script generation is
    disabled.  If the option isn't given at all, then all scripts
    defined by the named eggs will be generated.
+
+dependent-scripts
+   If set to the string "true", scripts will be generated for all
+   required eggs in addition to the eggs specifically named.
 
 interpreter
    The name of a script to generate that allows access to a Python
@@ -482,6 +487,31 @@ declare entry points using the entry-points option:
     if __name__ == '__main__':
         foo.bar.a.b.c()
 
+Generating all scripts
+----------------------
+
+The `bigdemo` package doesn't have any scripts, but it requires the `demo`
+package, which does have a script.  Specify `dependent-scripts = true` to
+generate all scripts in required packages:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = bigdemo
+    ...
+    ... [bigdemo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... dependent-scripts = true
+    ... """ % dict(server=link_server))
+    >>> print system(buildout+' -N'),
+    Uninstalling demo.
+    Installing bigdemo.
+    Getting distribution for 'bigdemo'.
+    Got bigdemo 0.1.
+    Generated script '/sample-buildout/bin/demo'.
+
 Offline mode
 ------------
 
@@ -501,6 +531,6 @@ be made to contact an index server:
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    Uninstalling demo.
+    Uninstalling bigdemo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
