@@ -2628,6 +2628,18 @@ def create_sample_eggs(test, executable=sys.executable):
                 " zip_safe=True, version='0.%s%s')\n" % (i, c1)
                 )
             zc.buildout.testing.bdist_egg(tmp, executable, dest)
+
+        write(tmp, 'eggrecipebigdemo.py', 'import eggrecipedemo')
+        write(
+            tmp, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='bigdemo', "
+            " install_requires = 'demo',"
+            " py_modules=['eggrecipebigdemo'], "
+            " zip_safe=True, version='0.1')\n"
+            )
+        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+
     finally:
         shutil.rmtree(tmp)
 

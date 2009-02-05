@@ -8,6 +8,16 @@ To do
 Change History
 **************
 
+1.1.1 (unreleased)
+==================
+
+- Added the `dependent-scripts` option.  When set to `true`, scripts will
+  be generated for all required eggs in addition to the eggs named
+  specifically.  This idea came from two forks of this recipe,
+  `repoze.recipe.egg` and `pylons_sandbox`, but the option name is
+  spelled with a dash instead of underscore and it defaults to `false`.
+
+
 1.1.0 (2008-07-19)
 ==================
 
