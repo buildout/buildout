@@ -1158,7 +1158,7 @@ def redo_pyc(egg):
                 logger.warning("Couldn't compile %s", filepath)
             else:
                 # Recompile under other optimization. :)
-                args = [sys.executable]
+                args = [_safe_arg(sys.executable)]
                 if __debug__:
                     args.append('-O')
                 args.extend(['-m', 'py_compile', filepath])

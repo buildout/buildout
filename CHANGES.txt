@@ -7,6 +7,9 @@ Change History
 1.1.2 (Unreleased)
 ==================
 
+- Made sure the 'redo_pyc' function and the doctest checkers work with Python
+  executable paths containing spaces.
+
 - Expand shell patterns when processing the list of paths in `develop`, e.g::
 
     [buildout]

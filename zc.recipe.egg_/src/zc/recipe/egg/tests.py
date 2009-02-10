@@ -64,9 +64,7 @@ def test_suite():
                            'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-'),
-               (re.compile('executable = \S+python\S*'),
-                'executable = python'),
-               (re.compile('index = \S+python\S+'),
+               (re.compile('executable = [\S ]+python\S*', re.I),
                 'executable = python'),
                (re.compile('find-links = http://localhost:\d+/'),
                 'find-links = http://localhost:8080/'),
