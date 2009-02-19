@@ -11,6 +11,7 @@ We have a link server:
 
     >>> print get(link_server),
     <html><body>
+    <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
