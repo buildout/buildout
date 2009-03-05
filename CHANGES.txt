@@ -7,6 +7,11 @@ Change History
 1.1.2 (Unreleased)
 ==================
 
+- Switched from using os.popen* to subprocess.Popen, to avoid a deprecation
+  warning in Python 2.6.  See:
+
+  http://docs.python.org/library/subprocess.html#replacing-os-popen-os-popen2-os-popen3
+
 - Made sure the 'redo_pyc' function and the doctest checkers work with Python
   executable paths containing spaces.
 
