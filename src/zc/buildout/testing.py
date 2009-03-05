@@ -16,14 +16,24 @@
 $Id$
 """
 
-import BaseHTTPServer, os, random, re, shutil, socket, sys
-import tempfile, threading, time, urllib2, errno
+import BaseHTTPServer
+import errno
+import os
 import pkg_resources
+import random
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib2
 
 import zc.buildout.buildout
 import zc.buildout.easy_install
-
-from rmtree import rmtree
+from zc.buildout.rmtree import rmtree
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
 
@@ -76,11 +86,17 @@ def write(dir, *args):
 
 
 def system(command, input=''):
-    i, o, e = os.popen3(command)
+    p = subprocess.Popen(command,
+                         shell=True,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         close_fds=True)
+    i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input)
     i.close()
-    result = o.read()+e.read()
+    result = o.read() + e.read()
     o.close()
     e.close()
     return result
@@ -122,21 +138,39 @@ def find_python(version):
         if os.path.exists(e):
             return e
     else:
-        i, o = os.popen4('python%s -c "import sys; print sys.executable"'
-                         % version)
+        cmd = 'python%s -c "import sys; print sys.executable"' % version
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=True)
+        i, o = (p.stdin, p.stdout)
         i.close()
         e = o.read().strip()
         o.close()
         if os.path.exists(e):
             return e
-        i, o = os.popen4(
-            'python -c "import sys; print \'%s.%s\' % sys.version_info[:2]"'
-            )
+        cmd = 'python -c "import sys; print \'%s.%s\' % sys.version_info[:2]"'
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=True)
+        i, o = (p.stdin, p.stdout)
         i.close()
         e = o.read().strip()
         o.close()
         if e == version:
-            i, o = os.popen4('python -c "import sys; print sys.executable"')
+            cmd = 'python -c "import sys; print sys.executable"'
+            p = subprocess.Popen(cmd,
+                                shell=True,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                close_fds=True)
+            i, o = (p.stdin, p.stdout)
             i.close()
             e = o.read().strip()
             o.close()

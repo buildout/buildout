@@ -31,6 +31,7 @@ import setuptools.archive_util
 import setuptools.command.setopt
 import setuptools.package_index
 import shutil
+import subprocess
 import sys
 import tempfile
 import urlparse
@@ -78,7 +79,14 @@ def _get_version(executable):
     try:
         return _versions[executable]
     except KeyError:
-        i, o = os.popen4(_safe_arg(executable) + ' -V')
+        cmd = _safe_arg(executable) + ' -V'
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=True)
+        i, o = (p.stdin, p.stdout)
         i.close()
         version = o.read().strip()
         o.close()
