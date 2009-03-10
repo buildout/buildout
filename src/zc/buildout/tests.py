@@ -589,6 +589,7 @@ if os.path.exists(bootstrap_py):
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print system(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...              'bootstrap.py'), # doctest: +ELLIPSIS
+    *...
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
     Creating directory '/sample/eggs'.
@@ -608,7 +609,7 @@ if os.path.exists(bootstrap_py):
     -  buildout
 
     >>> ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
-    ...
+    *...
     d  zc.buildout-1.0-py2.4.egg
 
     """
@@ -2880,6 +2881,7 @@ def test_suite():
                    '-q develop -mxN -d "/sample-buildout/develop-eggs'),
                    '-q develop -mxN -d /sample-buildout/develop-eggs'
                 ),
+                (re.compile(r'^[*]...'), '...'),
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),
