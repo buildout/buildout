@@ -35,7 +35,7 @@ Existing recipes include:
    the needed eggs included in their paths.
 
 `zc.recipe.testrunner <http://pypi.python.org/pypi/zc.recipe.testrunner>`_
-   The testrunner egg installs creates a test runner script for one or
+   The testrunner egg creates a test runner script for one or
    more eggs.
 
 `zc.recipe.zope3checkout <http://pypi.python.org/pypi/zc.recipe.zope3checkout>`_
@@ -47,7 +47,7 @@ Existing recipes include:
 
 `zc.recipe.filestorage <http://pypi.python.org/pypi/zc.recipe.filestorage>`_
    The filestorage recipe sets up a ZODB file storage for use in a
-   Zope 3 instance creayed by the zope3instance recipe.
+   Zope 3 instance created by the zope3instance recipe.
 
 Buildout examples
 *****************
@@ -113,7 +113,7 @@ zc.recipe.testrunner recipe.  In the section for the test script, I
 specify that I want to run the tests in the zc.ngi package.
 
 When I check out this project into a new sandbox, I run bootstrap.py
-to get setuptools and zc.buildout and create bin/buildout.  I run
+to get setuptools and zc.buildout and to create bin/buildout.  I run
 bin/buildout, which installs the test script, bin/test, which I can
 then use to run the tests.
 

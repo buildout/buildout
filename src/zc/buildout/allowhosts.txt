@@ -3,9 +3,8 @@ Allow hosts
 
 On some environments the links visited by `zc.buildout` can be forbidden
 by paranoiac firewalls. These URL might be on the chain of links 
-visited by `zc.buildout` wheter they are defined in the `find-links` option,
-wheter they are defined by various eggs in their `url`, `download_url`, 
-`dependency_links` metadata.
+visited by `zc.buildout` whether they are defined in the `find-links` option
+or by various eggs in their `url`, `download_url` and `dependency_links` metadata.
 
 It is even harder to track that package_index works like a spider and 
 might visit links and go to other location.
