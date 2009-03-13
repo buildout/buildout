@@ -1169,7 +1169,7 @@ def redo_pyc(egg):
                 args = [_safe_arg(sys.executable)]
                 if __debug__:
                     args.append('-O')
-                args.extend(['-m', 'py_compile', filepath])
+                args.extend(['-m', 'py_compile', _safe_arg(filepath)])
                 
                 if is_jython:
                     subprocess.call([sys.executable, args])

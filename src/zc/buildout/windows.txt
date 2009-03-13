@@ -5,7 +5,7 @@ Certain aspects of every software project are dependent on the
 operating system used.
 The same - of course - applies to zc.buildout.
 
-To test that windows doesn't get in the way, we'll test some system
+To test that Windows doesn't get in the way, we'll test some system
 dependent aspects.
 The following recipe will create a read-only file which shutil.rmtree
 can't delete.
