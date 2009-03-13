@@ -51,6 +51,7 @@ logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 
+is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
 
 if is_jython:
@@ -85,7 +86,7 @@ def _get_version(executable):
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             close_fds=True)
+                             close_fds=not win32)
         i, o = (p.stdin, p.stdout)
         i.close()
         version = o.read().strip()
@@ -130,7 +131,7 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
 
 clear_index_cache = _indexes.clear
 
-if sys.platform == 'win32':
+if is_win32:
     # work around spawn lamosity on windows
     # XXX need safe quoting (see the subproces.list2cmdline) and test
     def _safe_arg(arg):
@@ -962,7 +963,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
             initialization):
     generated = []
     script = dest
-    if sys.platform == 'win32':
+    if is_win32:
         dest += '-script.py'
 
     contents = script_template % dict(
@@ -975,7 +976,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
-    if sys.platform == 'win32':
+    if is_win32:
         # generate exe file and give the script a magic name:
         exe = script+'.exe'
         new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
@@ -1019,7 +1020,7 @@ if __name__ == '__main__':
 def _pyscript(path, dest, executable):
     generated = []
     script = dest
-    if sys.platform == 'win32':
+    if is_win32:
         dest += '-script.py'
 
     contents = py_script_template % dict(
@@ -1028,7 +1029,7 @@ def _pyscript(path, dest, executable):
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
-    if sys.platform == 'win32':
+    if is_win32:
         # generate exe file and give the script a magic name:
         exe = script + '.exe'
         open(exe, 'wb').write(
