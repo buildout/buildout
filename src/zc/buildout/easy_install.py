@@ -86,7 +86,7 @@ def _get_version(executable):
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             close_fds=not win32)
+                             close_fds=not is_win32)
         i, o = (p.stdin, p.stdout)
         i.close()
         version = o.read().strip()
