@@ -4,7 +4,7 @@ Status
 Change History
 **************
 
-1.1.2 (Unreleased)
+1.1.2 (2009/03/13)
 ==================
 
 - Switched from using os.popen* to subprocess.Popen, to avoid a deprecation
