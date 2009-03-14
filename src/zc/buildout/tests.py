@@ -596,7 +596,6 @@ if os.path.exists(bootstrap_py):
     Creating directory '/sample/eggs'.
     Creating directory '/sample/develop-eggs'.
     Generated script '/sample/bin/buildout'.
-    ...
 
     >>> ls(sample_buildout)
     d  bin
