@@ -596,6 +596,7 @@ if os.path.exists(bootstrap_py):
     Creating directory '/sample/eggs'.
     Creating directory '/sample/develop-eggs'.
     Generated script '/sample/bin/buildout'.
+    ...
 
     >>> ls(sample_buildout)
     d  bin
@@ -1723,18 +1724,16 @@ def install_source_dist_with_bad_py():
     ... scripts = buildout=bo
     ... ''' % globals())
 
-    >>> print system(buildout), # doctest: +NORMALIZE_WHITESPACE
+    >>> print system(buildout), # doctest: +ELLIPSIS
     Installing eggs.
     Getting distribution for 'badegg'.
     Got badegg 1.
     Installing bo.
-    Generated script '/sample-buildout/bin/bo'.
-      File "build/bdist.linux-i686/egg/badegg/scripts/one.py", line 2
-        return 1
-    SyntaxError: 'return' outside function
-      File "/sample-buildout/eggs/tmppsHubz/badegg-1-py2.4.egg/badegg/scripts/one.py", line 2
-        return 1
-    SyntaxError: 'return' outside function
+    ...
+    SyntaxError: ...'return' outside function...
+    ...
+    SyntaxError: ...'return' outside function...
+    ...
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
