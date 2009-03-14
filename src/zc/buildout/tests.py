@@ -589,13 +589,14 @@ if os.path.exists(bootstrap_py):
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print 'X'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py'), # doctest: +ELLIPSIS
+    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
     X...
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
     Creating directory '/sample/eggs'.
     Creating directory '/sample/develop-eggs'.
     Generated script '/sample/bin/buildout'.
+    ...
 
     >>> ls(sample_buildout)
     d  bin
@@ -1723,7 +1724,7 @@ def install_source_dist_with_bad_py():
     ... scripts = buildout=bo
     ... ''' % globals())
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
+    >>> print system(buildout);print 'X' # doctest: +ELLIPSIS
     Installing eggs.
     Getting distribution for 'badegg'.
     Got badegg 1.
