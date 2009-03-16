@@ -4,8 +4,11 @@ Status
 Change History
 **************
 
-1.1.2 (unreleased)
+1.1.2 (2009-03-16)
 ==================
+
+- Fixed remaining deprecation warnings under Python 2.6, both when running
+  our tests and when using the package.
 
 - Switched from using os.popen* to subprocess.Popen, to avoid a deprecation
   warning in Python 2.6.  See:
