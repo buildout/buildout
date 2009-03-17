@@ -17,6 +17,8 @@ Change History
   `repoze.recipe.egg` and `pylons_sandbox`, but the option name is
   spelled with a dash instead of underscore and it defaults to `false`.
 
+- Added a relative-paths option. When true, egg paths in scripts are generated
+  relative to the script names.
 
 1.1.0 (2008-07-19)
 ==================
