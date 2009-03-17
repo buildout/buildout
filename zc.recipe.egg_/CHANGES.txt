@@ -1,14 +1,7 @@
-To do
-*****
-
-- Some way to freeze the egg-versions used.  This includes some way to
-  record which versions were selected dynamially and then a way to
-  require that the recorded versions be used in a later run.
-
 Change History
 **************
 
-1.1.1 (unreleased)
+1.2.0 (2009-03-17)
 ==================
 
 - Added the `dependent-scripts` option.  When set to `true`, scripts will
