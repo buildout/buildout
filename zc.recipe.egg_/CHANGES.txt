@@ -8,7 +8,7 @@ To do
 Change History
 **************
 
-1.1.1 (unreleased)
+1.2.0 (2009-03-17)
 ==================
 
 - Added the `dependent-scripts` option.  When set to `true`, scripts will
