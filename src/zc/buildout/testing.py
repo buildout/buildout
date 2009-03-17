@@ -176,12 +176,25 @@ def find_python(version):
             o.close()
             if os.path.exists(e):
                 return e
-        
+
     raise ValueError(
         "Couldn't figure out the executable for Python %(version)s.\n"
         "Set the environment variable PYTHON%(version)s to the location\n"
         "of the Python %(version)s executable before running the tests."
         % {'version': version})
+
+def wait_until(label, func, *args, **kw):
+    if 'timeout' in kw:
+        kw = dict(kw)
+        timeout = kw.pop('timeout')
+    else:
+        timeout = 30
+    deadline = time.time()+timeout
+    while time.time() < deadline:
+        if func(*args, **kw):
+            return
+        time.sleep('.01')
+    raise ValueError('Timed out waiting for: '+label)
 
 def buildoutSetUp(test):
 
@@ -214,7 +227,7 @@ def buildoutSetUp(test):
 
     tmp = tempfile.mkdtemp('buildouttests')
     register_teardown(lambda: rmtree(tmp))
-    
+
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
     os.environ['buildout-testing-index-url'] = (
         zc.buildout.easy_install.default_index_url)
@@ -243,8 +256,8 @@ def buildoutSetUp(test):
          ]
         ).bootstrap([])
 
-    
-    
+
+
     # Create the develop-eggs dir, which didn't get created the usual
     # way due to thr trick above:
     os.mkdir('develop-eggs')
@@ -272,14 +285,15 @@ def buildoutSetUp(test):
         bdist_egg = bdist_egg,
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
+        wait_until = wait_until,
         ))
-    
+
     zc.buildout.easy_install.prefer_final(prefer_final)
 
 def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
         f()
-    
+
 class Server(BaseHTTPServer.HTTPServer):
 
     def __init__(self, tree, *args):
@@ -307,12 +321,12 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         if '__stop__' in self.path:
             raise SystemExit
-        
+
         if self.path == '/enable_server_logging':
             self.__server.__log = True
             self.send_response(200)
             return
-            
+
         if self.path == '/disable_server_logging':
             self.__server.__log = False
             self.send_response(200)
@@ -361,7 +375,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(out)
-                
+
     def log_request(self, code):
         if self.__server.__log:
             print '%s %s %s' % (self.command, code, self.path)
@@ -462,7 +476,7 @@ def _normalize_path(match):
         if path.startswith('\\'):
             path = path[1:]
     return '/' + path.replace(os.path.sep, '/')
-    
+
 normalize_path = (
     re.compile(
         r'''[^'" \t\n\r]+\%(sep)s_[Tt][Ee][Ss][Tt]_\%(sep)s([^"' \t\n\r]+)'''
