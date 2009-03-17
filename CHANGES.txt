@@ -4,7 +4,7 @@ Status
 Change History
 **************
 
-1.2.0 (2009-03-??)
+1.2.0 (2009-03-17)
 ==================
 
 - Added a relative_paths option to zc.buildout.easy_install.script to
