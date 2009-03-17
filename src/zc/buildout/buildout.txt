@@ -8,7 +8,7 @@ example, if we are creating an application named "Foo", then "the Foo
 buildout" is the collection of configuration and application-specific
 software that allows an instance of the application to be created.  We
 may refer to such an instance of the application informally as "a Foo
-buildout".  
+buildout".
 
 This document describes how to define buildouts using buildout
 configuration files and recipes.  There are three ways to set up the
@@ -39,7 +39,7 @@ We have a sample buildout that we created using the bootstrap command
 of an existing buildout (method 3 above).  It has the absolute minimum
 information.  We have bin, develop-eggs, eggs and parts directories,
 and a configuration file:
-    
+
     >>> ls(sample_buildout)
     d  bin
     -  buildout.cfg
@@ -89,7 +89,7 @@ parts:
 
 A part is simply something to be created by a buildout.  It can be
 almost anything, such as a Python package, a program, a directory, or
-even a configuration file.  
+even a configuration file.
 
 Recipes
 -------
@@ -97,7 +97,7 @@ Recipes
 A part is created by a recipe.  Recipes are always installed as Python
 eggs. They can be downloaded from a package server, such as the
 Python Package Index, or they can be developed as part of a project
-using a "develop" egg.  
+using a "develop" egg.
 
 A develop egg is a special kind of egg that gets installed as an "egg
 link" that contains the name of a source directory.  Develop eggs
@@ -113,7 +113,7 @@ directory for our local recipes:
 
 and then we'll create a source file for our mkdir recipe:
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import logging, os, zc.buildout
     ...
@@ -130,7 +130,7 @@ and then we'll create a source file for our mkdir recipe:
     ...                 'Cannot create %s. %s is not a directory.',
     ...                 options['path'], os.path.dirname(options['path']))
     ...             raise zc.buildout.UserError('Invalid Path')
-    ...             
+    ...
     ...
     ...     def install(self):
     ...         path = self.options['path']
@@ -185,7 +185,7 @@ buildout directory.  The buildout object passed in is a mapping from
 section name to a mapping of options for that section. The buildout
 directory is available as the directory option of the buildout
 section.  We normalize the path and save it back into the options
-directory.  
+directory.
 
 The install method is responsible for creating the part.  In this
 case, we need the path of the directory to create.  We'll use a path
@@ -214,7 +214,7 @@ provided via a setup.py script:
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(
     ...     name = "recipes",
     ...     entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
@@ -270,7 +270,7 @@ use the part name to decide what to do.
 
     [data-dir]
     recipe = recipes:mkdir
-    path = mystuff    
+    path = mystuff
 
 
 When we name a part, we also create a section of the same
@@ -317,7 +317,7 @@ about the part we installed:
 
 Note that the directory we installed is included in .installed.cfg.
 In addition, the path option includes the actual destination
-directory. 
+directory.
 
 If we change the name of the directory in the configuration file,
 we'll see that the directory gets removed and recreated:
@@ -401,7 +401,7 @@ If an error occurs during installation, it is up to the recipe to
 clean up any system side effects, such as files created.  Let's update
 the mkdir recipe to support multiple paths:
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import logging, os, zc.buildout
     ...
@@ -413,7 +413,7 @@ the mkdir recipe to support multiple paths:
     ...         # Normalize paths and check that their parent
     ...         # directories exist:
     ...         paths = []
-    ...         for path in options['path'].split(): 
+    ...         for path in options['path'].split():
     ...             path = os.path.join(buildout['buildout']['directory'], path)
     ...             if not os.path.isdir(os.path.dirname(path)):
     ...                 logging.getLogger(self.name).error(
@@ -425,7 +425,7 @@ the mkdir recipe to support multiple paths:
     ...
     ...     def install(self):
     ...         paths = self.options['path'].split()
-    ...         for path in paths: 
+    ...         for path in paths:
     ...             logging.getLogger(self.name).info(
     ...                 'Creating directory %s', os.path.basename(path))
     ...             os.mkdir(path)
@@ -502,7 +502,7 @@ Now they fail because foo exists, because it was left behind.
 
 Let's fix the recipe:
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import logging, os, zc.buildout
     ...
@@ -514,7 +514,7 @@ Let's fix the recipe:
     ...         # Normalize paths and check that their parent
     ...         # directories exist:
     ...         paths = []
-    ...         for path in options['path'].split(): 
+    ...         for path in options['path'].split():
     ...             path = os.path.join(buildout['buildout']['directory'], path)
     ...             if not os.path.isdir(os.path.dirname(path)):
     ...                 logging.getLogger(self.name).error(
@@ -528,7 +528,7 @@ Let's fix the recipe:
     ...         paths = self.options['path'].split()
     ...         created = []
     ...         try:
-    ...             for path in paths: 
+    ...             for path in paths:
     ...                 logging.getLogger(self.name).info(
     ...                     'Creating directory %s', os.path.basename(path))
     ...                 os.mkdir(path)
@@ -573,6 +573,10 @@ When we rerun the buildout:
     ...
     OSError: [Errno 17] File exists: '/sample-buildout/bin'
 
+.. Wait for the file to really disappear. My linux is weird.
+
+    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'))
+
 we get the same error, but we don't get the directory left behind:
 
     >>> os.path.exists('foo')
@@ -588,7 +592,7 @@ automatically.  The method returns the files registered and can be
 used to return the files created.  Let's use this API to simplify the
 recipe:
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import logging, os, zc.buildout
     ...
@@ -600,7 +604,7 @@ recipe:
     ...         # Normalize paths and check that their parent
     ...         # directories exist:
     ...         paths = []
-    ...         for path in options['path'].split(): 
+    ...         for path in options['path'].split():
     ...             path = os.path.join(buildout['buildout']['directory'], path)
     ...             if not os.path.isdir(os.path.dirname(path)):
     ...                 logging.getLogger(self.name).error(
@@ -612,7 +616,7 @@ recipe:
     ...
     ...     def install(self):
     ...         paths = self.options['path'].split()
-    ...         for path in paths: 
+    ...         for path in paths:
     ...             logging.getLogger(self.name).info(
     ...                 'Creating directory %s', os.path.basename(path))
     ...             os.mkdir(path)
@@ -710,7 +714,7 @@ Buildout configuration files support variable substitution.
 To illustrate this, we'll create an debug recipe to
 allow us to see interactions with the buildout:
 
-    >>> write(sample_buildout, 'recipes', 'debug.py', 
+    >>> write(sample_buildout, 'recipes', 'debug.py',
     ... """
     ... class Debug:
     ...
@@ -777,7 +781,7 @@ substituted are qualified option names, consisting of a section name
 and option name joined by a colon.
 
 Now, if we run the buildout, we'll see the options with the values
-substituted. 
+substituted.
 
     >>> print system(buildout),
     Develop: '/sample-buildout/recipes'
@@ -1069,9 +1073,9 @@ To see how this works, we use an example:
 The example is pretty trivial, but the pattern it illustrates is
 pretty common.  In a more practical example, the base buildout might
 represent a product and the extending buildout might be a
-customization. 
+customization.
 
-Here is a more elaborate example. 
+Here is a more elaborate example.
 
     >>> other = tmpdir('other')
 
@@ -1171,7 +1175,7 @@ we'll set up a web server with some configuration files.
     ... """
     ... [buildout]
     ... extends = r1.cfg
-    ... 
+    ...
     ... [debug]
     ... op2 = r2 2
     ... op3 = r2 3
@@ -1179,7 +1183,7 @@ we'll set up a web server with some configuration files.
 
     >>> server_url = start_server(server_data)
 
-    >>> write('client.cfg', 
+    >>> write('client.cfg',
     ... """
     ... [buildout]
     ... develop = recipes
@@ -1208,10 +1212,10 @@ URL reference.  Relative references are interpreted relative to the
 base URL when they appear in configuration files loaded via URL.
 
 We can also specify a URL as the configuration file to be used by a
-buildout.  
+buildout.
 
     >>> os.remove('client.cfg')
-    >>> write(server_data, 'remote.cfg', 
+    >>> write(server_data, 'remote.cfg',
     ... """
     ... [buildout]
     ... develop = recipes
@@ -1344,7 +1348,7 @@ able to be instantiated at uninstallation time.
 Here's a recipe that simulates installation of a system service, along
 with an uninstall recipe that simulates removing the service.
 
-    >>> write(sample_buildout, 'recipes', 'service.py', 
+    >>> write(sample_buildout, 'recipes', 'service.py',
     ... """
     ... class Service:
     ...
@@ -1354,7 +1358,7 @@ with an uninstall recipe that simulates removing the service.
     ...         self.options = options
     ...
     ...     def install(self):
-    ...         print "chkconfig --add %s" % self.options['script']         
+    ...         print "chkconfig --add %s" % self.options['script']
     ...         return ()
     ...
     ...     def update(self):
@@ -1446,7 +1450,7 @@ Now we remove the service part, and add another part.
     ... [buildout]
     ... develop = recipes
     ... parts = debug
-    ... 
+    ...
     ... [debug]
     ... recipe = recipes:debug
     ... """)
@@ -1469,14 +1473,14 @@ recipe before they are deleted.
 For example, here's an uninstallation recipe that simulates backing up
 a directory before it is deleted. It is designed to work with the
 mkdir recipe introduced earlier.
- 
-    >>> write(sample_buildout, 'recipes', 'backup.py', 
+
+    >>> write(sample_buildout, 'recipes', 'backup.py',
     ... """
     ... import os
     ... def backup_directory(name, options):
     ...     path = options['path']
     ...     size = len(os.listdir(path))
-    ...     print "backing up directory %s of size %s" % (path, size) 
+    ...     print "backing up directory %s of size %s" % (path, size)
     ... """)
 
 It must be registered with the zc.buildout.uninstall entry
@@ -1507,7 +1511,7 @@ Now we can use it with a mkdir part.
     ... [buildout]
     ... develop = recipes
     ... parts = dir debug
-    ... 
+    ...
     ... [dir]
     ... recipe = recipes:mkdir
     ... path = my_directory
@@ -1534,7 +1538,7 @@ Now we remove the part from the configuration file.
     ... [buildout]
     ... develop = recipes
     ... parts = debug
-    ... 
+    ...
     ... [debug]
     ... recipe = recipes:debug
     ... """)
@@ -1583,7 +1587,7 @@ The following options are supported:
 
 -c filename
     The -c option can be used to specify a configuration file, rather than
-    buildout.cfg in the current directory.  
+    buildout.cfg in the current directory.
 
 
 -t socket_timeout
@@ -1602,11 +1606,11 @@ The following options are supported:
     Don't read user-default configuration.
 
 -o
-    Run in off-line mode.  This is equivalent to the assignment 
+    Run in off-line mode.  This is equivalent to the assignment
     buildout:offline=true.
 
 -O
-    Run in non-off-line mode.  This is equivalent to the assignment 
+    Run in non-off-line mode.  This is equivalent to the assignment
     buildout:offline=false.  This is the default buildout mode.  The
     -O option would normally be used to override a true offline
     setting in a configuration file.
@@ -1618,10 +1622,10 @@ The following options are supported:
     available that satisfy its requirements.
 
 -N
-    Run in non-newest mode.  This is equivalent to the assignment 
+    Run in non-newest mode.  This is equivalent to the assignment
     buildout:newest=false.  With this setting, buildout will not seek
     new distributions if installed distributions satisfy it's
-    requirements. 
+    requirements.
 
 Assignments are of the form::
 
@@ -1646,7 +1650,7 @@ Here's an example:
 
 Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
-    
+
     >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
     Develop: '/sample-buildout/recipes'
     Installing debug.
@@ -1654,12 +1658,12 @@ alternate file to store information about installed parts.
     op1 foo
     recipe recipes:debug
 
-Here we used the -c option to specify an alternate configuration file, 
+Here we used the -c option to specify an alternate configuration file,
 and the -v option to increase the level of logging from the default,
 WARNING.
 
 Options can also be combined in the usual Unix way, as in:
-    
+
     >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
     Develop: '/sample-buildout/recipes'
     Updating debug.
@@ -1712,7 +1716,7 @@ the buildout in the usual way:
     d2: Creating directory d2
     Installing d3.
     d3: Creating directory d3
-    
+
     >>> ls(sample_buildout)
     -  .installed.cfg
     -  b1.cfg
@@ -1791,7 +1795,7 @@ and run the buildout specifying just d3 and d4:
     d3: Creating directory data3
     Installing d4.
     d4: Creating directory data2-extra
-    
+
     >>> ls(sample_buildout)
     -  .installed.cfg
     -  b1.cfg
@@ -1808,7 +1812,7 @@ and run the buildout specifying just d3 and d4:
     d  eggs
     d  parts
     d  recipes
-    
+
 Only the d3 and d4 recipes ran.  d3 was removed and data3 and data2-extra
 were created.
 
@@ -1899,7 +1903,7 @@ provide alternate locations, and even names for these directories.
     ... """
     ... [buildout]
     ... develop = recipes
-    ... parts = 
+    ... parts =
     ... develop-eggs-directory = %(developbasket)s
     ... eggs-directory = %(basket)s
     ... bin-directory = %(scripts)s
@@ -1928,7 +1932,7 @@ provide alternate locations, and even names for these directories.
     d  scripts
     d  work
 
-    >>> ls(alt, 'developbasket')    
+    >>> ls(alt, 'developbasket')
     -  recipes.egg-link
 
 You can also specify an alternate buildout directory:
@@ -1941,12 +1945,12 @@ You can also specify an alternate buildout directory:
     ... [buildout]
     ... directory = %(alt)s
     ... develop = %(recipes)s
-    ... parts = 
+    ... parts =
     ... """ % dict(
     ...    alt=alt,
     ...    recipes=os.path.join(sample_buildout, 'recipes'),
     ...    ))
- 
+
     >>> print system(buildout),
     Creating directory '/sample-alt/bin'.
     Creating directory '/sample-alt/parts'.
@@ -1961,7 +1965,7 @@ You can also specify an alternate buildout directory:
     d  eggs
     d  parts
 
-    >>> ls(alt, 'develop-eggs')    
+    >>> ls(alt, 'develop-eggs')
     -  recipes.egg-link
 
 Logging control
@@ -1969,10 +1973,10 @@ Logging control
 
 Three buildout options are used to control logging:
 
-log-level 
+log-level
    specifies the log level
 
-verbosity 
+verbosity
    adjusts the log level
 
 log-format
@@ -1990,7 +1994,7 @@ of changing the format:
     ... verbosity = 5
     ... log-format = %(levelname)s %(message)s
     ... """)
- 
+
 Here, we've changed the format to include the log-level name, rather
 than the logger name.
 
@@ -2010,7 +2014,7 @@ and that users can override in their configuration files.  To see
 these, we'll run a minimal buildout configuration with a debug logging
 level.  One of the features of debug logging is that the configuration
 database is shown.
-         
+
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
@@ -2040,7 +2044,7 @@ database is shown.
     python = buildout
     verbosity = 20
     <BLANKLINE>
- 
+
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
@@ -2108,7 +2112,7 @@ Creating new buildouts and bootstrapping
 
 If zc.buildout is installed, you can use it to create a new buildout
 with it's own local copies of zc.buildout and setuptools and with
-local buildout scripts. 
+local buildout scripts.
 
     >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
@@ -2237,7 +2241,7 @@ requirements of the buildout will always be used.
 
 You can also specify more locations to search for distributions using
 the `find-links` option. All locations specified will be searched for
-distributions along with the package index as described before. 
+distributions along with the package index as described before.
 
 Locations can be urls::
 
@@ -2257,11 +2261,11 @@ Finally, they can also be direct paths to distributions::
   ...
   find-links = /some/path/someegg-1.0.0-py2.3.egg
 
-Any number of locations can be specified in the `find-links` option:: 
+Any number of locations can be specified in the `find-links` option::
 
   [buildout]
   ...
-  find-links = 
+  find-links =
       http://download.zope.org/distribution/
       /some/otherpath
       /some/path/someegg-1.0.0-py2.3.egg
@@ -2288,7 +2292,7 @@ information on installed parts.  This option is initialized to
 ".installed.cfg", but it can be overridden in the configuration file
 or on the command line:
 
-    >>> write('buildout.cfg', 
+    >>> write('buildout.cfg',
     ... """
     ... [buildout]
     ... develop = recipes
@@ -2341,7 +2345,7 @@ buildout installed option:
 Note that there will be no installation database if there are no
 parts:
 
-    >>> write('buildout.cfg', 
+    >>> write('buildout.cfg',
     ... """
     ... [buildout]
     ... parts =
@@ -2379,7 +2383,7 @@ previous section:
 
     >>> mkdir(sample_bootstrapped, 'demo')
 
-    >>> write(sample_bootstrapped, 'demo', 'demo.py', 
+    >>> write(sample_bootstrapped, 'demo', 'demo.py',
     ... """
     ... def ext(buildout):
     ...     print 'ext', list(buildout)
@@ -2388,7 +2392,7 @@ previous section:
     >>> write(sample_bootstrapped, 'demo', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(
     ...     name = "demo",
     ...     entry_points = {'zc.buildout.extension': ['ext = demo:ext']},
@@ -2426,7 +2430,7 @@ the network, we wouldn't need to do anything special.
     ... extensions = demo
     ... parts =
     ... """)
-   
+
 We see that our extension is loaded and executed:
 
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
@@ -2437,22 +2441,22 @@ Allow hosts
 -----------
 
 On some environments the links visited by `zc.buildout` can be forbidden
-by paranoiac firewalls. These URL might be on the chain of links 
+by paranoiac firewalls. These URL might be on the chain of links
 visited by `zc.buildout` wheter they are defined in the `find-links` option,
-wheter they are defined by various eggs in their `url`, `download_url`, 
+wheter they are defined by various eggs in their `url`, `download_url`,
 `dependency_links` metadata.
 
-It is even harder to track that package_index works like a spider and 
+It is even harder to track that package_index works like a spider and
 might visit links and go to other location.
 
-The `allow-hosts` option provides a way to prevent this, and 
+The `allow-hosts` option provides a way to prevent this, and
 works exactly like the one provided in `easy_install`.
 
 You can provide a list of allowed host, together with wildcards::
 
     [buildout]
     ...
-    
+
     allow-hosts =
         *.python.org
         example.com
