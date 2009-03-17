@@ -166,6 +166,12 @@ initialization
 arguments
    Specify some arguments to be passed to entry points as Python source.
 
+relative-paths
+   If set to true, then egg paths will be generated relative to the
+   script path.  This allows a buildout to be moved without breaking
+   egg paths.  This option can be set in either the script section or
+   in the buildout section.
+
 Let's add an interpreter option:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -356,7 +362,7 @@ extra-paths option:
     ... scripts = demo=foo
     ... extra-paths =
     ...    /foo/bar
-    ...    /spam/eggs
+    ...    ${buildout:directory}/spam
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
@@ -374,7 +380,115 @@ Let's look at the script that was generated:
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
       '/foo/bar',
-      '/spam/eggs',
+      '/sample-buildout/spam',
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+Relative egg paths
+------------------
+
+If the relative-paths option is specified with a true value, then
+paths will be generated relative to the script. This is useful when
+you want to be able to move a buildout directory around without
+breaking scripts.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = demo=foo
+    ... relative-paths = true
+    ... extra-paths =
+    ...    /foo/bar
+    ...    ${buildout:directory}/spam
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
+
+Let's look at the script that was generated:
+
+    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    def dirname(n, path):
+        while n >= 0:
+            n -= 1
+            path = os.path.dirname(path)
+        return path
+    <BLANKLINE>
+    join = os.path.join
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      join(dirname(1, __file__), 'eggs/demo-0.4c1-py2.4.egg'),
+      join(dirname(1, __file__), 'eggs/demoneeded-1.2c1-py2.4.egg'),
+      '/foo/bar',
+      join(dirname(1, __file__), 'spam'),
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+You can specify relative paths in the buildout section, rather than in
+each individual script section:
+
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ... relative-paths = true
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = demo=foo
+    ... extra-paths =
+    ...    /foo/bar
+    ...    ${buildout:directory}/spam
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
+
+    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    def dirname(n, path):
+        while n >= 0:
+            n -= 1
+            path = os.path.dirname(path)
+        return path
+    <BLANKLINE>
+    join = os.path.join
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      join(dirname(1, __file__), 'eggs/demo-0.4c1-py2.4.egg'),
+      join(dirname(1, __file__), 'eggs/demoneeded-1.2c1-py2.4.egg'),
+      '/foo/bar',
+      join(dirname(1, __file__), 'spam'),
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -402,7 +516,7 @@ to be included in generated scripts:
     ... scripts = demo=foo
     ... extra-paths =
     ...    /foo/bar
-    ...    /spam/eggs
+    ...    ${buildout:directory}/spam
     ... initialization = a = (1, 2
     ...                       3, 4)
     ... arguments = a, 2
@@ -421,7 +535,7 @@ to be included in generated scripts:
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
       '/foo/bar',
-      '/spam/eggs',
+      '/sample-buildout/spam',
       ]
     <BLANKLINE>
     a = (1, 2
@@ -454,7 +568,7 @@ declare entry points using the entry-points option:
     ... index = %(server)s/index
     ... extra-paths =
     ...    /foo/bar
-    ...    /spam/eggs
+    ...    ${buildout:directory}/spam
     ... entry-points = alt=eggrecipedemo:alt other=foo.bar:a.b.c
     ... """ % dict(server=link_server))
 
@@ -479,7 +593,7 @@ declare entry points using the entry-points option:
       '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
       '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
       '/foo/bar',
-      '/spam/eggs',
+      '/sample-buildout/spam',
       ]
     <BLANKLINE>
     import foo.bar

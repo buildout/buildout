@@ -49,7 +49,7 @@ class Eggs(object):
         options['develop-eggs-directory'
                 ] = buildout['buildout']['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
-        
+
         assert options.get('unzip') in ('true', 'false', None)
 
         python = options.get('python', buildout['buildout']['python'])
@@ -113,6 +113,18 @@ class Scripts(Eggs):
         if self.extra_paths:
             options['extra-paths'] = '\n'.join(self.extra_paths)
 
+
+        relative_paths = options.get(
+            'relative-paths', 
+            buildout['buildout'].get('relative-paths', 'false')
+            )
+        if relative_paths == 'true':
+            options['buildout-directory'] = buildout['buildout']['directory']
+            self._relative_paths = options['buildout-directory']
+        else:
+            self._relative_paths = ''
+            assert relative_paths == 'false'
+
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
@@ -154,6 +166,7 @@ class Scripts(Eggs):
                 interpreter=options.get('interpreter'),
                 initialization=options.get('initialization', ''),
                 arguments=options.get('arguments', ''),
+                relative_paths=self._relative_paths,
                 )
 
         return ()
