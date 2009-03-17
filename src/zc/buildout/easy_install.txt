@@ -8,7 +8,7 @@ level that is similar to easy_install, with a few exceptions:
 - By default, we look for new packages *and* the packages that
   they depend on.  This is somewhat like (and uses) the --upgrade
   option of easy_install, except that we also upgrade required
-  packages. 
+  packages.
 
 - If the highest-revision package satisfying a specification is
   already present, then we don't try to get another one.  This saves a
@@ -50,7 +50,7 @@ index
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
-   we'll just point to an empty directory on our link server.  This 
+   we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
 executable
@@ -89,6 +89,11 @@ use_dependency_links
    for using dependency_links in preference to other
    locations. Defaults to true.
 
+relative_paths
+   Adjust egg paths so they are relative to the script path.  This
+   allows scripts to work when scripts and eggs are moved, as long as
+   they are both moved in the same way.
+
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -116,10 +121,10 @@ Let's make a directory and install the demo egg to it, using the demo:
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
     ...     links=[link_server], index=link_server+'index/')
-    
+
 We requested version 0.2 of the demo distribution to be installed into
 the destination server.  We specified that we should search for links
-on the link server and that we should use the (empty) link server 
+on the link server and that we should use the (empty) link server
 index directory as a package index.
 
 The working set contains the distributions we retrieved.
@@ -220,7 +225,7 @@ can be useful when debugging.
     >>> ls(dest)
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
-    
+
     >>> rmdir(dest)
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
@@ -314,7 +319,7 @@ we'll get an error:
 
     >>> handler.clear()
 
-If no versions are specified, a debugging message will be output 
+If no versions are specified, a debugging message will be output
 reporting that a version was picked automatically:
 
     >>> ws = zc.buildout.easy_install.install(
@@ -402,7 +407,7 @@ dependencies. This option is called dependency_links. Buildout has its
 own notion of where to look for dependencies, but it also uses the
 setup tools dependency_links information if it's available.
 
-Let's demo this by creating an egg that specifies dependency_links. 
+Let's demo this by creating an egg that specifies dependency_links.
 
 To begin, let's create a new egg repository. This repository hold a
 newer version of the 'demoneeded' egg than the sample repository does.
@@ -414,7 +419,7 @@ newer version of the 'demoneeded' egg than the sample repository does.
 
 Turn on logging on this server so that we can see when eggs are pulled
 from it.
-    
+
     >>> get(link_server2 + 'enable_server_logging')
     GET 200 /enable_server_logging
     ''
@@ -423,7 +428,7 @@ Now we can create an egg that specifies that its dependencies are
 found on this server.
 
     >>> repoloc = tmpdir('repo2')
-    >>> create_egg('hasdeps', '1.0', repoloc, 
+    >>> create_egg('hasdeps', '1.0', repoloc,
     ...            install_requires = "'demoneeded'",
     ...            dependency_links = [link_server2])
 
@@ -549,7 +554,7 @@ the four arguments we passed were:
 
 2. A working set,
 
-3. The Python executable to use, and 
+3. The Python executable to use, and
 
 3. The destination directory.
 
@@ -559,10 +564,10 @@ The bin directory now contains a generated script:
     -  demo
 
 The return value is a list of the scripts generated:
-    
+
     >>> import os, sys
     >>> if sys.platform == 'win32':
-    ...     scripts == [os.path.join(bin, 'demo.exe'), 
+    ...     scripts == [os.path.join(bin, 'demo.exe'),
     ...                 os.path.join(bin, 'demo-script.py')]
     ... else:
     ...     scripts == [os.path.join(bin, 'demo')]
@@ -762,7 +767,7 @@ You can also pass script initialization code:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
-    ...    arguments='1, 2', 
+    ...    arguments='1, 2',
     ...    initialization='import os\nos.chdir("foo")')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
@@ -780,6 +785,107 @@ You can also pass script initialization code:
     <BLANKLINE>
     if __name__ == '__main__':
         eggrecipedemo.main(1, 2)
+
+Relative paths
+--------------
+
+Sometimes, you want to be able to move a buildout directory around and
+have scripts still work without having to rebuild them.  We can
+control this using the relative_paths option to install.  You need
+to pass a common base directory of the scripts and eggs:
+
+    >>> bo = tmpdir('bo')
+    >>> mkdir(bo, 'eggs')
+    >>> mkdir(bo, 'bin')
+    >>> mkdir(bo, 'other')
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], join(bo, 'eggs'), links=[link_server],
+    ...     index=link_server+'index/')
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...    ['demo'], ws, sys.executable, join(bo, 'bin'), dict(demo='run'),
+    ...    extra_paths=[os.path.sep+'foo', join(bo, 'bar')],
+    ...    interpreter='py',
+    ...    relative_paths=bo)
+
+    >>> cat(bo, 'bin', 'run')
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    def dirname(n, path):
+        while n >= 0:
+            n -= 1
+            path = os.path.dirname(path)
+        return path
+    <BLANKLINE>
+    join = os.path.join
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      join(dirname(1, __file__), 'eggs/demo-0.3-py2.4.egg'),
+      join(dirname(1, __file__), 'eggs/demoneeded-1.1-py2.4.egg'),
+      '/foo',
+      join(dirname(1, __file__), 'bar'),
+      ]
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+Note that the extra path we specified that was outside the directory
+passed as relative_paths wasn't converted to a relative path.
+
+Of course, running the script works:
+
+    >>> print system(join(bo, 'bin', 'run')),
+    3 1
+
+We specified an interpreter and its paths are adjusted too:
+
+    >>> cat(bo, 'bin', 'py')
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    def dirname(n, path):
+        while n >= 0:
+            n -= 1
+            path = os.path.dirname(path)
+        return path
+    <BLANKLINE>
+    join = os.path.join
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+      join(dirname(1, __file__), 'eggs/demo-0.3-py2.4.egg'),
+      join(dirname(1, __file__), 'eggs/demoneeded-1.1-py2.4.egg'),
+      '/foo',
+      join(dirname(1, __file__), 'bar'),
+      ]
+    <BLANKLINE>
+    _interactive = True
+    if len(sys.argv) > 1:
+        import getopt
+        _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+        _interactive = False
+        for (_opt, _val) in _options:
+            if _opt == '-i':
+                _interactive = True
+            elif _opt == '-c':
+                exec _val
+    <BLANKLINE>
+        if _args:
+            sys.argv[:] = _args
+            execfile(sys.argv[0])
+    <BLANKLINE>
+    if _interactive:
+        import code
+        code.interact(banner="", local=globals())
 
 
 Handling custom build options for extensions provided in source distributions
@@ -816,7 +922,7 @@ index
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
-   we'll just point to an empty directory on our link server.  This 
+   we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
 executable
@@ -876,12 +982,12 @@ Now, we can use the build function to create an egg from the source
 distribution:
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
     ['/sample-install/extdemo-1.4-py2.4-unix-i686.egg']
 
-The function returns the list of eggs 
+The function returns the list of eggs
 
 Now if we look in our destination directory, we see we have an extdemo egg:
 
@@ -920,7 +1026,7 @@ function to clear the index cache:
 If we run build with newest set to False, we won't get an update:
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/',
     ...   newest=False)
@@ -937,7 +1043,7 @@ But if we run it with the default True setting for newest, then we'll
 get an updated egg:
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
     ['/sample-install/extdemo-1.5-py2.4-unix-i686.egg']
@@ -960,7 +1066,7 @@ first:
     ...     remove(dest, name)
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/',
     ...   versions=dict(extdemo='1.4'))
@@ -974,7 +1080,7 @@ Handling custom build options for extensions in develop eggs
 
 The develop function is similar to the build function, except that,
 rather than building an egg from a source directory containing a
-setup.py script.  
+setup.py script.
 
 The develop function takes 2 positional arguments:
 
@@ -1008,7 +1114,7 @@ Now, we can use the develop function to create a develop egg from the source
 distribution:
 
     >>> zc.buildout.easy_install.develop(
-    ...   extdemo, dest, 
+    ...   extdemo, dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')})
     '/sample-install/extdemo.egg-link'
 
@@ -1061,7 +1167,7 @@ We'll recreate our destination directory:
 
 We'd like to see what is being fetched from the server, so we'll
 enable server logging:
-   
+
     >>> get(link_server+'enable_server_logging')
     GET 200 /enable_server_logging
     ''
@@ -1070,7 +1176,7 @@ Now, if we install demo, and extdemo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
-    ...     links=[link_server], index=link_server+'index/', 
+    ...     links=[link_server], index=link_server+'index/',
     ...     always_unzip=True)
     GET 200 /
     GET 404 /index/demo/
@@ -1081,7 +1187,7 @@ Now, if we install demo, and extdemo:
     GET 404 /index/setuptools/
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
     GET 404 /index/extdemo/
@@ -1103,7 +1209,7 @@ But we'll get distributions in the cache directory:
     -  extdemo-1.5.zip
 
 The cache directory contains uninstalled distributions, such as zipped
-eggs or source distributions.  
+eggs or source distributions.
 
 Let's recreate our destination directory and clear the index cache:
 
@@ -1115,7 +1221,7 @@ Now when we install the distributions:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
-    ...     links=[link_server], index=link_server+'index/', 
+    ...     links=[link_server], index=link_server+'index/',
     ...     always_unzip=True)
     GET 200 /
     GET 404 /index/demo/
@@ -1124,7 +1230,7 @@ Now when we install the distributions:
     GET 404 /index/setuptools/
 
     >>> zc.buildout.easy_install.build(
-    ...   'extdemo', dest, 
+    ...   'extdemo', dest,
     ...   {'include-dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
     GET 404 /index/extdemo/
@@ -1142,7 +1248,7 @@ from the link server:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest,
-    ...     links=[link_server], index=link_server+'index/', 
+    ...     links=[link_server], index=link_server+'index/',
     ...     always_unzip=True)
     GET 200 /demo-0.3-py2.4.egg
 
@@ -1184,7 +1290,7 @@ recreate the destination directory, and reinstall demo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest,
-    ...     links=[link_server], index=link_server+'index/', 
+    ...     links=[link_server], index=link_server+'index/',
     ...     always_unzip=True)
 
     >>> ls(dest)
