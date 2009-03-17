@@ -1,10 +1,3 @@
-To do
-*****
-
-- Some way to freeze the egg-versions used.  This includes some way to
-  record which versions were selected dynamially and then a way to
-  require that the recorded versions be used in a later run.
-
 Change History
 **************
 
