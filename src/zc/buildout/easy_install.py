@@ -108,7 +108,7 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
         if FILE_SCHEME(url):
             return True
         return setuptools.package_index.PackageIndex.url_ok(self, url, False)
-        
+
 
 _indexes = {}
 def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
@@ -122,7 +122,7 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
     index = AllowHostsPackageIndex(
         index_url, hosts=allow_hosts, python=_get_version(executable)
         )
-        
+
     if find_links:
         index.add_find_links(find_links)
 
@@ -152,7 +152,7 @@ class Installer:
     _use_dependency_links = True
     _allow_picked_versions = True
     _always_unzip = False
-    
+
     def __init__(self,
                  dest=None,
                  links=(),
@@ -204,7 +204,7 @@ class Installer:
         if not dists:
             logger.debug('We have no distributions for %s that satisfies %r.',
                          req.project_name, str(req))
-            
+
             return None, self._obtain(req, source)
 
         # Note that dists are sorted from best to worst, as promised by
@@ -242,7 +242,7 @@ class Installer:
         # newer ones.  Let's find out which ones are available and see if
         # any are newer.  We only do this if we're willing to install
         # something, which is only true if dest is not None:
-        
+
         if self._dest is not None:
             best_available = self._obtain(req, source)
         else:
@@ -282,7 +282,7 @@ class Installer:
                 best_available.parsed_version
                 ):
                 return None, best_available
-            
+
         logger.debug(
             'We have the best distribution that satisfies %r.',
             str(req))
@@ -326,10 +326,10 @@ class Installer:
                 args += (dict(os.environ, PYTHONPATH=path), )
 
             sys.stdout.flush() # We want any pending output first
-            
+
             if is_jython:
                 exit_code = subprocess.Popen(
-                [_safe_arg(self._executable)] + list(args), 
+                [_safe_arg(self._executable)] + list(args),
                 env=extra_env).wait()
             else:
                 exit_code = os.spawnle(
@@ -343,7 +343,7 @@ class Installer:
                 )
             for project in env:
                 dists.extend(env[project])
-                
+
             if exit_code:
                 logger.error(
                     "An error occured when trying to install %s."
@@ -388,18 +388,18 @@ class Installer:
                     [newloc],
                     python=_get_version(self._executable),
                     )[d.project_name]
-                    
+
                 result.append(d)
 
             return result
 
         finally:
             shutil.rmtree(tmp)
-            
+
     def _obtain(self, requirement, source=None):
         # initialize out index for this project:
         index = self._index
-        
+
         if index.obtain(requirement) is None:
             # Nothing is available.
             return None
@@ -440,7 +440,7 @@ class Installer:
 
         if len(best) == 1:
             return best[0]
-        
+
         if self._download_cache:
             for dist in best:
                 if (realpath(os.path.dirname(dist.location))
@@ -467,7 +467,7 @@ class Installer:
             # to the download cache
             shutil.copy2(new_location, tmp)
             new_location = os.path.join(tmp, os.path.basename(new_location))
-            
+
         return dist.clone(location=new_location)
 
     def _get_dist(self, requirement, ws, always_unzip):
@@ -477,7 +477,7 @@ class Installer:
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
         dist, avail = self._satisfied(requirement)
-        
+
         if dist is None:
             if self._dest is not None:
                 logger.info(*__doing__)
@@ -554,7 +554,7 @@ class Installer:
 
             self._env.scan([self._dest])
             dist = self._env.best_match(requirement, ws)
-            logger.info("Got %s.", dist)            
+            logger.info("Got %s.", dist)
 
         else:
             dists = [dist]
@@ -570,7 +570,7 @@ class Installer:
                         logger.debug('Adding find link %r from %s', link, dist)
                         self._links.append(link)
                         self._index = _get_index(self._executable,
-                                                 self._index_url, self._links, 
+                                                 self._index_url, self._links,
                                                  self._allow_hosts)
 
         for dist in dists:
@@ -619,7 +619,7 @@ class Installer:
                 logger.error("The version, %s, is not consistent with the "
                              "requirement, %r.", version, str(requirement))
                 raise IncompatibleVersionError("Bad version", version)
-            
+
             requirement = pkg_resources.Requirement.parse(
                 "%s ==%s" % (requirement.project_name, version))
 
@@ -637,7 +637,7 @@ class Installer:
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
 
-        
+
 
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
@@ -668,10 +668,10 @@ class Installer:
                 else:
                     logger.debug('Adding required %r', str(requirement))
                 _log_requirement(ws, requirement)
-                    
+
                 for dist in self._get_dist(requirement, ws, self._always_unzip
                                            ):
-                        
+
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict, err:
@@ -724,7 +724,7 @@ class Installer:
                             % os.path.basename(dist.location)
                             )
                     base = os.path.dirname(setups[0])
-            
+
                 setup_cfg = os.path.join(base, 'setup.cfg')
                 if not os.path.exists(setup_cfg):
                     f = open(setup_cfg, 'w')
@@ -797,7 +797,7 @@ def install(specs, dest,
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',)):
     installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest, versions, use_dependency_links, 
+                          newest, versions, use_dependency_links,
                           allow_hosts=allow_hosts)
     return installer.install(specs, working_set)
 
@@ -810,7 +810,7 @@ def build(spec, dest, build_ext,
                           versions, allow_hosts=allow_hosts)
     return installer.build(spec, build_ext)
 
-        
+
 
 def _rm(*paths):
     for path in paths:
@@ -828,10 +828,10 @@ def _copyeggs(src, dest, suffix, undo):
             _rm(new)
             os.rename(os.path.join(src, name), new)
             result.append(new)
-        
+
     assert len(result) == 1, str(result)
     undo.pop()
-    
+
     return result[0]
 
 def develop(setup, dest,
@@ -843,7 +843,7 @@ def develop(setup, dest,
         setup = os.path.join(directory, 'setup.py')
     else:
         directory = os.path.dirname(setup)
-        
+
     undo = []
     try:
         if build_ext:
@@ -873,7 +873,7 @@ def develop(setup, dest,
             ))
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
-        undo.append(lambda : shutil.rmtree(tmp3)) 
+        undo.append(lambda : shutil.rmtree(tmp3))
 
         args = [
             zc.buildout.easy_install._safe_arg(tsetup),
@@ -893,15 +893,16 @@ def develop(setup, dest,
         if is_jython:
             assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
         else:
-            assert os.spawnl(os.P_WAIT, executable, _safe_arg (executable), *args) == 0
+            assert os.spawnl(os.P_WAIT, executable, _safe_arg(executable),
+                             *args) == 0
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
         undo.reverse()
         [f() for f in undo]
-            
-            
+
+
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)
 
@@ -911,11 +912,13 @@ def scripts(reqs, working_set, executable, dest,
             arguments='',
             interpreter=None,
             initialization='',
+            relative_paths=False,
             ):
-    
+
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    path = repr(path)[1:-1].replace(', ', ',\n  ')
+    path = map(realpath, path)
+
     generated = []
 
     if isinstance(reqs, str):
@@ -938,7 +941,7 @@ def scripts(reqs, working_set, executable, dest,
                     )
         else:
             entry_points.append(req)
-                
+
     for name, module_name, attrs in entry_points:
         if scripts is not None:
             sname = scripts.get(name)
@@ -948,19 +951,87 @@ def scripts(reqs, working_set, executable, dest,
             sname = name
 
         sname = os.path.join(dest, sname)
+        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
+
         generated.extend(
-            _script(module_name, attrs, path, sname, executable, arguments,
-                    initialization)
+            _script(module_name, attrs, spath, sname, executable, arguments,
+                    initialization, rpsetup)
             )
 
     if interpreter:
         sname = os.path.join(dest, interpreter)
-        generated.extend(_pyscript(path, sname, executable))
+        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
+        generated.extend(_pyscript(spath, sname, executable, rpsetup))
 
     return generated
 
+def _relative_path_and_setup(sname, path, relative_paths):
+    if relative_paths:
+        sname = os.path.abspath(sname)
+        spath = ',\n  '.join(
+            [_relativitize(path_item, sname, relative_paths)
+             for path_item in path]
+            )
+        rpsetup = relative_paths_setup
+    else:
+        spath = repr(path)[1:-1].replace(', ', ',\n  ')
+        rpsetup = ''
+    return spath, rpsetup
+
+
+def _relative_depth(common, path):
+    n = 0
+    while 1:
+        dirname = os.path.dirname(path)
+        if dirname == path:
+            raise AssertionError("dirname of %s is the same" % dirname)
+        if dirname == common:
+            break
+        n += 1
+        path = dirname
+    return n
+
+def _relative_path(common, path):
+    r = []
+    while 1:
+        dirname, basename = os.path.split(path)
+        r.append(basename)
+        if dirname == common:
+            break
+        if dirname == path:
+            raise AssertionError("dirname of %s is the same" % dirname)
+        path = dirname
+    r.reverse()
+    return os.path.join(*r)
+
+def _relativitize(path, script, relative_paths):
+    if path == script:
+        raise AssertionError("path == script")
+    common = os.path.dirname(os.path.commonprefix([path, script]))
+    if (common == relative_paths or
+        common.startswith(os.path.join(relative_paths, ''))
+        ):
+        return "join(dirname(%s, __file__), %r)" % (
+            _relative_depth(common, script), _relative_path(common, path)
+            )
+    else:
+        return repr(path)
+
+
+relative_paths_setup = """
+import os
+
+def dirname(n, path):
+    while n >= 0:
+        n -= 1
+        path = os.path.dirname(path)
+    return path
+
+join = os.path.join
+"""
+
 def _script(module_name, attrs, path, dest, executable, arguments,
-            initialization):
+            initialization, rsetup):
     generated = []
     script = dest
     if is_win32:
@@ -973,6 +1044,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
         attrs = attrs,
         arguments = arguments,
         initialization = initialization,
+        relative_paths_setup = rsetup,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
@@ -984,7 +1056,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
         generated.append(exe)
-        
+
     if changed:
         open(dest, 'w').write(contents)
         logger.info("Generated script %r.", script)
@@ -993,7 +1065,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
             os.chmod(dest, 0755)
         except (AttributeError, os.error):
             pass
-        
+
     generated.append(dest)
     return generated
 
@@ -1002,9 +1074,10 @@ if is_jython and jython_os_name == 'linux':
 else:
     script_header = '#!%(python)s'
 
+
 script_template = script_header + '''\
 
-
+%(relative_paths_setup)s
 import sys
 sys.path[0:0] = [
   %(path)s,
@@ -1017,7 +1090,7 @@ if __name__ == '__main__':
 '''
 
 
-def _pyscript(path, dest, executable):
+def _pyscript(path, dest, executable, rsetup):
     generated = []
     script = dest
     if is_win32:
@@ -1026,6 +1099,7 @@ def _pyscript(path, dest, executable):
     contents = py_script_template % dict(
         python = _safe_arg(executable),
         path = path,
+        relative_paths_setup = rsetup,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
@@ -1051,8 +1125,9 @@ def _pyscript(path, dest, executable):
 py_script_template = script_header + '''\
 
 
+%(relative_paths_setup)s
 import sys
-    
+
 sys.path[0:0] = [
   %(path)s,
   ]
@@ -1067,7 +1142,7 @@ if len(sys.argv) > 1:
             _interactive = True
         elif _opt == '-c':
             exec _val
-            
+
     if _args:
         sys.argv[:] = _args
         execfile(sys.argv[0])
@@ -1076,7 +1151,7 @@ if _interactive:
     import code
     code.interact(banner="", local=globals())
 '''
-        
+
 runsetup_template = """
 import sys
 sys.path.insert(0, %(setupdir)r)
@@ -1124,7 +1199,7 @@ def _log_requirement(ws, req):
     for dist in ws:
         if req in dist.requires():
             logger.debug("  required by %s." % dist)
-    
+
 def _fix_file_links(links):
     for link in links:
         if link.startswith('file://') and link[-1] != '/':
@@ -1150,7 +1225,7 @@ def redo_pyc(egg):
             filepath = os.path.join(dirpath, filename)
             if not (os.path.exists(filepath+'c')
                     or os.path.exists(filepath+'o')):
-                # If it wasn't compiled, it may not be compilable 
+                # If it wasn't compiled, it may not be compilable
                 continue
 
             # OK, it looks like we should try to compile.
@@ -1171,9 +1246,9 @@ def redo_pyc(egg):
                 if __debug__:
                     args.append('-O')
                 args.extend(['-m', 'py_compile', _safe_arg(filepath)])
-                
+
                 if is_jython:
                     subprocess.call([sys.executable, args])
                 else:
                     os.spawnv(os.P_WAIT, sys.executable, args)
-                    
+
