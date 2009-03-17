@@ -4,14 +4,16 @@ Status
 Change History
 **************
 
-1.2.0 (unreleased)
+1.2.0 (2009-03-??)
 ==================
 
-- TBD
-
+- Added a relative_paths option to zc.buildout.easy_install.script to
+  generate egg paths relative to the script they're used in.
 
 1.1.2 (2009-03-16)
 ==================
+
+- Added Python 2.6 support. Removed Python 2.3 support.
 
 - Fixed remaining deprecation warnings under Python 2.6, both when running
   our tests and when using the package.
