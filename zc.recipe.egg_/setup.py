@@ -15,6 +15,7 @@
 
 $Id$
 """
+
 import os
 from setuptools import setup, find_packages
 
@@ -24,7 +25,7 @@ def read(*rnames):
 name = "zc.recipe.egg"
 setup(
     name = name,
-    version = "0",
+    version = "1.2.0",
     author = "Jim Fulton",
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
