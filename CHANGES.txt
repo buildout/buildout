@@ -4,6 +4,11 @@ Status
 Change History
 **************
 
+1.2.1 (2009-03-18)
+==================
+
+- Refactored generation of relative egg paths to generate simpler code.
+
 1.2.0 (2009-03-17)
 ==================
 

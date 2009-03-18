@@ -973,6 +973,8 @@ def _relative_path_and_setup(sname, path, relative_paths):
              for path_item in path]
             )
         rpsetup = relative_paths_setup
+        for i in range(_relative_depth(relative_paths, sname)):
+            rpsetup += "base = os.path.dirname(base)\n"
     else:
         spath = repr(path)[1:-1].replace(', ', ',\n  ')
         rpsetup = ''
@@ -1011,9 +1013,7 @@ def _relativitize(path, script, relative_paths):
     if (common == relative_paths or
         common.startswith(os.path.join(relative_paths, ''))
         ):
-        return "join(dirname(%s, __file__), %r)" % (
-            _relative_depth(common, script), _relative_path(common, path)
-            )
+        return "join(base, %r)" % _relative_path(common, path)
     else:
         return repr(path)
 
@@ -1021,13 +1021,8 @@ def _relativitize(path, script, relative_paths):
 relative_paths_setup = """
 import os
 
-def dirname(n, path):
-    while n >= 0:
-        n -= 1
-        path = os.path.dirname(path)
-    return path
-
 join = os.path.join
+base = os.path.dirname(__file__)
 """
 
 def _script(module_name, attrs, path, dest, executable, arguments,
@@ -1123,7 +1118,6 @@ def _pyscript(path, dest, executable, rsetup):
     return generated
 
 py_script_template = script_header + '''\
-
 
 %(relative_paths_setup)s
 import sys

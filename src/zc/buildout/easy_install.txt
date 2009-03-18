@@ -814,20 +814,16 @@ to pass a common base directory of the scripts and eggs:
     <BLANKLINE>
     import os
     <BLANKLINE>
-    def dirname(n, path):
-        while n >= 0:
-            n -= 1
-            path = os.path.dirname(path)
-        return path
-    <BLANKLINE>
     join = os.path.join
+    base = os.path.dirname(__file__)
+    base = os.path.dirname(base)
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(dirname(1, __file__), 'eggs/demo-0.3-py2.4.egg'),
-      join(dirname(1, __file__), 'eggs/demoneeded-1.1-py2.4.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/foo',
-      join(dirname(1, __file__), 'bar'),
+      join(base, 'bar'),
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -848,24 +844,19 @@ We specified an interpreter and its paths are adjusted too:
     >>> cat(bo, 'bin', 'py')
     #!/usr/local/bin/python2.4
     <BLANKLINE>
-    <BLANKLINE>
     import os
     <BLANKLINE>
-    def dirname(n, path):
-        while n >= 0:
-            n -= 1
-            path = os.path.dirname(path)
-        return path
-    <BLANKLINE>
     join = os.path.join
+    base = os.path.dirname(__file__)
+    base = os.path.dirname(base)
     <BLANKLINE>
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      join(dirname(1, __file__), 'eggs/demo-0.3-py2.4.egg'),
-      join(dirname(1, __file__), 'eggs/demoneeded-1.1-py2.4.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/foo',
-      join(dirname(1, __file__), 'bar'),
+      join(base, 'bar'),
       ]
     <BLANKLINE>
     _interactive = True
