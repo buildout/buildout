@@ -1,6 +1,11 @@
 Change History
 **************
 
+1.2.2 (2009-03-18)
+==================
+
+- Fixed a dependency information. zc.buildout >1.2.0 is required.
+
 1.2.1 (2009-03-18)
 ==================
 
