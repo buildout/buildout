@@ -16,7 +16,7 @@
 $Id$
 """
 
-version = '0'
+version = '1.2.2'
 
 import os
 from setuptools import setup, find_packages
