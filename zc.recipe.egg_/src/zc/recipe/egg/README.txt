@@ -424,20 +424,16 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import os
     <BLANKLINE>
-    def dirname(n, path):
-        while n >= 0:
-            n -= 1
-            path = os.path.dirname(path)
-        return path
-    <BLANKLINE>
     join = os.path.join
+    base = os.path.dirname(__file__)
+    base = os.path.dirname(base)
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(dirname(1, __file__), 'eggs/demo-0.4c1-py2.4.egg'),
-      join(dirname(1, __file__), 'eggs/demoneeded-1.2c1-py2.4.egg'),
+      join(base, 'eggs/demo-0.4c1-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.2c1-pyN.N.egg'),
       '/foo/bar',
-      join(dirname(1, __file__), 'spam'),
+      join(base, 'spam'),
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -475,20 +471,16 @@ each individual script section:
     <BLANKLINE>
     import os
     <BLANKLINE>
-    def dirname(n, path):
-        while n >= 0:
-            n -= 1
-            path = os.path.dirname(path)
-        return path
-    <BLANKLINE>
     join = os.path.join
+    base = os.path.dirname(__file__)
+    base = os.path.dirname(base)
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(dirname(1, __file__), 'eggs/demo-0.4c1-py2.4.egg'),
-      join(dirname(1, __file__), 'eggs/demoneeded-1.2c1-py2.4.egg'),
+      join(base, 'eggs/demo-0.4c1-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.2c1-pyN.N.egg'),
       '/foo/bar',
-      join(dirname(1, __file__), 'spam'),
+      join(base, 'spam'),
       ]
     <BLANKLINE>
     import eggrecipedemo
