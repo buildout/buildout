@@ -36,6 +36,7 @@ import zc.buildout.easy_install
 from zc.buildout.rmtree import rmtree
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
+is_win32 = sys.platform == 'win32'
 
 setuptools_location = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
@@ -43,7 +44,7 @@ setuptools_location = pkg_resources.working_set.find(
 def cat(dir, *names):
     path = os.path.join(dir, *names)
     if (not os.path.exists(path)
-        and sys.platform == 'win32'
+        and is_win32
         and os.path.exists(path+'-script.py')
         ):
         path = path+'-script.py'
@@ -91,7 +92,7 @@ def system(command, input=''):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         close_fds=True)
+                         close_fds=not is_win32)
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input)
@@ -133,7 +134,7 @@ def find_python(version):
     e = os.environ.get('PYTHON%s' % version)
     if e is not None:
         return e
-    if sys.platform == 'win32':
+    if is_win32:
         e = '\Python%s%s\python.exe' % tuple(version.split('.'))
         if os.path.exists(e):
             return e
