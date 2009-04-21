@@ -1,8 +1,11 @@
-Status
-******
-
 Change History
 **************
+
+1.2.2 (unreleased)
+==================
+
+- Better Windows compatibility in test infrastructure.
+
 
 1.2.1 (2009-03-18)
 ==================
@@ -83,8 +86,8 @@ Change History
 - added a test to verify against https://bugs.launchpad.net/zc.buildout/+bug/239212
   in allowhosts.txt (seletz)
 
-- further fixes for """AttributeError: Buildout instance has no 
-  attribute '_logger'""" by providing reasonable defaults 
+- further fixes for """AttributeError: Buildout instance has no
+  attribute '_logger'""" by providing reasonable defaults
   within the Buildout constructor (related to the new 'allow-hosts' option)
   (patch by Gottfried Ganssauge) (ajung)
 
@@ -99,7 +102,7 @@ Change History
 
 - Added the `allow-hosts` option (tarek)
 
-- Quote the 'executable' argument when trying to detect the python 
+- Quote the 'executable' argument when trying to detect the python
   version using popen4. (sidnei)
 
 - Quote the 'spec' argument, as in the case of installing an egg from
@@ -110,7 +113,7 @@ Change History
 1.0.3 (2008-06-01)
 ==================
 
-- fix for """AttributeError: Buildout instance has no attribute '_logger'""" 
+- fix for """AttributeError: Buildout instance has no attribute '_logger'"""
   by providing reasonable defaults within the Buildout constructor.
   (patch by Gottfried Ganssauge) (ajung)
 
@@ -285,7 +288,7 @@ Feature Changes
   are being added.
 
 - Changed the logging format to exclude the logger name for the
-  zc.buildout logger.  This reduces noise in the output.  
+  zc.buildout logger.  This reduces noise in the output.
 
 - Clean up lots of messages, adding missing periods and adding quotes around
   requirement strings and file paths.
@@ -295,7 +298,7 @@ Bugs Fixed
 
 - 114614: Buildouts could take a very long time if there were
   dependency problems in large sets of pathologically interdependent
-  packages. 
+  packages.
 
 - 59270: Buggy recipes can cause failures in later recipes via chdir
 
@@ -339,7 +342,7 @@ Feature Changes
   for distribution downloads.  The cache can be shared among buildouts
   to reduce network access and to support creating source
   distributions for applications allowing install without network
-  access. 
+  access.
 
 - Log scripts created, as suggested in:
   https://bugs.launchpad.net/zc.buildout/+bug/71353
@@ -423,7 +426,7 @@ Feature Changes
   for this parameter and already installed eggs meet the given
   requirements, then no attempt will be made to search for newer
   distributions.
- 
+
 - The recipe-testing support setUp function now adds the name
   *buildout* to the test namespace with a value that is the path to
   the buildout script in the sample buildout.  This allows tests to
@@ -458,7 +461,7 @@ Bugs Fixed
 Feature Changes
 ---------------
 
-- Added documentation for some previously undocumented features of the 
+- Added documentation for some previously undocumented features of the
   easy_install APIs.
 
 - By popular demand, added a -o command-line option that is a short
@@ -587,7 +590,7 @@ Bugs Fixed
 ----------
 
 `67737 <https://launchpad.net/products/zc.buildout/+bug/67737>`_
-     Verbose and quite output options caused errors when the 
+     Verbose and quite output options caused errors when the
      develop buildout option was used to create develop eggs.
 
 `67871 <https://launchpad.net/products/zc.buildout/+bug/67871>`_
@@ -597,7 +600,7 @@ Bugs Fixed
 `67873 <https://launchpad.net/products/zc.buildout/+bug/67873>`_
      There was an error in producing an error message when part names
      passed to the install command weren't included in the
-     configuration. 
+     configuration.
 
 1.0.0b10 (2006-10-16)
 =====================
@@ -608,12 +611,12 @@ Feature Changes
 - Renamed the runsetup command to setup. (The old name still works.)
 
 - Added a recipe update method. Now install is only called when a part
-  is installed for the first time, or after an uninstall. Otherwise, 
+  is installed for the first time, or after an uninstall. Otherwise,
   update is called.  For backward compatibility, recipes that don't
   define update methiods are still supported.
 
-- If a distribution defines namespace packages but fails to declare 
-  setuptools as one of its dependencies, we now treat setuptools as an 
+- If a distribution defines namespace packages but fails to declare
+  setuptools as one of its dependencies, we now treat setuptools as an
   implicit dependency.  We generate a warning if the distribution
   is a develop egg.
 
@@ -707,7 +710,7 @@ support.
 
 - No-longer generate a py_zc.buildout script.
 
-- Fixed some bugs in variable substitutions.  
+- Fixed some bugs in variable substitutions.
 
   The characters "-", "." and " ", weren't allowed in section or
   option names.
