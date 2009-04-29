@@ -565,57 +565,6 @@ def create_sections_on_command_line():
     
     """
 
-bootstrap_py = os.path.join(
-       os.path.dirname(
-          os.path.dirname(
-             os.path.dirname(
-                os.path.dirname(zc.buildout.__file__)
-                )
-             )
-          ),
-       'bootstrap', 'bootstrap.py')
-
-if os.path.exists(bootstrap_py):
-    def test_bootstrap_py():
-        """Make sure the bootstrap script actually works
-
-    >>> sample_buildout = tmpdir('sample')
-    >>> os.chdir(sample_buildout)
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts =
-    ... ''')
-    >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print 'X'; print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
-    X...
-    Creating directory '/sample/bin'.
-    Creating directory '/sample/parts'.
-    Creating directory '/sample/eggs'.
-    Creating directory '/sample/develop-eggs'.
-    Generated script '/sample/bin/buildout'.
-    ...
-
-    >>> ls(sample_buildout)
-    d  bin
-    -  bootstrap.py
-    -  buildout.cfg
-    d  develop-eggs
-    d  eggs
-    d  parts
-
-
-    >>> ls(sample_buildout, 'bin')
-    -  buildout
-
-    >>> print 'X'; ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
-    X...
-    d  zc.buildout-1.0-py2.4.egg
-
-    """
-
 def test_help():
     """
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'),
@@ -2782,7 +2731,7 @@ normalize_bang = (
     )
 
 def test_suite():
-    return unittest.TestSuite((
+    test_suite = [
         doctest.DocFileSuite(
             'buildout.txt', 'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
@@ -2913,4 +2862,33 @@ def test_suite():
                 ),
                ])
             ), 
-        ))
+    ]
+
+    # adding bootstrap.txt doctest to the suite
+    # only if bootstrap.py is present
+    bootstrap_py = os.path.join(
+       os.path.dirname(
+          os.path.dirname(
+             os.path.dirname(
+                os.path.dirname(zc.buildout.__file__)
+                )
+             )
+          ),
+       'bootstrap', 'bootstrap.py')
+
+    if os.path.exists(bootstrap_py):
+        test_suite.append(doctest.DocFileSuite(
+            'bootstrap.txt',
+            setUp=easy_install_SetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_script,
+               normalize_bang,
+               ]),
+            ))
+
+    return unittest.TestSuite(test_suite)
+
+
+
