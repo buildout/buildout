@@ -119,6 +119,11 @@ then use to run the tests.
 
 This is probably the most common type of buildout.
 
+If I need to run a previous version of zc.buildout, I use the
+`--version` option of the buildout.py script::
+
+    $ python bootstrap.py --version 1.1.3
+    
 The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
 is a slightly more complex example of this type of buildout.
 

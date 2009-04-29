@@ -1,0 +1,126 @@
+Make sure the bootstrap script actually works::
+    
+    >>> import os, sys
+    >>> from os.path import dirname, join
+    >>> import zc.buildout
+    >>> bootstrap_py = join(
+    ...    dirname(
+    ...     dirname(
+    ...      dirname(
+    ...       dirname(zc.buildout.__file__)
+    ...        )
+    ...      )
+    ...    ),
+    ...   'bootstrap', 'bootstrap.py')
+    >>> sample_buildout = tmpdir('sample')
+    >>> os.chdir(sample_buildout)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
+    X...
+    Creating directory '/sample/bin'.
+    Creating directory '/sample/parts'.
+    Creating directory '/sample/eggs'.
+    Creating directory '/sample/develop-eggs'.
+    Generated script '/sample/bin/buildout'.
+    ...
+
+    >>> ls(sample_buildout)
+    d  bin
+    -  bootstrap.py
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+    >>> print 'X'; ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
+    X...
+    d  zc.buildout-...egg
+
+Now trying the `--version` option, that let you define a version for 
+`zc.buildout`. If not provided, bootstrap will look for the latest one.
+
+Let's try with an unknown version::
+
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
+    ...
+    X
+    No local packages or download links found for zc.buildout==UNKNOWN
+    error: Could not find suitable distribution for Requirement.parse('zc.buildout==UNKNOWN')
+    Traceback (most recent call last):
+      File "bootstrap.py", line 78, in <module>
+        ) == 0
+    AssertionError
+    <BLANKLINE>
+    X
+
+Now let's try with `1.1.1`, which happens to exist::
+
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --version 1.1.1'); print 'X' 
+    ...
+    X
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+    
+Let's make sure the generated `buildout` script uses it::
+
+    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample/eggs/setuptools-...egg',
+      '/sample/eggs/zc.buildout-1.1.1...egg',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+    <BLANKLINE>
+
+Let's try with `1.2.1`::
+
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --version 1.2.1'); print 'X' # doctest: +ELLIPSIS
+    ...
+    X
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+
+Let's make sure the generated `buildout` script uses it::
+
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample/eggs/setuptools-...egg',
+      '/sample/eggs/zc.buildout-1.2.1...egg',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+    <BLANKLINE>
+
+
