@@ -24,6 +24,9 @@ the `Buildout examples`_.
 
 To lean more about using buildouts, see `Detailed Documentation`_.
 
+To see screencasts, talks, useful links and more documentation, visit
+the `Buildout website <http://www.buildout.org>`_.
+
 Recipes
 *******
 
