@@ -212,6 +212,7 @@ def buildoutSetUp(test):
 
 
     base = tempfile.mkdtemp('buildoutSetUp')
+    base = os.path.realpath(base)
     register_teardown(lambda base=base: rmtree(base))
 
     old_home = os.environ.get('HOME')
