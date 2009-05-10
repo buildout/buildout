@@ -1,0 +1,39 @@
+Bug fixes in zc.buildout.testing
+================================
+
+Logging handler which did not get deleted
+-----------------------------------------
+
+The buildout testing set up runs a buildout which adds a
+``logging.StreamHandler`` to the root logger. But tear down did not
+remove it. This can disturb other tests of packages reusing
+zc.buildout.testing.
+
+The handers before calling set up are:
+
+    >>> import logging
+    >>> len(logging.getLogger().handlers)
+    1
+    >>> logging.getLogger().handlers # doctest: +ELLIPSIS
+    [<zope.testing.testrunner.logsupport.NullHandler instance at ...>]
+
+After calling it, a ``logging.StreamHandler`` was added:
+
+    >>> import zc.buildout.testing
+    >>> import doctest
+    >>> test = doctest.DocTestParser().get_doctest(
+    ...     '>>> x', {}, 'foo', 'foo.py', 0)
+    >>> zc.buildout.testing.buildoutSetUp(test)
+    >>> len(logging.getLogger().handlers)
+    2
+    >>> logging.getLogger().handlers # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    [<zope.testing.testrunner.logsupport.NullHandler instance at ...>,
+     <logging.StreamHandler instance at ...>]
+
+But tear down removes the new logging handler:
+
+    >>> zc.buildout.testing.buildoutTearDown(test)
+    >>> len(logging.getLogger().handlers)
+    1
+    >>> logging.getLogger().handlers # doctest: +ELLIPSIS
+    [<zope.testing.testrunner.logsupport.NullHandler instance at ...>]

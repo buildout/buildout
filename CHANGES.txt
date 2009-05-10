@@ -5,8 +5,15 @@ Change History
 ==================
 
 - Better Windows compatibility in test infrastructure.
+
 - Now the bootstrap.py has an optional --version argument,
   that can be used to force zc.buildout version to use.
+
+- ``zc.buildout.testing.buildoutSetUp`` installs a new handler in the
+  python root logging facility. This handler is now removed during
+  tear down as it might disturb other packages reusing buildout's
+  testing infrastructure.
+
 
 1.2.1 (2009-03-18)
 ==================

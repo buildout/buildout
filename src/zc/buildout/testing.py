@@ -18,6 +18,7 @@ $Id$
 
 import BaseHTTPServer
 import errno
+import logging
 import os
 import pkg_resources
 import random
@@ -210,6 +211,14 @@ def buildoutSetUp(test):
     here = os.getcwd()
     register_teardown(lambda: os.chdir(here))
 
+    handlers_before_set_up = logging.getLogger().handlers[:]
+    def restore_root_logger_handlers():
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+        for handler in handlers_before_set_up:
+            root_logger.addHandler(handler)
+    register_teardown(restore_root_logger_handlers)
 
     base = tempfile.mkdtemp('buildoutSetUp')
     base = os.path.realpath(base)
