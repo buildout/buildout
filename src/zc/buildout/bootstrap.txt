@@ -1,5 +1,5 @@
 Make sure the bootstrap script actually works::
-    
+
     >>> import os, sys
     >>> from os.path import dirname, join
     >>> import zc.buildout
@@ -47,7 +47,7 @@ Make sure the bootstrap script actually works::
     X...
     d  zc.buildout-...egg
 
-Now trying the `--version` option, that let you define a version for 
+Now trying the `--version` option, that let you define a version for
 `zc.buildout`. If not provided, bootstrap will look for the latest one.
 
 Let's try with an unknown version::
@@ -66,17 +66,17 @@ Let's try with an unknown version::
     <BLANKLINE>
     X
 
-Now let's try with `1.1.1`, which happens to exist::
+Now let's try with `1.1.2`, which happens to exist::
 
     >>> print 'X'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.1.1'); print 'X' 
+    ...     'bootstrap.py --version 1.1.2'); print 'X'
     ...
     X
     Generated script '/sample/bin/buildout'.
     <BLANKLINE>
     X
-    
+
 Let's make sure the generated `buildout` script uses it::
 
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
@@ -86,7 +86,7 @@ Let's make sure the generated `buildout` script uses it::
     import sys
     sys.path[0:0] = [
       '/sample/eggs/setuptools-...egg',
-      '/sample/eggs/zc.buildout-1.1.1...egg',
+      '/sample/eggs/zc.buildout-1.1.2...egg',
       ]
     <BLANKLINE>
     import zc.buildout.buildout
