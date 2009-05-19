@@ -44,6 +44,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.tests.normalize_bang,
@@ -57,6 +58,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_endings,
                (re.compile('__buildout_signature__ = '
                            'sample-\S+\s+'
                            'zc.recipe.egg-\S+\s+'
@@ -77,6 +79,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_endings,
                (re.compile("(d  ((ext)?demo(needed)?|other)"
                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                 '\\1V.V.egg'),
@@ -97,9 +100,11 @@ def test_suite():
                 tearDown=zc.buildout.testing.buildoutTearDown,
                 checker=renormalizing.RENormalizing([
                    zc.buildout.testing.normalize_path,
+                   zc.buildout.testing.normalize_endings,
                    zc.buildout.testing.normalize_script,
                    (re.compile('Got setuptools \S+'), 'Got setuptools V'),
-                   (re.compile('([d-]  )?setuptools-\S+-py'), 'setuptools-V-py'),
+                   (re.compile('([d-]  )?setuptools-\S+-py'),
+                    'setuptools-V-py'),
                    (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
                    (re.compile('zc.buildout-\S+[.]egg'),
                     'zc.buildout.egg'),

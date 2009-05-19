@@ -495,6 +495,8 @@ normalize_path = (
     _normalize_path,
     )
 
+normalize_endings = re.compile('\r\n'), '\n'
+
 normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')
