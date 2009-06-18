@@ -967,9 +967,10 @@ def scripts(reqs, working_set, executable, dest,
 
 def _relative_path_and_setup(sname, path, relative_paths):
     if relative_paths:
-        sname = os.path.abspath(sname)
+        relative_paths = os.path.normcase(relative_paths)
+        sname = os.path.normcase(os.path.abspath(sname))
         spath = ',\n  '.join(
-            [_relativitize(path_item, sname, relative_paths)
+            [_relativitize(os.path.normcase(path_item), sname, relative_paths)
              for path_item in path]
             )
         rpsetup = relative_paths_setup
