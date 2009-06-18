@@ -86,6 +86,8 @@ def write(dir, *args):
     fsync(f.fileno())
     f.close()
 
+## FIXME - check for other platforms
+MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
 def system(command, input=''):
     p = subprocess.Popen(command,
@@ -93,7 +95,7 @@ def system(command, input=''):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         close_fds=not is_win32)
+                         close_fds=MUST_CLOSE_FDS)
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input)
@@ -146,7 +148,7 @@ def find_python(version):
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             close_fds=True)
+                             close_fds=MUST_CLOSE_FDS)
         i, o = (p.stdin, p.stdout)
         i.close()
         e = o.read().strip()
@@ -159,7 +161,7 @@ def find_python(version):
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
-                             close_fds=True)
+                             close_fds=MUST_CLOSE_FDS)
         i, o = (p.stdin, p.stdout)
         i.close()
         e = o.read().strip()
@@ -171,7 +173,7 @@ def find_python(version):
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                close_fds=True)
+                                close_fds=MUST_CLOSE_FDS)
             i, o = (p.stdin, p.stdout)
             i.close()
             e = o.read().strip()

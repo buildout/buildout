@@ -14,6 +14,8 @@ Change History
   tear down as it might disturb other packages reusing buildout's
   testing infrastructure.
 
+- fixed usage of 'relative_paths' keyword parameter on Windows
+
 
 1.2.1 (2009-03-18)
 ==================

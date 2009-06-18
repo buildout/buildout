@@ -2808,6 +2808,7 @@ def test_suite():
                normalize_bang,
                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile(r'\\[\\]?'), '/'),
                ]),
             ),
         doctest.DocTestSuite(

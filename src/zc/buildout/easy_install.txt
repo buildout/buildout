@@ -717,9 +717,10 @@ Including extra paths in scripts
 We can pass a keyword argument, extra paths, to cause additional paths
 to be included in the a generated script:
 
+    >>> foo = tmpdir('foo')
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
-    ...    extra_paths=['/foo/bar'])
+    ...    extra_paths=[foo])
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
@@ -728,7 +729,7 @@ to be included in the a generated script:
     sys.path[0:0] = [
       '/sample-install/demo-0.3-py2.4.egg',
       '/sample-install/demoneeded-1.1-py2.4.egg',
-      '/foo/bar',
+      '/foo',
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -795,6 +796,7 @@ control this using the relative_paths option to install.  You need
 to pass a common base directory of the scripts and eggs:
 
     >>> bo = tmpdir('bo')
+    >>> ba = tmpdir('ba')
     >>> mkdir(bo, 'eggs')
     >>> mkdir(bo, 'bin')
     >>> mkdir(bo, 'other')
@@ -805,7 +807,7 @@ to pass a common base directory of the scripts and eggs:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, join(bo, 'bin'), dict(demo='run'),
-    ...    extra_paths=[os.path.sep+'foo', join(bo, 'bar')],
+    ...    extra_paths=[ba, join(bo, 'bar')],
     ...    interpreter='py',
     ...    relative_paths=bo)
 
@@ -822,7 +824,7 @@ to pass a common base directory of the scripts and eggs:
     sys.path[0:0] = [
       join(base, 'eggs/demo-0.3-pyN.N.egg'),
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
-      '/foo',
+      '/ba',
       join(base, 'bar'),
       ]
     <BLANKLINE>
@@ -855,7 +857,7 @@ We specified an interpreter and its paths are adjusted too:
     sys.path[0:0] = [
       join(base, 'eggs/demo-0.3-pyN.N.egg'),
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
-      '/foo',
+      '/ba',
       join(base, 'bar'),
       ]
     <BLANKLINE>
