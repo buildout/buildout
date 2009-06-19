@@ -59,12 +59,7 @@ Let's try with an unknown version::
     X
     No local packages or download links found for zc.buildout==UNKNOWN
     error: Could not find suitable distribution for Requirement.parse('zc.buildout==UNKNOWN')
-    Traceback (most recent call last):
-      File "bootstrap.py", line 78, in <module>
-        ) == 0
-    AssertionError
-    <BLANKLINE>
-    X
+    ...
 
 Now let's try with `1.1.2`, which happens to exist::
 
