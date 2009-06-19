@@ -2895,6 +2895,7 @@ def test_suite():
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
                normalize_bang,
+               (re.compile('Downloading.*setuptools.*egg\n'), ''),
                ]),
             ))
 

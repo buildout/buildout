@@ -2368,15 +2368,17 @@ parts:
 Extensions
 ----------
 
-An **experimental** feature allows code to be loaded and run after
+A feature allows code to be loaded and run after
 configuration files have been read but before the buildout has begun
 any processing.  The intent is to allow special plugins such as
 urllib2 request handlers to be loaded.
 
 To load an extension, we use the extensions option and list one or
 more distribution requirements, on separate lines.  The distributions
-named will be loaded and any zc.buildout.extensions entry points found
-will be called with the buildout as an argument.
+named will be loaded and any ``zc.buildout.extension`` entry points found
+will be called with the buildout as an argument.  When buildout
+finishes processing, any ``zc.buildout.unloadextension`` entry points
+found will be called with the buildout as an argument.
 
 Let's create a sample extension in our sample buildout created in the
 previous section:
@@ -2387,6 +2389,8 @@ previous section:
     ... """
     ... def ext(buildout):
     ...     print 'ext', list(buildout)
+    ... def unload(buildout):
+    ...     print 'unload', list(buildout)
     ... """)
 
     >>> write(sample_bootstrapped, 'demo', 'setup.py',
@@ -2395,7 +2399,10 @@ previous section:
     ...
     ... setup(
     ...     name = "demo",
-    ...     entry_points = {'zc.buildout.extension': ['ext = demo:ext']},
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo:unload'],
+    ...        },
     ...     )
     ... """)
 
@@ -2436,6 +2443,7 @@ We see that our extension is loaded and executed:
     >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ext ['buildout']
     Develop: '/sample-bootstrapped/demo'
+    unload ['buildout']
 
 Allow hosts
 -----------
