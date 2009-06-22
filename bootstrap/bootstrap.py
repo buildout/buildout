@@ -50,7 +50,7 @@ cmd = 'from setuptools.command.easy_install import main; main()'
 ws  = pkg_resources.working_set
 
 if len(sys.argv) > 2 and sys.argv[1] == '--version':
-    VERSION = ' == %s' % sys.argv[2]
+    VERSION = '==%s' % sys.argv[2]
     args = sys.argv[3:] + ['bootstrap']
 else:
     VERSION = ''
