@@ -425,7 +425,7 @@ Let's look at the script that was generated:
     import os
     <BLANKLINE>
     join = os.path.join
-    base = os.path.dirname(__file__)
+    base = os.path.dirname(os.path.abspath(__file__))
     base = os.path.dirname(base)
     <BLANKLINE>
     import sys
@@ -472,7 +472,7 @@ each individual script section:
     import os
     <BLANKLINE>
     join = os.path.join
-    base = os.path.dirname(__file__)
+    base = os.path.dirname(os.path.abspath(__file__))
     base = os.path.dirname(base)
     <BLANKLINE>
     import sys

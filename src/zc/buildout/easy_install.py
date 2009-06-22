@@ -1023,7 +1023,7 @@ relative_paths_setup = """
 import os
 
 join = os.path.join
-base = os.path.dirname(__file__)
+base = os.path.dirname(os.path.abspath(__file__))
 """
 
 def _script(module_name, attrs, path, dest, executable, arguments,
