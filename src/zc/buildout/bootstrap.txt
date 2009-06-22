@@ -75,6 +75,8 @@ Now let's try with `1.1.2`, which happens to exist::
 Let's make sure the generated `buildout` script uses it::
 
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
     >>> print open(buildout_script).read() # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
