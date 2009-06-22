@@ -50,7 +50,9 @@ def test_suite():
                zc.buildout.tests.normalize_bang,
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('[-d]  setuptools-[^-]+-'), 'setuptools-X-')
+               (re.compile('[-d]  setuptools-[^-]+-'), 'setuptools-X-'),
+               (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
+               (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])
             ),
         doctest.DocFileSuite(
