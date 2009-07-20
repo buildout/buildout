@@ -1,6 +1,9 @@
 Change History
 **************
 
+- Added annotate command for annotated sections. Displays sections key-value pairs
+  along with the value origin.
+
 1.3.0 (2009-06-22)
 ==================
 
