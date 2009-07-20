@@ -29,6 +29,8 @@ import urllib2
 import ConfigParser
 import UserDict
 import glob
+import copy
+
 
 import pkg_resources
 import zc.buildout
@@ -65,7 +67,48 @@ class MissingSection(zc.buildout.UserError, KeyError):
     def __str__(self):
         return "The referenced section, %r, was not defined." % self[0]
 
-_buildout_default_options = {
+
+def _annotate_section(section, note):
+    for key in section:
+        section[key] = (section[key], note)
+    return section
+
+def _annotate(data, note):
+    for key in data:
+        data[key] = _annotate_section(data[key], note)
+    return data
+
+def _print_annotate(data):
+    sections = data.keys()
+    sections.sort()
+    print
+    print "Annotated sections"
+    print "="*len("Annotated sections")
+    for section in sections:
+        print
+        print '[%s]' % section
+        keys = data[section].keys()
+        keys.sort()
+        for key in keys:
+            value, files = data[section][key]
+            print "%s=%s" % (key, value)
+            for file in files.split():
+                print "    " + file
+    print
+    print
+
+def _unannotate_section(section):
+    for key in section:
+        value, note = section[key]
+        section[key] = value
+    return section
+
+def _unannotate(data):
+    for key in data:
+        data[key] = _unannotate_section(data[key])
+    return data
+
+_buildout_default_options = _annotate_section({
     'eggs-directory': 'eggs',
     'develop-eggs-directory': 'develop-eggs',
     'bin-directory': 'bin',
@@ -75,7 +118,8 @@ _buildout_default_options = {
     'executable': sys.executable,
     'log-level': 'INFO',
     'log-format': '',
-    }
+    }, 'DEFAULT_VALUE')
+
 
 class Buildout(UserDict.DictMixin):
 
@@ -101,13 +145,14 @@ class Buildout(UserDict.DictMixin):
                     # Sigh. this model of a buildout nstance
                     # with methods is breaking down :(
                     config_file = None
-                    data['buildout']['directory'] = '.'
+                    data['buildout']['directory'] = ('.', 'COMPUTED_VALUE')
                 else:
                     raise zc.buildout.UserError(
                         "Couldn't open %s" % config_file)
 
             if config_file:
-                data['buildout']['directory'] = os.path.dirname(config_file)
+                data['buildout']['directory'] = (os.path.dirname(config_file),
+                    'COMPUTED_VALUE')
         else:
             base = None
 
@@ -128,10 +173,11 @@ class Buildout(UserDict.DictMixin):
             options = data.get(section)
             if options is None:
                 options = data[section] = {}
-            options[option] = value
+            options[option] = value, "COMMAND_LINE_VALUE"
                 # The egg dire
 
-        self._raw = data
+        self._annotated = copy.deepcopy(data)
+        self._raw = _unannotate(data)
         self._data = {}
         self._parts = []
         # provide some defaults before options are parsed
@@ -881,6 +927,9 @@ class Buildout(UserDict.DictMixin):
 
     runsetup = setup # backward compat.
 
+    def annotate(self, args):
+        _print_annotate(self._annotated)
+
     def __getitem__(self, section):
         __doing__ = 'Getting section %s.', section
         try:
@@ -1205,6 +1254,8 @@ def _open(base, filename, seen):
             extended_by = options.pop('extended-by', extended_by)
         result[section] = options
 
+    result = _annotate(result, filename)
+
     if extends:
         extends = extends.split()
         extends.reverse()
@@ -1249,14 +1300,21 @@ def _dists_sig(dists):
 
 def _update_section(s1, s2):
     for k, v in s2.items():
+        v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
-            s2[key] = "\n".join(s1.get(key, "").split('\n') + s2[k].split('\n'))
+            v1, note1 = s1.get(key, ("", ""))
+            newnote = ' +'.join((note1, note2)).strip()
+            s2[key] = "\n".join((v1).split('\n') +
+                v2.split('\n')), newnote
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
-            s2[key] = "\n".join([v for v in s1.get(key, "").split('\n')
-                                 if v not in s2[k].split('\n')])
+            v1, note1 = s1.get(key, ("", ""))
+            newnote = ' -'.join((note1, note2)).strip()
+            s2[key] = ("\n".join(
+                [v for v in v1.split('\n')
+                   if v not in v2.split('\n')]), newnote)
             del s2[k]
 
     s1.update(s2)
@@ -1419,6 +1477,13 @@ Commands:
     The script can be given either as a script path or a path to a
     directory containing a setup.py script.
 
+  annotate
+
+    Display annotated sections. All sections are displayed, sorted
+    alphabetically. For each section, all key-value pairs are displayed,
+    sorted alphabetically, along with the origin of the value (file name or
+    COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
+
 """
 def _help():
     print _usage
@@ -1438,7 +1503,7 @@ def main(args=None):
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWUoOnND':
+            while op and op[0] in 'vqhWUoOnNDA':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1507,6 +1572,7 @@ def main(args=None):
         command = args.pop(0)
         if command not in (
             'install', 'bootstrap', 'runsetup', 'setup', 'init',
+            'annotate',
             ):
             _error('invalid command:', command)
     else:
@@ -1540,7 +1606,7 @@ def main(args=None):
 
 
     finally:
-            logging.shutdown()
+        logging.shutdown()
 
 if sys.version_info[:2] < (2, 4):
     def reversed(iterable):

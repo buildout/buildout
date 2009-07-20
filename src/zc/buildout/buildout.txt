@@ -707,6 +707,54 @@ characters ":", "$", "%", "(", and ")".  For now, it is a good idea to
 keep section and option names simple, sticking to alphanumeric
 characters, hyphens, and periods.
 
+Annotated sections
+------------------
+
+When used with the `annotate` command, buildout displays annotated sections. 
+All sections are displayed, sorted alphabetically. For each section,
+all key-value pairs are displayed, sorted alphabetically, along with 
+the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE, 
+COMMAND_LINE_VALUE).
+
+    >>> print system(buildout+ ' annotate'), # doctest: +ELLIPSIS
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    bin-directory=bin
+        DEFAULT_VALUE
+    develop=recipes
+        .../_TEST_/sample-buildout/buildout.cfg
+    develop-eggs-directory=develop-eggs
+        DEFAULT_VALUE
+    directory=.../_TEST_/sample-buildout
+        COMPUTED_VALUE
+    eggs-directory=eggs
+        DEFAULT_VALUE
+    executable=...
+        DEFAULT_VALUE
+    installed=.installed.cfg
+        DEFAULT_VALUE
+    log-format=
+        DEFAULT_VALUE
+    log-level=INFO
+        DEFAULT_VALUE
+    parts=data-dir
+        .../_TEST_/sample-buildout/buildout.cfg
+    parts-directory=parts
+        DEFAULT_VALUE
+    python=buildout
+        DEFAULT_VALUE
+    <BLANKLINE>
+    [data-dir]
+    path=foo bins
+        .../_TEST_/sample-buildout/buildout.cfg
+    recipe=recipes:mkdir
+        .../_TEST_/sample-buildout/buildout.cfg
+    <BLANKLINE>
+    <BLANKLINE>
+
 Variable substitutions
 ----------------------
 
@@ -1024,6 +1072,46 @@ Verify option values.
     >>> print system(os.path.join('bin', 'buildout')),
     ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'h1 h2']
     Develop: '/sample-buildout/demo'
+
+Annotated sections output shows which files are responsible for which
+operations.
+
+    >>> print system(os.path.join('bin', 'buildout') + ' annotate'), # doctest: +ELLIPSIS
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    ...
+    <BLANKLINE>
+    [part1]
+    option=a1 a2
+    a3 a4
+    a5
+        .../_TEST_/sample-buildout/base.cfg
+        +.../_TEST_/sample-buildout/extension1.cfg
+        +.../_TEST_/sample-buildout/extension2.cfg
+    recipe=
+        .../_TEST_/sample-buildout/base.cfg
+    <BLANKLINE>
+    [part2]
+    option=b1 b2 b3 b4
+        .../_TEST_/sample-buildout/base.cfg
+        -.../_TEST_/sample-buildout/extension1.cfg
+        -.../_TEST_/sample-buildout/extension2.cfg
+    recipe=
+        .../_TEST_/sample-buildout/base.cfg
+    <BLANKLINE>
+    [part3]
+    option=c1 c2
+    c3 c4 c5
+        .../_TEST_/sample-buildout/base.cfg
+        +.../_TEST_/sample-buildout/extension1.cfg
+    recipe=
+        .../_TEST_/sample-buildout/base.cfg
+    <BLANKLINE>
+    [part4]
+    option=h1 h2
+        .../_TEST_/sample-buildout/extension1.cfg
+    ...
 
 Cleanup.
 
