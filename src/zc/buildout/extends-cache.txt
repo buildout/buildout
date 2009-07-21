@@ -1,0 +1,377 @@
+Caching extended configuration
+==============================
+
+As mentioned in the general buildout documentation, configuration files can
+extend each other, including the ability to download configuration being
+extended from a URL. If desired, zc.buildout caches downloaded configuration
+in order to be able to use it when run offline.
+
+As we're going to talk about downloading things, let's start an HTTP server.
+Also, all of the following will take place inside the sample buildout.
+
+>>> server_data = tmpdir('server_data')
+>>> server_url = start_server(server_data)
+>>> cd(sample_buildout)
+
+
+Basic use of the extends cache
+------------------------------
+
+We put some base configuration on a server and reference it from a sample
+buildout:
+
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... foo = bar
+... """)
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... """ % server_url)
+
+When trying to run this buildout offline, we'll find that we cannot read all
+of the required configuration:
+
+>>> print system(buildout + ' -o')
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+Trying the same online, we can:
+
+>>> print system(buildout)
+Unused options for buildout: 'foo'.
+
+As long as we haven't said anything about caching downloaded configuration,
+nothing gets cached. Offline mode will still cause the buildout to fail:
+
+>>> print system(buildout + ' -o')
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+Let's now specify a cache for base configuration files. This cache is
+different from the download cache used by recipes for caching distributions
+and other files; one might, however, use a namespace subdirectory of the
+download cache for it. The configuration cache we specify will be created when
+running buildout and the base.cfg file will be put in it (with the file name
+being a hash of the complete URL):
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... extends-cache = cache
+... """ % server_url)
+
+>>> print system(buildout)
+Unused options for buildout: 'foo'.
+
+>>> cache = join(sample_buildout, 'cache')
+>>> ls(cache)
+-  5aedc98d7e769290a29d654a591a3a45
+
+>>> import os
+>>> cat(cache, os.listdir(cache)[0])
+[buildout]
+parts =
+foo = bar
+
+We can now run buildout offline as it will read base.cfg from the cache:
+
+>>> print system(buildout + ' -o')
+Unused options for buildout: 'foo'.
+
+The cache is being used purely as a fall-back in case we are offline or don't
+have access to a configuration file to be downloaded. As long as we are
+online, buildout attempts to download a fresh copy of each file even if a
+cached copy of the file exists. To see this, we put different configuration in
+the same place on the server and run buildout in offline mode so it takes
+base.cfg from the cache:
+
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... bar = baz
+... """)
+
+>>> print system(buildout + ' -o')
+Unused options for buildout: 'foo'.
+
+In online mode, buildout will download and use the modified version:
+
+>>> print system(buildout)
+Unused options for buildout: 'bar'.
+
+Trying offline mode again, the new version will be used as it has been put in
+the cache now:
+
+>>> print system(buildout + ' -o')
+Unused options for buildout: 'bar'.
+
+Clean up:
+
+>>> rmdir(cache)
+
+
+Specifying extends cache and offline mode
+-----------------------------------------
+
+Normally, the values of buildout options such as the location of a download
+cache or whether to use offline mode are determined by first reading the
+user's default configuration, updating it with the project's configuration and
+finally applying command-line options. User and project configuration are
+assembled by reading a file such as ``~/.buildout/default.cfg``,
+``buildout.cfg`` or a URL given on the command line, recursively (depth-first)
+downloading any base configuration specified by the ``buildout:extends``
+option read from each of those config files, and finally evaluating each
+config file to provide default values for options not yet read.
+
+This works fine for all options that do not influence how configuration is
+downloaded in the first place. The ``extends-cache`` and ``offline`` options,
+however, are treated differently from the procedure described in order to make
+it simple and obvious to see where a particular configuration file came from
+under any particular circumstances.
+
+- Offline and extends-cache settings are read from the two root config files
+  exclusively. Otherwise one could construct configuration files that, when
+  read, imply that they should have been read from a different source than
+  they have. Also, specifying the extends cache within a file that might have
+  to be taken from the cache before being read wouldn't make a lot of sense.
+
+- Offline and extends-cache settings given by the user's defaults apply to the
+  process of assembling the project's configuration. If no extends cache has
+  been specified by the user's default configuration, the project's root
+  config file must be available, be it from disk or from the net.
+
+- Offline mode turned on by the ``-o`` command line option is honoured from
+  the beginning even though command line options are applied to the
+  configuration last. If offline mode is not requested by the command line, it
+  may be switched on by either the user's or the project's config root.
+
+Extends cache
+~~~~~~~~~~~~~
+
+Let's see the above rules in action. We create a new home directory for our
+user and write user and project configuration that recursively extends online
+bases, using different caches:
+
+>>> mkdir('home')
+>>> mkdir('home', '.buildout')
+>>> os.environ['HOME'] = join(sample_buildout, 'home')
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... extends-cache = user-cache
+... """)
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... """ % server_url)
+>>> write(server_data, 'base_default.cfg', """\
+... [buildout]
+... foo = bar
+... offline = false
+... """)
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... extends-cache = cache
+... """)
+>>> write('fancy.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... """ % server_url)
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... offline = false
+... """)
+
+Buildout will now assemble its configuration from all of these 6 files,
+defaults first. The online resources end up in the respective extends caches:
+
+>>> print system(buildout)
+Unused options for buildout: 'foo'.
+
+>>> ls('user-cache')
+-  10e772cf422123ef6c64ae770f555740
+>>> cat('user-cache', os.listdir('user-cache')[0])
+[buildout]
+foo = bar
+offline = false
+
+>>> ls('cache')
+-  c72213127e6eb2208a3e1fc1dba771a7
+>>> cat('cache', os.listdir('cache')[0])
+[buildout]
+parts =
+offline = false
+
+If, on the other hand, the extends caches are specified in files that get
+extended themselves, they won't be used for assembling the configuration they
+belong to (user's or project's, resp.). The extends cache specified by the
+user's defaults does, however, apply to downloading project configuration.
+Let's rewrite the config files, clean out the caches and re-run buildout:
+
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... """)
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... extends-cache = user-cache
+... """ % server_url)
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... """)
+>>> write('fancy.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... extends-cache = cache
+... """ % server_url)
+
+>>> remove('user-cache', os.listdir('user-cache')[0])
+>>> remove('cache', os.listdir('cache')[0])
+
+>>> print system(buildout)
+Unused options for buildout: 'foo'.
+
+>>> ls('user-cache')
+-  0548bad6002359532de37385bb532e26
+>>> cat('user-cache', os.listdir('user-cache')[0])
+[buildout]
+parts =
+offline = false
+
+>>> ls('cache')
+
+Clean up:
+
+>>> rmdir('user-cache')
+>>> rmdir('cache')
+
+Offline mode and installation from cache
+----------------------------~~~~~~~~~~~~
+
+If we run buildout in offline mode now, it will fail because it cannot get at
+the remote configuration file needed by the user's defaults:
+
+>>> print system(buildout + ' -o')
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+
+Let's now successively turn on offline mode by different parts of the
+configuration and see when buildout applies this setting in each case:
+
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... offline = true
+... """)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... """)
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... offline = true
+... """ % server_url)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... """ % server_url)
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... offline = true
+... """)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... """)
+>>> write('fancy.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... offline = true
+... """ % server_url)
+>>> print system(buildout)
+Unused options for buildout: 'foo'.
+
+The ``install-from-cache`` option is treated accordingly:
+
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... install-from-cache = true
+... """)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+
+>>> write('home', '.buildout', 'default.cfg', """\
+... [buildout]
+... extends = fancy_default.cfg
+... """)
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... install-from-cache = true
+... """ % server_url)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+>>> write('home', '.buildout', 'fancy_default.cfg', """\
+... [buildout]
+... extends = %sbase_default.cfg
+... """ % server_url)
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... install-from-cache = true
+... """)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = fancy.cfg
+... """)
+>>> write('fancy.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... install-from-cache = true
+... """ % server_url)
+>>> print system(buildout)
+While:
+  Installing.
+  Checking for upgrades.
+An internal error occured ...
+ValueError: install_from_cache set to true with no download cache

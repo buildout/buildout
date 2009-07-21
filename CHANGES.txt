@@ -1,8 +1,17 @@
 Change History
 **************
 
+1.4.0 (unreleased)
+==================
+
 - Added annotate command for annotated sections. Displays sections key-value pairs
   along with the value origin.
+
+- Added a download API that handles the download cache, offline mode etc and
+  is meant to be reused by recipes.
+
+- Used the download API to allow caching of base configurations (specified by
+  the buildout section's 'extends' option).
 
 1.3.0 (2009-06-22)
 ==================

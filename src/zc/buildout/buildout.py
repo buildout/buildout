@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2005 Zope Corporation and Contributors.
+# Copyright (c) 2005-2009 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -25,7 +25,6 @@ import shutil
 import cStringIO
 import sys
 import tempfile
-import urllib2
 import ConfigParser
 import UserDict
 import glob
@@ -34,6 +33,7 @@ import copy
 
 import pkg_resources
 import zc.buildout
+import zc.buildout.download
 import zc.buildout.easy_install
 
 from rmtree import rmtree
@@ -156,17 +156,22 @@ class Buildout(UserDict.DictMixin):
         else:
             base = None
 
+        override = dict((option, (value, 'COMMAND_LINE_VALUE'))
+                        for section, option, value in cloptions
+                        if section == 'buildout')
+
         # load user defaults, which override defaults
         if user_defaults:
             user_config = os.path.join(os.path.expanduser('~'),
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
-                                    []))
+                                    [], data['buildout'].copy(), override))
 
         # load configuration files
         if config_file:
-            _update(data, _open(os.path.dirname(config_file), config_file, []))
+            _update(data, _open(os.path.dirname(config_file), config_file, [],
+                                data['buildout'].copy(), override))
 
         # apply command-line options
         for (section, option, value) in cloptions:
@@ -174,7 +179,6 @@ class Buildout(UserDict.DictMixin):
             if options is None:
                 options = data[section] = {}
             options[option] = value, "COMMAND_LINE_VALUE"
-                # The egg dire
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
@@ -312,6 +316,11 @@ class Buildout(UserDict.DictMixin):
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]
+
+        # Do the same for extends-cache which is not among the defaults but
+        # wasn't recognized as having been used since it was used before
+        # tracking was turned on.
+        options.get('extends-cache')
 
         os.chdir(options['directory'])
 
@@ -1214,14 +1223,18 @@ def _save_options(section, options, f):
     for option, value in items:
         _save_option(option, value, f)
 
-def _open(base, filename, seen):
+def _open(base, filename, seen, dl_options, override):
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
     """
-
+    _update_section(dl_options, override)
+    _dl_options = _unannotate_section(dl_options.copy())
+    download = zc.buildout.download.Download(
+        _dl_options, cache=_dl_options.get('extends-cache'), fallback=True,
+        hash_name=True)
     if _isurl(filename):
-        fp = urllib2.urlopen(filename)
+        fp = open(download(filename))
         base = filename[:filename.rfind('/')]
     elif _isurl(base):
         if os.path.isabs(filename):
@@ -1229,7 +1242,7 @@ def _open(base, filename, seen):
             base = os.path.dirname(filename)
         else:
             filename = base + '/' + filename
-            fp = urllib2.urlopen(filename)
+            fp = open(download(filename))
             base = filename[:filename.rfind('/')]
     else:
         filename = os.path.join(base, filename)
@@ -1239,6 +1252,7 @@ def _open(base, filename, seen):
     if filename in seen:
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
+    root_config_file = not seen
     seen.append(filename)
 
     result = {}
@@ -1256,18 +1270,23 @@ def _open(base, filename, seen):
 
     result = _annotate(result, filename)
 
+    if root_config_file and 'buildout' in result:
+        dl_options = _update_section(dl_options, result['buildout'])
+
     if extends:
         extends = extends.split()
         extends.reverse()
         for fname in extends:
-            result = _update(_open(base, fname, seen), result)
+            result = _update(_open(base, fname, seen, dl_options, override),
+                             result)
 
     if extended_by:
         self._logger.warn(
             "The extendedBy option is deprecated.  Stop using it."
             )
         for fname in extended_by.split():
-            result = _update(result, _open(base, fname, seen))
+            result = _update(result,
+                             _open(base, fname, seen, dl_options, override))
 
     seen.pop()
     return result
