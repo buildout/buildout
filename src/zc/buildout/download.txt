@@ -1,0 +1,456 @@
+Using the download utility
+==========================
+
+The ``zc.buildout.download`` module provides a download utility that handles
+the details of downloading files needed for a buildout run from the internet.
+It downloads files to the local file system, using the download cache if
+desired and optionally checking the downloaded files' MD5 checksum.
+
+We setup an HTTP server that provides a file we want to download:
+
+>>> server_data = tmpdir('sample_files')
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+>>> server_url = start_server(server_data)
+
+
+Downloading without using the cache
+-----------------------------------
+
+If no download cache should be used, the download utility is instantiated
+without any arguments:
+
+>>> from zc.buildout.download import Download
+>>> download = Download()
+>>> print download.cache_dir
+None
+
+Downloading a file is achieved by calling the utility with the URL as an
+argument:
+
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/.../buildout-...
+>>> cat(path)
+This is a foo text.
+
+As we aren't using the download cache and haven't specified a target path
+either, the download has ended up in a temporary file:
+
+>>> import tempfile
+>>> path.startswith(tempfile.gettempdir())
+True
+
+When trying to access a file that doesn't exist, we'll get an exception:
+
+>>> download(server_url+'not-there')
+Traceback (most recent call last):
+IOError: ('http error', 404, 'Not Found',
+          <httplib.HTTPMessage instance at 0xa0ffd2c>)
+
+We can also have the downloaded file's MD5 sum checked:
+
+>>> try: from hashlib import md5
+... except ImportError: from md5 import new as md5
+
+>>> path = download(server_url+'foo.txt',
+...                 md5('This is a foo text.').hexdigest())
+
+>>> path = download(server_url+'foo.txt',
+...                 md5('The wrong text.').hexdigest())
+Traceback (most recent call last):
+ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
+
+The error message in the event of an MD5 checksum mismatch for a local file
+reads somewhat differently:
+
+>>> path = download(join(server_data, 'foo.txt'),
+...                 md5('This is a foo text.').hexdigest())
+
+>>> path = download(join(server_data, 'foo.txt'),
+...                 md5('The wrong text.').hexdigest())
+Traceback (most recent call last):
+ChecksumError: MD5 checksum mismatch for local resource at '/sample_files/foo.txt'.
+
+Finally, we can download the file to a specified place in the file system:
+
+>>> target_dir = tmpdir('download-target')
+>>> path = download(server_url+'foo.txt',
+...                 path=join(target_dir, 'downloaded.txt'))
+>>> print path
+/download-target/downloaded.txt
+>>> cat(path)
+This is a foo text.
+
+Trying to download a file in offline mode will result in an error:
+
+>>> download = Download(cache=None, offline=True)
+>>> download(server_url+'foo.txt')
+Traceback (most recent call last):
+UserError: Couldn't download 'http://localhost/foo.txt' in offline mode.
+
+As an exception to this rule, file system paths and URLs in the ``file``
+scheme will still work:
+
+>>> cat(download(join(server_data, 'foo.txt')))
+This is a foo text.
+>>> cat(download('file://%s/foo.txt' % server_data))
+This is a foo text.
+
+>>> remove(path)
+
+Downloading using the download cache
+------------------------------------
+
+In order to make use of the download cache, we need to configure the download
+utility differently. To do this, we pass a directory path as the ``cache``
+attribute upon instantiation:
+
+>>> cache = tmpdir('download-cache')
+>>> download = Download(cache=cache)
+>>> print download.cache_dir
+/download-cache/
+
+Simple usage
+~~~~~~~~~~~~
+
+When using the cache, a file will be stored in the cache directory when it is
+first downloaded. The file system path returned by the download utility points
+to the cached copy:
+
+>>> ls(cache)
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/download-cache/foo.txt
+>>> cat(path)
+This is a foo text.
+
+Whenever the file is downloaded again, the cached copy is used. Let's change
+the file on the server to see this:
+
+>>> write(server_data, 'foo.txt', 'The wrong text.')
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/download-cache/foo.txt
+>>> cat(path)
+This is a foo text.
+
+If we specify an MD5 checksum for a file that is already in the cache, the
+cached copy's checksum will be verified:
+
+>>> path = download(server_url+'foo.txt', md5('The wrong text.').hexdigest())
+Traceback (most recent call last):
+ChecksumError: MD5 checksum mismatch for cached download
+               from 'http://localhost/foo.txt' at '/download-cache/foo.txt'
+
+Trying to access another file at a different URL which has the same base name
+will result in the cached copy being used:
+
+>>> mkdir(server_data, 'other')
+>>> write(server_data, 'other', 'foo.txt', 'The wrong text.')
+>>> path = download(server_url+'other/foo.txt')
+>>> print path
+/download-cache/foo.txt
+>>> cat(path)
+This is a foo text.
+
+Given a target path for the download, the utility will provide a copy of the
+file at that location both when first downloading the file and when using a
+cached copy:
+
+>>> remove(cache, 'foo.txt')
+>>> ls(cache)
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+
+>>> path = download(server_url+'foo.txt',
+...                 path=join(target_dir, 'downloaded.txt'))
+>>> print path
+/download-target/downloaded.txt
+>>> cat(path)
+This is a foo text.
+>>> ls(cache)
+- foo.txt
+
+>>> remove(path)
+>>> write(server_data, 'foo.txt', 'The wrong text.')
+
+>>> path = download(server_url+'foo.txt',
+...                 path=join(target_dir, 'downloaded.txt'))
+>>> print path
+/download-target/downloaded.txt
+>>> cat(path)
+This is a foo text.
+
+In offline mode, downloads from any URL will be successful if the file is
+found in the cache:
+
+>>> download = Download(cache=cache, offline=True)
+>>> cat(download(server_url+'foo.txt'))
+This is a foo text.
+
+Local resources will be cached just like any others since download caches are
+sometimes used to create source distributions:
+
+>>> remove(cache, 'foo.txt')
+>>> ls(cache)
+
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+>>> download = Download(cache=cache)
+
+>>> cat(download('file://' + join(server_data, 'foo.txt'), path=path))
+This is a foo text.
+>>> ls(cache)
+- foo.txt
+
+>>> remove(cache, 'foo.txt')
+
+>>> cat(download(join(server_data, 'foo.txt'), path=path))
+This is a foo text.
+>>> ls(cache)
+- foo.txt
+
+>>> remove(cache, 'foo.txt')
+
+However, resources with checksum mismatches will not be copied to the cache:
+
+>>> download(server_url+'foo.txt', md5('The wrong text.').hexdigest())
+Traceback (most recent call last):
+ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
+>>> ls(cache)
+
+>>> remove(path)
+
+Using namespace sub-directories of the download cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is common to store cached copies of downloaded files within sub-directories
+of the download cache to keep some degree of order. For example, zc.buildout
+stores downloaded distributions in a sub-directory named "dist". Those
+sub-directories are also known as namespaces. So far, we haven't specified any
+namespaces to use, so the download utility stored files directly inside the
+download cache. Let's use a namespace "test" instead:
+
+>>> download = Download(cache=cache, namespace='test')
+>>> print download.cache_dir
+/download-cache/test
+
+The namespace sub-directory hasn't been created yet:
+
+>>> ls(cache)
+
+Downloading a file now creates the namespace sub-directory and places a copy
+of the file inside it:
+
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/download-cache/test/foo.txt
+>>> ls(cache)
+d test
+>>> ls(cache, 'test')
+- foo.txt
+>>> cat(path)
+This is a foo text.
+
+The next time we want to download that file, the copy from inside the cache
+namespace is used. To see this clearly, we put a file with the same name but
+different content both on the server and in the cache's root directory:
+
+>>> write(server_data, 'foo.txt', 'The wrong text.')
+>>> write(cache, 'foo.txt', 'The wrong text.')
+
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/download-cache/test/foo.txt
+>>> cat(path)
+This is a foo text.
+
+>>> rmdir(cache, 'test')
+>>> remove(cache, 'foo.txt')
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+
+Using a hash of the URL as the filename in the cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+So far, the base name of the downloaded file read from the URL has been used
+for the name of the cached copy of the file. This may not be desirable in some
+cases, for example when downloading files from different locations that have
+the same base name due to some naming convention, or if the file content
+depends on URL parameters. In such cases, an MD5 hash of the complete URL may
+be used as the filename in the cache:
+
+>>> download = Download(cache=cache, hash_name=True)
+>>> path = download(server_url+'foo.txt')
+>>> print path
+/download-cache/09f5793fcdc1716727f72d49519c688d
+>>> cat(path)
+This is a foo text.
+>>> ls(cache)
+- 09f5793fcdc1716727f72d49519c688d
+
+The path was printed just to illustrate matters; we cannot know the real
+checksum since we don't know which port the server happens to listen at when
+the test is run, so we don't actually know the full URL of the file. Let's
+check that the checksum actually belongs to the particular URL used:
+
+>>> path == join(cache, md5(server_url+'foo.txt').hexdigest())
+True
+
+The cached copy is used when downloading the file again:
+
+>>> write(server_data, 'foo.txt', 'The wrong text.')
+>>> path == download(server_url+'foo.txt')
+True
+>>> cat(path)
+This is a foo text.
+>>> ls(cache)
+- 09f5793fcdc1716727f72d49519c688d
+
+If we change the URL, even in such a way that it keeps the base name of the
+file the same, the file will be downloaded again this time and put in the
+cache under a different name:
+
+>>> path2 = download(server_url+'other/foo.txt')
+>>> print path2
+/download-cache/537b6d73267f8f4447586989af8c470e
+>>> path == path2
+False
+>>> path2 == join(cache, md5(server_url+'other/foo.txt').hexdigest())
+True
+>>> cat(path)
+This is a foo text.
+>>> cat(path2)
+The wrong text.
+>>> ls(cache)
+- 09f5793fcdc1716727f72d49519c688d
+- 537b6d73267f8f4447586989af8c470e
+
+>>> remove(path)
+>>> remove(path2)
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+
+
+Using the cache purely as a fall-back
+-------------------------------------
+
+Sometimes it is desirable to try downloading a file from the net if at all
+possible, and use the cache purely as a fall-back option when a server is
+down or if we are in offline mode. This mode is only in effect if a download
+cache is configured in the first place:
+
+>>> download = Download(cache=cache, fallback=True)
+>>> print download.cache_dir
+/download-cache/
+
+A downloaded file will be cached:
+
+>>> ls(cache)
+>>> path = download(server_url+'foo.txt')
+>>> ls(cache)
+- foo.txt
+>>> cat(cache, 'foo.txt')
+This is a foo text.
+
+If the file cannot be served, the cached copy will be used:
+
+>>> remove(server_data, 'foo.txt')
+>>> Download()(server_url+'foo.txt')
+Traceback (most recent call last):
+IOError: ('http error', 404, 'Not Found',
+          <httplib.HTTPMessage instance at 0xa35d36c>)
+>>> path = download(server_url+'foo.txt')
+>>> cat(path)
+This is a foo text.
+
+Similarly, if the file is served but we're in offline mode, we'll fall back to
+using the cache:
+
+>>> write(server_data, 'foo.txt', 'The wrong text.')
+>>> cat(Download()(server_url+'foo.txt'))
+The wrong text.
+>>> offline_download = Download(cache=cache, offline=True, fallback=True)
+>>> path = offline_download(server_url+'foo.txt')
+>>> cat(path)
+This is a foo text.
+
+However, when downloading the file normally with the cache being used in
+fall-back mode, the file will be downloaded from the net and the cached copy
+will be replaced with the new content:
+
+>>> path = download(server_url+'foo.txt')
+>>> cat(path)
+The wrong text.
+>>> cat(cache, 'foo.txt')
+The wrong text.
+
+When trying to download a resource whose checksum does not match, the cached
+copy will neither be used nor overwritten:
+
+>>> write(server_data, 'foo.txt', 'This is a foo text.')
+>>> download(server_url+'foo.txt', md5('The wrong text.').hexdigest())
+Traceback (most recent call last):
+ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
+>>> cat(cache, 'foo.txt')
+The wrong text.
+
+
+Configuring the download utility from buildout options
+------------------------------------------------------
+
+The configuration options explained so far derive from the build logic
+implemented by the calling code. Other options configure the download utility
+for use in a particular project or buildout run; they are read from the
+``buildout`` configuration section. The latter can be passed directly as the
+first argument to the download utility's constructor.
+
+The location of the download cache is specified by the ``download-cache``
+option:
+
+>>> download = Download({'download-cache': cache}, namespace='cmmi')
+>>> print download.cache_dir
+/download-cache/cmmi
+
+Keyword parameters take precedence over the corresponding options:
+
+>>> download = Download({'download-cache': cache}, cache=None)
+>>> print download.cache_dir
+None
+
+Whether to assume offline mode can be inferred from either the ``offline`` or
+the ``install-from-cache`` option. As usual with zc.buildout, these options
+must assume one of the values 'true' and 'false':
+
+>>> download = Download({'offline': 'true'})
+>>> download.offline
+True
+
+>>> download = Download({'offline': 'false'})
+>>> download.offline
+False
+
+>>> download = Download({'install-from-cache': 'true'})
+>>> download.offline
+True
+
+>>> download = Download({'install-from-cache': 'false'})
+>>> download.offline
+False
+
+These two options are combined using logical 'or':
+
+>>> download = Download({'offline': 'true', 'install-from-cache': 'false'})
+>>> download.offline
+True
+
+>>> download = Download({'offline': 'false', 'install-from-cache': 'true'})
+>>> download.offline
+True
+
+The ``offline`` keyword parameter takes precedence over both the ``offline``
+and ``install-from-cache`` options:
+
+>>> download = Download({'offline': 'true'}, offline=False)
+>>> download.offline
+False
+
+>>> download = Download({'install-from-cache': 'false'}, offline=True)
+>>> download.offline
+True

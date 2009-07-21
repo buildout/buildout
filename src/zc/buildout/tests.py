@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2004 Zope Corporation and Contributors.
+# Copyright (c) 2004-2009 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -2811,6 +2811,21 @@ def test_suite():
                (re.compile(r'\\[\\]?'), '/'),
                ]),
             ),
+
+        doctest.DocFileSuite(
+            'download.txt', 'extends-cache.txt',
+            setUp=easy_install_SetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
+            checker=renormalizing.RENormalizing([
+               (re.compile('0x[0-9a-f]+'), '<MEM ADDRESS>'),
+               (re.compile('http://localhost:[0-9]{4,5}/'),
+                'http://localhost/'),
+               (re.compile('[0-9a-f]{32}'), '<MD5 CHECKSUM>'),
+               zc.buildout.testing.normalize_path,
+               ]),
+            ),
+
         doctest.DocTestSuite(
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,

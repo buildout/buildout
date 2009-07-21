@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2006 Zope Corporation and Contributors.
+# Copyright (c) 2006-2009 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-version = "1.3.1dev"
+version = "1.4.0dev"
 
 import os
 from setuptools import setup, find_packages
@@ -32,7 +32,11 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'repeatable.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'download.txt')
+        + '\n' +
         read('src', 'zc', 'buildout', 'downloadcache.txt')
+        + '\n' +
+        read('src', 'zc', 'buildout', 'extends-cache.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'setup.txt')
         + '\n' +

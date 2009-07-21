@@ -1,6 +1,6 @@
 #############################################################################
 #
-# Copyright (c) 2004 Zope Corporation and Contributors.
+# Copyright (c) 2004-2009 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -197,7 +197,7 @@ def wait_until(label, func, *args, **kw):
     while time.time() < deadline:
         if func(*args, **kw):
             return
-        time.sleep('.01')
+        time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
 def buildoutSetUp(test):
