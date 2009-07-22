@@ -4,8 +4,8 @@ Change History
 1.4.0 (unreleased)
 ==================
 
-- Added annotate command for annotated sections. Displays sections key-value pairs
-  along with the value origin.
+- Added annotate command for annotated sections. Displays sections
+  key-value pairs along with the value origin.
 
 - Added a download API that handles the download cache, offline mode etc and
   is meant to be reused by recipes.
