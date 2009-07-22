@@ -137,13 +137,14 @@ class Download(object):
 
         """
         parsed_url = urlparse.urlparse(url, 'file')
-        if parsed_url.scheme == 'file':
+        url_scheme, _, url_path = parsed_url[:3]
+        if url_scheme == 'file':
             self.logger.debug('Using local resource %s' % url)
-            if not check_md5sum(parsed_url.path, md5sum):
+            if not check_md5sum(url_path, md5sum):
                 raise ChecksumError(
                     'MD5 checksum mismatch for local resource at %r.' %
-                    parsed_url.path)
-            return locate_at(parsed_url.path, path)
+                    url_path)
+            return locate_at(url_path, path)
 
         if self.offline:
             raise zc.buildout.UserError(
@@ -173,11 +174,13 @@ class Download(object):
             return md5(url).hexdigest()
         else:
             parsed = urlparse.urlparse(url)
-            for name in reversed(parsed.path.split('/')):
+            url_path = parsed[2]
+            for name in reversed(url_path.split('/')):
                 if name:
                     return name
             else:
-                return '%s:%s' % (parsed.host, parsed.port)
+                url_host, url_port = parsed[-2:]
+                return '%s:%s' % (url_host, url_port)
 
 
 def check_md5sum(path, md5sum):
