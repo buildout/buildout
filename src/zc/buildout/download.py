@@ -18,7 +18,6 @@ try:
 except ImportError:
     from md5 import new as md5
 from zc.buildout.easy_install import realpath
-import atexit
 import logging
 import os
 import os.path
@@ -133,7 +132,7 @@ class Download(object):
         An online resource is always downloaded to a temporary file and moved
         to the specified path only after the download is complete and the
         checksum (if given) matches. If path is None, the temporary file is
-        returned and scheduled for deletion at process exit.
+        returned and the client code is responsible for cleaning it up.
 
         """
         parsed_url = urlparse.urlparse(url, 'file')
@@ -164,7 +163,6 @@ class Download(object):
             shutil.move(tmp_path, path)
             return path
         else:
-            atexit.register(remove, tmp_path)
             return tmp_path
 
     def filename(self, url):
