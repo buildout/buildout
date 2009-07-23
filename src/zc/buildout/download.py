@@ -154,6 +154,7 @@ class Download(object):
         urllib._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+        os.close(handle)
         if not check_md5sum(tmp_path, md5sum):
             os.remove(tmp_path)
             raise ChecksumError(
