@@ -722,37 +722,36 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
-    bin-directory=bin
+    bin-directory= bin
         DEFAULT_VALUE
-    develop=recipes
-        .../_TEST_/sample-buildout/buildout.cfg
-    develop-eggs-directory=develop-eggs
+    develop= recipes
+        /sample-buildout/buildout.cfg
+    develop-eggs-directory= develop-eggs
         DEFAULT_VALUE
-    directory=.../_TEST_/sample-buildout
+    directory= /sample-buildout
         COMPUTED_VALUE
-    eggs-directory=eggs
+    eggs-directory= eggs
         DEFAULT_VALUE
-    executable=...
+    executable= ...
         DEFAULT_VALUE
-    installed=.installed.cfg
+    installed= .installed.cfg
         DEFAULT_VALUE
-    log-format=
+    log-format= 
         DEFAULT_VALUE
-    log-level=INFO
+    log-level= INFO
         DEFAULT_VALUE
-    parts=data-dir
-        .../_TEST_/sample-buildout/buildout.cfg
-    parts-directory=parts
+    parts= data-dir
+        /sample-buildout/buildout.cfg
+    parts-directory= parts
         DEFAULT_VALUE
-    python=buildout
+    python= buildout
         DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
-    path=foo bins
-        .../_TEST_/sample-buildout/buildout.cfg
-    recipe=recipes:mkdir
-        .../_TEST_/sample-buildout/buildout.cfg
-    <BLANKLINE>
+    path= foo bins
+        /sample-buildout/buildout.cfg
+    recipe= recipes:mkdir
+        /sample-buildout/buildout.cfg
     <BLANKLINE>
 
 Variable substitutions
@@ -1083,34 +1082,34 @@ operations.
     ...
     <BLANKLINE>
     [part1]
-    option=a1 a2
+    option= a1 a2
     a3 a4
     a5
-        .../_TEST_/sample-buildout/base.cfg
-        +.../_TEST_/sample-buildout/extension1.cfg
-        +.../_TEST_/sample-buildout/extension2.cfg
-    recipe=
-        .../_TEST_/sample-buildout/base.cfg
+        /sample-buildout/base.cfg
+    +=  /sample-buildout/extension1.cfg
+    +=  /sample-buildout/extension2.cfg
+    recipe= 
+        /sample-buildout/base.cfg
     <BLANKLINE>
     [part2]
-    option=b1 b2 b3 b4
-        .../_TEST_/sample-buildout/base.cfg
-        -.../_TEST_/sample-buildout/extension1.cfg
-        -.../_TEST_/sample-buildout/extension2.cfg
-    recipe=
-        .../_TEST_/sample-buildout/base.cfg
+    option= b1 b2 b3 b4
+        /sample-buildout/base.cfg
+    -=  /sample-buildout/extension1.cfg
+    -=  /sample-buildout/extension2.cfg
+    recipe= 
+        /sample-buildout/base.cfg
     <BLANKLINE>
     [part3]
-    option=c1 c2
+    option= c1 c2
     c3 c4 c5
-        .../_TEST_/sample-buildout/base.cfg
-        +.../_TEST_/sample-buildout/extension1.cfg
-    recipe=
-        .../_TEST_/sample-buildout/base.cfg
+        /sample-buildout/base.cfg
+    +=  /sample-buildout/extension1.cfg
+    recipe= 
+        /sample-buildout/base.cfg
     <BLANKLINE>
     [part4]
-    option=h1 h2
-        .../_TEST_/sample-buildout/extension1.cfg
+    option= h1 h2
+        /sample-buildout/extension1.cfg
     ...
 
 Cleanup.

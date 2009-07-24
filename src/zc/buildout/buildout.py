@@ -90,12 +90,20 @@ def _print_annotate(data):
         keys = data[section].keys()
         keys.sort()
         for key in keys:
-            value, files = data[section][key]
-            print "%s=%s" % (key, value)
-            for file in files.split():
-                print "    " + file
+            value, notes = data[section][key]
+            keyvalue = "%s= %s" % (key, value)
+            print keyvalue
+            line = '   '
+            for note in notes.split():
+                if note == '[+]':
+                    line = '+= '
+                elif note == '[-]':
+                    line = '-= '
+                else:
+                    print line, note
+                    line = '   '
     print
-    print
+
 
 def _unannotate_section(section):
     for key in section:
@@ -1323,14 +1331,14 @@ def _update_section(s1, s2):
         if k.endswith('+'):
             key = k.rstrip(' +')
             v1, note1 = s1.get(key, ("", ""))
-            newnote = ' +'.join((note1, note2)).strip()
+            newnote = ' [+] '.join((note1, note2)).strip()
             s2[key] = "\n".join((v1).split('\n') +
                 v2.split('\n')), newnote
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
             v1, note1 = s1.get(key, ("", ""))
-            newnote = ' -'.join((note1, note2)).strip()
+            newnote = ' [-] '.join((note1, note2)).strip()
             s2[key] = ("\n".join(
                 [v for v in v1.split('\n')
                    if v not in v2.split('\n')]), newnote)
