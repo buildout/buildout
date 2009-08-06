@@ -30,22 +30,15 @@ for d in 'eggs', 'develop-eggs', 'bin':
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
-to_reload = False
 try:
     import pkg_resources
-    if not hasattr(pkg_resources, '_distribute'):
-        to_reload = True
-        raise ImportError
 except ImportError:
     ez = {}
-    exec urllib2.urlopen('http://nightly.ziade.org/bootstraping.py'
+    exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
                          ).read() in ez
-    ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
-    if to_reload:
-        reload(pkg_resources)
-    else:
-        import pkg_resources
+    ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
+    import pkg_resources
 
 subprocess.Popen(
     [sys.executable] +
