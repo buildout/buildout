@@ -26,21 +26,15 @@ tmpeggs = tempfile.mkdtemp()
 
 is_jython = sys.platform.startswith('java')
 
-to_reload = False
 try:
     import pkg_resources
-    if not hasattr(pkg_resources, '_distribute'):
-        to_reload = True
-        raise ImportError
 except ImportError:
     ez = {}
-    exec urllib2.urlopen('http://nightly.ziade.org/bootstraping.py'
+    exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
                          ).read() in ez
     ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
-    if to_reload:
-        reload(pkg_resources)
-    else:
-        import pkg_resources
+
+    import pkg_resources
 
 if sys.platform == 'win32':
     def quote(c):
@@ -69,7 +63,7 @@ if is_jython:
            quote(tmpeggs), 'zc.buildout' + VERSION],
            env=dict(os.environ,
                PYTHONPATH=
-               ws.find(pkg_resources.Requirement.parse('distribute')).location
+               ws.find(pkg_resources.Requirement.parse('setuptools')).location
                ),
            ).wait() == 0
 
@@ -79,7 +73,7 @@ else:
         '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout' + VERSION,
         dict(os.environ,
             PYTHONPATH=
-            ws.find(pkg_resources.Requirement.parse('distribute')).location
+            ws.find(pkg_resources.Requirement.parse('setuptools')).location
             ),
         ) == 0
 
