@@ -342,7 +342,7 @@ class Buildout(UserDict.DictMixin):
 
         self._setup_directories()
 
-        # Now copy buildout and setuptools eggs, amd record destination eggs:
+        # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
         for name in 'setuptools', 'zc.buildout':
             r = pkg_resources.Requirement.parse(name)
