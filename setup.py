@@ -72,7 +72,7 @@ setup(
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
-    install_requires = 'setuptools',
+    install_requires = 'distribute',
     include_package_data = True,
     entry_points = {'console_scripts':
                     ['buildout = %s.buildout:main' % name]}, 
