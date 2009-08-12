@@ -1238,11 +1238,13 @@ def _open(base, filename, seen, dl_options, override):
     """
     _update_section(dl_options, override)
     _dl_options = _unannotate_section(dl_options.copy())
+    is_temp = False
     download = zc.buildout.download.Download(
         _dl_options, cache=_dl_options.get('extends-cache'), fallback=True,
         hash_name=True)
     if _isurl(filename):
-        fp = open(download(filename))
+        path, is_temp = download(filename)
+        fp = open(path)
         base = filename[:filename.rfind('/')]
     elif _isurl(base):
         if os.path.isabs(filename):
@@ -1250,7 +1252,8 @@ def _open(base, filename, seen, dl_options, override):
             base = os.path.dirname(filename)
         else:
             filename = base + '/' + filename
-            fp = open(download(filename))
+            path, is_temp = download(filename)
+            fp = open(path)
             base = filename[:filename.rfind('/')]
     else:
         filename = os.path.join(base, filename)
@@ -1258,6 +1261,8 @@ def _open(base, filename, seen, dl_options, override):
         base = os.path.dirname(filename)
 
     if filename in seen:
+        if is_temp:
+            os.unlink(path)
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
     root_config_file = not seen
@@ -1268,6 +1273,9 @@ def _open(base, filename, seen, dl_options, override):
     parser = ConfigParser.RawConfigParser()
     parser.optionxform = lambda s: s
     parser.readfp(fp)
+    if is_temp:
+        os.unlink(path)
+
     extends = extended_by = None
     for section in parser.sections():
         options = dict(parser.items(section))

@@ -13,6 +13,13 @@ Also, all of the following will take place inside the sample buildout.
 >>> server_url = start_server(server_data)
 >>> cd(sample_buildout)
 
+We also use a fresh directory for temporary files in order to make sure that
+all temporary files have been cleaned up in the end:
+
+>>> import tempfile
+>>> old_tempdir = tempfile.tempdir
+>>> tempfile.tempdir = tmpdir('tmp')
+
 
 Basic use of the extends cache
 ------------------------------
@@ -375,3 +382,15 @@ While:
   Checking for upgrades.
 An internal error occured ...
 ValueError: install_from_cache set to true with no download cache
+
+
+Clean up
+--------
+
+We should have cleaned up all temporary files created by downloading things:
+
+>>> ls(tempfile.tempdir)
+
+Reset the global temporary directory:
+
+>>> tempfile.tempdir = old_tempdir
