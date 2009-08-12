@@ -84,11 +84,11 @@ class Download(object):
 
         """
         if self.cache:
-            local_path = self.download_cached(url, md5sum)
+            local_path, is_temp = self.download_cached(url, md5sum)
         else:
-            local_path = self.download(url, md5sum, path)
+            local_path, is_temp = self.download(url, md5sum, path)
 
-        return locate_at(local_path, path)
+        return locate_at(local_path, path), is_temp
 
     def download_cached(self, url, md5sum=None):
         """Download a file from a URL using the cache.
@@ -106,9 +106,10 @@ class Download(object):
 
         self.logger.debug('Searching cache at %s' % cache_dir)
         if os.path.isfile(cached_path):
+            is_temp = False
             if self.fallback:
                 try:
-                    self.download(url, md5sum, cached_path)
+                    _, is_temp = self.download(url, md5sum, cached_path)
                 except ChecksumError:
                     raise
                 except Exception:
@@ -122,9 +123,9 @@ class Download(object):
         else:
             self.logger.debug('Cache miss; will cache %s as %s' %
                               (url, cached_path))
-            self.download(url, md5sum, cached_path)
+            _, is_temp = self.download(url, md5sum, cached_path)
 
-        return cached_path
+        return cached_path, is_temp
 
     def download(self, url, md5sum=None, path=None):
         """Download a file from a URL to a given or temporary path.
@@ -143,7 +144,7 @@ class Download(object):
                 raise ChecksumError(
                     'MD5 checksum mismatch for local resource at %r.' %
                     url_path)
-            return locate_at(url_path, path)
+            return locate_at(url_path, path), False
 
         if self.offline:
             raise zc.buildout.UserError(
@@ -152,18 +153,23 @@ class Download(object):
         self.logger.info('Downloading %s' % url)
         urllib._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
-        tmp_path, headers = urllib.urlretrieve(url, tmp_path)
-        os.close(handle)
-        if not check_md5sum(tmp_path, md5sum):
-            os.remove(tmp_path)
-            raise ChecksumError(
-                'MD5 checksum mismatch downloading %r' % url)
+        try:
+            try:
+                tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+                if not check_md5sum(tmp_path, md5sum):
+                    raise ChecksumError(
+                        'MD5 checksum mismatch downloading %r' % url)
+            except:
+                os.remove(tmp_path)
+                raise
+        finally:
+            os.close(handle)
 
         if path:
             shutil.move(tmp_path, path)
-            return path
+            return path, False
         else:
-            return tmp_path
+            return tmp_path, True
 
     def filename(self, url):
         """Determine a file name from a URL according to the configuration.
