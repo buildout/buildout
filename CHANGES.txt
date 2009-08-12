@@ -1,6 +1,11 @@
 Change History
 **************
 
+1.3.1 (2009-08-12)
+==================
+
+- Bug fixed: extras were ignored in some cases when versions were specified.
+
 1.3.0 (2009-06-22)
 ==================
 

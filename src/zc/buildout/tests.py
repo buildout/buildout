@@ -16,12 +16,19 @@
 $Id$
 """
 
-import os, re, shutil, sys, tempfile, unittest, zipfile
-from zope.testing import doctest, renormalizing
+from zope.testing import doctest
+from zope.testing import renormalizing
+import os
 import pkg_resources
-import zc.buildout.testing, zc.buildout.easy_install
-
+import re
+import shutil
+import sys
+import tempfile
+import unittest
+import zc.buildout.easy_install
+import zc.buildout.testing
 import zc.buildout.testselectingpython
+import zipfile
 
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
@@ -2525,6 +2532,29 @@ def warn_users_when_expanding_shell_patterns_yields_no_results():
     Couldn't develop '/sample-buildout/grumble*' (not found)
     Installing eggs.
 
+    """
+
+def make_sure_versions_dont_cancel_extras():
+    """
+    There was a bug that caused extras in requirements to be lost.
+
+    >>> open('setup.py', 'w').write('''
+    ... from setuptools import setup
+    ... setup(name='extraversiondemo', version='1.0',
+    ...       url='x', author='x', author_email='x',
+    ...       extras_require=dict(foo=['demo']), py_modules=['t'])
+    ... ''')
+    >>> open('README', 'w').close()
+    >>> open('t.py', 'w').close()
+
+    >>> sdist('.', sample_eggs)
+    >>> mkdir('dest')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['extraversiondemo[foo]'], 'dest', links=[sample_eggs],
+    ...     versions = dict(extraversiondemo='1.0')
+    ... )
+    >>> sorted(dist.key for dist in ws)
+    ['demo', 'demoneeded', 'extraversiondemo']
     """
 
 

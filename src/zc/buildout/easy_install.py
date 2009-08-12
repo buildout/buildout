@@ -34,7 +34,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import urlparse
 import zc.buildout
 import zipimport
 
@@ -55,7 +54,6 @@ is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
 
 if is_jython:
-    import subprocess
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
@@ -621,7 +619,9 @@ class Installer:
                 raise IncompatibleVersionError("Bad version", version)
 
             requirement = pkg_resources.Requirement.parse(
-                "%s ==%s" % (requirement.project_name, version))
+                "%s[%s] ==%s" % (requirement.project_name,
+                               ','.join(requirement.extras),
+                               version))
 
         return requirement
 
