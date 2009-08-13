@@ -21,6 +21,7 @@ from zc.buildout.easy_install import realpath
 import logging
 import os
 import os.path
+import re
 import shutil
 import tempfile
 import urllib
@@ -148,6 +149,8 @@ class Download(object):
         returned and the client code is responsible for cleaning it up.
 
         """
+        if re.match(r"^[A-Za-z]:\\", url):
+            url = 'file:' + url
         parsed_url = urlparse.urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
@@ -171,11 +174,11 @@ class Download(object):
                 if not check_md5sum(tmp_path, md5sum):
                     raise ChecksumError(
                         'MD5 checksum mismatch downloading %r' % url)
-            except:
-                os.remove(tmp_path)
-                raise
-        finally:
-            os.close(handle)
+            finally:
+                os.close(handle)
+        except:
+            os.remove(tmp_path)
+            raise
 
         if path:
             shutil.move(tmp_path, path)
@@ -190,14 +193,25 @@ class Download(object):
         if self.hash_name:
             return md5(url).hexdigest()
         else:
-            parsed = urlparse.urlparse(url)
+            if re.match(r"^[A-Za-z]:\\", url):
+                url = 'file:' + url
+            parsed = urlparse.urlparse(url, 'file')
             url_path = parsed[2]
-            for name in reversed(url_path.split('/')):
-                if name:
-                    return name
+
+            if parsed[0] == 'file':
+                while True:
+                    url_path, name = os.path.split(url_path)
+                    if name:
+                        return name
+                    if not url_path:
+                        break
             else:
-                url_host, url_port = parsed[-2:]
-                return '%s:%s' % (url_host, url_port)
+                for name in reversed(url_path.split('/')):
+                    if name:
+                        return name
+
+            url_host, url_port = parsed[-2:]
+            return '%s:%s' % (url_host, url_port)
 
 
 def check_md5sum(path, md5sum):

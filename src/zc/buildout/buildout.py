@@ -1262,7 +1262,8 @@ def _open(base, filename, seen, dl_options, override):
 
     if filename in seen:
         if is_temp:
-            os.unlink(path)
+            fp.close()
+            os.remove(path)
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
     root_config_file = not seen
@@ -1274,7 +1275,8 @@ def _open(base, filename, seen, dl_options, override):
     parser.optionxform = lambda s: s
     parser.readfp(fp)
     if is_temp:
-        os.unlink(path)
+        fp.close()
+        os.remove(path)
 
     extends = extended_by = None
     for section in parser.sections():
