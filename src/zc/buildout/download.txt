@@ -254,6 +254,15 @@ ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
 
 >>> remove(path)
 
+Finally, let's see what happens if the download cache to be used doesn't exist
+as a directory in the file system yet:
+
+>>> Download(cache=join(cache, 'non-existent'))(server_url+'foo.txt')
+Traceback (most recent call last):
+UserError: The directory:
+'/tmp/tmpZ2cwCfbuildoutSetUp/_TEST_/download-cache/non-existent'
+to be used as a download cache doesn't exist.
+
 Using namespace sub-directories of the download cache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -452,6 +461,19 @@ option:
 >>> download = Download({'download-cache': cache}, namespace='cmmi')
 >>> print download.cache_dir
 /download-cache/cmmi
+
+If the ``download-cache`` option specifies a relative path, it is understood
+relative to the current working directory, or to the buildout directory if
+that is given:
+
+>>> download = Download({'download-cache': 'relative-cache'})
+>>> print download.cache_dir
+/sample-buildout/relative-cache/
+
+>>> download = Download({'directory': join(sample_buildout, 'root'),
+...                      'download-cache': 'relative-cache'})
+>>> print download.cache_dir
+/sample-buildout/root/relative-cache/
 
 Keyword parameters take precedence over the corresponding options:
 
