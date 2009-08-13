@@ -66,6 +66,7 @@ download cache for it. The configuration cache we specify will be created when
 running buildout and the base.cfg file will be put in it (with the file name
 being a hash of the complete URL):
 
+>>> mkdir('cache')
 >>> write('buildout.cfg', """\
 ... [buildout]
 ... extends = %sbase.cfg
@@ -166,6 +167,8 @@ bases, using different caches:
 
 >>> mkdir('home')
 >>> mkdir('home', '.buildout')
+>>> mkdir('cache')
+>>> mkdir('user-cache')
 >>> os.environ['HOME'] = join(sample_buildout, 'home')
 >>> write('home', '.buildout', 'default.cfg', """\
 ... [buildout]

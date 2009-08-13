@@ -56,6 +56,7 @@ class Download(object):
 
     def __init__(self, options={}, cache=-1, namespace=None,
                  offline=-1, fallback=False, hash_name=False, logger=None):
+        self.directory = options.get('directory', '')
         self.cache = cache
         if cache == -1:
             self.cache = options.get('download-cache')
@@ -69,9 +70,14 @@ class Download(object):
         self.logger = logger or logging.getLogger('zc.buildout')
 
     @property
-    def cache_dir(self):
+    def download_cache(self):
         if self.cache is not None:
-            return os.path.join(realpath(self.cache), self.namespace or '')
+            return realpath(os.path.join(self.directory, self.cache))
+
+    @property
+    def cache_dir(self):
+        if self.download_cache is not None:
+            return os.path.join(self.download_cache, self.namespace or '')
 
     def __call__(self, url, md5sum=None, path=None):
         """Download a file according to the utility's configuration.
@@ -98,9 +104,15 @@ class Download(object):
         but will not remove the copy in that case.
 
         """
+        if not os.path.exists(self.download_cache):
+            raise zc.buildout.UserError(
+                'The directory:\n'
+                '%r\n'
+                "to be used as a download cache doesn't exist.\n"
+                % self.download_cache)
         cache_dir = self.cache_dir
         if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
+            os.mkdir(cache_dir)
         cache_key = self.filename(url)
         cached_path = os.path.join(cache_dir, cache_key)
 
