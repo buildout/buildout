@@ -2818,7 +2818,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
-               (re.compile('0x[0-9a-fA-F]+'), '<MEM ADDRESS>'),
+               (re.compile(' at -?0x[^>]+'), '<MEM ADDRESS>'),
                (re.compile('http://localhost:[0-9]{4,5}/'),
                 'http://localhost/'),
                (re.compile('[0-9a-f]{32}'), '<MD5 CHECKSUM>'),
