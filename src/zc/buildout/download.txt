@@ -121,7 +121,7 @@ scheme will still work:
 
 >>> cat(download(join(server_data, 'foo.txt'))[0])
 This is a foo text.
->>> cat(download('file://%s/foo.txt' % server_data)[0])
+>>> cat(download('file:' + join(server_data, 'foo.txt'))[0])
 This is a foo text.
 
 >>> remove(path)
@@ -231,7 +231,7 @@ sometimes used to create source distributions:
 >>> write(server_data, 'foo.txt', 'This is a foo text.')
 >>> download = Download(cache=cache)
 
->>> cat(download('file://' + join(server_data, 'foo.txt'), path=path)[0])
+>>> cat(download('file:' + join(server_data, 'foo.txt'), path=path)[0])
 This is a foo text.
 >>> ls(cache)
 - foo.txt
@@ -260,7 +260,7 @@ as a directory in the file system yet:
 >>> Download(cache=join(cache, 'non-existent'))(server_url+'foo.txt')
 Traceback (most recent call last):
 UserError: The directory:
-'/tmp/tmpZ2cwCfbuildoutSetUp/_TEST_/download-cache/non-existent'
+'/download-cache/non-existent'
 to be used as a download cache doesn't exist.
 
 Using namespace sub-directories of the download cache
@@ -337,7 +337,7 @@ checksum since we don't know which port the server happens to listen at when
 the test is run, so we don't actually know the full URL of the file. Let's
 check that the checksum actually belongs to the particular URL used:
 
->>> path == join(cache, md5(server_url+'foo.txt').hexdigest())
+>>> path.lower() == join(cache, md5(server_url+'foo.txt').hexdigest()).lower()
 True
 
 The cached copy is used when downloading the file again:
@@ -359,7 +359,7 @@ cache under a different name:
 /download-cache/537b6d73267f8f4447586989af8c470e
 >>> path == path2
 False
->>> path2 == join(cache, md5(server_url+'other/foo.txt').hexdigest())
+>>> path2.lower() == join(cache, md5(server_url+'other/foo.txt').hexdigest()).lower()
 True
 >>> cat(path)
 This is a foo text.
