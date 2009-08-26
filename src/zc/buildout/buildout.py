@@ -1027,6 +1027,9 @@ class Options(UserDict.DictMixin):
         name = self.name
         __doing__ = 'Initializing section %s.', name
 
+        if '<' in self._raw:
+            self._raw = self._do_extend_raw(name, self._raw, [])
+
         # force substitutions
         for k, v in self._raw.items():
             if '${' in v:
@@ -1046,6 +1049,33 @@ class Options(UserDict.DictMixin):
         __doing__ = 'Initializing part %s.', name
         self.recipe = recipe_class(buildout, name, self)
         buildout._parts.append(name)
+
+    def _do_extend_raw(self, name, data, doing):
+        if name == 'buildout':
+            return data
+        if name in doing:
+            raise zc.buildout.UserError("Infinite extending loop %r" % name)
+        doing.append(name)
+        try:
+            to_do = data.pop('<', None)
+            if to_do is None:
+                return data
+            __doing__ = 'Loading input sections for %r', name
+
+            result = {}
+            for iname in to_do.split('\n'):
+                iname = iname.strip()
+                if not iname:
+                    continue
+                raw = self.buildout._raw.get(iname)
+                if raw is None:
+                    raise zc.buildout.UserError("No section named %r" % iname)
+                result.update(self._do_extend_raw(iname, raw, doing))
+
+            result.update(data)
+            return result
+        finally:
+            assert doing.pop() == name
 
     def _dosub(self, option, v):
         __doing__ = 'Getting option %s:%s.', self.name, option
@@ -1178,7 +1208,7 @@ class Options(UserDict.DictMixin):
                     elif os.path.isfile(p):
                         os.remove(p)
                     else:
-                        self._buildout._logger.warn("Couldn't clean up %r.", p)
+                        self.buildout._logger.warn("Couldn't clean up %r.", p)
                 raise
         finally:
             self._created = None
