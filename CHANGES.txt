@@ -1,7 +1,7 @@
 Change History
 **************
 
-1.4.0 (unreleased)
+1.4.0 (2009-08-26)
 ==================
 
 - Added annotate command for annotated sections. Displays sections
