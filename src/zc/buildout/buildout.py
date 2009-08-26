@@ -12,17 +12,13 @@
 #
 ##############################################################################
 """Buildout main script
-
-$Id$
 """
 
 import distutils.errors
 import logging
 import os
-import pprint
 import re
 import shutil
-import cStringIO
 import sys
 import tempfile
 import ConfigParser
@@ -929,10 +925,13 @@ class Buildout(UserDict.DictMixin):
                 arg_list = list()
 
                 for a in args:
-                    add_args.append(zc.buildout.easy_install._safe_arg(a))
+                    arg_list.append(zc.buildout.easy_install._safe_arg(a))
 
-                subprocess.Popen([zc.buildout.easy_install._safe_arg(sys.executable)] + list(tsetup) +
-                                arg_list).wait()
+                subprocess.Popen(
+                    [zc.buildout.easy_install._safe_arg(sys.executable)]
+                    + list(tsetup)
+                    + arg_list
+                    ).wait()
 
             else:
                 os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
