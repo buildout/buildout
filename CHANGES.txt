@@ -9,7 +9,9 @@ Change History
 
 - When doing variable substitution, you can use the special option,
   ``_buildout_section_name_`` to get the section name.  This is most handy
-  for getting the current section name (e.g. ${:_buildout_section_name_}.
+  for getting the current section name (e.g. ${:_buildout_section_name_}).
+
+- A new special option, ``<`` allows sections to be used as macros.
 
 - Added annotate command for annotated sections. Displays sections
   key-value pairs along with the value origin.

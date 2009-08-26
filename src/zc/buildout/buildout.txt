@@ -979,6 +979,55 @@ It will still be treated as a part:
     parts = data-dir debug
     ...
 
+Extending sections (macros)
+---------------------------
+
+A section (other than the buildout section) can extend one or more
+other sections using the ``<`` option.  Options from the referenced
+sections are copied to the refering section *before* variable
+substitution.  This, together with the ability to refer to variables
+of the current section allows sections to be used as macros.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = myfiles
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ...
+    ... [with_file1]
+    ... <= debug
+    ... file1 = ${:path}/file1
+    ... color = red
+    ...
+    ... [with_file2]
+    ... <= debug
+    ... file2 = ${:path}/file2
+    ... color = blue
+    ...
+    ... [myfiles]
+    ... <= with_file1
+    ...    with_file2
+    ... path = mydata
+    ... """)
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Uninstalling data-dir.
+    Installing myfiles.
+    color blue
+    file1 mydata/file1
+    file2 mydata/file2
+    path mydata
+    recipe recipes:debug
+
+In this example, the debug, with_file1 and with_file2 sections act as
+macros. In particular, the variable substitutions are performed
+relative to the myfiles section.
 
 Adding and removing options
 ---------------------------
@@ -1083,11 +1132,10 @@ Set up a buildout configuration for this extension.
     >>> os.chdir(sample_buildout)
     >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
     Develop: '/sample-buildout/demo'
-    Uninstalling debug.
+    Uninstalling myfiles.
     Getting distribution for 'recipes'.
     zip_safe flag not set; analyzing archive contents...
     Got recipes 0.0.0.
-    Uninstalling data-dir.
     warning: install_lib: 'build/lib' does not exist -- no Python modules to install
 
 Verify option values.
@@ -1107,7 +1155,8 @@ Verify option values.
 Annotated sections output shows which files are responsible for which
 operations.
 
-    >>> print system(os.path.join('bin', 'buildout') + ' annotate'), # doctest: +ELLIPSIS
+    >>> print system(os.path.join('bin', 'buildout') + ' annotate'),
+    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
