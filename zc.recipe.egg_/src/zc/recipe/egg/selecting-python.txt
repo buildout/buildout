@@ -78,7 +78,10 @@ And the generated scripts invoke Python 2.4:
     ... else:
     ...    script_name = 'demo'
     >>> f = open(os.path.join(sample_buildout, 'bin', script_name))
-    >>> f.readline().strip() == '#!' + other_executable
+    >>> shebang = f.readline().strip()
+    >>> if shebang[:3] == '#!"' and shebang[-1] == '"':
+    ...     shebang = '#!'+shebang[3:-1]
+    >>> shebang == '#!' + other_executable
     True
     >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
@@ -97,7 +100,11 @@ And the generated scripts invoke Python 2.4:
     ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo-script.py'))
     ... else:
     ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo'))
-    >>> f.readline().strip() == '#!' + other_executable
+
+    >>> shebang = f.readline().strip()
+    >>> if shebang[:3] == '#!"' and shebang[-1] == '"':
+    ...     shebang = '#!'+shebang[3:-1]
+    >>> shebang == '#!' + other_executable
     True
     >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     import sys
