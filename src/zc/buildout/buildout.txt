@@ -866,6 +866,37 @@ Section and option names in variable substitutions are only allowed to
 contain alphanumeric characters, hyphens, periods and spaces. This
 restriction might be relaxed in future releases.
 
+We can ommit the section name in a variable substitution to refer to
+the current section.  We can also use the special option,
+_buildout_section_name_ to get the current section name.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File 1 = ${data-dir:path}/file
+    ... File 2 = ${:File 1}/log
+    ... my_name = ${:_buildout_section_name_}
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Updating data-dir.
+    Installing debug.
+    File 1 /sample-buildout/mydata/file
+    File 2 /sample-buildout/mydata/file/log
+    my_name debug
+    recipe recipes:debug
 
 Automatic part selection and ordering
 -------------------------------------
@@ -897,8 +928,9 @@ It will still be treated as a part:
 
     >>> print system(buildout),
     Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
     Updating data-dir.
-    Updating debug.
+    Installing debug.
     File 1 /sample-buildout/mydata/file
     File 2 /sample-buildout/mydata/file/log
     recipe recipes:debug

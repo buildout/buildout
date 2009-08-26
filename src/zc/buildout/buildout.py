@@ -1086,7 +1086,7 @@ class Options(UserDict.DictMixin):
 
     _template_split = re.compile('([$]{[^}]*})').split
     _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
-    _valid = re.compile('\${[-a-zA-Z0-9 ._]+:[-a-zA-Z0-9 ._]+}$').match
+    _valid = re.compile('\${[-a-zA-Z0-9 ._]*:[-a-zA-Z0-9 ._]+}$').match
     def _sub(self, template, seen):
         value = self._template_split(template)
         subs = []
@@ -1112,9 +1112,16 @@ class Options(UserDict.DictMixin):
                         "has invalid characters."
                         % ref)
 
-            v = self.buildout[s[0]].get(s[1], None, seen)
+            section, option = s
+            if not section:
+                section = self.name
+            v = self.buildout[section].get(option, None, seen)
             if v is None:
-                raise MissingOption("Referenced option does not exist:", *s)
+                if option == '_buildout_section_name_':
+                    v = self.name
+                else:
+                    raise MissingOption("Referenced option does not exist:",
+                                        section, option)
             subs.append(v)
         subs.append('')
 
