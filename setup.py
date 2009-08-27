@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-version = "1.4.0dev"
+version = "1.4.0"
 
 import os
 from setuptools import setup
