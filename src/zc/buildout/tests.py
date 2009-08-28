@@ -2893,7 +2893,11 @@ def test_suite():
                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile(r'\\[\\]?'), '/'),
-               ]),
+               ]+(sys.version_info < (2, 5) and [
+                  (re.compile('.*No module named runpy.*', re.S), ''),
+                  (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
+                  (re.compile('.*Error: what does not exist.*', re.S), ''),
+                  ] or [])),
             ),
 
         doctest.DocFileSuite(
