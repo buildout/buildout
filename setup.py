@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
+name = "zc.buildout"
 version = "1.4.0dev"
 
 import os
@@ -54,9 +54,15 @@ long_description=(
         '**********************\n'
         )
 
-open('doc.txt', 'w').write(long_description)
+entry_points = """
+[console_scripts]
+buildout = %(name)s.buildout:main
 
-name = "zc.buildout"
+[zc.buildout]
+debug = %(name)s.testrecipes:Debug
+
+""" % dict(name=name)
+
 setup(
     name = name,
     version = version,
@@ -74,8 +80,7 @@ setup(
     namespace_packages = ['zc'],
     install_requires = 'setuptools',
     include_package_data = True,
-    entry_points = {'console_scripts':
-                    ['buildout = %s.buildout:main' % name]}, 
+    entry_points = entry_points,
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',
