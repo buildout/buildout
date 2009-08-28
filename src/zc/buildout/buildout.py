@@ -1372,6 +1372,7 @@ def _dists_sig(dists):
     return result
 
 def _update_section(s1, s2):
+    s2 = s2.copy() # avoid mutating the second argument, which is unexpected
     for k, v in s2.items():
         v2, note2 = v
         if k.endswith('+'):

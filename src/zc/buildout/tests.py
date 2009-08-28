@@ -2557,6 +2557,41 @@ def make_sure_versions_dont_cancel_extras():
     ['demo', 'demoneeded', 'extraversiondemo']
     """
 
+def increment_buildout_options():
+    r"""
+    >>> write('b1.cfg', '''
+    ... [buildout]
+    ... parts = p1
+    ... x = 1
+    ... y = a
+    ...     b
+    ...
+    ... [p1]
+    ... recipe = zc.buildout:debug
+    ... foo = ${buildout:x} ${buildout:y}
+    ... ''')
+
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = b1.cfg
+    ... parts += p2
+    ... x += 2
+    ... y -= a
+    ...
+    ... [p2]
+    ... <= p1
+    ... ''')
+
+    >>> print system(buildout),
+    Installing p1.
+      foo='1\n2 b'
+      recipe='zc.buildout:debug'
+    Installing p2.
+      foo='1\n2 b'
+      recipe='zc.buildout:debug'
+    """
+
+
 
 ######################################################################
 

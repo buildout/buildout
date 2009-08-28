@@ -1,6 +1,19 @@
 Change History
 **************
 
+1.4.1 (2009-08-27)
+==================
+
+New Feature:
+
+- Added a debug built-in recipe to make writing some tests easier.
+
+Bugs fixed:
+
+- (introduced in 1.4.0) option incrementing (-=) and decrementing (-=)
+  didn't work in the buildout section.
+  https://bugs.launchpad.net/zc.buildout/+bug/420463
+
 1.4.0 (2009-08-26)
 ==================
 
