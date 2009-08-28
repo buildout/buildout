@@ -123,7 +123,7 @@ then use to run the tests.
 This is probably the most common type of buildout.
 
 If I need to run a previous version of zc.buildout, I use the
-`--version` option of the buildout.py script::
+`--version` option of the bootstrap.py script::
 
     $ python bootstrap.py --version 1.1.3
     
