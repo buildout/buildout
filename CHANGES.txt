@@ -17,6 +17,9 @@ Bugs fixed:
 - Option incrementing and decrementing didn't work for options
   specified on the command line.
 
+- Scripts generated with relative-paths eanbled couldn't be
+  symbolocally linked to other locations and still work.
+
 1.4.0 (2009-08-26)
 ==================
 
