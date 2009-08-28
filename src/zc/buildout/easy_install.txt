@@ -817,7 +817,7 @@ to pass a common base directory of the scripts and eggs:
     import os
     <BLANKLINE>
     join = os.path.join
-    base = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
     base = os.path.dirname(base)
     <BLANKLINE>
     import sys
@@ -849,7 +849,7 @@ We specified an interpreter and its paths are adjusted too:
     import os
     <BLANKLINE>
     join = os.path.join
-    base = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
     base = os.path.dirname(base)
     <BLANKLINE>
     import sys
