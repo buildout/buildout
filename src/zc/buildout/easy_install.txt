@@ -683,13 +683,23 @@ the path set:
     <BLANKLINE>
         if _args:
             sys.argv[:] = _args
-            execfile(sys.argv[0])
+            __file__ = _args[0]
+            execfile(__file__)
     <BLANKLINE>
     if _interactive:
         import code
         code.interact(banner="", local=globals())
 
 If invoked with a script name and arguments, it will run that script, instead.
+
+    >>> write('ascript', '''
+    ... "demo doc"
+    ... print sys.argv
+    ... print (__name__, __file__, __doc__)
+    ... ''')
+    >>> print system(join(bin, 'py')+' ascript a b c'),
+    ['ascript', 'a', 'b', 'c']
+    ('__main__', 'ascript', 'demo doc')
 
 An additional argument can be passed to define which scripts to install
 and to provide script names. The argument is a dictionary mapping
@@ -874,7 +884,8 @@ We specified an interpreter and its paths are adjusted too:
     <BLANKLINE>
         if _args:
             sys.argv[:] = _args
-            execfile(sys.argv[0])
+            __file__ = _args[0]
+            execfile(__file__)
     <BLANKLINE>
     if _interactive:
         import code
