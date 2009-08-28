@@ -1127,23 +1127,28 @@ sys.path[0:0] = [
 
 _interactive = True
 if len(sys.argv) > 1:
-    import getopt
-    _options, _args = getopt.getopt(sys.argv[1:], 'ic:')
+    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
     _interactive = False
     for (_opt, _val) in _options:
         if _opt == '-i':
             _interactive = True
         elif _opt == '-c':
             exec _val
+        elif _opt == '-m':
+            sys.argv[1:] = _args
+            _args = []
+            __import__("runpy").run_module(
+                 _val, {}, "__main__", alter_sys=True)
 
     if _args:
         sys.argv[:] = _args
         __file__ = _args[0]
+        del _options, _args
         execfile(__file__)
 
 if _interactive:
-    import code
-    code.interact(banner="", local=globals())
+    del _interactive
+    __import__("code").interact(banner="", local=globals())
 '''
 
 runsetup_template = """
