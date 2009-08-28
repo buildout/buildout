@@ -16,8 +16,6 @@
 This module provides a high-level Python API for installing packages.
 It doesn't install scripts.  It uses setuptools and requires it to be
 installed.
-
-$Id$
 """
 
 import distutils.errors
@@ -1140,7 +1138,8 @@ if len(sys.argv) > 1:
 
     if _args:
         sys.argv[:] = _args
-        execfile(sys.argv[0])
+        __file__ = _args[0]
+        execfile(__file__)
 
 if _interactive:
     import code

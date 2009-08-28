@@ -20,6 +20,8 @@ Bugs fixed:
 - Scripts generated with relative-paths eanbled couldn't be
   symbolocally linked to other locations and still work.
 
+- Scripts run using generated interpreters didn't have __file__ set correctly.
+
 1.4.0 (2009-08-26)
 ==================
 
