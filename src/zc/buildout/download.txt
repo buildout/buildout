@@ -58,10 +58,10 @@ We are responsible for cleaning up temporary files behind us:
 
 When trying to access a file that doesn't exist, we'll get an exception:
 
->>> download(server_url+'not-there')
-Traceback (most recent call last):
-IOError: ('http error', 404, 'Not Found',
-          <httplib.HTTPMessage instance at 0xa0ffd2c>)
+>>> try: download(server_url+'not-there') # doctest: +ELLIPSIS
+... except: print 'download error'
+... else: print 'woops'
+download error
 
 Downloading a local file doesn't produce a temporary file but simply returns
 the local file itself:
