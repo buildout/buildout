@@ -14,31 +14,30 @@
 """Buildout main script
 """
 
-import distutils.errors
-import logging
-import os
-import re
-import shutil
-import sys
-import tempfile
-import ConfigParser
-import UserDict
-import glob
-import copy
-
-
-import pkg_resources
-import zc.buildout
-import zc.buildout.download
-import zc.buildout.easy_install
-
 from rmtree import rmtree
-
 try:
     from hashlib import md5
 except ImportError:
     # Python 2.4 and older
     from md5 import md5
+
+import ConfigParser
+import copy
+import distutils.errors
+import glob
+import itertools
+import logging
+import os
+import pkg_resources
+import re
+import shutil
+import sys
+import tempfile
+import UserDict
+import zc.buildout
+import zc.buildout.download
+import zc.buildout.easy_install
+
 
 realpath = zc.buildout.easy_install.realpath
 
@@ -160,9 +159,14 @@ class Buildout(UserDict.DictMixin):
         else:
             base = None
 
-        override = dict((option, (value, 'COMMAND_LINE_VALUE'))
-                        for section, option, value in cloptions
-                        if section == 'buildout')
+
+        cloptions = dict(
+            (section, dict((option, (value, 'COMMAND_LINE_VALUE'))
+                           for (_, option, value) in v))
+            for (section, v) in itertools.groupby(sorted(cloptions),
+                                                  lambda v: v[0])
+            )
+        override = cloptions.get('buildout', {}).copy()
 
         # load user defaults, which override defaults
         if user_defaults:
@@ -178,11 +182,7 @@ class Buildout(UserDict.DictMixin):
                                 data['buildout'].copy(), override))
 
         # apply command-line options
-        for (section, option, value) in cloptions:
-            options = data.get(section)
-            if options is None:
-                options = data[section] = {}
-            options[option] = value, "COMMAND_LINE_VALUE"
+        _update(data, cloptions)
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)

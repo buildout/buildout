@@ -11,11 +11,6 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""XXX short summary goes here.
-
-$Id$
-"""
-
 from zope.testing import doctest
 from zope.testing import renormalizing
 import os
@@ -2591,7 +2586,31 @@ def increment_buildout_options():
       recipe='zc.buildout:debug'
     """
 
+def increment_on_command_line():
+    r"""
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... parts = p1
+    ... x = 1
+    ... y = a
+    ...     b
+    ...
+    ... [p1]
+    ... recipe = zc.buildout:debug
+    ... foo = ${buildout:x} ${buildout:y}
+    ...
+    ... [p2]
+    ... <= p1
+    ... ''')
 
+    >>> print system(buildout+' buildout:parts+=p2 p1:foo+=bar'),
+    Installing p1.
+      foo='1 a\nb\nbar'
+      recipe='zc.buildout:debug'
+    Installing p2.
+      foo='1 a\nb\nbar'
+      recipe='zc.buildout:debug'
+    """
 
 ######################################################################
 

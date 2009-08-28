@@ -14,6 +14,9 @@ Bugs fixed:
   didn't work in the buildout section.
   https://bugs.launchpad.net/zc.buildout/+bug/420463
 
+- Option incrementing and decrementing didn't work for options
+  specified on the command line.
+
 1.4.0 (2009-08-26)
 ==================
 
