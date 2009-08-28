@@ -400,10 +400,10 @@ False
 If the file cannot be served, the cached copy will be used:
 
 >>> remove(server_data, 'foo.txt')
->>> Download()(server_url+'foo.txt')
-Traceback (most recent call last):
-IOError: ('http error', 404, 'Not Found',
-          <httplib.HTTPMessage instance at 0xa35d36c>)
+>>> try: Download()(server_url+'foo.txt') # doctest: +ELLIPSIS
+... except: print 'download error'
+... else: print 'woops'
+download error
 >>> path, is_temp = download(server_url+'foo.txt')
 >>> cat(path)
 This is a foo text.
