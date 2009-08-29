@@ -1,6 +1,14 @@
 Change History
 **************
 
+1.?.? (2008-0?-??)
+==================
+
+Bugs fixed:
+
+- Incrementing didn't work properly when extending multiple files.
+  https://bugs.launchpad.net/zc.buildout/+bug/421022
+
 1.4.1 (2009-08-27)
 ==================
 

@@ -1329,10 +1329,10 @@ def _open(base, filename, seen, dl_options, override):
 
     if extends:
         extends = extends.split()
-        extends.reverse()
+        eresult = _open(base, extends.pop(0), seen, dl_options, override)
         for fname in extends:
-            result = _update(_open(base, fname, seen, dl_options, override),
-                             result)
+            _update(eresult, _open(base, fname, seen, dl_options, override))
+        result = _update(eresult, result)
 
     if extended_by:
         self._logger.warn(

@@ -2586,6 +2586,47 @@ def increment_buildout_options():
       recipe='zc.buildout:debug'
     """
 
+def increment_buildout_with_multiple_extended_files_421022():
+    r"""
+    >>> write('foo.cfg', '''
+    ... [buildout]
+    ... foo-option = foo
+    ... [other]
+    ... foo-option = foo
+    ... ''')
+    >>> write('bar.cfg', '''
+    ... [buildout]
+    ... bar-option = bar
+    ... [other]
+    ... bar-option = bar
+    ... ''')
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... parts = p other
+    ... extends = bar.cfg foo.cfg
+    ... bar-option += baz
+    ... foo-option += ham
+    ...
+    ... [other]
+    ... recipe = zc.buildout:debug
+    ... bar-option += baz
+    ... foo-option += ham
+    ...
+    ... [p]
+    ... recipe = zc.buildout:debug
+    ... x = ${buildout:bar-option} ${buildout:foo-option}
+    ... ''')
+
+    >>> print system(buildout),
+    Installing p.
+      recipe='zc.buildout:debug'
+      x='bar\nbaz foo\nham'
+    Installing other.
+      bar-option='bar\nbaz'
+      foo-option='foo\nham'
+      recipe='zc.buildout:debug'
+    """
+
 def increment_on_command_line():
     r"""
     >>> write('buildout.cfg', '''
