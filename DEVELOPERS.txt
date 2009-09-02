@@ -1,0 +1,11 @@
+Developing buildout itself
+**************************
+
+When you're developing buildout itself, you need to know two things:
+
+- Use a clean python *without* setuptools installed.  Otherwise many tests
+  will find your already-installed setuptools, leading to test differences
+  when setuptools' presence is explicitly tested.
+
+- Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
+  dev.py``.
