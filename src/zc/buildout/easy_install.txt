@@ -912,6 +912,32 @@ We specified an interpreter and its paths are adjusted too:
         __import__("code").interact(banner="", local=globals())
 
 
+Installing distutils-style scripts
+----------------------------------
+
+Most python libraries use the console_scripts entry point nowadays.  But
+several still have a ``scripts=['bin/something']`` in their setup() call.
+Buildout also installs those:
+
+    >>> distdir = tmpdir('distutilsscriptdir')
+    >>> distbin = tmpdir('distutilsscriptbin')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['other'], distdir,
+    ...     links=[link_server], index=link_server+'index/')
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['other'], ws, sys.executable, distbin)
+    >>> ls(distbin)
+    -  distutilsscript
+
+Distutils copies the specified script files verbatim, apart from a line at the
+top that looks like ``#!/usr/bin/python``, which gets replaced by the actual
+python interpreter.  Buildout does the same, but additionally also adds the
+sys.path like for the console_scripts:
+
+    >>> cat(distbin, 'distutilsscript')
+    TODO
+
+
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
 

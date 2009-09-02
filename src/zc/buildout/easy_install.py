@@ -927,6 +927,7 @@ def scripts(reqs, working_set, executable, dest,
         initialization = '\n'+initialization+'\n'
 
     entry_points = []
+    distutils_scripts = []
     for req in reqs:
         if isinstance(req, str):
             req = pkg_resources.Requirement.parse(req)
