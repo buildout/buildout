@@ -932,12 +932,21 @@ def scripts(reqs, working_set, executable, dest,
         if isinstance(req, str):
             req = pkg_resources.Requirement.parse(req)
             dist = working_set.find(req)
+            # entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
                 entry_points.append(
                     (name, entry_point.module_name,
                      '.'.join(entry_point.attrs))
                     )
+            # distutils scripts
+            if os.path.isdir(dist.location):
+                # TODO: what about zipped eggs?
+                scripts_dir = os.path.join(dist.location, 'EGG-INFO', 'scripts')
+                if os.path.exists(scripts_dir):
+                    for name in os.listdir(scripts_dir):
+                        distutils_scripts.append(
+                            (name, os.path.join(scripts_dir, name)))
         else:
             entry_points.append(req)
 
@@ -955,6 +964,23 @@ def scripts(reqs, working_set, executable, dest,
         generated.extend(
             _script(module_name, attrs, spath, sname, executable, arguments,
                     initialization, rpsetup)
+            )
+
+    # TODO: integrate distutils_scripts
+    for name, full_script_path in distutils_scripts:
+        if scripts is not None:
+            sname = scripts.get(name)
+            if sname is None:
+                continue
+        else:
+            sname = name
+
+        sname = os.path.join(dest, sname)
+        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
+
+        generated.extend(
+            _distutils_script(spath, sname, full_script_path,
+                              executable, initialization, rpsetup)
             )
 
     if interpreter:
@@ -1027,10 +1053,6 @@ base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 
 def _script(module_name, attrs, path, dest, executable, arguments,
             initialization, rsetup):
-    generated = []
-    script = dest
-    if is_win32:
-        dest += '-script.py'
 
     contents = script_template % dict(
         python = _safe_arg(executable),
@@ -1041,6 +1063,28 @@ def _script(module_name, attrs, path, dest, executable, arguments,
         initialization = initialization,
         relative_paths_setup = rsetup,
         )
+    return _create_script(contents, dest)
+
+
+def _distutils_script(path, dest, original_file, executable, initialization, rsetup):
+
+    original_content = "TODO, strip first line from original_file"
+    contents = distutils_script_template % dict(
+        python = _safe_arg(executable),
+        path = path,
+        initialization = initialization,
+        relative_paths_setup = rsetup,
+        original_content = original_content
+        )
+    return _create_script(contents, dest)
+
+
+def _create_script(contents, dest):
+    generated = []
+    script = dest
+    if is_win32:
+        dest += '-script.py'
+
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
     if is_win32:
@@ -1064,6 +1108,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     generated.append(dest)
     return generated
 
+
 if is_jython and jython_os_name == 'linux':
     script_header = '#!/usr/bin/env %(python)s'
 else:
@@ -1082,6 +1127,18 @@ import %(module_name)s
 
 if __name__ == '__main__':
     %(module_name)s.%(attrs)s(%(arguments)s)
+'''
+
+distutils_script_template = script_header + '''\
+
+%(relative_paths_setup)s
+import sys
+sys.path[0:0] = [
+  %(path)s,
+  ]
+%(initialization)s
+
+%(original_content)s
 '''
 
 
