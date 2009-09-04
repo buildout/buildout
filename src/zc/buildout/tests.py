@@ -2685,6 +2685,15 @@ def create_sample_eggs(test, executable=sys.executable):
             )
         zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
+        write(
+            tmp, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='du_zipped', zip_safe=True, version='1.0', "
+            "scripts=['distutilsscript'],"
+            "py_modules=['eggrecipedemoneeded'])\n"
+            )
+        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+
         os.remove(os.path.join(tmp, 'distutilsscript'))
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
 

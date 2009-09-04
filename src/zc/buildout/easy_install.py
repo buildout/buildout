@@ -33,6 +33,7 @@ import subprocess
 import sys
 import tempfile
 import zc.buildout
+import zipfile
 import zipimport
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
@@ -939,18 +940,26 @@ def scripts(reqs, working_set, executable, dest,
                     (name, entry_point.module_name,
                      '.'.join(entry_point.attrs))
                     )
-            # "old-style" distutils scripts
+            # The metadata on "old-style" distutils scripts is not retained by
+            # distutils/setuptools, except by placing the original scripts in
+            # /EGG-INFO/scripts/.
             if os.path.isdir(dist.location):
-                # The metadata on scripts is not retained by
-                # distutils/setuptools, except by placing the original scripts
-                # in /EGG-INFO/scripts/. os.listdir() is used to detect them.
-                # Zipped eggs would need unpacking for this to work, which is
-                # too resource intensive, so zipped eggs are not supported.
+                # Unzipped egg: use os.listdir() to detect possible scripts.
                 scripts_dir = os.path.join(dist.location, 'EGG-INFO', 'scripts')
                 if os.path.exists(scripts_dir):
                     for name in os.listdir(scripts_dir):
                         distutils_scripts.append(
                             (name, os.path.join(scripts_dir, name)))
+            else:
+                # Zipped egg: use zipfile to detect possible scripts.
+                zipped = zipfile.ZipFile(dist.location)
+                for filepath in zipped.namelist():
+                    if filepath.startswith('EGG-INFO/scripts'):
+                        name = os.path.basename(filepath)
+                        fd, tmp_script = tempfile.mkstemp()
+                        os.write(fd, zipped.read(filepath))
+                        os.close(fd)
+                        distutils_scripts.append((name, tmp_script))
         else:
             entry_points.append(req)
 

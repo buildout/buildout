@@ -863,8 +863,8 @@ Installing scripts
 
    If a distribution doesn't use setuptools, it may not declare it's entry
    points. In that case, you can specify entry points in the recipe data.
-   Buildout *does* detect distutils-style scripts without an entry point in
-   case the egg is unzipped and will generate a script for them when found.
+   Buildout *does* detect distutils-style scripts without an entry point and
+   will generate a script for them when found.
   
 Script initialization
 =====================
