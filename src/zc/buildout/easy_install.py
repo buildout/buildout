@@ -948,18 +948,18 @@ def scripts(reqs, working_set, executable, dest,
                 scripts_dir = os.path.join(dist.location, 'EGG-INFO', 'scripts')
                 if os.path.exists(scripts_dir):
                     for name in os.listdir(scripts_dir):
+                        contents = open(os.path.join(scripts_dir, name)
+                                        ).read()
                         distutils_scripts.append(
-                            (name, os.path.join(scripts_dir, name)))
+                            (name, contents))
             else:
                 # Zipped egg: use zipfile to detect possible scripts.
                 zipped = zipfile.ZipFile(dist.location)
                 for filepath in zipped.namelist():
                     if filepath.startswith('EGG-INFO/scripts'):
                         name = os.path.basename(filepath)
-                        fd, tmp_script = tempfile.mkstemp()
-                        os.write(fd, zipped.read(filepath))
-                        os.close(fd)
-                        distutils_scripts.append((name, tmp_script))
+                        contents = zipped.read(filepath)
+                        distutils_scripts.append((name, contents))
         else:
             entry_points.append(req)
 
@@ -979,7 +979,7 @@ def scripts(reqs, working_set, executable, dest,
                     initialization, rpsetup)
             )
 
-    for name, full_script_path in distutils_scripts:
+    for name, contents in distutils_scripts:
         if scripts is not None:
             sname = scripts.get(name)
             if sname is None:
@@ -991,7 +991,7 @@ def scripts(reqs, working_set, executable, dest,
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
 
         generated.extend(
-            _distutils_script(spath, sname, full_script_path,
+            _distutils_script(spath, sname, contents,
                               executable, initialization, rpsetup)
             )
 
@@ -1081,9 +1081,10 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     return _create_script(contents, dest)
 
 
-def _distutils_script(path, dest, original_file, executable, initialization, rsetup):
+def _distutils_script(path, dest, script_content, executable,
+                      initialization, rsetup):
 
-    lines = open(original_file).readlines()
+    lines = script_content.splitlines(True)
     if not ('#!' in lines[0]) and ('python' in lines[0]):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
