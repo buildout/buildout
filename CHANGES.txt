@@ -6,6 +6,9 @@ Change History
 
 Bugs fixed:
 
+- Distutils-style scripts are also installed now (for instance pyflakes' and
+  docutils' scripts).  https://bugs.launchpad.net/zc.buildout/+bug/422724
+
 - Incrementing didn't work properly when extending multiple files.
   https://bugs.launchpad.net/zc.buildout/+bug/421022
 
