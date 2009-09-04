@@ -935,7 +935,15 @@ python interpreter.  Buildout does the same, but additionally also adds the
 sys.path like for the console_scripts:
 
     >>> cat(distbin, 'distutilsscript')
-    TODO
+    #!/usr/local/bin/python2.4
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/distutilsscriptdir/other-1.0-pyN.N.egg',
+      ]
+    <BLANKLINE>
+    <BLANKLINE>
+    print "distutils!"
 
 
 Handling custom build options for extensions provided in source distributions

@@ -966,7 +966,6 @@ def scripts(reqs, working_set, executable, dest,
                     initialization, rpsetup)
             )
 
-    # TODO: integrate distutils_scripts
     for name, full_script_path in distutils_scripts:
         if scripts is not None:
             sname = scripts.get(name)
@@ -989,6 +988,7 @@ def scripts(reqs, working_set, executable, dest,
         generated.extend(_pyscript(spath, sname, executable, rpsetup))
 
     return generated
+
 
 def _relative_path_and_setup(sname, path, relative_paths):
     if relative_paths:
@@ -1019,6 +1019,7 @@ def _relative_depth(common, path):
         path = dirname
     return n
 
+
 def _relative_path(common, path):
     r = []
     while 1:
@@ -1031,6 +1032,7 @@ def _relative_path(common, path):
         path = dirname
     r.reverse()
     return os.path.join(*r)
+
 
 def _relativitize(path, script, relative_paths):
     if path == script:
@@ -1068,7 +1070,12 @@ def _script(module_name, attrs, path, dest, executable, arguments,
 
 def _distutils_script(path, dest, original_file, executable, initialization, rsetup):
 
-    original_content = "TODO, strip first line from original_file"
+    lines = open(original_file).readlines()
+    if not ('#!' in lines[0]) and ('python' in lines[0]):
+        # The script doesn't follow distutil's rules.  Ignore it.
+        return []
+    original_content = ''.join(lines[1:])
+    # TODO: does this work OK with non-ascii characters?
     contents = distutils_script_template % dict(
         python = _safe_arg(executable),
         path = path,
