@@ -86,8 +86,8 @@ path. If you run it with a script and script arguments, the script
 will run with the egg in its path.  Of course, you can specify as many
 eggs as you want in the eggs option.
 
-If the egg provides any scripts (console_scripts entry points), those
-will be installed in your bin directory too.
+If the egg provides any scripts (console_scripts entry points or old-style
+distutils scripts), those will be installed in your bin directory too.
 
 Work on a package
 =================

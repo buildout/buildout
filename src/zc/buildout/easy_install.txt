@@ -945,6 +945,9 @@ sys.path like for the console_scripts:
     <BLANKLINE>
     print "distutils!"
 
+Due to the nature of distutils scripts, buildout cannot pass arguments as
+there's no specific method to pass them to.
+
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------

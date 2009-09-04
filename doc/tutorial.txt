@@ -861,9 +861,10 @@ Installing scripts
    If any of the named eggs have ``console_script`` entry
    points, then scripts will be generated for the entry points.
 
-   If a distribution doesn't use setuptools, it may not declare it's
-   entry points. In that case, you can specify entry points in the
-   recipe data.
+   If a distribution doesn't use setuptools, it may not declare it's entry
+   points. In that case, you can specify entry points in the recipe data.
+   Buildout *does attempt* to detect distutils-style scripts without an entry
+   point and will generate a script for them when found.
   
 Script initialization
 =====================
