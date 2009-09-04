@@ -932,16 +932,20 @@ def scripts(reqs, working_set, executable, dest,
         if isinstance(req, str):
             req = pkg_resources.Requirement.parse(req)
             dist = working_set.find(req)
-            # entry points
+            # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
                 entry_points.append(
                     (name, entry_point.module_name,
                      '.'.join(entry_point.attrs))
                     )
-            # distutils scripts
+            # "old-style" distutils scripts
             if os.path.isdir(dist.location):
-                # TODO: what about zipped eggs?
+                # The metadata on scripts is not retained by
+                # distutils/setuptools, except by placing the original scripts
+                # in /EGG-INFO/scripts/. os.listdir() is used to detect them.
+                # Zipped eggs would need unpacking for this to work, which is
+                # too resource intensive, so zipped eggs are not supported.
                 scripts_dir = os.path.join(dist.location, 'EGG-INFO', 'scripts')
                 if os.path.exists(scripts_dir):
                     for name in os.listdir(scripts_dir):
@@ -1075,7 +1079,6 @@ def _distutils_script(path, dest, original_file, executable, initialization, rse
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
     original_content = ''.join(lines[1:])
-    # TODO: does this work OK with non-ascii characters?
     contents = distutils_script_template % dict(
         python = _safe_arg(executable),
         path = path,

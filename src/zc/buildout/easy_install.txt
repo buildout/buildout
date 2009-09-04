@@ -929,10 +929,10 @@ Buildout also installs those:
     >>> ls(distbin)
     -  distutilsscript
 
-Distutils copies the specified script files verbatim, apart from a line at the
-top that looks like ``#!/usr/bin/python``, which gets replaced by the actual
-python interpreter.  Buildout does the same, but additionally also adds the
-sys.path like for the console_scripts:
+Distutils copies the script files verbatim, apart from a line at the top that
+looks like ``#!/usr/bin/python``, which gets replaced by the actual python
+interpreter.  Buildout does the same, but additionally also adds the sys.path
+like for the console_scripts:
 
     >>> cat(distbin, 'distutilsscript')
     #!/usr/local/bin/python2.4
@@ -948,6 +948,9 @@ sys.path like for the console_scripts:
 Due to the nature of distutils scripts, buildout cannot pass arguments as
 there's no specific method to pass them to.
 
+A second restriction is that scripts are only detected if the eggs are
+unzipped.  Unzipping all zipped eggs for detecting old-style distutils scripts
+is a bit wasteful.
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
