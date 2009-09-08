@@ -944,7 +944,7 @@ def scripts(reqs, working_set, executable, dest,
             # /EGG-INFO/scripts/.
             if dist.metadata_isdir('scripts'):
                 for name in dist.metadata_listdir('scripts'):
-                    contents = dist.get_metadata('scripts/%s' % name)
+                    contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
         else:
             entry_points.append(req)
