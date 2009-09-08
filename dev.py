@@ -57,4 +57,4 @@ if is_jython:
     # Jython needs the script to be called twice via sys.executable
     assert subprocess.Popen([sys.executable] + [bin_buildout]).wait() == 0
 
-sys.exit(subprocess.Popen([sys.executable] + [bin_buildout]).wait())
+sys.exit(subprocess.Popen(bin_buildout).wait())
