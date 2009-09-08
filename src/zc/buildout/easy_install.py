@@ -33,7 +33,6 @@ import subprocess
 import sys
 import tempfile
 import zc.buildout
-import zipfile
 import zipimport
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
@@ -943,23 +942,10 @@ def scripts(reqs, working_set, executable, dest,
             # The metadata on "old-style" distutils scripts is not retained by
             # distutils/setuptools, except by placing the original scripts in
             # /EGG-INFO/scripts/.
-            if os.path.isdir(dist.location):
-                # Unzipped egg: use os.listdir() to detect possible scripts.
-                scripts_dir = os.path.join(dist.location, 'EGG-INFO', 'scripts')
-                if os.path.exists(scripts_dir):
-                    for name in os.listdir(scripts_dir):
-                        contents = open(os.path.join(scripts_dir, name)
-                                        ).read()
-                        distutils_scripts.append(
-                            (name, contents))
-            else:
-                # Zipped egg: use zipfile to detect possible scripts.
-                zipped = zipfile.ZipFile(dist.location)
-                for filepath in zipped.namelist():
-                    if filepath.startswith('EGG-INFO/scripts'):
-                        name = os.path.basename(filepath)
-                        contents = zipped.read(filepath)
-                        distutils_scripts.append((name, contents))
+            if dist.metadata_isdir('scripts'):
+                for name in dist.metadata_listdir('scripts'):
+                    contents = dist.get_metadata('scripts/%s' % name)
+                    distutils_scripts.append((name, contents))
         else:
             entry_points.append(req)
 
