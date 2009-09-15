@@ -523,6 +523,21 @@ False
 True
 
 
+Regressions
+-----------
+
+MD5 checksum calculation needs to be reliable on all supported systems, which
+requires text files to be treated as binary to avoid implicit line-ending
+conversions:
+
+>>> text = 'First line of text.\r\nSecond line.\r\n'
+>>> f = open(join(server_data, 'foo.txt'), 'wb')
+>>> f.write(text)
+>>> f.close()
+>>> path, is_temp = Download()(server_url+'foo.txt', md5(text).hexdigest())
+>>> remove(path)
+
+
 Clean up
 --------
 
