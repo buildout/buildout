@@ -9,6 +9,8 @@ Bugs fixed:
 - Incrementing didn't work properly when extending multiple files.
   https://bugs.launchpad.net/zc.buildout/+bug/421022
 
+- The download API computed MD5 checksums of text files wrong on Windows.
+
 1.4.1 (2009-08-27)
 ==================
 

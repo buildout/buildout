@@ -223,7 +223,7 @@ def check_md5sum(path, md5sum):
     if md5sum is None:
         return True
 
-    f = open(path)
+    f = open(path, 'rb')
     checksum = md5()
     try:
         chunk = f.read(2**16)
