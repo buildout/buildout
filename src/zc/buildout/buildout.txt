@@ -716,7 +716,8 @@ all key-value pairs are displayed, sorted alphabetically, along with
 the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE,
 COMMAND_LINE_VALUE).
 
-    >>> print system(buildout+ ' annotate'), # doctest: +ELLIPSIS
+    >>> print system(buildout+ ' annotate'),
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
@@ -1156,7 +1157,7 @@ Annotated sections output shows which files are responsible for which
 operations.
 
     >>> print system(os.path.join('bin', 'buildout') + ' annotate'),
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
@@ -1191,7 +1192,6 @@ operations.
     [part4]
     option= h1 h2
         /sample-buildout/extension1.cfg
-    ...
 
 Cleanup.
 
@@ -1902,6 +1902,7 @@ the buildout in the usual way:
     d  recipes
 
     >>> cat(sample_buildout, '.installed.cfg')
+    ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d1 d2 d3
@@ -1987,6 +1988,7 @@ were created.
 The .installed.cfg is only updated for the recipes that ran:
 
     >>> cat(sample_buildout, '.installed.cfg')
+    ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d1 d2 d3 d4
@@ -2510,8 +2512,7 @@ buildout installed option:
     d  recipes
 
 
-Note that there will be no installation database if there are no
-parts:
+Note that there will be no installation database if there are no parts:
 
     >>> write('buildout.cfg',
     ... """
