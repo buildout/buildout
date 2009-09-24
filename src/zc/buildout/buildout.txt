@@ -575,7 +575,8 @@ When we rerun the buildout:
 
 .. Wait for the file to really disappear. My linux is weird.
 
-    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'))
+    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
+    ...            timeout=100)
 
 we get the same error, but we don't get the directory left behind:
 
