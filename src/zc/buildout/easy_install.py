@@ -67,6 +67,7 @@ buildout_and_setuptools_path = [
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
 
+
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
     """
@@ -94,6 +95,7 @@ def _get_version(executable):
         return version
 
 FILE_SCHEME = re.compile('file://', re.I).match
+
 
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
@@ -138,6 +140,7 @@ else:
 _easy_install_cmd = _safe_arg(
     'from setuptools.command.easy_install import main; main()'
     )
+
 
 class Installer:
 
@@ -1164,6 +1167,7 @@ sys.argv[0] = %(setup)r
 execfile(%(setup)r)
 """
 
+
 class VersionConflict(zc.buildout.UserError):
 
     def __init__(self, err, ws):
@@ -1180,6 +1184,7 @@ class VersionConflict(zc.buildout.UserError):
             if req in dist.requires():
                 result.append("but %s requires %r." % (dist, str(req)))
         return '\n'.join(result)
+
 
 class MissingDistribution(zc.buildout.UserError):
 
