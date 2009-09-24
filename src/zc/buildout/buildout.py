@@ -52,11 +52,11 @@ if is_jython:
     import subprocess
 
 class MissingOption(zc.buildout.UserError, KeyError):
-    """A required option was missing
+    """A required option was missing.
     """
 
 class MissingSection(zc.buildout.UserError, KeyError):
-    """A required section is missinh
+    """A required section is missing.
     """
 
     def __str__(self):
@@ -145,8 +145,8 @@ class Buildout(UserDict.DictMixin):
                     print 'Creating %r.' % config_file
                     open(config_file, 'w').write('[buildout]\nparts = \n')
                 elif command == 'setup':
-                    # Sigh. this model of a buildout nstance
-                    # with methods is breaking down :(
+                    # Sigh. This model of a buildout instance
+                    # with methods is breaking down. :(
                     config_file = None
                     data['buildout']['directory'] = ('.', 'COMPUTED_VALUE')
                 else:
@@ -334,7 +334,7 @@ class Buildout(UserDict.DictMixin):
         return os.path.join(self._buildout_dir, name)
 
     def bootstrap(self, args):
-        __doing__ = 'Bootstraping.'
+        __doing__ = 'Bootstrapping.'
 
         self._setup_directories()
 
@@ -904,7 +904,7 @@ class Buildout(UserDict.DictMixin):
         if not args:
             raise zc.buildout.UserError(
                 "The setup command requires the path to a setup script or \n"
-                "directory containing a setup script, and it's arguments."
+                "directory containing a setup script, and its arguments."
                 )
         setup = args.pop(0)
         if os.path.isdir(setup):
