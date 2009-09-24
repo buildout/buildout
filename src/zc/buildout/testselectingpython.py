@@ -24,14 +24,14 @@ else:
 __test__ = dict(
     test_selecting_python_via_easy_install=
     """\
-    
-We can specify an specific Python executable.
+
+We can specify a specific Python executable.
 
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server],
     ...     index='http://www.python.org/pypi/',
-    ...     always_unzip=True, executable= other_executable)
+    ...     always_unzip=True, executable=other_executable)
 
     >>> ls(dest)
     d  demo-0.3-py%(other_version)s.egg
