@@ -96,7 +96,7 @@ The demo egg defined a script, but we didn't get one installed:
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
-If we want scripts provided by eggs to be installed, we should use the 
+If we want scripts provided by eggs to be installed, we should use the
 scripts recipe:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -135,7 +135,7 @@ entry-points
 
    This option is useful when working with distributions that don't
    declare entry points, such as distributions not written to work
-   with setuptools. 
+   with setuptools.
 
    Examples can be seen in the section "Specifying entry points" below.
 
@@ -271,7 +271,7 @@ We didn't get an update for demo:
     -  setuptools-0.6-py2.3.egg
     -  zc.buildout-1.0-py2.3.egg
 
-If we run the buildout on the default online and newest modes, 
+If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
 
     >>> print system(buildout),
