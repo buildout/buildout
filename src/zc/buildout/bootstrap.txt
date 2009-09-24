@@ -57,7 +57,7 @@ Let's try with an unknown version::
     ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
     ...
     X
-    No local packages or download links found for zc.buildout==UNKNOWN
+    No local packages or download links found for zc.buildout==UNKNOWN...
     error: Could not find suitable distribution for Requirement.parse('zc.buildout==UNKNOWN')
     ...
 
@@ -120,4 +120,71 @@ Let's make sure the generated `buildout` script uses it::
         zc.buildout.buildout.main()
     <BLANKLINE>
 
+You can specify a location of ez_setup.py, so you can rely on a local or remote
+location.  We'll write our own ez_setup.py that we will also use to test some
+other bootstrap options.
 
+    >>> write('ez_setup.py', '''\
+    ... def use_setuptools(**kwargs):
+    ...     import sys, pprint
+    ...     pprint.pprint(kwargs, width=40)
+    ...     sys.exit()
+    ... ''')
+    >>> print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --ez_setup-source=./ez_setup.py')
+    ... # doctest: +ELLIPSIS
+    {'download_delay': 0,
+     'to_dir': '...'}
+    <BLANKLINE>
+
+You can also pass a download-cache, and a place in which eggs should be stored
+(they are normally stored in a temporary directory).
+
+    >>> print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --ez_setup-source=./ez_setup.py '+
+    ...     '--download-base=./download-cache --eggs=eggs')
+    ... # doctest: +ELLIPSIS
+    {'download_base': '/sample/download-cache/',
+     'download_delay': 0,
+     'to_dir': '/sample/eggs'}
+    <BLANKLINE>
+
+Here's the entire help text.
+
+    >>> print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --help'),
+    ... # doctest: +ELLIPSIS
+    Bootstrap a buildout-based project
+    <BLANKLINE>
+    Simply run this script in a directory containing a buildout.cfg.
+    The script accepts buildout command-line options, so you can
+    use the -c option to specify an alternate configuration file.
+    <BLANKLINE>
+    ...
+    <BLANKLINE>
+    This script recognizes the following options itself.  The first option it
+    encounters that is not one of these will cause the script to stop parsing
+    options and pass the rest on to buildout.  Therefore, if you want to use
+    any of the following options *and* buildout command-line options like
+    -c, first use the following options, and then use the buildout options.
+    <BLANKLINE>
+    Options:
+      --version=ZC_BUILDOUT_VERSION
+                Specify a version number of the zc.buildout to use
+      --ez_setup-source=URL_OR_FILE
+                Specify a URL or file location for the ez_setup file.
+                Defaults to
+                http://peak.telecommunity.com/dist/ez_setup.py
+      --download-base=URL_OR_DIRECTORY
+                Specify a URL or directory for downloading setuptools and
+                zc.buildout.  Defaults to PyPI.
+      --eggs=DIRECTORY
+                Specify a directory for storing eggs.  Defaults to a temporary
+                directory that is deleted when the bootstrap script completes.
+    <BLANKLINE>
+    By using --ez_setup-source and --download-base to point to local resources,
+    you can keep this script from going over the network.
+    <BLANKLINE>
