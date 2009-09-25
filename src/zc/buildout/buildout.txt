@@ -2686,3 +2686,12 @@ We see that our extension is loaded and executed:
     ext ['buildout']
     Develop: '/sample-bootstrapped/demo'
     unload ['buildout']
+
+.. [#future_recipe_methods] In the future, additional methods may be
+       added. Older recipes with fewer methods will still be
+       supported.
+
+.. [#packaging_info] If we wanted to create a distribution from this
+       package, we would need to specify much more information.  See the
+       `setuptools documentation
+       <http://peak.telecommunity.com/DevCenter/setuptools>`_.
