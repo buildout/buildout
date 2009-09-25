@@ -2980,6 +2980,9 @@ def test_suite():
                    '-q develop -mxN -d /sample-buildout/develop-eggs'
                 ),
                (re.compile(r'^[*]...'), '...'),
+               # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
+               (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
+                "Unused options for buildout: 'scripts' 'eggs'."),
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),

@@ -25,8 +25,8 @@ class Eggs(object):
         self.buildout = buildout
         self.name = name
         self.options = options
-        links = options.get('find-links',
-                            buildout['buildout'].get('find-links'))
+        b_options = buildout['buildout']
+        links = options.get('find-links', b_options['find-links'])
         if links:
             links = links.split()
             options['find-links'] = '\n'.join(links)
@@ -34,25 +34,25 @@ class Eggs(object):
             links = ()
         self.links = links
 
-        index = options.get('index', buildout['buildout'].get('index'))
+        index = options.get('index', b_options.get('index'))
         if index is not None:
             options['index'] = index
         self.index = index
 
-        allow_hosts = buildout['buildout'].get('allow-hosts', '*')
+        allow_hosts = b_options['allow-hosts']
         allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
                                if host.strip()!=''])
         self.allow_hosts = allow_hosts
 
-        options['eggs-directory'] = buildout['buildout']['eggs-directory']
+        options['eggs-directory'] = b_options['eggs-directory']
         options['_e'] = options['eggs-directory'] # backward compat.
-        options['develop-eggs-directory'
-                ] = buildout['buildout']['develop-eggs-directory']
+        options['develop-eggs-directory'] = b_options['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
 
-        assert options.get('unzip') in ('true', 'false', None)
+        # verify that this is None, 'true' or 'false'
+        get_bool(options, 'unzip')
 
-        python = options.get('python', buildout['buildout']['python'])
+        python = options.get('python', b_options['python'])
         options['executable'] = buildout[python]['executable']
 
     def working_set(self, extra=()):
@@ -61,6 +61,7 @@ class Eggs(object):
         This is intended for reuse by similar recipes.
         """
         options = self.options
+        b_options = self.buildout['buildout']
 
         distributions = [
             r.strip()
@@ -76,9 +77,8 @@ class Eggs(object):
                 )
         else:
             kw = {}
-            if options.get('unzip'):
+            if 'unzip' in options:
                 kw['always_unzip'] = get_bool(options, 'unzip')
-
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
                 links=self.links,

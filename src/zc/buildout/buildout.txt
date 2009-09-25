@@ -576,7 +576,7 @@ When we rerun the buildout:
 .. Wait for the file to really disappear. My linux is weird.
 
     >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
-    ...            timeout=100)
+    ...            timeout=200)
 
 we get the same error, but we don't get the directory left behind:
 
@@ -724,6 +724,10 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
+    allow-hosts= *
+        DEFAULT_VALUE
+    allow-picked-versions= true
+        DEFAULT_VALUE
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
@@ -736,17 +740,31 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
+    find-links=
+        DEFAULT_VALUE
+    install-from-cache= false
+        DEFAULT_VALUE
     installed= .installed.cfg
         DEFAULT_VALUE
     log-format=
         DEFAULT_VALUE
     log-level= INFO
         DEFAULT_VALUE
+    newest= true
+        DEFAULT_VALUE
+    offline= false
+        DEFAULT_VALUE
     parts= data-dir
         /sample-buildout/buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
+    prefer-final= false
+        DEFAULT_VALUE
     python= buildout
+        DEFAULT_VALUE
+    unzip= false
+        DEFAULT_VALUE
+    use-dependency-links= true
         DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
@@ -2194,17 +2212,21 @@ database is shown.
 
     >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools'.
-    We have a develop egg: zc.buildout 1.0.0.
+    We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    Picked: setuptools = V.V
     <BLANKLINE>
     Configuration data:
     [buildout]
+    allow-hosts = *
+    allow-picked-versions = true
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
-    executable = /usr/local/bin/python2.3
+    executable = python
+    find-links =
+    install-from-cache = false
     installed = /sample-buildout/.installed.cfg
     log-format =
     log-level = INFO
@@ -2212,13 +2234,47 @@ database is shown.
     offline = false
     parts =
     parts-directory = /sample-buildout/parts
+    prefer-final = false
     python = buildout
+    unzip = false
+    use-dependency-links = true
     verbosity = 20
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
+
+allow-hosts
+    On some environments the links visited by `zc.buildout` can be forbidden by
+    paranoid firewalls. These URLs might be in the chain of links visited by
+    `zc.buildout` as defined by buildout's `find-links` option, or as defined
+    by various eggs in their `url`, `download_url`, `dependency_links` metadata.
+
+    The fact that package_index works like a spider and might visit links and
+    go to other locations makes this even harder.
+
+    The `allow-hosts` option provides a way to prevent this, and
+    works exactly like the one provided in `easy_install`.
+
+    You can provide a list of allowed host, together with wildcards::
+
+        [buildout]
+        ...
+
+        allow-hosts =
+            *.python.org
+            example.com
+
+    All URLs that does not match these hosts will not be visited.
+
+allow-picked-versions
+    By default, the buildout will choose the best match for a given requirement
+    if the requirement is not specified precisely (for instance, using the
+    "versions" option.  This behavior corresponds to the
+    "allow-picked-versions" being set to its default value, "true".  If
+    "allow-picked-versions" is "false," instead of picking the best match,
+    buildout will raise an error.  This helps enforce repeatability.
 
 bin-directory
    The directory path where scripts are written.  This can be a
@@ -2244,6 +2300,47 @@ executable
    The Python executable used to run the buildout.  See the python
    option below.
 
+find-links
+    You can specify more locations to search for distributions using the
+    `find-links` option. All locations specified will be searched for
+    distributions along with the package index as described before.
+
+    Locations can be urls::
+
+      [buildout]
+      ...
+      find-links = http://download.zope.org/distribution/
+
+    They can also be directories on disk::
+
+      [buildout]
+      ...
+      find-links = /some/path
+
+    Finally, they can also be direct paths to distributions::
+
+      [buildout]
+      ...
+      find-links = /some/path/someegg-1.0.0-py2.3.egg
+
+    Any number of locations can be specified in the `find-links` option::
+
+      [buildout]
+      ...
+      find-links =
+          http://download.zope.org/distribution/
+          /some/otherpath
+          /some/path/someegg-1.0.0-py2.3.egg
+
+install-from-cache
+    A download cache can be used as the basis of application source releases.
+    In an application source release, we want to distribute an application that
+    can be built without making any network accesses.  In this case, we
+    distribute a buildout with download cache and tell the buildout to install
+    from the download cache only, without making network accesses.  The
+    buildout install-from-cache option can be used to signal that packages
+    should be installed only from the download cache.
+
 installed
    The file path where information about the results of the previous
    buildout run is written.  This can be a relative path, which is
@@ -2257,11 +2354,50 @@ log-format
 log-level
    The log level before verbosity adjustment
 
+newest
+    By default buildout and recipes will try to find the newest versions of
+    distributions needed to satisfy requirements.  This can be very time
+    consuming, especially when incrementally working on setting up a buildout
+    or working on a recipe.  The buildout "newest" option can be used to to
+    suppress this.  If the "newest" option is set to false, then new
+    distributions won't be sought if an installed distribution meets
+    requirements.  The "newest" option can also be set to false using the -N
+    command-line option.  See also the "offline" option.
+
+offline
+    The "offline" option goes a bit further than the "newest" option.  If the
+    buildout "offline" option is given a value of "true", the buildout and
+    recipes that are aware of the option will avoid doing network access.  This
+    is handy when running the buildout when not connected to the internet.  It
+    also makes buildouts run much faster. This option is typically set using
+    the buildout -o option.
+
 parts
    A white space separated list of parts to be installed.
 
 parts-directory
    A working directory that parts can used to store data.
+
+prefer-final
+    Currently, when searching for new releases, the newest available
+    release is used.  This isn't usually ideal, as you may get a
+    development release or alpha releases not ready to be widely used.
+    You can request that final releases be preferred using the prefer
+    final option in the buildout section::
+
+      [buildout]
+      ...
+      prefer-final = true
+
+    When the prefer-final option is set to true, then when searching for
+    new releases, final releases are preferred.  If there are final
+    releases that satisfy distribution requirements, then those releases
+    are used even if newer non-final releases are available.  The buildout
+    prefer-final option can be used to override this behavior.
+
+    In buildout version 2, final releases will be preferred by default.
+    You will then need to use a false value for prefer-final to get the
+    newest releases.
 
 python
    The name of a section containing information about the default
@@ -2272,6 +2408,46 @@ python
    point to a section with an executable option giving the path to a
    Python executable.  By default, the buildout section defines the
    default Python as the Python used to run the buildout.
+
+unzip
+    By default, zc.buildout doesn't unzip zip-safe eggs ("unzip = false").
+    This follows the policy followed by setuptools itself.  Experience shows
+    this policy to to be inconvenient.  Zipped eggs make debugging more
+    difficult and often import more slowly.  You can include an unzip option in
+    the buildout section to change the default unzipping policy ("unzip =
+    true").
+
+use-dependency-links
+    By default buildout will obey the setuptools dependency_links metadata
+    when it looks for dependencies. This behavior can be controlled with
+    the use-dependency-links buildout option::
+
+      [buildout]
+      ...
+      use-dependency-links = false
+
+    The option defaults to true. If you set it to false, then dependency
+    links are only looked for in the locations specified by find-links.
+
+unzip
+    By default, zc.buildout doesn't unzip zip-safe eggs ("unzip = false").
+    This follows the policy followed by setuptools itself.  Experience shows
+    this policy to to be inconvenient.  Zipped eggs make debugging more
+    difficult and often import more slowly.  You can include an unzip option in
+    the buildout section to change the default unzipping policy ("unzip =
+    true").
+
+use-dependency-links
+    By default buildout will obey the setuptools dependency_links metadata
+    when it looks for dependencies. This behavior can be controlled with
+    the use-dependency-links buildout option::
+
+      [buildout]
+      ...
+      use-dependency-links = false
+
+    The option defaults to true. If you set it to false, then dependency
+    links are only looked for in the locations specified by find-links.
 
 verbosity
    A log-level adjustment.  Typically, this is set via the -q and -v
@@ -2351,48 +2527,6 @@ if there isn't a configuration file:
     Generated script '/sample-bootstrapped2/bin/buildout'.
 
 
-Newest and Offline Modes
-------------------------
-
-By default buildout and recipes will try to find the newest versions
-of distributions needed to satisfy requirements.  This can be very
-time consuming, especially when incrementally working on setting up a
-buildout or working on a recipe.  The buildout newest option can be
-used to to suppress this.  If the newest option is set to false, then
-new distributions won't be sought if an installed distribution meets
-requirements.  The newest option can be set to false using the -N
-command-line option.
-
-The offline option goes a bit further.  If the buildout offline option
-is given a value of "true", the buildout and recipes that are aware of
-the option will avoid doing network access.  This is handy when
-running the buildout when not connected to the internet.  It also
-makes buildouts run much faster. This option is typically set using
-the buildout -o option.
-
-Preferring Final Releases
--------------------------
-
-Currently, when searching for new releases, the newest available
-release is used.  This isn't usually ideal, as you may get a
-development release or alpha releases not ready to be widely used.
-You can request that final releases be preferred using the prefer
-final option in the buildout section::
-
-  [buildout]
-  ...
-  prefer-final = true
-
-When the prefer-final option is set to true, then when searching for
-new releases, final releases are preferred.  If there are final
-releases that satisfy distribution requirements, then those releases
-are used even if newer non-final releases are available.  The buildout
-prefer-final option can be used to override this behavior.
-
-In buildout version 2, final releases will be preferred by default.
-You will then need to use a false value for prefer-final to get the
-newest releases.
-
 Finding distributions
 ---------------------
 
@@ -2411,49 +2545,7 @@ distributions. The latest version of the distribution that meets the
 requirements of the buildout will always be used.
 
 You can also specify more locations to search for distributions using
-the `find-links` option. All locations specified will be searched for
-distributions along with the package index as described before.
-
-Locations can be urls::
-
-  [buildout]
-  ...
-  find-links = http://download.zope.org/distribution/
-
-They can also be directories on disk::
-
-  [buildout]
-  ...
-  find-links = /some/path
-
-Finally, they can also be direct paths to distributions::
-
-  [buildout]
-  ...
-  find-links = /some/path/someegg-1.0.0-py2.3.egg
-
-Any number of locations can be specified in the `find-links` option::
-
-  [buildout]
-  ...
-  find-links =
-      http://download.zope.org/distribution/
-      /some/otherpath
-      /some/path/someegg-1.0.0-py2.3.egg
-
-Dependency links
-----------------
-
-By default buildout will obey the setuptools dependency_links metadata
-when it looks for dependencies. This behavior can be controlled with
-the use-dependency-links buildout option::
-
-  [buildout]
-  ...
-  use-dependency-links = false
-
-The option defaults to true. If you set it to false, then dependency
-links are only looked for in the locations specified by find-links.
+the `find-links` option. See its description above.
 
 Controlling the installation database
 -------------------------------------
@@ -2614,38 +2706,3 @@ We see that our extension is loaded and executed:
     ext ['buildout']
     Develop: '/sample-bootstrapped/demo'
     unload ['buildout']
-
-Allow hosts
------------
-
-On some environments the links visited by `zc.buildout` can be forbidden
-by paranoiac firewalls. These URL might be on the chain of links
-visited by `zc.buildout` wheter they are defined in the `find-links` option,
-wheter they are defined by various eggs in their `url`, `download_url`,
-`dependency_links` metadata.
-
-It is even harder to track that package_index works like a spider and
-might visit links and go to other location.
-
-The `allow-hosts` option provides a way to prevent this, and
-works exactly like the one provided in `easy_install`.
-
-You can provide a list of allowed host, together with wildcards::
-
-    [buildout]
-    ...
-
-    allow-hosts =
-        *.python.org
-        example.com
-
-All urls that does not match these hosts will not be visited.
-
-.. [#future_recipe_methods] In the future, additional methods may be
-       added. Older recipes with fewer methods will still be
-       supported.
-
-.. [#packaging_info] If we wanted to create a distribution from this
-       package, we would need specify much more information.  See the
-       `setuptools documentation
-       <http://peak.telecommunity.com/DevCenter/setuptools>`_.
