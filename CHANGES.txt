@@ -24,6 +24,10 @@ Bugs fixed:
 
 - The download API computed MD5 checksums of text files wrong on Windows.
 
+- The handling and documenting of default buildout options was normalized.
+  This means, among other things, that ``bin/buildout -vv`` and
+  ``bin/buildout annotate`` correctly list more of the options.
+
 1.4.1 (2009-08-27)
 ==================
 
