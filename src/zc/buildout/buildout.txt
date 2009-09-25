@@ -2429,26 +2429,6 @@ use-dependency-links
     The option defaults to true. If you set it to false, then dependency
     links are only looked for in the locations specified by find-links.
 
-unzip
-    By default, zc.buildout doesn't unzip zip-safe eggs ("unzip = false").
-    This follows the policy followed by setuptools itself.  Experience shows
-    this policy to to be inconvenient.  Zipped eggs make debugging more
-    difficult and often import more slowly.  You can include an unzip option in
-    the buildout section to change the default unzipping policy ("unzip =
-    true").
-
-use-dependency-links
-    By default buildout will obey the setuptools dependency_links metadata
-    when it looks for dependencies. This behavior can be controlled with
-    the use-dependency-links buildout option::
-
-      [buildout]
-      ...
-      use-dependency-links = false
-
-    The option defaults to true. If you set it to false, then dependency
-    links are only looked for in the locations specified by find-links.
-
 verbosity
    A log-level adjustment.  Typically, this is set via the -q and -v
    command-line options.
