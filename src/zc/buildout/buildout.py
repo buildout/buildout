@@ -807,7 +807,8 @@ class Buildout(UserDict.DictMixin):
         upgraded = []
         for project in 'zc.buildout', 'setuptools':
             req = pkg_resources.Requirement.parse(project)
-            if ws.find(req) != pkg_resources.working_set.find(req):
+            project_location = pkg_resources.working_set.find(req).location
+            if ws.find(req).location != project_location:
                 upgraded.append(ws.find(req))
 
         if not upgraded:
