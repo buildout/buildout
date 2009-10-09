@@ -6,6 +6,9 @@ Change History
 
 Bugs fixed:
 
+- While checking for new versions of setuptools and buildout itself,
+  compare requirement locations instead of requirement objects.
+
 - Incrementing didn't work properly when extending multiple files.
   https://bugs.launchpad.net/zc.buildout/+bug/421022
 
