@@ -6,7 +6,7 @@ Change History
 
 New Feature:
 
-- Added a --distribute option to the boostrap script, in order
+- Added a --distribute option to the bootstrap script, in order
   to use Distribute rather than Setuptools. By default, Setuptools
   is used.
 
