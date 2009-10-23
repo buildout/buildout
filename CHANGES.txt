@@ -4,6 +4,12 @@ Change History
 1.?.? (2008-0?-??)
 ==================
 
+New Feature:
+
+- Added a --distribute option to the boostrap script, in order
+  to use Distribute rather than Setuptools. By default, Setuptools
+  is used.
+
 Bugs fixed:
 
 - While checking for new versions of setuptools and buildout itself,
