@@ -178,3 +178,20 @@ Let's make sure the generated `buildout` script uses ``Distribute`` *and* ``zc.b
         zc.buildout.buildout.main()
     <BLANKLINE>
 
+Last, the -c option needs to work on bootstrap.py::
+
+    >>> conf_file = os.path.join(sample_buildout, 'other.cfg')
+    >>> f = open(conf_file, 'w')
+    >>> f.write('[buildout]\nparts=\n\n')
+    >>> f.close()
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py -c %s --distribute' % conf_file); print 'X' # doctest: +ELLIPSIS
+    ...
+    X
+    ...
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+
+
