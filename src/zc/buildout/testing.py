@@ -274,7 +274,7 @@ def buildoutSetUp(test):
 
 
     # Create the develop-eggs dir, which didn't get created the usual
-    # way due to thr trick above:
+    # way due to the trick above:
     os.mkdir('develop-eggs')
 
     def start_server(path):

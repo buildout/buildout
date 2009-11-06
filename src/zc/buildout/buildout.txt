@@ -575,7 +575,8 @@ When we rerun the buildout:
 
 .. Wait for the file to really disappear. My linux is weird.
 
-    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'))
+    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
+    ...            timeout=100)
 
 we get the same error, but we don't get the directory left behind:
 
@@ -710,13 +711,14 @@ characters, hyphens, and periods.
 Annotated sections
 ------------------
 
-When used with the `annotate` command, buildout displays annotated sections. 
+When used with the `annotate` command, buildout displays annotated sections.
 All sections are displayed, sorted alphabetically. For each section,
-all key-value pairs are displayed, sorted alphabetically, along with 
-the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE, 
+all key-value pairs are displayed, sorted alphabetically, along with
+the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE,
 COMMAND_LINE_VALUE).
 
-    >>> print system(buildout+ ' annotate'), # doctest: +ELLIPSIS
+    >>> print system(buildout+ ' annotate'),
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
@@ -736,7 +738,7 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     installed= .installed.cfg
         DEFAULT_VALUE
-    log-format= 
+    log-format=
         DEFAULT_VALUE
     log-level= INFO
         DEFAULT_VALUE
@@ -1156,7 +1158,7 @@ Annotated sections output shows which files are responsible for which
 operations.
 
     >>> print system(os.path.join('bin', 'buildout') + ' annotate'),
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
@@ -1169,7 +1171,7 @@ operations.
         /sample-buildout/base.cfg
     +=  /sample-buildout/extension1.cfg
     +=  /sample-buildout/extension2.cfg
-    recipe= 
+    recipe=
         /sample-buildout/base.cfg
     <BLANKLINE>
     [part2]
@@ -1177,7 +1179,7 @@ operations.
         /sample-buildout/base.cfg
     -=  /sample-buildout/extension1.cfg
     -=  /sample-buildout/extension2.cfg
-    recipe= 
+    recipe=
         /sample-buildout/base.cfg
     <BLANKLINE>
     [part3]
@@ -1185,13 +1187,12 @@ operations.
     c3 c4 c5
         /sample-buildout/base.cfg
     +=  /sample-buildout/extension1.cfg
-    recipe= 
+    recipe=
         /sample-buildout/base.cfg
     <BLANKLINE>
     [part4]
     option= h1 h2
         /sample-buildout/extension1.cfg
-    ...
 
 Cleanup.
 
@@ -1902,12 +1903,13 @@ the buildout in the usual way:
     d  recipes
 
     >>> cat(sample_buildout, '.installed.cfg')
+    ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d1 d2 d3
     <BLANKLINE>
     [debug]
-    __buildout_installed__ = 
+    __buildout_installed__ =
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     recipe = recipes:debug
     <BLANKLINE>
@@ -1987,12 +1989,13 @@ were created.
 The .installed.cfg is only updated for the recipes that ran:
 
     >>> cat(sample_buildout, '.installed.cfg')
+    ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = debug d1 d2 d3 d4
     <BLANKLINE>
     [debug]
-    __buildout_installed__ = 
+    __buildout_installed__ =
     __buildout_signature__ = recipes-PiIFiO8ny5yNZ1S3JfT0xg==
     recipe = recipes:debug
     <BLANKLINE>
@@ -2189,7 +2192,7 @@ database is shown.
     ... parts =
     ... """)
 
-    >>> print system(buildout+' -vv'),
+    >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
@@ -2203,11 +2206,11 @@ database is shown.
     eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
     installed = /sample-buildout/.installed.cfg
-    log-format = 
+    log-format =
     log-level = INFO
     newest = true
     offline = false
-    parts = 
+    parts =
     parts-directory = /sample-buildout/parts
     python = buildout
     verbosity = 20
@@ -2323,20 +2326,20 @@ If we have an existing buildout that already has a buildout.cfg, we'll
 normally use the bootstrap command instead of init.  It will complain
 if there isn't a configuration file:
 
-     >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
+    >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
 
-     >>> print system(buildout
-     ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-     ...              +' bootstrap'),
-     While:
-       Initializing.
-     Error: Couldn't open /sample-bootstrapped2/setup.cfg
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+    ...              +' bootstrap'),
+    While:
+      Initializing.
+    Error: Couldn't open /sample-bootstrapped2/setup.cfg
 
-     >>> write(sample_bootstrapped2, 'setup.cfg',
-     ... """
-     ... [buildout]
-     ... parts =
-     ... """)
+    >>> write(sample_bootstrapped2, 'setup.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
 
     >>> print system(buildout
     ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
@@ -2510,8 +2513,7 @@ buildout installed option:
     d  recipes
 
 
-Note that there will be no installation database if there are no
-parts:
+Note that there will be no installation database if there are no parts:
 
     >>> write('buildout.cfg',
     ... """
