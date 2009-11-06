@@ -42,7 +42,7 @@ class Eggs(object):
         allow_hosts = buildout['buildout'].get('allow-hosts', '*')
         allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
                                if host.strip()!=''])
-        self.allow_hosts = allow_hosts 
+        self.allow_hosts = allow_hosts
 
         options['eggs-directory'] = buildout['buildout']['eggs-directory']
         options['_e'] = options['eggs-directory'] # backward compat.
@@ -81,9 +81,9 @@ class Eggs(object):
 
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
-                links = self.links,
-                index = self.index, 
-                executable = options['executable'],
+                links=self.links,
+                index=self.index,
+                executable=options['executable'],
                 path=[options['develop-eggs-directory']],
                 newest=self.buildout['buildout'].get('newest') == 'true',
                 allow_hosts=self.allow_hosts,
@@ -115,7 +115,7 @@ class Scripts(Eggs):
 
 
         relative_paths = options.get(
-            'relative-paths', 
+            'relative-paths',
             buildout['buildout'].get('relative-paths', 'false')
             )
         if relative_paths == 'true':
@@ -150,7 +150,7 @@ class Scripts(Eggs):
                 reqs.append(parsed.groups())
 
             if get_bool(options, 'dependent-scripts'):
-                # generate scripts for all packages in the working set,
+                # Generate scripts for all packages in the working set,
                 # except setuptools.
                 reqs = list(reqs)
                 for dist in ws:
@@ -183,6 +183,6 @@ def get_bool(options, name, default=False):
         return False
     else:
         raise zc.buildout.UserError(
-            "Invalid value for %s: %s" % (name, value))
+            "Invalid value for %s option: %s" % (name, value))
 
 Egg = Scripts

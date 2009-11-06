@@ -260,18 +260,18 @@ def make_dist_that_requires(dest, name, requires=[], version=1, egg=''):
 
 def show_who_requires_when_there_is_a_conflict():
     """
-    It's a pain when we require eggs that have requirements that are
-    incompatible. We want the error we get to tell us what is missing.
+It's a pain when we require eggs that have requirements that are
+incompatible. We want the error we get to tell us what is missing.
 
-    Let's make a few develop distros, some of which have incompatible
-    requirements.
+Let's make a few develop distros, some of which have incompatible
+requirements.
 
     >>> make_dist_that_requires(sample_buildout, 'sampley',
     ...                         ['demoneeded ==1.0'])
     >>> make_dist_that_requires(sample_buildout, 'samplez',
     ...                         ['demoneeded ==1.1'])
 
-    Now, let's create a buildout that requires y and z:
+Now, let's create a buildout that requires y and z:
 
     >>> write('buildout.cfg',
     ... '''
@@ -298,8 +298,8 @@ def show_who_requires_when_there_is_a_conflict():
     We already have: demoneeded 1.1
     but sampley 1 requires 'demoneeded==1.0'.
 
-    Here, we see that sampley required an older version of demoneeded.
-    What if we hadn't required sampley ourselves:
+Here, we see that sampley required an older version of demoneeded. What
+if we hadn't required sampley ourselves:
 
     >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb'])
     >>> make_dist_that_requires(sample_buildout, 'sampleb',
@@ -317,7 +317,7 @@ def show_who_requires_when_there_is_a_conflict():
     ...        samplez
     ... ''' % globals())
 
-If we use the verbose switch, we can see where requirements are comning from:
+If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
@@ -351,10 +351,9 @@ If we use the verbose switch, we can see where requirements are comning from:
 def show_who_requires_missing_distributions():
     """
 
-    When working with a lot of eggs, which require eggs recursively,
-    it can be hard to tell why we're requireing things we can't find.
-    Fortunately, buildout will tell us who's asking for something that
-    we can't find.
+When working with a lot of eggs, which require eggs recursively, it can
+be hard to tell why we're requiring things we can't find. Fortunately,
+buildout will tell us who's asking for something that we can't find.
 
     >>> make_dist_that_requires(sample_buildout, 'sampley', ['demoneeded'])
     >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb'])
@@ -387,8 +386,8 @@ def show_who_requires_missing_distributions():
 
 def test_comparing_saved_options_with_funny_characters():
     """
-    If an option has newlines, extra/odd spaces or a %, we need to make
-    sure the comparison with the saved value works correctly.
+If an option has newlines, extra/odd spaces or a %, we need to make sure
+the comparison with the saved value works correctly.
 
     >>> mkdir(sample_buildout, 'recipes')
     >>> write(sample_buildout, 'recipes', 'debug.py',
@@ -2158,7 +2157,7 @@ def prefer_final():
     """
 This test tests several permutations:
 
-Using different version numbers to work around zip impporter cache problems. :(
+Using different version numbers to work around zip importer cache problems. :(
 
 - With prefer final:
 
@@ -2980,7 +2979,7 @@ def test_suite():
                    '-q develop -mxN -d "/sample-buildout/develop-eggs'),
                    '-q develop -mxN -d /sample-buildout/develop-eggs'
                 ),
-                (re.compile(r'^[*]...'), '...'),
+               (re.compile(r'^[*]...'), '...'),
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),
