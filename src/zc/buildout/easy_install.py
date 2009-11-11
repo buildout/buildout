@@ -299,10 +299,7 @@ class Installer:
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = self._get_dist(
-                self._constrain(pkg_resources.Requirement.parse('setuptools')),
-                ws, False,
-                )[0].location
+            path = setuptools_loc
 
             args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
             if self._always_unzip:
