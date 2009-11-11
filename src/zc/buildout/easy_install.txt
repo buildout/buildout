@@ -1208,7 +1208,6 @@ Now, if we install demo, and extdemo:
     GET 200 /demo-0.2-py2.4.egg
     GET 404 /index/demoneeded/
     GET 200 /demoneeded-1.1.zip
-    GET 404 /index/setuptools/
 
     >>> zc.buildout.easy_install.build(
     ...   'extdemo', dest,
@@ -1251,7 +1250,6 @@ Now when we install the distributions:
     GET 404 /index/demo/
     GET 200 /index/
     GET 404 /index/demoneeded/
-    GET 404 /index/setuptools/
 
     >>> zc.buildout.easy_install.build(
     ...   'extdemo', dest,

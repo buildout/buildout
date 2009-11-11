@@ -4,7 +4,13 @@ Change History
 1.4.3 (?)
 =========
 
+Bugs fixed:
 
+- Using pre-detected setuptools version for easy_installing tgz files.  This
+  prevents a recursion error when easy_installing an upgraded "distribute"
+  tgz.  Note that setuptools did not have this recursion problem solely
+  because it was packaged as an ``.egg``, which does not have to go through
+  the easy_install step.
 
 
 1.4.2 (2009-11-01)
