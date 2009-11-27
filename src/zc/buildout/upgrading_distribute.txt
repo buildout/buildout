@@ -4,7 +4,7 @@ Installing setuptools/distribute
 Some initial test setup:
 
     >>> import sys
-    >>> import zc.buildout.easy_install
+    >>> import zc.buildout
     >>> dest = tmpdir('sample-install')
 
 Setuptools (0.6something) is packaged as an ``.egg``.  So when installing it,
@@ -28,6 +28,21 @@ be printed.  We call ``_call_easy_install()`` directly and get an error
 because of a non-existing tarball, but that's the OK for this corner case
 test: we only want to test that ``_get_dist()`` isn't getting called:
 
+    >>> class MockDist(object):
+    ...     def __str__(self):
+    ...         return 'nonexisting.tgz'
+    ...     @property
+    ...     def project_name(self):
+    ...         # Testing corner case: there *is* actually
+    ...         # a newer setuptools package on pypi than we
+    ...         # are running with, so it really installs it
+    ...         # and compares project_name. We're past the
+    ...         # point that we're testing, so we just raise
+    ...         # the normally expected error.
+    ...         raise zc.buildout.UserError(
+    ...             "Couldn't install: nonexisting.tgz")
+    >>> dist = MockDist()
+
     >>> installer = zc.buildout.easy_install.Installer(
     ...     dest=dest,
     ...     links=[link_server],
@@ -35,8 +50,7 @@ test: we only want to test that ``_get_dist()`` isn't getting called:
     ...     executable=sys.executable,
     ...     always_unzip=True)
     >>> installer._get_dist = mock_get_dist
-    >>> installer._call_easy_install('setuptools', None, dest, 
-    ...                              'nonexisting.tgz')
+    >>> installer._call_easy_install('setuptools', None, dest, dist)
     Traceback (most recent call last):
     ...
     UserError: Couldn't install: nonexisting.tgz
