@@ -36,7 +36,6 @@ We can specify a specific Python executable.
     >>> ls(dest)
     d  demo-0.3-py%(other_version)s.egg
     d  demoneeded-1.1-py%(other_version)s.egg
-    d  setuptools-0.6-py%(other_version)s.egg
 
 """ % dict(other_version=other_version)
     )
