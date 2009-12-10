@@ -1067,9 +1067,9 @@ def _script(module_name, attrs, path, dest, executable, arguments,
     return generated
 
 if is_jython and jython_os_name == 'linux':
-    script_header = '#!/usr/bin/env %(python)s'
+    script_header = '#!/usr/bin/env %(python)s -S'
 else:
-    script_header = '#!%(python)s'
+    script_header = '#!%(python)s -S'
 
 
 script_template = script_header + '''\

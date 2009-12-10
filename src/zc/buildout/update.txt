@@ -81,7 +81,7 @@ new versions found in new releases:
 Our buildout script has been updated to use the new eggs:
 
     >>> cat(sample_buildout, 'bin', 'buildout')
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [

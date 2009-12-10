@@ -373,7 +373,7 @@ extra-paths option:
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -420,7 +420,7 @@ breaking scripts.
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -467,7 +467,7 @@ each individual script section:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -520,7 +520,7 @@ to be included in generated scripts:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -578,7 +578,7 @@ declare entry points using the entry-points option:
     -  other
 
     >>> cat(sample_buildout, 'bin', 'other')
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [

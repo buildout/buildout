@@ -581,7 +581,7 @@ interpreter and without having to provide a '.py' suffix.
 The demo script run the entry point defined in the demo egg:
 
     >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -618,7 +618,7 @@ rather than passing a requirement:
     ...     ws, sys.executable, bin)
 
     >>> cat(bin, 'demo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -662,7 +662,7 @@ The py script simply runs the Python interactive interpreter with
 the path set:
 
     >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     <BLANKLINE>
@@ -748,7 +748,7 @@ to be included in the a generated script:
     ...    extra_paths=[foo])
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -774,7 +774,7 @@ parentheses in the call:
     ...    arguments='1, 2')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     import sys
     sys.path[0:0] = [
       '/sample-install/demo-0.3-py2.4.egg',
@@ -797,7 +797,7 @@ You can also pass script initialization code:
     ...    initialization='import os\nos.chdir("foo")')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     import sys
     sys.path[0:0] = [
       '/sample-install/demo-0.3-py2.4.egg',
@@ -837,7 +837,7 @@ to pass a common base directory of the scripts and eggs:
     ...    relative_paths=bo)
 
     >>> cat(bo, 'bin', 'run')
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -869,7 +869,7 @@ Of course, running the script works:
 We specified an interpreter and its paths are adjusted too:
 
     >>> cat(bo, 'bin', 'py')
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.4 -S
     <BLANKLINE>
     import os
     <BLANKLINE>
