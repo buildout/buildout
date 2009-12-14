@@ -52,7 +52,7 @@ class Eggs(object):
         # verify that this is None, 'true' or 'false'
         get_bool(options, 'unzip')
 
-        python = options.get('python', b_options['python'])
+        python = options.setdefault('python', b_options['python'])
         options['executable'] = buildout[python]['executable']
 
     def working_set(self, extra=()):
@@ -70,10 +70,11 @@ class Eggs(object):
         orig_distributions = distributions[:]
         distributions.extend(extra)
 
-        if self.buildout['buildout'].get('offline') == 'true':
+        if b_options.get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
-                [options['develop-eggs-directory'], options['eggs-directory']]
+                [options['develop-eggs-directory'],
+                 options['eggs-directory']],
                 )
         else:
             kw = {}
@@ -85,7 +86,7 @@ class Eggs(object):
                 index=self.index,
                 executable=options['executable'],
                 path=[options['develop-eggs-directory']],
-                newest=self.buildout['buildout'].get('newest') == 'true',
+                newest=b_options.get('newest') == 'true',
                 allow_hosts=self.allow_hosts,
                 **kw)
 
@@ -102,11 +103,13 @@ class Scripts(Eggs):
     def __init__(self, buildout, name, options):
         super(Scripts, self).__init__(buildout, name, options)
 
-        options['bin-directory'] = buildout['buildout']['bin-directory']
+        b_options = buildout['buildout']
+
+        options['bin-directory'] = b_options['bin-directory']
         options['_b'] = options['bin-directory'] # backward compat.
 
         self.extra_paths = [
-            os.path.join(buildout['buildout']['directory'], p.strip())
+            os.path.join(b_options['directory'], p.strip())
             for p in options.get('extra-paths', '').split('\n')
             if p.strip()
             ]
@@ -115,15 +118,22 @@ class Scripts(Eggs):
 
 
         relative_paths = options.get(
-            'relative-paths',
-            buildout['buildout'].get('relative-paths', 'false')
-            )
+            'relative-paths', b_options.get('relative-paths', 'false'))
         if relative_paths == 'true':
-            options['buildout-directory'] = buildout['buildout']['directory']
+            options['buildout-directory'] = b_options['directory']
             self._relative_paths = options['buildout-directory']
         else:
             self._relative_paths = ''
             assert relative_paths == 'false'
+
+        value = options.setdefault(
+            'include-site-packages',
+            b_options.get('include-site-packages', 'false'))
+        if value not in ('true', 'false'):
+            raise zc.buildout.UserError(
+                "Invalid value for include-site-packages option: %s" %
+                (value,))
+        self.include_site_packages = (value == 'true')
 
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
@@ -167,6 +177,7 @@ class Scripts(Eggs):
                 initialization=options.get('initialization', ''),
                 arguments=options.get('arguments', ''),
                 relative_paths=self._relative_paths,
+                import_site=self.include_site_packages,
                 )
 
         return ()
