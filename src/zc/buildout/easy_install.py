@@ -914,6 +914,7 @@ def scripts(reqs, working_set, executable, dest,
             interpreter=None,
             initialization='',
             relative_paths=False,
+            import_site=False,
             ):
 
     path = [dist.location for dist in working_set]
@@ -956,15 +957,28 @@ def scripts(reqs, working_set, executable, dest,
 
         generated.extend(
             _script(module_name, attrs, spath, sname, executable, arguments,
-                    initialization, rpsetup)
+                    initialization, rpsetup, import_site)
             )
 
     if interpreter:
         sname = os.path.join(dest, interpreter)
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
-        generated.extend(_pyscript(spath, sname, executable, rpsetup))
+        generated.extend(
+            _pyscript(spath, sname, executable, rpsetup, import_site))
 
     return generated
+
+import_site_snippet = '''\
+# We have to import pkg_resources before namespace
+# package .pth files are processed or else the distribution's namespace
+# packages will mask all of the egg-based packages in the same namespace
+# package.
+try:
+  import pkg_resources
+except ImportError:
+  pass
+import site
+'''
 
 def _relative_path_and_setup(sname, path, relative_paths):
     if relative_paths:
@@ -1028,11 +1042,15 @@ base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 """
 
 def _script(module_name, attrs, path, dest, executable, arguments,
-            initialization, rsetup):
+            initialization, rsetup, import_site):
     generated = []
     script = dest
     if is_win32:
         dest += '-script.py'
+    if import_site:
+        import_site = import_site_snippet
+    else:
+        import_site = ''
 
     contents = script_template % dict(
         python = _safe_arg(executable),
@@ -1042,6 +1060,7 @@ def _script(module_name, attrs, path, dest, executable, arguments,
         arguments = arguments,
         initialization = initialization,
         relative_paths_setup = rsetup,
+        import_site=import_site,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
@@ -1079,6 +1098,7 @@ import sys
 sys.path[0:0] = [
   %(path)s,
   ]
+%(import_site)s
 %(initialization)s
 import %(module_name)s
 
@@ -1087,16 +1107,21 @@ if __name__ == '__main__':
 '''
 
 
-def _pyscript(path, dest, executable, rsetup):
+def _pyscript(path, dest, executable, rsetup, import_site):
     generated = []
     script = dest
     if is_win32:
         dest += '-script.py'
+    if import_site:
+        import_site = import_site_snippet
+    else:
+        import_site = ''
 
     contents = py_script_template % dict(
         python = _safe_arg(executable),
         path = path,
         relative_paths_setup = rsetup,
+        import_site=import_site
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
@@ -1127,7 +1152,7 @@ import sys
 sys.path[0:0] = [
   %(path)s,
   ]
-
+%(import_site)s
 _interactive = True
 if len(sys.argv) > 1:
     _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')

@@ -383,6 +383,7 @@ Let's look at the script that was generated:
       '/sample-buildout/spam',
       ]
     <BLANKLINE>
+    <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
@@ -587,6 +588,7 @@ declare entry points using the entry-points option:
       '/foo/bar',
       '/sample-buildout/spam',
       ]
+    <BLANKLINE>
     <BLANKLINE>
     import foo.bar
     <BLANKLINE>

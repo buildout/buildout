@@ -89,6 +89,7 @@ Our buildout script has been updated to use the new eggs:
       '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
       ]
     <BLANKLINE>
+    <BLANKLINE>
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
