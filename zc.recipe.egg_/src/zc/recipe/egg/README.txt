@@ -172,6 +172,10 @@ relative-paths
    egg paths.  This option can be set in either the script section or
    in the buildout section.
 
+include-site-packages
+    If set to true, then generated scripts will ``import site`` to include
+    the site packages defined by the executable's site module.
+
 Let's add an interpreter option:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -543,6 +547,110 @@ Here we see that the initialization code we specified was added after
 setting the path.  Note, as mentioned above, that leading whitespace
 has been stripped.  Similarly, the argument code we specified was
 added in the entry point call (to main).
+
+Including site packages
+-----------------------
+
+A specific kind of script initialization is available from an option:
+``include-site-packages``.  This option will include code that imports the
+current executable's site module, thus setting whatever site-packages are
+available.  This affects both custom generated scripts and interpreter
+scripts.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = demo=foo
+    ... interpreter = py
+    ... extra-paths =
+    ...    /foo/bar
+    ...    ${buildout:directory}/spam
+    ... include-site-packages = true
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/foo'.
+    Generated interpreter '/sample-buildout/bin/py'.
+
+    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4 -S
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample-buildout/eggs/demo-0.4c1-pyN.N.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
+      '/foo/bar',
+      '/sample-buildout/spam',
+      ]
+    # We have to import pkg_resources before namespace
+    # package .pth files are processed or else the distribution's namespace
+    # packages will mask all of the egg-based packages in the same namespace
+    # package.
+    try:
+      import pkg_resources
+    except ImportError:
+      pass
+    import site
+    <BLANKLINE>
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        eggrecipedemo.main()
+
+    >>> cat(sample_buildout, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4 -S
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+      '/sample-buildout/eggs/demo-0.4c1-pyN.N.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
+      '/foo/bar',
+      '/sample-buildout/spam',
+      ]
+    # We have to import pkg_resources before namespace
+    # package .pth files are processed or else the distribution's namespace
+    # packages will mask all of the egg-based packages in the same namespace
+    # package.
+    try:
+      import pkg_resources
+    except ImportError:
+      pass
+    import site
+    <BLANKLINE>
+    _interactive = True
+    if len(sys.argv) > 1:
+        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
+        _interactive = False
+        for (_opt, _val) in _options:
+            if _opt == '-i':
+                _interactive = True
+            elif _opt == '-c':
+                exec _val
+            elif _opt == '-m':
+                sys.argv[1:] = _args
+                _args = []
+                __import__("runpy").run_module(
+                     _val, {}, "__main__", alter_sys=True)
+    <BLANKLINE>
+        if _args:
+            sys.argv[:] = _args
+            __file__ = _args[0]
+            del _options, _args
+            execfile(__file__)
+    <BLANKLINE>
+    if _interactive:
+        del _interactive
+        __import__("code").interact(banner="", local=globals())
 
 Specifying entry points
 -----------------------
