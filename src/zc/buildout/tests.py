@@ -2933,6 +2933,8 @@ def test_suite():
                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile(r'\\[\\]?'), '/'),
+               (re.compile('''execfile\(['"].+site.py['"]\)'''),
+                "execfile('/usr/lib/python/site.py')"),
                ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),

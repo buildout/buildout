@@ -968,17 +968,91 @@ def scripts(reqs, working_set, executable, dest,
 
     return generated
 
-import_site_snippet = '''\
-# We have to import pkg_resources before namespace
-# package .pth files are processed or else the distribution's namespace
-# packages will mask all of the egg-based packages in the same namespace
-# package.
-try:
-  import pkg_resources
-except ImportError:
-  pass
-import site
-'''
+def interpreter(name, working_set, executable, dest, site_py_dest,
+                extra_paths=(),
+                initialization='',
+                relative_paths=False,
+                import_site=False,
+                import_sitecustomize=False
+                ):
+    generated = []
+    # Write sitecustomize.py.
+    sitecustomize_path = os.path.join(site_py_dest, 'sitecustomize.py')
+    sitecustomize = open(sitecustomize_path, 'w')
+    if initialization:
+        sitecustomize.write(initialization + '\n')
+    if import_sitecustomize:
+        real_sitecustomize_path = _get_module_file(
+            executable, 'sitecustomize')
+        if real_sitecustomize_path:
+            sitecustomize.write('execfile(%s)\n' % (real_sitecustomize_path,))
+    sitecustomize.close()
+    generated.append(sitecustomize_path)
+    # Write site.py.
+    path = [dist.location for dist in working_set]
+    path.extend(extra_paths)
+    path = map(realpath, path)
+    site_path = os.path.join(site_py_dest, 'site.py')
+    path_string, rpsetup = _relative_path_and_setup(
+        site_path, path, relative_paths)
+    site = open(site_path, 'w')
+    site.write(rpsetup)
+    site.write(sys_path_template % (path_string,))
+    if import_site:
+        real_site_path = _get_module_file(executable, 'site')
+        if real_site_path:
+            site.write(import_site_template % (real_site_path,))
+    else:
+        site.write('import sitecustomize\n')
+    generated.append(site_path)
+    # Write interpreter script.
+    script_name = full_name = os.path.join(dest, name)
+    site_py_dest_string, rpsetup = _relative_path_and_setup(
+        full_name, [site_py_dest], relative_paths)
+    if is_win32:
+        script_name += '-script.py'
+    contents = interpreter_template % dict(
+        python = _safe_arg(executable),
+        site_dest = site_py_dest_string,
+        relative_paths_setup = rpsetup,
+        )
+    changed = not (os.path.exists(script_name) and
+                   open(script_name).read() == contents)
+    if is_win32:
+        # Generate exe file and give the script a magic name.
+        exe = full_name + '.exe'
+        open(exe, 'wb').write(
+            pkg_resources.resource_string('setuptools', 'cli.exe')
+            )
+        generated.append(exe)
+    if changed:
+        open(script_name, 'w').write(contents)
+        try:
+            os.chmod(script_name,0755)
+        except (AttributeError, os.error):
+            pass
+        logger.info("Generated interpreter %r.", name)
+    generated.append(script_name)
+    return generated
+
+def _get_module_file(executable, name):
+    cmd = [executable, "-c",
+           "import imp; fp, path, desc = imp.find_module(%r); fp.close; print path" % (name,)]
+    _proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = _proc.communicate();
+    if _proc.returncode:
+        logger.info(
+            'Could not find file for module %s:\n%s', name, stderr)
+        return None
+    # else: ...
+    res = stdout.strip()
+    if res.endswith('.pyc') or res.endswith('.pyo'):
+        raise RuntimeError('Cannot find uncompiled version of %s' % (name,))
+    if not os.path.exists(res):
+        raise RuntimeError(
+            'File does not exist for module %s:\n%s' % (name, res))
+    return res
 
 def _relative_path_and_setup(sname, path, relative_paths):
     if relative_paths:
@@ -995,7 +1069,6 @@ def _relative_path_and_setup(sname, path, relative_paths):
         spath = repr(path)[1:-1].replace(', ', ',\n  ')
         rpsetup = ''
     return spath, rpsetup
-
 
 def _relative_depth(common, path):
     n = 0
@@ -1032,7 +1105,6 @@ def _relativitize(path, script, relative_paths):
         return "join(base, %r)" % _relative_path(common, path)
     else:
         return repr(path)
-
 
 relative_paths_setup = """
 import os
@@ -1090,6 +1162,25 @@ if is_jython and jython_os_name == 'linux':
 else:
     script_header = '#!%(python)s -S'
 
+_import_site_start = '''\
+# We have to import pkg_resources before namespace
+# package .pth files are processed or else the distribution's namespace
+# packages will mask all of the egg-based packages in the same namespace
+# package.
+try:
+  import pkg_resources
+except ImportError:
+  pass
+'''
+
+import_site_snippet = _import_site_start + 'import site\n'
+import_site_template = _import_site_start + 'execfile(%r)\n'
+sys_path_template = '''\
+import sys
+sys.path[0:0] = [
+  %s,
+  ]
+'''
 
 script_template = script_header + '''\
 
@@ -1106,6 +1197,20 @@ if __name__ == '__main__':
     %(module_name)s.%(attrs)s(%(arguments)s)
 '''
 
+interpreter_template = script_header + '''\
+
+%(relative_paths_setup)s
+import os
+import sys
+
+argv = [sys.executable] + sys.argv[1:]
+environ = os.environ.copy()
+path = %(site_dest)s
+if environ.get('PYTHONPATH'):
+    path = os.pathsep.join([path, environ['PYTHONPATH']])
+environ['PYTHONPATH'] = path
+os.execve(sys.executable, argv, environ)
+'''
 
 def _pyscript(path, dest, executable, rsetup, import_site):
     generated = []

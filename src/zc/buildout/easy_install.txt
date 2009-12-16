@@ -999,6 +999,233 @@ We specified an interpreter and its paths are adjusted too:
         __import__("code").interact(banner="", local=globals())
 
 
+Interpreter generation
+----------------------
+
+The interpreter created above is a script that emulates the Python
+interpreter.  Sometimes it is useful to have a full-fledged Python interpreter
+available.  The ``interpreter`` function supports this.
+
+It works by creating site.py and sitecustomize.py files that set up the
+desired paths and initialization.  These must be placed within an otherwise
+empty directory.  Typically this is in a recipe's parts directory.
+
+Here's the simplest example.
+
+    >>> interpreter_dir = tmpdir('interpreter')
+    >>> mkdir(interpreter_dir, 'bin')
+    >>> mkdir(interpreter_dir, 'eggs')
+    >>> mkdir(interpreter_dir, 'parts')
+    >>> mkdir(interpreter_dir, 'parts', 'interpreter')
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], join(interpreter_dir, 'eggs'), links=[link_server],
+    ...     index=link_server+'index/')
+    >>> generated = zc.buildout.easy_install.interpreter(
+    ...     'py', ws, sys.executable, join(interpreter_dir, 'bin'),
+    ...     join(interpreter_dir, 'parts', 'interpreter'))
+
+On non-Windows systems, this creates three files.
+
+    >>> len(generated)
+    3
+    >>> import pprint
+    >>> pprint.pprint(sorted(generated))
+    ['/interpreter/bin/py',
+     '/interpreter/parts/interpreter/site.py',
+     '/interpreter/parts/interpreter/sitecustomize.py']
+
+These are the three generated files.
+
+    >>> cat(interpreter_dir, 'bin', 'py')
+    #!/usr/bin/python2.4 -S
+    <BLANKLINE>
+    import os
+    import sys
+    <BLANKLINE>
+    argv = [sys.executable] + sys.argv[1:]
+    environ = os.environ.copy()
+    path = '/interpreter/parts/interpreter'
+    if environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, environ['PYTHONPATH']])
+    environ['PYTHONPATH'] = path
+    os.execve(sys.executable, argv, environ)
+    >>> ls(interpreter_dir, 'parts', 'interpreter')
+    -  site.py
+    -  sitecustomize.py
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'site.py')
+    import sys
+    sys.path[0:0] = [
+      '/interpreter/eggs/demo-0.3-py2.4.egg',
+      '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+      ]
+    import sitecustomize
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'sitecustomize.py')
+
+Here are some examples of the interpreter in use.
+
+    >>> print system(join(interpreter_dir, 'bin', 'py') + ' -c "print 16+26"')
+    42
+    <BLANKLINE>
+    >>> res = system(join(interpreter_dir, 'bin', 'py') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    >>> print res # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/eggs/demo-0.3-py2.4.egg',
+     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+     '/interpreter/parts/interpreter',
+     ...]
+    <BLANKLINE>
+    >>> clean_paths = eval(res.strip()) # This is used later for comparison.
+
+If you provide initialization, it goes in sitecustomize.py.
+
+    >>> def reset_interpreter():
+    ...     # This is necessary because, in our tests, the timestamps of the
+    ...     # .pyc files are not outdated when we want them to be.
+    ...     rmdir(interpreter_dir, 'bin')
+    ...     mkdir(interpreter_dir, 'bin')
+    ...     rmdir(interpreter_dir, 'parts', 'interpreter')
+    ...     mkdir(interpreter_dir, 'parts', 'interpreter')
+    ...
+    >>> reset_interpreter()
+
+    >>> initialization_string = """\
+    ... import os
+    ... os.environ['FOO'] = 'bar baz bing shazam'"""
+    >>> generated = zc.buildout.easy_install.interpreter(
+    ...     'py', ws, sys.executable, join(interpreter_dir, 'bin'),
+    ...     join(interpreter_dir, 'parts', 'interpreter'),
+    ...     initialization=initialization_string)
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'sitecustomize.py')
+    import os
+    os.environ['FOO'] = 'bar baz bing shazam'
+    >>> print system(join(interpreter_dir, 'bin', 'py') +
+    ...              """ -c 'import os; print os.environ["FOO"]'""")
+    bar baz bing shazam
+    <BLANKLINE>
+
+If you use relative paths, this affects the interpreter and site.py.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.interpreter(
+    ...     'py', ws, sys.executable, join(interpreter_dir, 'bin'),
+    ...     join(interpreter_dir, 'parts', 'interpreter'),
+    ...     relative_paths=interpreter_dir)
+    >>> cat(interpreter_dir, 'bin', 'py')
+    #!/usr/bin/python2.4 -S
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    <BLANKLINE>
+    import os
+    import sys
+    <BLANKLINE>
+    argv = [sys.executable] + sys.argv[1:]
+    environ = os.environ.copy()
+    path = join(base, 'parts/interpreter')
+    if environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, environ['PYTHONPATH']])
+    environ['PYTHONPATH'] = path
+    os.execve(sys.executable, argv, environ)
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'site.py')
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    base = os.path.dirname(base)
+    import sys
+    sys.path[0:0] = [
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
+      ]
+    import sitecustomize
+    >>> print system(join(interpreter_dir, 'bin', 'py') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    ... # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/eggs/demo-0.3-py2.4.egg',
+     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+     '/interpreter/parts/interpreter',
+     ...]
+    <BLANKLINE>
+
+The ``extra_paths`` argument affects the path in site.py.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.interpreter(
+    ...     'py', ws, sys.executable, join(interpreter_dir, 'bin'),
+    ...     join(interpreter_dir, 'parts', 'interpreter'),
+    ...     extra_paths=[join(interpreter_dir, 'other')])
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'site.py')
+    import sys
+    sys.path[0:0] = [
+      '/interpreter/eggs/demo-0.3-py2.4.egg',
+      '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+      '/interpreter/other',
+      ]
+    import sitecustomize
+    >>> print system(join(interpreter_dir, 'bin', 'py') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    ... # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/eggs/demo-0.3-py2.4.egg',
+     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+     '/interpreter/other',
+     '/interpreter/parts/interpreter',
+     ...]
+    <BLANKLINE>
+
+The ``import_site`` argument also affects site.py.  It causes the executable's
+real site.py to be executed after our customizations have run.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.interpreter(
+    ...     'py', ws, sys.executable, join(interpreter_dir, 'bin'),
+    ...     join(interpreter_dir, 'parts', 'interpreter'),
+    ...     import_site=True)
+    >>> cat(interpreter_dir, 'parts', 'interpreter', 'site.py')
+    import sys
+    sys.path[0:0] = [
+      '/interpreter/eggs/demo-0.3-py2.4.egg',
+      '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+      ]
+    # We have to import pkg_resources before namespace
+    # package .pth files are processed or else the distribution's namespace
+    # packages will mask all of the egg-based packages in the same namespace
+    # package.
+    try:
+      import pkg_resources
+    except ImportError:
+      pass
+    execfile('/usr/lib/python/site.py')
+    >>> res = system(join(interpreter_dir, 'bin', 'py') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    >>> print res # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/eggs/demo-0.3-py2.4.egg',
+     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+     '/interpreter/parts/interpreter',
+     ...]
+    <BLANKLINE>
+
+The clean_paths gathered earlier is a subset of this full list of paths.
+
+    >>> full_paths = eval(res.strip())
+    >>> len(clean_paths) < len(full_paths)
+    True
+    >>> set(os.path.normpath(p) for p in clean_paths).difference(
+    ...     os.path.normpath(p) for p in full_paths)
+    set([])
+
+The ``import_sitecustomize`` argument does the same thing for the
+sitecustomize module.
+
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
 
