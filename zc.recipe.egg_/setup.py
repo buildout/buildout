@@ -76,6 +76,7 @@ setup(
                                     'eggs = %s:Eggs' % name,
                                     'custom = %s:Custom' % name,
                                     'develop = %s:Develop' % name,
+                                    'interpreter = %s:Interpreter' % name,
                                     ]
                     },
     include_package_data = True,

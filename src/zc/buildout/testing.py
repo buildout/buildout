@@ -28,6 +28,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import textwrap
 import threading
 import time
 import urllib2
@@ -202,6 +203,24 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+def make_buildout():
+    # Create a basic buildout.cfg to avoid a warning from buildout:
+    open('buildout.cfg', 'w').write(
+        "[buildout]\nparts =\n"
+        )
+    # Use the buildout bootstrap command to create a buildout
+    zc.buildout.buildout.Buildout(
+        'buildout.cfg',
+        [('buildout', 'log-level', 'WARNING'),
+         # trick bootstrap into putting the buildout develop egg
+         # in the eggs dir.
+         ('buildout', 'develop-eggs-directory', 'eggs'),
+         ]
+        ).bootstrap([])
+    # Create the develop-eggs dir, which didn't get created the usual
+    # way due to the trick above:
+    os.mkdir('develop-eggs')
+
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []
@@ -255,33 +274,44 @@ def buildoutSetUp(test):
     sample = tmpdir('sample-buildout')
 
     os.chdir(sample)
-
-    # Create a basic buildout.cfg to avoid a warning from buildout:
-    open('buildout.cfg', 'w').write(
-        "[buildout]\nparts =\n"
-        )
-
-    # Use the buildout bootstrap command to create a buildout
-    zc.buildout.buildout.Buildout(
-        'buildout.cfg',
-        [('buildout', 'log-level', 'WARNING'),
-         # trick bootstrap into putting the buildout develop egg
-         # in the eggs dir.
-         ('buildout', 'develop-eggs-directory', 'eggs'),
-         ]
-        ).bootstrap([])
-
-
-
-    # Create the develop-eggs dir, which didn't get created the usual
-    # way due to the trick above:
-    os.mkdir('develop-eggs')
+    make_buildout()
 
     def start_server(path):
         port, thread = _start_server(path, name=path)
         url = 'http://localhost:%s/' % port
         register_teardown(lambda: stop_server(url, thread))
         return url
+
+    def make_py(initialization='', site_packages_dir=None):
+        """Returns paths to new executable and to its site-packages.
+        """
+        buildout = tmpdir('executable_buildout')
+        if site_packages_dir is None:
+            site_packages_dir = mkdir(buildout, 'site-packages')
+        old_wd = os.getcwd()
+        os.chdir(buildout)
+        make_buildout()
+        initialization = '\n'.join(
+            '  ' + line for line in initialization.split('\n'))
+        install_develop(
+            'zc.recipe.egg', os.path.join(buildout, 'develop-eggs'))
+        write('buildout.cfg', textwrap.dedent('''\
+            [buildout]
+            parts = py
+
+            [py]
+            recipe = zc.recipe.egg:interpreter
+            initialization =
+            %(initialization)s
+            extra-paths = %(site-packages)s
+            eggs = setuptools
+            ''') % {
+                'initialization': initialization,
+                'site-packages': site_packages_dir})
+        system(os.path.join(buildout, 'bin', 'buildout'))
+        os.chdir(old_wd)
+        return (
+            os.path.join(buildout, 'bin', 'py'), site_packages_dir)
 
     test.globs.update(dict(
         sample_buildout = sample,
@@ -301,6 +331,7 @@ def buildoutSetUp(test):
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
+        make_py = make_py
         ))
 
     zc.buildout.easy_install.prefer_final(prefer_final)

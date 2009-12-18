@@ -154,6 +154,8 @@ dependent-scripts
 interpreter
    The name of a script to generate that allows access to a Python
    interpreter that has the path set based on the eggs installed.
+   See the ``interpreter`` (or ``py``) recipe, below, for a more
+   full-featured interpreter.
 
 extra-paths
    Extra paths to include in a generated script.
@@ -750,3 +752,218 @@ be made to contact an index server:
     Uninstalling bigdemo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
+
+Interpreter generation
+----------------------
+
+What if you want a more full-featured interpreter than the one described
+above?  That one is a script that mimics an interpreter--it has support
+for only a limited number of command-line options.
+
+The interpreter recipe generates a full-fledged version.  Here's an example.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = py
+    ...
+    ... [py]
+    ... recipe = zc.recipe.egg:interpreter
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing py.
+    Generated interpreter '/sample-buildout/bin/py'.
+
+Notice that the recipe took the name of the recipe from the name of the
+section.
+
+The bin/py script now just restarts Python after specifying a special
+path in PYTHONPATH.
+
+    >>> cat(sample_buildout, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/bin/python2.4 -S
+    <BLANKLINE>
+    import os
+    import sys
+    <BLANKLINE>
+    argv = [sys.executable] + sys.argv[1:]
+    environ = os.environ.copy()
+    path = '/sample-buildout/parts/py'
+    if environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, environ['PYTHONPATH']])
+    environ['PYTHONPATH'] = path
+    os.execve(sys.executable, argv, environ)
+
+The path is a directory that contains two files: our own site.py and
+sitecustomize.py.
+
+    >>> ls(sample_buildout, 'parts', 'py')
+    -  site.py
+    -  sitecustomize.py
+
+    >>> cat(sample_buildout, 'parts', 'py', 'site.py')
+    ... # doctest: +NORMALIZE_WHITESPACE
+    import sys
+    sys.path[0:0] = [
+      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      ]
+    import sitecustomize
+
+    >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
+
+Here's an example of using the generated interpreter.
+
+    >>> print system(join(sample_buildout, 'bin', 'py') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
+    ['',
+     '/sample-buildout/eggs/demo-0.2-py2.4.egg',
+     '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg']
+    <BLANKLINE>
+
+The interpreter recipe takes several options.  First, here's the list of the
+options that overlap from the scripts recipe.  After this, we'll list the new
+options and describe them.
+
+* eggs
+* find-links
+* index
+* python
+* extra-paths
+* initialization
+* relative-paths
+* include-site-packages
+
+In addition to these, the interpreter script offers these three new options.
+
+include-site-customization
+    Normally the Python's real sitecustomize module is not processed.
+    If you want it to be processed, set this value to 'true'.  This will
+    be honored irrespective of the setting for include-site-paths.
+
+extends
+    You can extend another section using this value.  It is intended to be
+    used by extending a section that uses this package's scripts recipe.
+    In this manner, you can avoid repeating yourself.
+
+name
+    If you do not want to have the interpreter have the same name as the
+    section, you can set it explicitly with this option.
+
+Let's look at the ``extends`` option first.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo python
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ...
+    ... [python]
+    ... recipe = zc.recipe.egg:interpreter
+    ... extends = demo
+    ... """ % dict(server=link_server))
+
+That's not quite as short as adding an "interpreter = py" option to the
+[demo] section, but an improvement over what it could be.
+
+Now let's put it in action.
+
+    >>> print system(buildout),
+    Uninstalling py.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
+    Installing python.
+    Generated interpreter '/sample-buildout/bin/python'.
+
+    >>> print system(join(sample_buildout, 'bin', 'python') +
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
+    ['',
+     '/sample-buildout/eggs/demo-0.2-py2.4.egg',
+     '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg']
+    <BLANKLINE>
+
+Note that the parts/py directory has been cleaned up, and parts/python has
+been created.
+
+    >>> ls(sample_buildout, 'parts')
+    d  python
+
+Now let's use the include-site-customization option.  It simply lets Python's
+underlying sitecustomize module, if it exists, be executed.
+
+To show this, we need a Python executable guaranteed to have a sitecustomize
+module.  We'll make one.  The os.environ change below will go into the
+sitecustomize.  We'll be able to use that as a flag.
+
+    >>> py_path, site_packages_path = make_py(initialization='''\
+    ... import os
+    ... os.environ['zc.buildout'] = 'foo bar baz shazam'
+    ... ''')
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = py
+    ... executable = %(py_path)s
+    ...
+    ... [py]
+    ... recipe = zc.recipe.egg:interpreter
+    ... include-site-customization = true
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server, py_path=py_path))
+
+    >>> print system(buildout),
+    Uninstalling python.
+    Uninstalling demo.
+    Installing py.
+    Generated interpreter '/sample-buildout/bin/py'.
+
+    >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
+    ... # doctest: +NORMALIZE_WHITESPACE
+    execfile('/executable_buildout/parts/py/sitecustomize.py')
+    >>> print system(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import os; print os.environ['zc.buildout']"''')
+    foo bar baz shazam
+    <BLANKLINE>
+
+The last new option is ``name``.  This simply changes the name of the
+interpreter, so that you are not forced to use the name of the section.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = interpreter
+    ...
+    ... [interpreter]
+    ... name = python2
+    ... recipe = zc.recipe.egg:interpreter
+    ... include-site-customization = true
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling py.
+    Installing interpreter.
+    Generated interpreter '/sample-buildout/bin/python2'.
+
+    >>> print system(join(sample_buildout, 'bin', 'python2') +
+    ...              ' -c "print 42"')
+    42
+    <BLANKLINE>
+
+The other options have been described before for the scripts recipe, and so
+they will not be repeated here.

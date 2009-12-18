@@ -985,7 +985,7 @@ def interpreter(name, working_set, executable, dest, site_py_dest,
         real_sitecustomize_path = _get_module_file(
             executable, 'sitecustomize')
         if real_sitecustomize_path:
-            sitecustomize.write('execfile(%s)\n' % (real_sitecustomize_path,))
+            sitecustomize.write('execfile(%r)\n' % (real_sitecustomize_path,))
     sitecustomize.close()
     generated.append(sitecustomize_path)
     # Write site.py.
@@ -1031,7 +1031,7 @@ def interpreter(name, working_set, executable, dest, site_py_dest,
             os.chmod(script_name,0755)
         except (AttributeError, os.error):
             pass
-        logger.info("Generated interpreter %r.", name)
+        logger.info("Generated interpreter %r.", full_name)
     generated.append(script_name)
     return generated
 

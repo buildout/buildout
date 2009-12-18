@@ -19,6 +19,7 @@ $Id$
 import logging, os, re, zipfile
 import zc.buildout.easy_install
 
+
 class Eggs(object):
 
     def __init__(self, buildout, name, options):
@@ -98,10 +99,11 @@ class Eggs(object):
 
     update = install
 
-class Scripts(Eggs):
+
+class ScriptBase(Eggs):
 
     def __init__(self, buildout, name, options):
-        super(Scripts, self).__init__(buildout, name, options)
+        super(ScriptBase, self).__init__(buildout, name, options)
 
         b_options = buildout['buildout']
 
@@ -134,6 +136,9 @@ class Scripts(Eggs):
                 "Invalid value for include-site-packages option: %s" %
                 (value,))
         self.include_site_packages = (value == 'true')
+
+
+class Scripts(ScriptBase):
 
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
@@ -183,6 +188,50 @@ class Scripts(Eggs):
         return ()
 
     update = install
+
+
+class Interpreter(ScriptBase):
+
+    def __init__(self, buildout, name, options):
+        if 'extends' in options:
+            options.update(buildout[options['extends']])
+        super(Interpreter, self).__init__(buildout, name, options)
+        b_options = buildout['buildout']
+        options['parts-directory'] = os.path.join(
+            b_options['parts-directory'], self.name)
+
+        value = options.setdefault(
+            'include-site-customization',
+            b_options.get('include-site-customization', 'false'))
+        if value not in ('true', 'false'):
+            raise zc.buildout.UserError(
+                "Invalid value for include-site-customization option: %s" %
+                (value,))
+        self.include_site_customization = (value == 'true')
+
+        options.setdefault('name', name)
+
+    def install(self):
+        reqs, ws = self.working_set()
+        options = self.options
+        if not os.path.exists(options['parts-directory']):
+            os.mkdir(options['parts-directory'])
+            dir_made = True
+        else:
+            dir_made = False
+        generated = zc.buildout.easy_install.interpreter(
+            options['name'], ws, options['executable'],
+            options['bin-directory'], options['parts-directory'],
+            extra_paths=self.extra_paths,
+            initialization=options.get('initialization', ''),
+            relative_paths=self._relative_paths,
+            import_site=self.include_site_packages,
+            import_sitecustomize=self.include_site_customization,
+            )
+        if dir_made:
+            generated.append(options['parts-directory'])
+        return generated
+
 
 def get_bool(options, name, default=False):
     value = options.get(name)
