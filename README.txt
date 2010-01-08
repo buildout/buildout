@@ -191,5 +191,4 @@ Please send questions and comments to the
 `distutils SIG mailing list <mailto://distutils-sig@python.org>`_.
 
 Report bugs using the `zc.buildout Launchpad Bug Tracker
-<https://launchpad.net/products/zc.buildout/+bugs>`_.
-
+<https://launchpad.net/zc.buildout/+bugs>`_.
