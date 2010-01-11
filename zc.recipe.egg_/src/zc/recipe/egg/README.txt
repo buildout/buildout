@@ -154,8 +154,8 @@ dependent-scripts
 interpreter
    The name of a script to generate that allows access to a Python
    interpreter that has the path set based on the eggs installed.
-   See the ``interpreter`` (or ``py``) recipe, below, for a more
-   full-featured interpreter.
+   See the ``interpreter`` recipe, below, for a more full-featured
+   interpreter.
 
 extra-paths
    Extra paths to include in a generated script.
@@ -756,9 +756,9 @@ be made to contact an index server:
 Interpreter generation
 ----------------------
 
-What if you want a more full-featured interpreter than the one described
-above?  That one is a script that mimics an interpreter--it has support
-for only a limited number of command-line options.
+The interpreter described above is a script that mimics an
+interpreter--it has support for only a limited number of command-line
+options. What if you want a more full-featured interpreter?
 
 The interpreter recipe generates a full-fledged version.  Here's an example.
 
@@ -779,7 +779,7 @@ The interpreter recipe generates a full-fledged version.  Here's an example.
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
 
-Notice that the recipe took the name of the recipe from the name of the
+Notice that the recipe took the name of the interpreter from the name of the
 section.
 
 The bin/py script now just restarts Python after specifying a special
@@ -841,15 +841,15 @@ options and describe them.
 
 In addition to these, the interpreter script offers these three new options.
 
-include-site-customization
-    Normally the Python's real sitecustomize module is not processed.
-    If you want it to be processed, set this value to 'true'.  This will
-    be honored irrespective of the setting for include-site-paths.
-
 extends
     You can extend another section using this value.  It is intended to be
     used by extending a section that uses this package's scripts recipe.
     In this manner, you can avoid repeating yourself.
+
+include-site-customization
+    Normally the Python's real sitecustomize module is not processed.
+    If you want it to be processed, set this value to 'true'.  This will
+    be honored irrespective of the setting for include-site-paths.
 
 name
     If you do not want to have the interpreter have the same name as the
