@@ -24,7 +24,7 @@ class Eggs(object):
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
-        self.name = name
+        self.name = self.default_eggs = name
         self.options = options
         b_options = buildout['buildout']
         links = options.get('find-links', b_options['find-links'])
@@ -66,7 +66,7 @@ class Eggs(object):
 
         distributions = [
             r.strip()
-            for r in options.get('eggs', self.name).split('\n')
+            for r in options.get('eggs', self.default_eggs).split('\n')
             if r.strip()]
         orig_distributions = distributions[:]
         distributions.extend(extra)
@@ -196,6 +196,7 @@ class Interpreter(ScriptBase):
         if 'extends' in options:
             options.update(buildout[options['extends']])
         super(Interpreter, self).__init__(buildout, name, options)
+        self.default_eggs = ''
         b_options = buildout['buildout']
         options['parts-directory'] = os.path.join(
             b_options['parts-directory'], self.name)

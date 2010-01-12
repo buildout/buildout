@@ -282,12 +282,12 @@ def buildoutSetUp(test):
         register_teardown(lambda: stop_server(url, thread))
         return url
 
-    def make_py(initialization='', site_packages_dir=None):
+    def make_py(initialization=''):
         """Returns paths to new executable and to its site-packages.
         """
         buildout = tmpdir('executable_buildout')
-        if site_packages_dir is None:
-            site_packages_dir = mkdir(buildout, 'site-packages')
+        site_packages_dir = os.path.join(buildout, 'site-packages')
+        mkdir(site_packages_dir)
         old_wd = os.getcwd()
         os.chdir(buildout)
         make_buildout()
