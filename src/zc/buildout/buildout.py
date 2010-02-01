@@ -1171,6 +1171,8 @@ class Options(UserDict.DictMixin):
     def __setitem__(self, option, value):
         if not isinstance(value, str):
             raise TypeError('Option values must be strings', value)
+        if '$' in value:
+            value = '$$'.join([chain.replace('$', '$$') for chain in value.split('$$')])
         self._data[option] = value
 
     def __delitem__(self, key):
