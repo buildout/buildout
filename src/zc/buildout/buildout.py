@@ -1086,7 +1086,7 @@ class Options(UserDict.DictMixin):
 
     def get(self, option, default=None, seen=None):
         try:
-            return self._data[option]
+            return self._data[option].replace('$$', '$')
         except KeyError:
             pass
 
@@ -1112,7 +1112,7 @@ class Options(UserDict.DictMixin):
             seen.pop()
 
         self._data[option] = v
-        return v
+        return v.replace('$$', '$')
 
     _template_split = re.compile('([$]{[^}]*})').split
     _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
@@ -1159,21 +1159,20 @@ class Options(UserDict.DictMixin):
 
     def __getitem__(self, key):
         try:
-            return self._data[key]
+            return self._data[key].replace('$$', '$')
         except KeyError:
             pass
 
         v = self.get(key)
         if v is None:
             raise MissingOption("Missing option: %s:%s" % (self.name, key))
-        return v
+        return v.replace('$$', '$')
 
     def __setitem__(self, option, value):
         if not isinstance(value, str):
             raise TypeError('Option values must be strings', value)
-        if '$' in value:
-            value = '$$'.join([chain.replace('$', '$$') for chain in value.split('$$')])
-        self._data[option] = value
+
+        self._data[option] = value.replace('$', '$$')
 
     def __delitem__(self, key):
         if key in self._raw:
