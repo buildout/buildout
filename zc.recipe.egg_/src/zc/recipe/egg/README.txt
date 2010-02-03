@@ -46,7 +46,7 @@ We have a link server that has a number of distributions:
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update it's configuration file to
+We have a sample buildout.  Let's update its configuration file to
 install the demo package.
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -174,10 +174,6 @@ relative-paths
    egg paths.  This option can be set in either the script section or
    in the buildout section.
 
-include-site-packages
-    If set to true, then generated scripts will ``import site`` to include
-    the site packages defined by the executable's site module.
-
 Let's add an interpreter option:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -193,7 +189,7 @@ Let's add an interpreter option:
     ... interpreter = py-demo
     ... """ % dict(server=link_server))
 
-Note that we ommitted the entry point name from the recipe
+Note that we omitted the entry point name from the recipe
 specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
@@ -550,110 +546,6 @@ setting the path.  Note, as mentioned above, that leading whitespace
 has been stripped.  Similarly, the argument code we specified was
 added in the entry point call (to main).
 
-Including site packages
------------------------
-
-A specific kind of script initialization is available from an option:
-``include-site-packages``.  This option will include code that imports the
-current executable's site module, thus setting whatever site-packages are
-available.  This affects both custom generated scripts and interpreter
-scripts.
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = demo
-    ...
-    ... [demo]
-    ... recipe = zc.recipe.egg
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ... scripts = demo=foo
-    ... interpreter = py
-    ... extra-paths =
-    ...    /foo/bar
-    ...    ${buildout:directory}/spam
-    ... include-site-packages = true
-    ... """ % dict(server=link_server))
-
-    >>> print system(buildout),
-    Uninstalling demo.
-    Installing demo.
-    Generated script '/sample-buildout/bin/foo'.
-    Generated interpreter '/sample-buildout/bin/py'.
-
-    >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-pyN.N.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
-      '/foo/bar',
-      '/sample-buildout/spam',
-      ]
-    # We have to import pkg_resources before namespace
-    # package .pth files are processed or else the distribution's namespace
-    # packages will mask all of the egg-based packages in the same namespace
-    # package.
-    try:
-      import pkg_resources
-    except ImportError:
-      pass
-    import site
-    <BLANKLINE>
-    <BLANKLINE>
-    import eggrecipedemo
-    <BLANKLINE>
-    if __name__ == '__main__':
-        eggrecipedemo.main()
-
-    >>> cat(sample_buildout, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
-    <BLANKLINE>
-    import sys
-    <BLANKLINE>
-    sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-pyN.N.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
-      '/foo/bar',
-      '/sample-buildout/spam',
-      ]
-    # We have to import pkg_resources before namespace
-    # package .pth files are processed or else the distribution's namespace
-    # packages will mask all of the egg-based packages in the same namespace
-    # package.
-    try:
-      import pkg_resources
-    except ImportError:
-      pass
-    import site
-    <BLANKLINE>
-    _interactive = True
-    if len(sys.argv) > 1:
-        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
-        _interactive = False
-        for (_opt, _val) in _options:
-            if _opt == '-i':
-                _interactive = True
-            elif _opt == '-c':
-                exec _val
-            elif _opt == '-m':
-                sys.argv[1:] = _args
-                _args = []
-                __import__("runpy").run_module(
-                     _val, {}, "__main__", alter_sys=True)
-    <BLANKLINE>
-        if _args:
-            sys.argv[:] = _args
-            __file__ = _args[0]
-            del _options, _args
-            execfile(__file__)
-    <BLANKLINE>
-    if _interactive:
-        del _interactive
-        __import__("code").interact(banner="", local=globals())
-
 Specifying entry points
 -----------------------
 
@@ -693,11 +585,11 @@ declare entry points using the entry-points option:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-      '/foo/bar',
-      '/sample-buildout/spam',
-      ]
+        '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
+        '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+        '/foo/bar',
+        '/sample-buildout/spam',
+        ]
     <BLANKLINE>
     <BLANKLINE>
     import foo.bar
@@ -753,217 +645,3 @@ be made to contact an index server:
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
 
-Interpreter generation
-----------------------
-
-The interpreter described above is a script that mimics an
-interpreter--it has support for only a limited number of command-line
-options. What if you want a more full-featured interpreter?
-
-The interpreter recipe generates a full-fledged version.  Here's an example.
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = py
-    ...
-    ... [py]
-    ... recipe = zc.recipe.egg:interpreter
-    ... eggs = demo<0.3
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ... """ % dict(server=link_server))
-
-    >>> print system(buildout),
-    Uninstalling demo.
-    Installing py.
-    Generated interpreter '/sample-buildout/bin/py'.
-
-Notice that the recipe took the name of the interpreter from the name of the
-section.
-
-The bin/py script now just restarts Python after specifying a special
-path in PYTHONPATH.
-
-    >>> cat(sample_buildout, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/bin/python2.4 -S
-    <BLANKLINE>
-    import os
-    import sys
-    <BLANKLINE>
-    argv = [sys.executable] + sys.argv[1:]
-    environ = os.environ.copy()
-    path = '/sample-buildout/parts/py'
-    if environ.get('PYTHONPATH'):
-        path = os.pathsep.join([path, environ['PYTHONPATH']])
-    environ['PYTHONPATH'] = path
-    os.execve(sys.executable, argv, environ)
-
-The path is a directory that contains two files: our own site.py and
-sitecustomize.py.
-
-    >>> ls(sample_buildout, 'parts', 'py')
-    -  site.py
-    -  sitecustomize.py
-
-    >>> cat(sample_buildout, 'parts', 'py', 'site.py')
-    ... # doctest: +NORMALIZE_WHITESPACE
-    import sys
-    sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-      ]
-    import sitecustomize
-
-    >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
-
-Here's an example of using the generated interpreter.
-
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
-    ['',
-     '/sample-buildout/eggs/demo-0.2-py2.4.egg',
-     '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg']
-    <BLANKLINE>
-
-The interpreter recipe takes several options.  First, here's the list of the
-options that overlap from the scripts recipe.  After this, we'll list the new
-options and describe them.
-
-* eggs
-* find-links
-* index
-* python
-* extra-paths
-* initialization
-* relative-paths
-* include-site-packages
-
-In addition to these, the interpreter script offers these three new options.
-
-extends
-    You can extend another section using this value.  It is intended to be
-    used by extending a section that uses this package's scripts recipe.
-    In this manner, you can avoid repeating yourself.
-
-include-site-customization
-    Normally the Python's real sitecustomize module is not processed.
-    If you want it to be processed, set this value to 'true'.  This will
-    be honored irrespective of the setting for include-site-paths.
-
-name
-    If you do not want to have the interpreter have the same name as the
-    section, you can set it explicitly with this option.
-
-Let's look at the ``extends`` option first.
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = demo python
-    ...
-    ... [demo]
-    ... recipe = zc.recipe.egg
-    ... eggs = demo<0.3
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ...
-    ... [python]
-    ... recipe = zc.recipe.egg:interpreter
-    ... extends = demo
-    ... """ % dict(server=link_server))
-
-That's not quite as short as adding an "interpreter = py" option to the
-[demo] section, but an improvement over what it could be.
-
-Now let's put it in action.
-
-    >>> print system(buildout),
-    Uninstalling py.
-    Installing demo.
-    Generated script '/sample-buildout/bin/demo'.
-    Installing python.
-    Generated interpreter '/sample-buildout/bin/python'.
-
-    >>> print system(join(sample_buildout, 'bin', 'python') +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
-    ['',
-     '/sample-buildout/eggs/demo-0.2-py2.4.egg',
-     '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg']
-    <BLANKLINE>
-
-Note that the parts/py directory has been cleaned up, and parts/python has
-been created.
-
-    >>> ls(sample_buildout, 'parts')
-    d  python
-
-Now let's use the include-site-customization option.  It simply lets Python's
-underlying sitecustomize module, if it exists, be executed.
-
-To show this, we need a Python executable guaranteed to have a sitecustomize
-module.  We'll make one.  The os.environ change below will go into the
-sitecustomize.  We'll be able to use that as a flag.
-
-    >>> py_path, site_packages_path = make_py(initialization='''\
-    ... import os
-    ... os.environ['zc.buildout'] = 'foo bar baz shazam'
-    ... ''')
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = py
-    ... executable = %(py_path)s
-    ...
-    ... [py]
-    ... recipe = zc.recipe.egg:interpreter
-    ... include-site-customization = true
-    ... eggs = demo<0.3
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ... """ % dict(server=link_server, py_path=py_path))
-
-    >>> print system(buildout),
-    Uninstalling python.
-    Uninstalling demo.
-    Installing py.
-    Generated interpreter '/sample-buildout/bin/py'.
-
-    >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
-    ... # doctest: +NORMALIZE_WHITESPACE
-    execfile('/executable_buildout/parts/py/sitecustomize.py')
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import os; print os.environ['zc.buildout']"''')
-    foo bar baz shazam
-    <BLANKLINE>
-
-The last new option is ``name``.  This simply changes the name of the
-interpreter, so that you are not forced to use the name of the section.
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = interpreter
-    ...
-    ... [interpreter]
-    ... name = python2
-    ... recipe = zc.recipe.egg:interpreter
-    ... include-site-customization = true
-    ... eggs = demo<0.3
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ... """ % dict(server=link_server))
-
-    >>> print system(buildout),
-    Uninstalling py.
-    Installing interpreter.
-    Generated interpreter '/sample-buildout/bin/python2'.
-
-    >>> print system(join(sample_buildout, 'bin', 'python2') +
-    ...              ' -c "print 42"')
-    42
-    <BLANKLINE>
-
-The other options have been described before for the scripts recipe, and so
-they will not be repeated here.

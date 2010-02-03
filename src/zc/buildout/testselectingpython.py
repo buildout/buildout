@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import os, re, sys, unittest
+import os, re, subprocess, sys, textwrap, unittest
 from zope.testing import doctest, renormalizing
 import zc.buildout.tests
 import zc.buildout.testing
@@ -43,6 +43,33 @@ We can specify a specific Python executable.
 
 def multi_python(test):
     other_executable = zc.buildout.testing.find_python(other_version)
+    command = textwrap.dedent('''\
+        try:
+            import setuptools
+        except ImportError:
+            import sys
+            sys.exit(1)
+        ''')
+    if subprocess.call([other_executable, '-c', command],
+                       env=os.environ):
+        # the other executable does not have setuptools.  Get setuptools.
+        # We will do this using the same tools we are testing, for better or
+        # worse.  Alternatively, we could try using bootstrap.
+        executable_dir = test.globs['tmpdir']('executable_dir')
+        executable_parts = os.path.join(executable_dir, 'parts')
+        test.globs['mkdir'](executable_parts)
+        ws = zc.buildout.easy_install.install(
+            ['setuptools'], executable_dir,
+            index='http://www.python.org/pypi/',
+            always_unzip=True, executable=other_executable)
+        zc.buildout.easy_install.generate_scripts(
+            executable_dir, ws, other_executable, executable_parts,
+            reqs=['setuptools'], interpreter='py')
+        original_executable = other_executable
+        other_executable = os.path.join(executable_dir, 'py')
+        assert not subprocess.call(
+            [other_executable, '-c', command], env=os.environ), (
+            'test set up failed')
     sample_eggs = test.globs['tmpdir']('sample_eggs')
     os.mkdir(os.path.join(sample_eggs, 'index'))
     test.globs['sample_eggs'] = sample_eggs

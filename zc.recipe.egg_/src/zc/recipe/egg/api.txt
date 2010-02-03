@@ -116,7 +116,6 @@ computed by the egg recipe by looking at .installed.cfg:
     executable = /usr/local/bin/python2.3
     extras = other
     find-links = http://localhost:27071/
-    include-site-packages = false
     index = http://localhost:27071/index
     python = buildout
     recipe = sample

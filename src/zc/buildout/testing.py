@@ -117,7 +117,12 @@ def _runsetup(setup, executable, *args):
     args = [zc.buildout.easy_install._safe_arg(arg)
             for arg in args]
     args.insert(0, '-q')
-    args.append(dict(os.environ, PYTHONPATH=setuptools_location))
+    env = dict(os.environ)
+    if executable == sys.executable:
+        env['PYTHONPATH'] = setuptools_location
+    # else pass an executable that has setuptools! See testselectingpython.py.
+    args.append(env)
+
 
     here = os.getcwd()
     try:
@@ -135,6 +140,11 @@ def sdist(setup, dest):
 
 def bdist_egg(setup, executable, dest):
     _runsetup(setup, executable, 'bdist_egg', '-d', dest)
+
+def sys_install(setup, dest):
+    _runsetup(setup, sys.executable, 'install', '--install-purelib', dest,
+              '--record', os.path.join(dest, '__added_files__'),
+              '--single-version-externally-managed')
 
 def find_python(version):
     e = os.environ.get('PYTHON%s' % version)
@@ -295,12 +305,15 @@ def buildoutSetUp(test):
             '  ' + line for line in initialization.split('\n'))
         install_develop(
             'zc.recipe.egg', os.path.join(buildout, 'develop-eggs'))
+        install_develop(
+            'z3c.recipe.scripts', os.path.join(buildout, 'develop-eggs'))
         write('buildout.cfg', textwrap.dedent('''\
             [buildout]
             parts = py
 
             [py]
-            recipe = zc.recipe.egg:interpreter
+            recipe = z3c.recipe.scripts
+            interpreter = py
             initialization =
             %(initialization)s
             extra-paths = %(site-packages)s

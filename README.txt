@@ -37,6 +37,11 @@ Existing recipes include:
    dependencies.  It installs their console-script entry points with
    the needed eggs included in their paths.
 
+`z3c.recipe.scripts <http://pypi.python.org/pypi/z3c.recipe.scripts>`_
+  This scripts recipe builds interpreter scripts and entry point scripts
+  based on eggs.  These scripts have more features and flexibility than the
+  ones offered by zc.recipe.egg.
+
 `zc.recipe.testrunner <http://pypi.python.org/pypi/zc.recipe.testrunner>`_
    The testrunner egg creates a test runner script for one or
    more eggs.
@@ -126,7 +131,7 @@ If I need to run a previous version of zc.buildout, I use the
 `--version` option of the bootstrap.py script::
 
     $ python bootstrap.py --version 1.1.3
-    
+
 The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
 is a slightly more complex example of this type of buildout.
 

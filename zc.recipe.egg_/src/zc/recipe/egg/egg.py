@@ -128,27 +128,16 @@ class ScriptBase(Eggs):
             self._relative_paths = ''
             assert relative_paths == 'false'
 
-        value = options.setdefault(
-            'include-site-packages',
-            b_options.get('include-site-packages', 'false'))
-        if value not in ('true', 'false'):
-            raise zc.buildout.UserError(
-                "Invalid value for include-site-packages option: %s" %
-                (value,))
-        self.include_site_packages = (value == 'true')
-
-
-class Scripts(ScriptBase):
-
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
+
     def install(self):
         reqs, ws = self.working_set()
         options = self.options
 
         scripts = options.get('scripts')
-        if scripts or scripts is None:
+        if scripts or scripts is None or options.get('interpreter'):
             if scripts is not None:
                 scripts = scripts.split()
                 scripts = dict([
@@ -172,66 +161,30 @@ class Scripts(ScriptBase):
                     name = dist.project_name
                     if name != 'setuptools' and name not in reqs:
                         reqs.append(name)
-
-            return zc.buildout.easy_install.scripts(
-                reqs, ws, options['executable'],
-                options['bin-directory'],
-                scripts=scripts,
-                extra_paths=self.extra_paths,
-                interpreter=options.get('interpreter'),
-                initialization=options.get('initialization', ''),
-                arguments=options.get('arguments', ''),
-                relative_paths=self._relative_paths,
-                import_site=self.include_site_packages,
-                )
-
+            return self._install(reqs, ws, scripts)
         return ()
 
     update = install
 
+    def _install(self, reqs, ws, scripts):
+        # Subclasses implement this.
+        raise NotImplementedError()
 
-class Interpreter(ScriptBase):
 
-    def __init__(self, buildout, name, options):
-        if 'extends' in options:
-            options.update(buildout[options['extends']])
-        super(Interpreter, self).__init__(buildout, name, options)
-        self.default_eggs = ''
-        b_options = buildout['buildout']
-        options['parts-directory'] = os.path.join(
-            b_options['parts-directory'], self.name)
+class Scripts(ScriptBase):
 
-        value = options.setdefault(
-            'include-site-customization',
-            b_options.get('include-site-customization', 'false'))
-        if value not in ('true', 'false'):
-            raise zc.buildout.UserError(
-                "Invalid value for include-site-customization option: %s" %
-                (value,))
-        self.include_site_customization = (value == 'true')
-
-        options.setdefault('name', name)
-
-    def install(self):
-        reqs, ws = self.working_set()
+    def _install(self, reqs, ws, scripts):
         options = self.options
-        if not os.path.exists(options['parts-directory']):
-            os.mkdir(options['parts-directory'])
-            dir_made = True
-        else:
-            dir_made = False
-        generated = zc.buildout.easy_install.interpreter(
-            options['name'], ws, options['executable'],
-            options['bin-directory'], options['parts-directory'],
+        return zc.buildout.easy_install.scripts(
+            reqs, ws, options['executable'],
+            options['bin-directory'],
+            scripts=scripts,
             extra_paths=self.extra_paths,
+            interpreter=options.get('interpreter'),
             initialization=options.get('initialization', ''),
-            relative_paths=self._relative_paths,
-            import_site=self.include_site_packages,
-            import_sitecustomize=self.include_site_customization,
+            arguments=options.get('arguments', ''),
+            relative_paths=self._relative_paths
             )
-        if dir_made:
-            generated.append(options['parts-directory'])
-        return generated
 
 
 def get_bool(options, name, default=False):
