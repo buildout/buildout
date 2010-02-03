@@ -342,9 +342,38 @@ been created.
     d  demo
     d  python
 
-script-initialization
+If you want to have initialization that only affects scripts, not the
+interpreter, you can use script-initialization.  Here's a demonstration.
 
-XXX
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = z3c.recipe.scripts
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... interpreter = py
+    ... script-initialization =
+    ...     print "Hi from the script"
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling python.
+    Uninstalling demo.
+    Installing demo.
+    Generated script '/sample-buildout/bin/demo'.
+    Generated interpreter '/sample-buildout/bin/py'.
+
+    >>> print system(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "print 'Hi from the interpreter'"'''),
+    Hi from the interpreter
+
+    >>> print system(join(sample_buildout, 'bin', 'demo')),
+    Hi from the script
+    2 2
 
 The last new option is ``name``.  This simply changes the name of the
 interpreter, so that you are not forced to use the name of the section.
@@ -363,7 +392,6 @@ interpreter, so that you are not forced to use the name of the section.
     ... """ % dict(server=link_server))
 
     >>> print system(buildout),
-    Uninstalling python.
     Uninstalling demo.
     Installing interpreter.
     Generated interpreter '/sample-buildout/bin/python2'.
