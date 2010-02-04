@@ -1901,10 +1901,10 @@ results for the interpreter and for the script.
     ...     "print tellmy.version.__version__\n" +
     ...     "import tellmy.fortune\n" +
     ...     "print tellmy.fortune.__version__\n" +
-    ...     "'")
+    ...     "'") # doctest: +ELLIPSIS
     1.0
-    1.0
-    <BLANKLINE>
+    1.0...
+
     >>> print system(join('bin', 'demo'))
     1.0
     1.0
