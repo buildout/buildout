@@ -6,7 +6,7 @@ Change History
 
 New Features:
 
-- Buildout can be safely used with a system Python.  Note that the Python is
+- Buildout can be safely used with a system Python.  Note that Python is
   always used, by default, with -S: that is, site-packages are not
   included. If you would like to have access to your site-packages, see
   the next bullet point.
@@ -18,12 +18,21 @@ New Features:
   Python's site-packages has the same exact version as specified in your
   buildout configuration, buildout will still use its own copy.
 
-- Added new function to generate scripts and interpreter.  It produces
-  a full-featured interpreter (all command-line options supported) and the
-  ability to safely let scripts include site packages (see
-  z3c.recipe.scripts).  In this case a functioning site.py also is available
-  (and namespace packages are handled somewhat more efficiently than standard
-  pkg_resources usage).
+- Added new function, ``zc.buildout.easy_install.generate_scripts``, to
+  generate scripts and interpreter.  It produces a full-featured
+  interpreter (all command-line options supported) and the ability to
+  safely let scripts include site packages.  A safe and functional
+  site.py also is available, which will make it safer for use with a
+  system Python than the pre-existing buildout function
+  (``zc.buildout.easy_install.scripts``) and recipe (``zc.recipe.egg``).
+
+  End users should see z3c.recipe.scripts, which provides this
+  functionality within buildout configuration files.
+
+  The older function (``zc.buildout.easy_install.scripts``) and recipe
+  (``zc.recipe.egg``) still survive, because of their comparative attractive
+  simplicity, because they still work well when a non-system Python is used,
+  and because they can often be used well with a system Python.
 
 - Improve bootstrap.
 
