@@ -154,8 +154,8 @@ dependent-scripts
 interpreter
    The name of a script to generate that allows access to a Python
    interpreter that has the path set based on the eggs installed.
-   See the ``interpreter`` recipe, below, for a more full-featured
-   interpreter.
+   (See the ``z3c.recipe.scripts`` recipe for a more full-featured
+   interpreter.)
 
 extra-paths
    Extra paths to include in a generated script.
