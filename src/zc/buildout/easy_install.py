@@ -137,9 +137,50 @@ if is_win32:
 else:
     _safe_arg = str
 
-_easy_install_cmd = _safe_arg(
-    'from setuptools.command.easy_install import main; main()'
-    )
+# The following string is used to run easy_install in
+# Installer._call_easy_install.  It is started with python -S (that is,
+# don't import site at start).  That flag, and all of the code in this
+# snippet above the last two lines, exist to work around a relatively rare
+# problem.  If
+#
+# - your buildout configuration is trying to install a package that is within
+#   a namespace package, and
+#
+# - you use a Python that has a different version of this package
+#   installed in in its site-packages using
+#   --single-version-externally-managed (that is, using the mechanism
+#   sometimes used by system packagers:
+#   http://peak.telecommunity.com/DevCenter/setuptools#install-command ), and
+#
+# - the new package tries to do sys.path tricks in the setup.py to get a
+#   __version__,
+#
+# then the older package will be loaded first, making the setup version
+# the wrong number. While very arguably packages simply shouldn't do
+# the sys.path tricks, some do, and we don't want buildout to fall over
+# when they do.
+#
+# The namespace packages installed in site-packages with
+# --single-version-externally-managed use a mechanism that cause them to
+# be processed when site.py is imported.  Simply starting Python with -S
+# addresses the problem in Python 2.4 and 2.5, but Python 2.6's distutils
+# imports a value from the site module, so we unfortunately have to do more
+# drastic surgery in the _easy_install_cmd code below.  The changes to
+# sys.modules specifically try to only remove namespace modules installed by
+# the --single-version-externally-managed code.
+
+_easy_install_cmd = _safe_arg('''\
+import sys; \
+p = sys.path[:]; \
+m = sys.modules.keys(); \
+import site; \
+sys.path[:] = p; \
+m_attrs = set(('__builtins__', '__file__', '__package__', '__path__')); \
+match = set(('__path__',)); \
+[sys.modules.pop(k) for k, v in sys.modules.items()\
+ if k not in m and v and m_attrs.intersection(dir(v)) == match]; \
+from setuptools.command.easy_install import main; \
+main()''')
 
 
 class Installer:
