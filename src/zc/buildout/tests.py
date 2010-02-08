@@ -1794,11 +1794,9 @@ package, so this demonstrates that our Python does in fact have demo
 version 0.3 and demoneeded version 1.1.
 
     >>> py_path = make_py_with_system_install(make_py, sample_eggs)
-    >>> print system(
-    ...     py_path + " -c '" +
-    ...     "import tellmy.version\n" +
-    ...     "print tellmy.version.__version__\n" +
-    ...     "'"),
+    >>> print call_py(
+    ...     py_path,
+    ...     "import tellmy.version; print tellmy.version.__version__"),
     1.1
 
 Now here's a setup that would expose the bug, using the
@@ -1832,11 +1830,9 @@ To demonstrate this, we will create three packages: tellmy.version 1.0,
 tellmy.version 1.1, and tellmy.fortune 1.0.  tellmy.version 1.1 is installed.
 
     >>> py_path = make_py_with_system_install(make_py, sample_eggs)
-    >>> print system(
-    ...     py_path + " -c '" +
-    ...     "import tellmy.version\n" +
-    ...     "print tellmy.version.__version__\n" +
-    ...     "'")
+    >>> print call_py(
+    ...     py_path,
+    ...     "import tellmy.version; print tellmy.version.__version__")
     1.1
     <BLANKLINE>
 
@@ -1895,13 +1891,12 @@ In other words, we got the site-packages version of tellmy.version, and
 we could not import tellmy.fortune at all.  The following are the correct
 results for the interpreter and for the script.
 
-    >>> print system(
-    ...     join('bin', 'py') + " -c '" +
-    ...     "import tellmy.version\n" +
-    ...     "print tellmy.version.__version__\n" +
-    ...     "import tellmy.fortune\n" +
-    ...     "print tellmy.fortune.__version__\n" +
-    ...     "'") # doctest: +ELLIPSIS
+    >>> print call_py(
+    ...     join('bin', 'py'),
+    ...     "import tellmy.version; " +
+    ...     "print tellmy.version.__version__; " +
+    ...     "import tellmy.fortune; " +
+    ...     "print tellmy.fortune.__version__") # doctest: +ELLIPSIS
     1.0
     1.0...
 
@@ -1961,11 +1956,9 @@ these unpleasant tricks, and a Python that has an older version installed.
     ...             zc.buildout.testing.sys_install(tmp, site_packages_path)
     ...     finally:
     ...         shutil.rmtree(tmp)
-    >>> print system(
-    ...     py_path + " -c '" +
-    ...     "import tellmy.version\n" +
-    ...     "print tellmy.version.__version__\n" +
-    ...     "'")
+    >>> print call_py(
+    ...     py_path,
+    ...     "import tellmy.version; print tellmy.version.__version__")
     1.0
     <BLANKLINE>
     >>> write('buildout.cfg',
@@ -3161,7 +3154,7 @@ def test_suite():
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile('WindowsError'), 'OSError'),
-               (re.compile(r'\[Error 17\] Cannot create a file '
+               (re.compile(r'\[Error \d+\] Cannot create a file '
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
                 ),
@@ -3215,6 +3208,10 @@ def test_suite():
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
+               # Normalize generate_script's Windows interpreter to UNIX:
+               (re.compile(r'\nimport subprocess\n'), '\n'),
+               (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
+                'os.execve(sys.executable, argv, environ)'),
                ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),

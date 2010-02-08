@@ -138,7 +138,8 @@ You can also generate an interpreter alone with the ``interpreter`` recipe.
     Generated interpreter '/sample-buildout/bin/py'.
 
 In both cases, the bin/py script works by restarting Python after
-specifying a special path in PYTHONPATH.
+specifying a special path in PYTHONPATH.  This example shows the UNIX version;
+the Windows version actually uses subprocess instead.
 
     >>> cat(sample_buildout, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/bin/python2.4 -S

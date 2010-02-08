@@ -1094,12 +1094,11 @@ in both site packages and eggs.
 
 Here are some examples of the interpreter in use.
 
-    >>> print system(interpreter_path + ' -c "print 16+26"')
+    >>> print call_py(interpreter_path, "print 16+26")
     42
     <BLANKLINE>
-    >>> res = system(interpreter_path +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
-    >>> print res # doctest: +ELLIPSIS
+    >>> res = call_py(interpreter_path, "import sys; print sys.path")
+    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/eggs/demo-0.3-pyN.N.egg',
      '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
@@ -1129,8 +1128,7 @@ If you provide initialization, it goes in sitecustomize.py.
     >>> cat(sitecustomize_path)
     import os
     os.environ['FOO'] = 'bar baz bing shazam'
-    >>> print system(interpreter_path +
-    ...              """ -c 'import os; print os.environ["FOO"]'""")
+    >>> print call_py(interpreter_path, "import os; print os.environ['FOO']")
     bar baz bing shazam
     <BLANKLINE>
 
@@ -1182,8 +1180,8 @@ paths join a base to a path, as with the use of this argument in the
 
 The paths resolve in practice as you would expect.
 
-    >>> print system(interpreter_path +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    >>> print call_py(interpreter_path,
+    ...               "import sys, pprint; pprint.pprint(sys.path)")
     ... # doctest: +ELLIPSIS
     ['',
      '/interpreter/eggs/demo-0.3-py2.4.egg',
@@ -1210,8 +1208,8 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
             '/interpreter/other'
             ]...
 
-    >>> print system(interpreter_path +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
+    >>> print call_py(interpreter_path,
+    ...               "import sys, pprint; pprint.pprint(sys.path)")
     ... # doctest: +ELLIPSIS
     ['',
      '/interpreter/eggs/demo-0.3-pyN.N.egg',
@@ -1355,9 +1353,8 @@ Here's an example of the new script in use.  Other documents and tests in
 this package give the feature a more thorough workout, but this should
 give you an idea of the feature.
 
-    >>> res = system(join(interpreter_dir, 'bin', 'py') +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path)"')
-    >>> print res # doctest: +ELLIPSIS
+    >>> res = call_py(interpreter_path, "import sys; print sys.path")
+    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/eggs/demo-0.3-py2.4.egg',
      '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
@@ -1434,7 +1431,10 @@ The demo script runs the entry point defined in the demo egg:
     if __name__ == '__main__':
         eggrecipedemo.main()
 
-    >>> print system(join(interpreter_bin_dir, 'demo'))
+    >>> demo_call = join(interpreter_bin_dir, 'demo')
+    >>> if sys.platform == 'win32':
+    ...     demo_call = '"%s"' % demo_call
+    >>> print system(demo_call)
     3 1
     <BLANKLINE>
 

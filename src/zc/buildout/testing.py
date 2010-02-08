@@ -106,6 +106,16 @@ def system(command, input=''):
     e.close()
     return result
 
+def call_py(interpreter, cmd, flags=None):
+    if sys.platform == 'win32':
+        args = ['"%s"' % arg for arg in (interpreter, flags, cmd) if arg]
+        args.insert(-1, '"-c"')
+        return system('"%s"' % ' '.join(args))
+    else:
+        cmd = repr(cmd)
+        return system(
+            ' '.join(arg for arg in (interpreter, flags, '-c', cmd) if arg))
+
 def get(url):
     return urllib2.urlopen(url).read()
 
@@ -336,6 +346,7 @@ def buildoutSetUp(test):
         tmpdir = tmpdir,
         write = write,
         system = system,
+        call_py = call_py,
         get = get,
         cd = (lambda *path: os.chdir(os.path.join(*path))),
         join = os.path.join,
@@ -536,10 +547,14 @@ def _normalize_path(match):
             path = path[1:]
     return '/' + path.replace(os.path.sep, '/')
 
+if sys.platform == 'win32':
+    sep = r'[\\/]' # Windows uses both sometimes.
+else:
+    sep = re.escape(os.path.sep)
 normalize_path = (
     re.compile(
-        r'''[^'" \t\n\r]+\%(sep)s_[Tt][Ee][Ss][Tt]_\%(sep)s([^"' \t\n\r]+)'''
-        % dict(sep=os.path.sep)),
+        r'''[^'" \t\n\r]+%(sep)s_[Tt][Ee][Ss][Tt]_%(sep)s([^"' \t\n\r]+)'''
+        % dict(sep=sep)),
     _normalize_path,
     )
 

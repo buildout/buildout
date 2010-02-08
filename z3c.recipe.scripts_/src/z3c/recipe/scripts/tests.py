@@ -270,6 +270,10 @@ def test_suite():
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
+               # Normalize generate_script's Windows interpreter to UNIX:
+               (re.compile(r'\nimport subprocess\n'), '\n'),
+               (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
+                'os.execve(sys.executable, argv, environ)'),
                ])
             ),
         doctest.DocTestSuite(
@@ -279,6 +283,7 @@ def test_suite():
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_egg_py,
+                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                 ]),
             ),
 

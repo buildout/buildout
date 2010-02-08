@@ -1300,13 +1300,16 @@ def _get_system_paths(executable):
         cmd.extend([
             "-c", "import sys, os;"
             "print repr([os.path.normpath(p) for p in sys.path if p])"])
+        # Windows needs some (as yet to be determined) part of the real env.
+        env = os.environ.copy()
+        env.update(kwargs)
         _proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kwargs)
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         stdout, stderr = _proc.communicate();
         if _proc.returncode:
             raise RuntimeError(
                 'error trying to get system packages:\n%s' % (stderr,))
-        res = eval(stdout)
+        res = eval(stdout.strip())
         try:
             res.remove('.')
         except ValueError:
@@ -1506,10 +1509,52 @@ def _generate_interpreter(name, dest, executable, site_py_dest,
     full_name = os.path.join(dest, name)
     site_py_dest_string, rpsetup = _relative_path_and_setup(
         full_name, [site_py_dest], relative_paths)
+    if sys.platform == 'win32':
+        windows_import = '\nimport subprocess'
+        # os.exec* is a mess on Windows, particularly if the path
+        # to the executable has spaces and the Python is using MSVCRT.
+        # The standard fix is to surround the executable's path with quotes,
+        # but that has been unreliable in testing.
+        #
+        # Here's a demonstration of the problem.  Given a Python
+        # compiled with a MSVCRT-based compiler, such as the free Visual
+        # C++ 2008 Express Edition, and an executable path with spaces
+        # in it such as the below, we see the following.
+        #
+        # >>> import os
+        # >>> p0 = 'C:\\Documents and Settings\\Administrator\\My Documents\\Downloads\\Python-2.6.4\\PCbuild\\python.exe'
+        # >>> os.path.exists(p0)
+        # True
+        # >>> os.execv(p0, [])
+        # Traceback (most recent call last):
+        #  File "<stdin>", line 1, in <module>
+        # OSError: [Errno 22] Invalid argument
+        #
+        # That seems like a standard problem.  The standard solution is
+        # to quote the path (see, for instance
+        # http://bugs.python.org/issue436259).  However, this solution,
+        # and other variations, fail:
+        #
+        # >>> p1 = '"C:\\Documents and Settings\\Administrator\\My Documents\\Downloads\\Python-2.6.4\\PCbuild\\python.exe"'
+        # >>> os.execv(p1, [])
+        # Traceback (most recent call last):
+        #   File "<stdin>", line 1, in <module>
+        # OSError: [Errno 22] Invalid argument
+        #
+        # We simply use subprocess instead, since it handles everything
+        # nicely, and the transparency of exec* (that is, not running,
+        # perhaps unexpectedly, in a subprocess) is arguably not a
+        # necessity, at least for many use cases.
+        execute = 'subprocess.call(argv, env=environ)'
+    else:
+        windows_import = ''
+        execute = 'os.execve(sys.executable, argv, environ)'
     contents = interpreter_template % dict(
-        python = _safe_arg(executable),
-        site_dest = site_py_dest_string,
-        relative_paths_setup = rpsetup,
+        python=_safe_arg(executable),
+        site_dest=site_py_dest_string,
+        relative_paths_setup=rpsetup,
+        windows_import=windows_import,
+        execute=execute,
         )
     return _write_script(full_name, contents, 'interpreter')
 
@@ -1517,7 +1562,7 @@ interpreter_template = script_header + '''\
 
 %(relative_paths_setup)s
 import os
-import sys
+import sys%(windows_import)s
 
 argv = [sys.executable] + sys.argv[1:]
 environ = os.environ.copy()
@@ -1525,7 +1570,7 @@ path = %(site_dest)s
 if environ.get('PYTHONPATH'):
     path = os.pathsep.join([path, environ['PYTHONPATH']])
 environ['PYTHONPATH'] = path
-os.execve(sys.executable, argv, environ)
+%(execute)s
 '''
 
 # End of script generation code.

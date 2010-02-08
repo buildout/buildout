@@ -110,8 +110,10 @@ try:
     import setuptools # A flag.  Sometimes pkg_resources is installed alone.
     import pkg_resources
 except ImportError:
+    ez_code = urllib2.urlopen(
+        configuration['--ez_setup-source']).read().replace('\r\n', '\n')
     ez = {}
-    exec urllib2.urlopen(configuration['--ez_setup-source']).read() in ez
+    exec ez_code in ez
     setuptools_args = dict(to_dir=configuration['--eggs'], download_delay=0)
     if configuration['--download-base']:
         setuptools_args['download_base'] = configuration['--download-base']
