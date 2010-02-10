@@ -338,11 +338,32 @@ class Buildout(UserDict.DictMixin):
 
         self._setup_directories()
 
+        options = self['buildout']
+
+        # Get a base working set for our distributions that corresponds to the
+        # stated desires in the configuration.
+        distributions = ['setuptools', 'zc.buildout']
+        if options.get('offline') == 'true':
+            ws = zc.buildout.easy_install.working_set(
+                distributions, options['executable'],
+                [options['develop-eggs-directory'], options['eggs-directory']]
+                )
+        else:
+            ws = zc.buildout.easy_install.install(
+                distributions, options['eggs-directory'],
+                links=self._links,
+                index=options.get('index'),
+                executable=options['executable'],
+                path=[options['develop-eggs-directory']],
+                newest=self.newest,
+                allow_hosts=self._allow_hosts
+                )
+
         # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
         for name in 'setuptools', 'zc.buildout':
             r = pkg_resources.Requirement.parse(name)
-            dist = pkg_resources.working_set.find(r)
+            dist = ws.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 dest = os.path.join(self['buildout']['develop-eggs-directory'],
                                     name+'.egg-link')
@@ -362,8 +383,8 @@ class Buildout(UserDict.DictMixin):
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
         zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'])
+            ['zc.buildout'], ws, options['executable'],
+            options['bin-directory'])
 
     init = bootstrap
 
