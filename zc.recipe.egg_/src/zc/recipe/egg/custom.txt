@@ -50,7 +50,7 @@ compiler
 swig
    The path to the swig executable
 
-swig-cpp           
+swig-cpp
    Make SWIG create C++ files (default is C)
 
 swig-opts
@@ -73,14 +73,14 @@ index
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
-   we'll just point to an empty directory on our link server.  This 
+   we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
 python
    The name of a section to get the Python executable from.
    If not specified, then the buildout python option is used.  The
    Python executable is found in the executable option of the named
-   section. 
+   section.
 
 environment
    The name of a section with additional environment variables. The
@@ -188,7 +188,7 @@ Let's define a script that uses out ext demo:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... eggs = demo 
+    ... eggs = demo
     ...        extdemo
     ... entry-points = demo=demo:main
     ... """ % dict(server=link_server))
@@ -270,7 +270,7 @@ We can specify a specific version using the egg option:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... eggs = demo 
+    ... eggs = demo
     ...        extdemo ==1.4
     ... entry-points = demo=demo:main
     ... """ % dict(server=link_server))
@@ -440,7 +440,7 @@ Create a clean buildout.cfg w/o the checkenv recipe, and delete the recipe:
     Uninstalling extdemo.
     Installing extdemo.
     zip_safe flag not set; analyzing archive contents...
-    
+
     >>> rmdir(sample_buildout, 'recipes')
 
 
@@ -496,7 +496,7 @@ compiler
 swig
    The path to the swig executable
 
-swig-cpp           
+swig-cpp
    Make SWIG create C++ files (default is C)
 
 swig-opts
@@ -506,7 +506,7 @@ python
    The name of a section to get the Python executable from.
    If not specified, then the buildout python option is used.  The
    Python executable is found in the executable option of the named
-   section. 
+   section.
 
 To illustrate this, we'll use a directory containing the extdemo
 example from the earlier section:
@@ -532,7 +532,7 @@ example from the earlier section:
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
-    ... eggs = demo 
+    ... eggs = demo
     ...        extdemo
     ... entry-points = demo=demo:main
     ... """ % dict(extdemo=extdemo))

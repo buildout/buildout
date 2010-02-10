@@ -492,10 +492,14 @@ def _normalize_path(match):
             path = path[1:]
     return '/' + path.replace(os.path.sep, '/')
 
+if sys.platform == 'win32':
+    sep = r'[\\/]' # Windows uses both sometimes.
+else:
+    sep = re.escape(os.path.sep)
 normalize_path = (
     re.compile(
-        r'''[^'" \t\n\r]+\%(sep)s_[Tt][Ee][Ss][Tt]_\%(sep)s([^"' \t\n\r]+)'''
-        % dict(sep=os.path.sep)),
+        r'''[^'" \t\n\r]+%(sep)s_[Tt][Ee][Ss][Tt]_%(sep)s([^"' \t\n\r]+)'''
+        % dict(sep=sep)),
     _normalize_path,
     )
 

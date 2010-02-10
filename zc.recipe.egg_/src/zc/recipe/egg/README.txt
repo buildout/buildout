@@ -46,7 +46,7 @@ We have a link server that has a number of distributions:
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update it's configuration file to
+We have a sample buildout.  Let's update its configuration file to
 install the demo package.
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -187,7 +187,7 @@ Let's add an interpreter option:
     ... interpreter = py-demo
     ... """ % dict(server=link_server))
 
-Note that we ommitted the entry point name from the recipe
+Note that we omitted the entry point name from the recipe
 specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
