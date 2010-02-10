@@ -25,7 +25,7 @@ We have a link server:
     </body></html>
 
 We have a sample buildout.  Let's update it's configuration file to
-install the demo package using Python 2.4.
+install the demo package using Python 2.4. 
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -35,7 +35,7 @@ install the demo package using Python 2.4.
     ... index = http://www.python.org/pypi/
     ...
     ... [python2.4]
-    ... executable = %(python24)s
+    ... executable = %(python23)s
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
@@ -43,7 +43,7 @@ install the demo package using Python 2.4.
     ... find-links = %(server)s
     ... python = python2.4
     ... interpreter = py-demo
-    ... """ % dict(server=link_server, python24=other_executable))
+    ... """ % dict(server=link_server, python23=other_executable))
 
 Now, if we run the buildout:
 
@@ -69,7 +69,7 @@ we'll get the Python 2.4 eggs for demo and demoneeded:
     d  setuptools-0.6-py2.4.egg
     d  setuptools-0.6-py2.5.egg
     -  zc.buildout-1.0-py2.5.egg
-
+ 
 And the generated scripts invoke Python 2.4:
 
     >>> import sys
@@ -81,8 +81,8 @@ And the generated scripts invoke Python 2.4:
     >>> shebang = f.readline().strip()
     >>> if shebang[:3] == '#!"' and shebang[-1] == '"':
     ...     shebang = '#!'+shebang[3:-1]
-    >>> assert shebang == '#!%s -S' % other_executable, (
-    ...     repr((shebang, '#!' + other_executable)))
+    >>> shebang == '#!' + other_executable
+    True
     >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys
@@ -104,8 +104,8 @@ And the generated scripts invoke Python 2.4:
     >>> shebang = f.readline().strip()
     >>> if shebang[:3] == '#!"' and shebang[-1] == '"':
     ...     shebang = '#!'+shebang[3:-1]
-    >>> assert shebang == '#!%s -S' % other_executable, (
-    ...     repr((shebang, '#!' + other_executable)))
+    >>> shebang == '#!' + other_executable
+    True
     >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys

@@ -20,105 +20,109 @@ use the -c option to specify an alternate configuration file.
 $Id$
 """
 
-import os, re, shutil, sys, tempfile, textwrap, urllib, urllib2
+import os, shutil, sys, tempfile, textwrap, urllib, urllib2
+from optparse import OptionParser
 
-# We have to manually parse our options rather than using one of the stdlib
-# tools because we want to pass the ones we don't recognize along to
-# zc.buildout.buildout.main.
+is_jython = sys.platform.startswith('java')
 
-configuration = {
-    '--ez_setup-source': 'http://peak.telecommunity.com/dist/ez_setup.py',
-    '--version': '',
-    '--download-base': None,
-    '--eggs': None}
+setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
+distribute_source = 'http://python-distribute.org/distribute_setup.py'
 
-helpstring = __doc__ + textwrap.dedent('''
-    This script recognizes the following options itself.  The first option it
-    encounters that is not one of these will cause the script to stop parsing
-    options and pass the rest on to buildout.  Therefore, if you want to use
-    any of the following options *and* buildout command-line options like
-    -c, first use the following options, and then use the buildout options.
-
-    Options:
-      --version=ZC_BUILDOUT_VERSION
-                Specify a version number of the zc.buildout to use
-      --ez_setup-source=URL_OR_FILE
-                Specify a URL or file location for the ez_setup file.
-                Defaults to
-                %(--ez_setup-source)s
-      --download-base=URL_OR_DIRECTORY
-                Specify a URL or directory for downloading setuptools and
-                zc.buildout.  Defaults to PyPI.
-      --eggs=DIRECTORY
-                Specify a directory for storing eggs.  Defaults to a temporary
-                directory that is deleted when the bootstrap script completes.
-
-    By using --ez_setup-source and --download-base to point to local resources,
-    you can keep this script from going over the network.
-    ''' % configuration)
-match_equals = re.compile(r'(%s)=(.*)' % ('|'.join(configuration),)).match
-args = sys.argv[1:]
-if args == ['--help']:
-    print helpstring
-    sys.exit(0)
-
-# If we end up using a temporary directory for storing our eggs, this will
-# hold the path of that directory.  On the other hand, if an explicit directory
-# is specified in the argv, this will remain None.
-tmpeggs = None
-
-while args:
-    val = args[0]
-    if val in configuration:
-        del args[0]
-        if not args or args[0].startswith('-'):
-            print "ERROR: %s requires an argument."
-            print helpstring
-            sys.exit(1)
-        configuration[val] = args[0]
+# parsing arguments
+def normalize_to_url(option, opt_str, value, parser):
+    if value:
+        if '://' not in value: # It doesn't smell like a URL.
+            value = 'file://%s' % (
+                urllib.pathname2url(
+                    os.path.abspath(os.path.expanduser(value))),)
+        if opt_str == '--download-base' and not value.endswith('/'):
+            # Download base needs a trailing slash to make the world happy.
+            value += '/'
     else:
-        match = match_equals(val)
-        if match and match.group(1) in configuration:
-            configuration[match.group(1)] = match.group(2)
-        else:
-            break
-    del args[0]
+        value = None
+    name = opt_str[2:].replace('-', '_')
+    setattr(parser.values, name, value)
 
-for name in ('--ez_setup-source', '--download-base'):
-    val = configuration[name]
-    if val is not None and '://' not in val: # We're being lazy.
-        configuration[name] = 'file://%s' % (
-            urllib.pathname2url(os.path.abspath(os.path.expanduser(val))),)
+usage = '''\
+[DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
 
-if (configuration['--download-base'] and
-    not configuration['--download-base'].endswith('/')):
-    # Download base needs a trailing slash to make the world happy.
-    configuration['--download-base'] += '/'
+Bootstraps a buildout-based project.
 
-if not configuration['--eggs']:
-    configuration['--eggs'] = tmpeggs = tempfile.mkdtemp()
+Simply run this script in a directory containing a buildout.cfg, using the
+Python that you want bin/buildout to use.
+
+Note that by using --setup-source and --download-base to point to
+local resources, you can keep this script from going over the network.
+'''
+
+parser = OptionParser(usage=usage)
+parser.add_option("-v", "--version", dest="version",
+                          help="use a specific zc.buildout version")
+parser.add_option("-d", "--distribute",
+                   action="store_true", dest="use_distribute", default=False,
+                   help="Use Distribute rather than Setuptools.")
+parser.add_option("--setup-source", action="callback", dest="setup_source",
+                  callback=normalize_to_url, nargs=1, type="string",
+                  help=("Specify a URL or file location for the setup file. "
+                        "If you use Setuptools, this will default to " +
+                        setuptools_source + "; if you use Distribute, this "
+                        "will default to " + distribute_source +"."))
+parser.add_option("--download-base", action="callback", dest="download_base",
+                  callback=normalize_to_url, nargs=1, type="string",
+                  help=("Specify a URL or directory for downloading "
+                        "zc.buildout and either Setuptools or Distribute. "
+                        "Defaults to PyPI."))
+parser.add_option("--eggs",
+                  help=("Specify a directory for storing eggs.  Defaults to "
+                        "a temporary directory that is deleted when the "
+                        "bootstrap script completes."))
+parser.add_option("-c", None, action="store", dest="config_file",
+                   help=("Specify the path to the buildout configuration "
+                         "file to be used."))
+
+options, args = parser.parse_args()
+
+# if -c was provided, we push it back into args for buildout' main function
+if options.config_file is not None:
+    args += ['-c', options.config_file]
+
+if options.eggs:
+    eggs_dir = os.path.abspath(os.path.expanduser(options.eggs))
 else:
-    configuration['--eggs'] = os.path.abspath(
-        os.path.expanduser(configuration['--eggs']))
+    eggs_dir = tempfile.mkdtemp()
 
-# The requirement is what we will pass to setuptools to specify zc.buildout.
-requirement = 'zc.buildout'
-if configuration['--version']:
-    requirement += '==' + configuration['--version']
+if options.setup_source is None:
+    if options.use_distribute:
+        options.setup_source = distribute_source
+    else:
+        options.setup_source = setuptools_source
+
+args = args + ['bootstrap']
+
+to_reload = False
 
 try:
     import setuptools # A flag.  Sometimes pkg_resources is installed alone.
     import pkg_resources
+    if not hasattr(pkg_resources, '_distribute'):
+        to_reload = True
+        raise ImportError
 except ImportError:
     ez_code = urllib2.urlopen(
-        configuration['--ez_setup-source']).read().replace('\r\n', '\n')
+        options.setup_source).read().replace('\r\n', '\n')
     ez = {}
     exec ez_code in ez
-    setuptools_args = dict(to_dir=configuration['--eggs'], download_delay=0)
-    if configuration['--download-base']:
-        setuptools_args['download_base'] = configuration['--download-base']
-    ez['use_setuptools'](**setuptools_args)
-    import pkg_resources
+    setup_args = dict(to_dir=eggs_dir, download_delay=0)
+    if options.download_base:
+        setup_args['download_base'] = options.download_base
+    if options.use_distribute:
+        setup_args['no_fake'] = True
+    ez['use_setuptools'](**setup_args)
+
+    if to_reload:
+        reload(pkg_resources)
+    else:
+        import pkg_resources
     # This does not (always?) update the default working set.  We will
     # do it.
     for path in sys.path:
@@ -134,27 +138,35 @@ if sys.platform == 'win32':
 else:
     def quote (c):
         return c
+
 cmd = [quote(sys.executable),
        '-c',
        quote('from setuptools.command.easy_install import main; main()'),
        '-mqNxd',
-       quote(configuration['--eggs'])]
+       quote(eggs_dir)]
 
-if configuration['--download-base']:
-    cmd.extend(['-f', quote(configuration['--download-base'])])
+if options.download_base:
+    cmd.extend(['-f', quote(options.download_base)])
 
+requirement = 'zc.buildout'
+if options.version:
+    requirement = '=='.join((requirement, options.version))
 cmd.append(requirement)
 
+if options.use_distribute:
+    setup_requirement = 'distribute'
+else:
+    setup_requirement = 'setuptools'
 ws = pkg_resources.working_set
 env = dict(
     os.environ,
-    PYTHONPATH=ws.find(pkg_resources.Requirement.parse('setuptools')).location)
+    PYTHONPATH=ws.find(
+        pkg_resources.Requirement.parse(setup_requirement)).location)
 
-is_jython = sys.platform.startswith('java')
 if is_jython:
     import subprocess
     exitcode = subprocess.Popen(cmd, env=env).wait()
-else: # Windows needs this, apparently; otherwise we would prefer subprocess
+else: # Windows prefers this, apparently; otherwise we would prefer subprocess
     exitcode = os.spawnle(*([os.P_WAIT, sys.executable] + cmd + [env]))
 if exitcode != 0:
     sys.stdout.flush()
@@ -164,10 +176,9 @@ if exitcode != 0:
            "were output by easy_install.")
     sys.exit(exitcode)
 
-ws.add_entry(configuration['--eggs'])
+ws.add_entry(eggs_dir)
 ws.require(requirement)
 import zc.buildout.buildout
-args.append('bootstrap')
 zc.buildout.buildout.main(args)
-if tmpeggs is not None:
-    shutil.rmtree(tmpeggs)
+if not options.eggs: # clean up temporary egg directory
+    shutil.rmtree(eggs_dir)

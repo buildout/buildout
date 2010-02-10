@@ -6,34 +6,6 @@ Change History
 
 New Features:
 
-- Buildout can be safely used with a system Python.  Note that Python is
-  always used, by default, with -S: that is, site-packages are not
-  included. If you would like to have access to your site-packages, see
-  the next bullet point.
-
-  A limitation: in no cases are distributions in your site-packages used
-  to satisfy buildout dependencies.  The site-packages can be used in
-  addition to the dependencies specified in your buildout, and buildout
-  dependencies can override code in your site-packages, but even if your
-  Python's site-packages has the same exact version as specified in your
-  buildout configuration, buildout will still use its own copy.
-
-- Added new function, ``zc.buildout.easy_install.generate_scripts``, to
-  generate scripts and interpreter.  It produces a full-featured
-  interpreter (all command-line options supported) and the ability to
-  safely let scripts include site packages.  A safe and functional
-  site.py also is available, which will make it safer for use with a
-  system Python than the pre-existing buildout function
-  (``zc.buildout.easy_install.scripts``) and recipe (``zc.recipe.egg``).
-
-  End users should see z3c.recipe.scripts, which provides this
-  functionality within buildout configuration files.
-
-  The older function (``zc.buildout.easy_install.scripts``) and recipe
-  (``zc.recipe.egg``) still survive, because of their comparative attractive
-  simplicity, because they still work well when a non-system Python is used,
-  and because they can often be used well with a system Python.
-
 - Improve bootstrap.
 
   * New options let you specify where to find ez_setup.py and where to find
@@ -47,24 +19,40 @@ New Features:
 
 Bugs fixed:
 
-- Incrementing didn't work properly when extending multiple files.
-  https://bugs.launchpad.net/zc.buildout/+bug/421022
-
-- The download API computed MD5 checksums of text files wrong on Windows.
-
 - The handling and documenting of default buildout options was normalized.
   This means, among other things, that ``bin/buildout -vv`` and
   ``bin/buildout annotate`` correctly list more of the options.
 
-- Installing a namespace package using a Python that already has a package
-  in the same namespace (e.g., in the Python's site-packages) in some cases.
+1.4.3 (2009-12-10)
+==================
 
-- The error showed itself when at least two dependencies were in a shared
-  location like site-packages, and the first one met the "versions"
-  setting.  The first dependency would be added, but subsequent
-  dependencies from the same location (e.g., site-packages) would use
-  the version of the package found in the shared location, ignoring the
-  version setting.
+Bugs fixed:
+
+- Using pre-detected setuptools version for easy_installing tgz files.  This
+  prevents a recursion error when easy_installing an upgraded "distribute"
+  tgz.  Note that setuptools did not have this recursion problem solely
+  because it was packaged as an ``.egg``, which does not have to go through
+  the easy_install step.
+
+
+1.4.2 (2009-11-01)
+==================
+
+New Feature:
+
+- Added a --distribute option to the bootstrap script, in order
+  to use Distribute rather than Setuptools. By default, Setuptools
+  is used.
+
+Bugs fixed:
+
+- While checking for new versions of setuptools and buildout itself,
+  compare requirement locations instead of requirement objects.
+
+- Incrementing didn't work properly when extending multiple files.
+  https://bugs.launchpad.net/zc.buildout/+bug/421022
+
+- The download API computed MD5 checksums of text files wrong on Windows.
 
 1.4.1 (2009-08-27)
 ==================

@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "1.4.0dev"
+version = "1.4.4dev"
 
 import os
 from setuptools import setup
@@ -48,6 +48,8 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'easy_install.txt')
         + '\n' +
+        read('src', 'zc', 'buildout', 'distribute.txt')
+        + '\n' +
         read('CHANGES.txt')
         + '\n' +
         'Download\n'
@@ -72,7 +74,7 @@ setup(
     long_description=long_description,
     license = "ZPL 2.1",
     keywords = "development build",
-    url='http://pypi.python.org/pypi/zc.buildout',
+    url='http://buildout.org',
 
     data_files = [('.', ['README.txt'])],
     packages = ['zc', 'zc.buildout'],

@@ -36,7 +36,7 @@ def setUp(test):
 def setUpSelecting(test):
     zc.buildout.testselectingpython.setup(test)
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
-
+    
 def test_suite():
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
@@ -67,7 +67,7 @@ def test_suite():
                            'setuptools-\S+\s+'
                            'zc.buildout-\S+\s*'
                            ),
-                '__buildout_signature__ = sample- zc.recipe.egg-\n'),
+                '__buildout_signature__ = sample- zc.recipe.egg-'),
                (re.compile('executable = [\S ]+python\S*', re.I),
                 'executable = python'),
                (re.compile('find-links = http://localhost:\d+/'),
@@ -89,7 +89,7 @@ def test_suite():
                (re.compile('extdemo[.]pyd'), 'extdemo.so')
                ]),
             ),
-
+        
         ))
 
     if sys.version_info[:2] == (2, 5):
@@ -115,7 +115,7 @@ def test_suite():
                    ]),
                 ),
             )
-
+    
     return suite
 
 if __name__ == '__main__':

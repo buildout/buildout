@@ -81,14 +81,13 @@ new versions found in new releases:
 Our buildout script has been updated to use the new eggs:
 
     >>> cat(sample_buildout, 'bin', 'buildout')
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-        '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
-        '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
-        ]
-    <BLANKLINE>
+      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
+      '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
+      ]
     <BLANKLINE>
     import zc.buildout.buildout
     <BLANKLINE>

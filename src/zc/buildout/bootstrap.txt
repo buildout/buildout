@@ -119,9 +119,86 @@ Let's make sure the generated `buildout` script uses it::
         zc.buildout.buildout.main()
     <BLANKLINE>
 
-You can specify a location of ez_setup.py, so you can rely on a local or remote
-location.  We'll write our own ez_setup.py that we will also use to test some
-other bootstrap options.
+`zc.buildout` now can also run with `Distribute` with the `--distribute`
+option::
+
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --distribute'); print 'X' # doctest: +ELLIPSIS
+    ...
+    X
+    ...
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+
+Let's make sure the generated `buildout` script uses it::
+
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample/eggs/distribute-...egg',
+      '/sample/eggs/zc.buildout-...egg',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+    <BLANKLINE>
+
+Make sure both options can be used together::
+
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --distribute --version 1.2.1'); print 'X'
+    ... # doctest: +ELLIPSIS
+    ...
+    X
+    ...
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+
+Let's make sure the generated `buildout` script uses ``Distribute`` *and*
+``zc.buildout-1.2.1``::
+
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/sample/eggs/distribute-...egg',
+      '/sample/eggs/zc.buildout-1.2.1...egg',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+    <BLANKLINE>
+
+Last, the -c option needs to work on bootstrap.py::
+
+    >>> conf_file = os.path.join(sample_buildout, 'other.cfg')
+    >>> f = open(conf_file, 'w')
+    >>> f.write('[buildout]\nparts=\n\n')
+    >>> f.close()
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py -c %s --distribute' % conf_file); print 'X' # doctest: +ELLIPSIS
+    ...
+    X
+    ...
+    Generated script '/sample/bin/buildout'.
+    <BLANKLINE>
+    X
+
+You can specify a location of ez_setup.py or distribute_setup, so you
+can rely on a local or remote location.  We'll write our own ez_setup.py
+that we will also use to test some other bootstrap options.
 
     >>> write('ez_setup.py', '''\
     ... def use_setuptools(**kwargs):
@@ -131,7 +208,7 @@ other bootstrap options.
     ... ''')
     >>> print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --ez_setup-source=./ez_setup.py')
+    ...     'bootstrap.py --setup-source=./ez_setup.py')
     ... # doctest: +ELLIPSIS
     {'download_delay': 0,
      'to_dir': '...'}
@@ -142,7 +219,7 @@ You can also pass a download-cache, and a place in which eggs should be stored
 
     >>> print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --ez_setup-source=./ez_setup.py '+
+    ...     'bootstrap.py --setup-source=./ez_setup.py '+
     ...     '--download-base=./download-cache --eggs=eggs')
     ... # doctest: +ELLIPSIS
     {'download_base': '/sample/download-cache/',
@@ -156,34 +233,33 @@ Here's the entire help text.
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --help'),
     ... # doctest: +ELLIPSIS
-    Bootstrap a buildout-based project
+    usage: [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
     <BLANKLINE>
-    Simply run this script in a directory containing a buildout.cfg.
-    The script accepts buildout command-line options, so you can
-    use the -c option to specify an alternate configuration file.
+    Bootstraps a buildout-based project.
     <BLANKLINE>
-    ...
+    Simply run this script in a directory containing a buildout.cfg, using the
+    Python that you want bin/buildout to use.
     <BLANKLINE>
-    This script recognizes the following options itself.  The first option it
-    encounters that is not one of these will cause the script to stop parsing
-    options and pass the rest on to buildout.  Therefore, if you want to use
-    any of the following options *and* buildout command-line options like
-    -c, first use the following options, and then use the buildout options.
+    Note that by using --setup-source and --download-base to point to
+    local resources, you can keep this script from going over the network.
     <BLANKLINE>
-    Options:
-      --version=ZC_BUILDOUT_VERSION
-                Specify a version number of the zc.buildout to use
-      --ez_setup-source=URL_OR_FILE
-                Specify a URL or file location for the ez_setup file.
-                Defaults to
-                http://peak.telecommunity.com/dist/ez_setup.py
-      --download-base=URL_OR_DIRECTORY
-                Specify a URL or directory for downloading setuptools and
-                zc.buildout.  Defaults to PyPI.
-      --eggs=DIRECTORY
-                Specify a directory for storing eggs.  Defaults to a temporary
-                directory that is deleted when the bootstrap script completes.
     <BLANKLINE>
-    By using --ez_setup-source and --download-base to point to local resources,
-    you can keep this script from going over the network.
-    <BLANKLINE>
+    options:
+      -h, --help            show this help message and exit
+      -v VERSION, --version=VERSION
+                            use a specific zc.buildout version
+      -d, --distribute      Use Distribute rather than Setuptools.
+      --setup-source=SETUP_SOURCE
+                            Specify a URL or file location for the setup file. If
+                            you use Setuptools, this will default to
+                            http://peak.telecommunity.com/dist/ez_setup.py; if you
+                            use Distribute, this will default to http://python-
+                            distribute.org/distribute_setup.py.
+      --download-base=DOWNLOAD_BASE
+                            Specify a URL or directory for downloading zc.buildout
+                            and either Setuptools or Distribute. Defaults to PyPI.
+      --eggs=EGGS           Specify a directory for storing eggs.  Defaults to a
+                            temporary directory that is deleted when the bootstrap
+                            script completes.
+      -c CONFIG_FILE        Specify the path to the buildout configuration file to
+                            be used.

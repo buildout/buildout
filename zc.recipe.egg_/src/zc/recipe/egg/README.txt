@@ -46,7 +46,7 @@ We have a link server that has a number of distributions:
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update its configuration file to
+We have a sample buildout.  Let's update it's configuration file to
 install the demo package.
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -154,8 +154,6 @@ dependent-scripts
 interpreter
    The name of a script to generate that allows access to a Python
    interpreter that has the path set based on the eggs installed.
-   (See the ``z3c.recipe.scripts`` recipe for a more full-featured
-   interpreter.)
 
 extra-paths
    Extra paths to include in a generated script.
@@ -189,7 +187,7 @@ Let's add an interpreter option:
     ... interpreter = py-demo
     ... """ % dict(server=link_server))
 
-Note that we omitted the entry point name from the recipe
+Note that we ommitted the entry point name from the recipe
 specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
@@ -375,7 +373,7 @@ extra-paths option:
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -384,7 +382,6 @@ Let's look at the script that was generated:
       '/foo/bar',
       '/sample-buildout/spam',
       ]
-    <BLANKLINE>
     <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
@@ -423,7 +420,7 @@ breaking scripts.
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -470,7 +467,7 @@ each individual script section:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -523,7 +520,7 @@ to be included in generated scripts:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -581,16 +578,15 @@ declare entry points using the entry-points option:
     -  other
 
     >>> cat(sample_buildout, 'bin', 'other')
-    #!/usr/local/bin/python2.4 -S
+    #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-        '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
-        '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
-        '/foo/bar',
-        '/sample-buildout/spam',
-        ]
-    <BLANKLINE>
+      '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/foo/bar',
+      '/sample-buildout/spam',
+      ]
     <BLANKLINE>
     import foo.bar
     <BLANKLINE>
@@ -644,4 +640,3 @@ be made to contact an index server:
     Uninstalling bigdemo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
-

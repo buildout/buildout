@@ -19,12 +19,11 @@ $Id$
 import logging, os, re, zipfile
 import zc.buildout.easy_install
 
-
 class Eggs(object):
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
-        self.name = self.default_eggs = name
+        self.name = name
         self.options = options
         b_options = buildout['buildout']
         links = options.get('find-links', b_options['find-links'])
@@ -53,7 +52,7 @@ class Eggs(object):
         # verify that this is None, 'true' or 'false'
         get_bool(options, 'unzip')
 
-        python = options.setdefault('python', b_options['python'])
+        python = options.get('python', b_options['python'])
         options['executable'] = buildout[python]['executable']
 
     def working_set(self, extra=()):
@@ -66,16 +65,15 @@ class Eggs(object):
 
         distributions = [
             r.strip()
-            for r in options.get('eggs', self.default_eggs).split('\n')
+            for r in options.get('eggs', self.name).split('\n')
             if r.strip()]
         orig_distributions = distributions[:]
         distributions.extend(extra)
 
-        if b_options.get('offline') == 'true':
+        if self.buildout['buildout'].get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
-                [options['develop-eggs-directory'],
-                 options['eggs-directory']],
+                [options['develop-eggs-directory'], options['eggs-directory']]
                 )
         else:
             kw = {}
@@ -87,7 +85,7 @@ class Eggs(object):
                 index=self.index,
                 executable=options['executable'],
                 path=[options['develop-eggs-directory']],
-                newest=b_options.get('newest') == 'true',
+                newest=self.buildout['buildout'].get('newest') == 'true',
                 allow_hosts=self.allow_hosts,
                 **kw)
 
@@ -99,19 +97,16 @@ class Eggs(object):
 
     update = install
 
-
-class ScriptBase(Eggs):
+class Scripts(Eggs):
 
     def __init__(self, buildout, name, options):
-        super(ScriptBase, self).__init__(buildout, name, options)
+        super(Scripts, self).__init__(buildout, name, options)
 
-        b_options = buildout['buildout']
-
-        options['bin-directory'] = b_options['bin-directory']
+        options['bin-directory'] = buildout['buildout']['bin-directory']
         options['_b'] = options['bin-directory'] # backward compat.
 
         self.extra_paths = [
-            os.path.join(b_options['directory'], p.strip())
+            os.path.join(buildout['buildout']['directory'], p.strip())
             for p in options.get('extra-paths', '').split('\n')
             if p.strip()
             ]
@@ -120,9 +115,11 @@ class ScriptBase(Eggs):
 
 
         relative_paths = options.get(
-            'relative-paths', b_options.get('relative-paths', 'false'))
+            'relative-paths',
+            buildout['buildout'].get('relative-paths', 'false')
+            )
         if relative_paths == 'true':
-            options['buildout-directory'] = b_options['directory']
+            options['buildout-directory'] = buildout['buildout']['directory']
             self._relative_paths = options['buildout-directory']
         else:
             self._relative_paths = ''
@@ -131,13 +128,12 @@ class ScriptBase(Eggs):
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
-
     def install(self):
         reqs, ws = self.working_set()
         options = self.options
 
         scripts = options.get('scripts')
-        if scripts or scripts is None or options.get('interpreter'):
+        if scripts or scripts is None:
             if scripts is not None:
                 scripts = scripts.split()
                 scripts = dict([
@@ -161,31 +157,21 @@ class ScriptBase(Eggs):
                     name = dist.project_name
                     if name != 'setuptools' and name not in reqs:
                         reqs.append(name)
-            return self._install(reqs, ws, scripts)
+
+            return zc.buildout.easy_install.scripts(
+                reqs, ws, options['executable'],
+                options['bin-directory'],
+                scripts=scripts,
+                extra_paths=self.extra_paths,
+                interpreter=options.get('interpreter'),
+                initialization=options.get('initialization', ''),
+                arguments=options.get('arguments', ''),
+                relative_paths=self._relative_paths,
+                )
+
         return ()
 
     update = install
-
-    def _install(self, reqs, ws, scripts):
-        # Subclasses implement this.
-        raise NotImplementedError()
-
-
-class Scripts(ScriptBase):
-
-    def _install(self, reqs, ws, scripts):
-        options = self.options
-        return zc.buildout.easy_install.scripts(
-            reqs, ws, options['executable'],
-            options['bin-directory'],
-            scripts=scripts,
-            extra_paths=self.extra_paths,
-            interpreter=options.get('interpreter'),
-            initialization=options.get('initialization', ''),
-            arguments=options.get('arguments', ''),
-            relative_paths=self._relative_paths
-            )
-
 
 def get_bool(options, name, default=False):
     value = options.get(name)
