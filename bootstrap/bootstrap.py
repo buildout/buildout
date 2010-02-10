@@ -108,8 +108,10 @@ try:
         to_reload = True
         raise ImportError
 except ImportError:
+    ez_code = urllib2.urlopen(
+        options.setup_source).read().replace('\r\n', '\n')
     ez = {}
-    exec urllib2.urlopen(options.setup_source).read() in ez
+    exec ez_code in ez
     setup_args = dict(to_dir=eggs_dir, download_delay=0)
     if options.download_base:
         setup_args['download_base'] = options.download_base
