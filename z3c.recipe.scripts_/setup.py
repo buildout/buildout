@@ -16,7 +16,7 @@
 $Id: setup.py 106736 2009-12-18 02:33:08Z gary $
 """
 
-version = '1.0'
+version = '1.0.0dev'
 
 import os
 from setuptools import setup, find_packages
@@ -60,8 +60,8 @@ setup(
     package_dir = {'':'src'},
     namespace_packages = ['z3c', 'z3c.recipe'],
     install_requires = [
-        'zc.buildout >=1.2.0',
-        'zc.recipe.egg',
+        'zc.buildout >=1.5.0dev',
+        'zc.recipe.egg >=1.2.3dev',
         'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
