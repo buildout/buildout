@@ -137,9 +137,50 @@ if is_win32:
 else:
     _safe_arg = str
 
-_easy_install_cmd = _safe_arg(
-    'from setuptools.command.easy_install import main; main()'
-    )
+# The following string is used to run easy_install in
+# Installer._call_easy_install.  It is started with python -S (that is,
+# don't import site at start).  That flag, and all of the code in this
+# snippet above the last two lines, exist to work around a relatively rare
+# problem.  If
+#
+# - your buildout configuration is trying to install a package that is within
+#   a namespace package, and
+#
+# - you use a Python that has a different version of this package
+#   installed in in its site-packages using
+#   --single-version-externally-managed (that is, using the mechanism
+#   sometimes used by system packagers:
+#   http://peak.telecommunity.com/DevCenter/setuptools#install-command ), and
+#
+# - the new package tries to do sys.path tricks in the setup.py to get a
+#   __version__,
+#
+# then the older package will be loaded first, making the setup version
+# the wrong number. While very arguably packages simply shouldn't do
+# the sys.path tricks, some do, and we don't want buildout to fall over
+# when they do.
+#
+# The namespace packages installed in site-packages with
+# --single-version-externally-managed use a mechanism that cause them to
+# be processed when site.py is imported.  Simply starting Python with -S
+# addresses the problem in Python 2.4 and 2.5, but Python 2.6's distutils
+# imports a value from the site module, so we unfortunately have to do more
+# drastic surgery in the _easy_install_cmd code below.  The changes to
+# sys.modules specifically try to only remove namespace modules installed by
+# the --single-version-externally-managed code.
+
+_easy_install_cmd = _safe_arg('''\
+import sys; \
+p = sys.path[:]; \
+m = sys.modules.keys(); \
+import site; \
+sys.path[:] = p; \
+m_attrs = set(('__builtins__', '__file__', '__package__', '__path__')); \
+match = set(('__path__',)); \
+[sys.modules.pop(k) for k, v in sys.modules.items()\
+ if k not in m and v and m_attrs.intersection(dir(v)) == match]; \
+from setuptools.command.easy_install import main; \
+main()''')
 
 
 class Installer:
@@ -301,7 +342,7 @@ class Installer:
         try:
             path = setuptools_loc
 
-            args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
+            args = ('-Sc', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
             if self._always_unzip:
                 args += ('-Z', )
             level = logger.getEffectiveLevel()
@@ -904,6 +945,9 @@ def develop(setup, dest,
 def working_set(specs, executable, path):
     return install(specs, None, executable=executable, path=path)
 
+############################################################################
+# Script generation functions
+
 def scripts(reqs, working_set, executable, dest,
             scripts=None,
             extra_paths=(),
@@ -912,20 +956,85 @@ def scripts(reqs, working_set, executable, dest,
             initialization='',
             relative_paths=False,
             ):
+    """Generate scripts and/or an interpreter.
 
+    See generate_scripts for a newer version with more options and a
+    different approach.
+    """
+    path = _get_path(working_set, extra_paths)
+    if initialization:
+        initialization = '\n'+initialization+'\n'
+    generated = _generate_scripts(
+        reqs, working_set, dest, path, scripts, relative_paths,
+        initialization, executable, arguments)
+    if interpreter:
+        sname = os.path.join(dest, interpreter)
+        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
+        generated.extend(
+            _pyscript(spath, sname, executable, rpsetup))
+    return generated
+
+def generate_scripts(
+    dest, working_set, executable, site_py_dest,
+    reqs=(), scripts=None, interpreter=None, extra_paths=(),
+    initialization='', add_site_packages=False, exec_sitecustomize=False,
+    relative_paths=False, script_arguments='', script_initialization=''):
+    """Generate scripts and/or an interpreter.
+
+    This accomplishes the same job as the ``scripts`` function, above,
+    but it does so in an alternative way that allows safely including
+    Python site packages, if desired, and  choosing to execute the Python's
+    sitecustomize.
+    """
+    generated = []
+    generated.append(_generate_sitecustomize(
+        site_py_dest, executable, initialization, exec_sitecustomize))
+    generated.append(_generate_site(
+        site_py_dest, working_set, executable, extra_paths,
+        add_site_packages, relative_paths))
+    script_initialization = (
+        '\nimport site # imports custom buildbot-generated site.py\n%s' % (
+            script_initialization,))
+    if not script_initialization.endswith('\n'):
+        script_initialization += '\n'
+    generated.extend(_generate_scripts(
+        reqs, working_set, dest, [site_py_dest], scripts, relative_paths,
+        script_initialization, executable, script_arguments, block_site=True))
+    if interpreter:
+        generated.extend(_generate_interpreter(
+            interpreter, dest, executable, site_py_dest, relative_paths))
+    return generated
+
+# Utilities for the script generation functions.
+
+# These are shared by both ``scripts`` and ``generate_scripts``
+
+def _get_path(working_set, extra_paths=()):
+    """Given working set and extra paths, return a normalized path list."""
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    path = map(realpath, path)
+    return map(realpath, path)
 
-    generated = []
+def _generate_scripts(reqs, working_set, dest, path, scripts, relative_paths,
+                      initialization, executable, arguments,
+                      block_site=False):
+    """Generate scripts for the given requirements.
 
+    - reqs is an iterable of string requirements or entry points.
+    - The requirements must be findable in the given working_set.
+    - The dest is the directory in which the scripts should be created.
+    - The path is a list of paths that should be added to sys.path.
+    - The scripts is an optional dictionary.  If included, the keys should be
+      the names of the scripts that should be created, as identified in their
+      entry points; and the values should be the name the script should
+      actually be created with.
+    - relative_paths, if given, should be the path that is the root of the
+      buildout (the common path that should be the root of what is relative).
+    """
     if isinstance(reqs, str):
         raise TypeError('Expected iterable of requirements or entry points,'
                         ' got string.')
-
-    if initialization:
-        initialization = '\n'+initialization+'\n'
-
+    generated = []
     entry_points = []
     for req in reqs:
         if isinstance(req, str):
@@ -939,7 +1048,6 @@ def scripts(reqs, working_set, executable, dest,
                     )
         else:
             entry_points.append(req)
-
     for name, module_name, attrs in entry_points:
         if scripts is not None:
             sname = scripts.get(name)
@@ -947,40 +1055,48 @@ def scripts(reqs, working_set, executable, dest,
                 continue
         else:
             sname = name
-
         sname = os.path.join(dest, sname)
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
-
         generated.extend(
-            _script(module_name, attrs, spath, sname, executable, arguments,
-                    initialization, rpsetup)
-            )
-
-    if interpreter:
-        sname = os.path.join(dest, interpreter)
-        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
-        generated.extend(_pyscript(spath, sname, executable, rpsetup))
-
+            _script(sname, executable, rpsetup, spath, initialization,
+                    module_name, attrs, arguments, block_site=block_site))
     return generated
 
-def _relative_path_and_setup(sname, path, relative_paths):
+def _relative_path_and_setup(sname, path,
+                             relative_paths=False, indent_level=1):
+    """Return a string of code of paths and of setup if appropriate.
+
+    - sname is the full path to the script name to be created.
+    - path is the list of paths to be added to sys.path.
+    - relative_paths, if given, should be the path that is the root of the
+      buildout (the common path that should be the root of what is relative).
+    - indent_level is the number of four-space indents that the path should
+      insert before each element of the path.
+    """
     if relative_paths:
         relative_paths = os.path.normcase(relative_paths)
         sname = os.path.normcase(os.path.abspath(sname))
-        spath = ',\n  '.join(
+        spath = _format_paths(
             [_relativitize(os.path.normcase(path_item), sname, relative_paths)
-             for path_item in path]
-            )
+             for path_item in path], indent_level=indent_level)
         rpsetup = relative_paths_setup
         for i in range(_relative_depth(relative_paths, sname)):
             rpsetup += "base = os.path.dirname(base)\n"
     else:
-        spath = repr(path)[1:-1].replace(', ', ',\n  ')
+        spath = _format_paths((repr(p) for p in path),
+                              indent_level=indent_level)
         rpsetup = ''
     return spath, rpsetup
 
-
 def _relative_depth(common, path):
+    """Return number of dirs separating ``path`` from ancestor, ``common``.
+
+    For instance, if path is /foo/bar/baz/bing, and common is /foo, this will
+    return 2--in UNIX, the number of ".." to get from bing's directory
+    to foo.
+
+    This is a helper for _relative_path_and_setup.
+    """
     n = 0
     while 1:
         dirname = os.path.dirname(path)
@@ -993,6 +1109,11 @@ def _relative_depth(common, path):
     return n
 
 def _relative_path(common, path):
+    """Return the relative path from ``common`` to ``path``.
+
+    This is a helper for _relativitize, which is a helper to
+    _relative_path_and_setup.
+    """
     r = []
     while 1:
         dirname, basename = os.path.split(path)
@@ -1006,6 +1127,11 @@ def _relative_path(common, path):
     return os.path.join(*r)
 
 def _relativitize(path, script, relative_paths):
+    """Return a code string for the given path.
+
+    Path is relative to the base path ``relative_paths``if the common prefix
+    between ``path`` and ``script`` starts with ``relative_paths``.
+    """
     if path == script:
         raise AssertionError("path == script")
     common = os.path.dirname(os.path.commonprefix([path, script]))
@@ -1016,7 +1142,6 @@ def _relativitize(path, script, relative_paths):
     else:
         return repr(path)
 
-
 relative_paths_setup = """
 import os
 
@@ -1024,58 +1149,78 @@ join = os.path.join
 base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 """
 
-def _script(module_name, attrs, path, dest, executable, arguments,
-            initialization, rsetup):
+def _write_script(full_name, contents, logged_type):
+    """Write contents of script in full_name, logging the action.
+
+    The only tricky bit in this function is that it supports Windows by
+    creating exe files using a pkg_resources helper.
+    """
     generated = []
-    script = dest
+    script_name = full_name
     if is_win32:
-        dest += '-script.py'
-
-    contents = script_template % dict(
-        python = _safe_arg(executable),
-        path = path,
-        module_name = module_name,
-        attrs = attrs,
-        arguments = arguments,
-        initialization = initialization,
-        relative_paths_setup = rsetup,
-        )
-    changed = not (os.path.exists(dest) and open(dest).read() == contents)
-
-    if is_win32:
-        # generate exe file and give the script a magic name:
-        exe = script+'.exe'
+        script_name += '-script.py'
+        # Generate exe file and give the script a magic name.
+        exe = full_name + '.exe'
         new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
         generated.append(exe)
-
+    changed = not (os.path.exists(script_name) and
+                   open(script_name).read() == contents)
     if changed:
-        open(dest, 'w').write(contents)
-        logger.info("Generated script %r.", script)
-
+        open(script_name, 'w').write(contents)
         try:
-            os.chmod(dest, 0755)
+            os.chmod(script_name, 0755)
         except (AttributeError, os.error):
             pass
-
-    generated.append(dest)
+        logger.info("Generated %s %r.", logged_type, full_name)
+    generated.append(script_name)
     return generated
 
-if is_jython and jython_os_name == 'linux':
-    script_header = '#!/usr/bin/env %(python)s'
-else:
-    script_header = '#!%(python)s'
+def _format_paths(paths, indent_level=1):
+    """Format paths for inclusion in a script."""
+    separator = ',\n' + indent_level * '    '
+    return separator.join(paths)
 
+def _script(dest, executable, relative_paths_setup, path, initialization,
+            module_name, attrs, arguments, block_site=False):
+    if block_site:
+        dash_S = ' -S'
+    else:
+        dash_S = ''
+    contents = script_template % dict(
+        python=_safe_arg(executable),
+        dash_S=dash_S,
+        path=path,
+        module_name=module_name,
+        attrs=attrs,
+        arguments=arguments,
+        initialization=initialization,
+        relative_paths_setup=relative_paths_setup,
+        )
+    return _write_script(dest, contents, 'script')
+
+if is_jython and jython_os_name == 'linux':
+    script_header = '#!/usr/bin/env %(python)s%(dash_S)s'
+else:
+    script_header = '#!%(python)s%(dash_S)s'
+
+sys_path_template = '''\
+import sys
+sys.path[0:0] = [
+    %s,
+    ]
+'''
 
 script_template = script_header + '''\
 
 %(relative_paths_setup)s
 import sys
 sys.path[0:0] = [
-  %(path)s,
-  ]
+    %(path)s,
+    ]
+
 %(initialization)s
 import %(module_name)s
 
@@ -1083,38 +1228,16 @@ if __name__ == '__main__':
     %(module_name)s.%(attrs)s(%(arguments)s)
 '''
 
+# These are used only by the older ``scripts`` function.
 
 def _pyscript(path, dest, executable, rsetup):
-    generated = []
-    script = dest
-    if is_win32:
-        dest += '-script.py'
-
     contents = py_script_template % dict(
-        python = _safe_arg(executable),
-        path = path,
-        relative_paths_setup = rsetup,
+        python=_safe_arg(executable),
+        dash_S='',
+        path=path,
+        relative_paths_setup=rsetup,
         )
-    changed = not (os.path.exists(dest) and open(dest).read() == contents)
-
-    if is_win32:
-        # generate exe file and give the script a magic name:
-        exe = script + '.exe'
-        open(exe, 'wb').write(
-            pkg_resources.resource_string('setuptools', 'cli.exe')
-            )
-        generated.append(exe)
-
-    if changed:
-        open(dest, 'w').write(contents)
-        try:
-            os.chmod(dest,0755)
-        except (AttributeError, os.error):
-            pass
-        logger.info("Generated interpreter %r.", script)
-
-    generated.append(dest)
-    return generated
+    return _write_script(dest, contents, 'interpreter')
 
 py_script_template = script_header + '''\
 
@@ -1122,8 +1245,8 @@ py_script_template = script_header + '''\
 import sys
 
 sys.path[0:0] = [
-  %(path)s,
-  ]
+    %(path)s,
+    ]
 
 _interactive = True
 if len(sys.argv) > 1:
@@ -1150,6 +1273,313 @@ if _interactive:
     del _interactive
     __import__("code").interact(banner="", local=globals())
 '''
+
+# These are used only by the newer ``generate_scripts`` function.
+
+def _get_system_paths(executable):
+    """return lists of standard lib and site paths for executable.
+    """
+    # We want to get a list of the site packages, which is not easy.
+    # The canonical way to do this is to use
+    # distutils.sysconfig.get_python_lib(), but that only returns a
+    # single path, which does not reflect reality for many system
+    # Pythons, which have multiple additions.  Instead, we start Python
+    # with -S, which does not import site.py and set up the extra paths
+    # like site-packages or (Ubuntu/Debian) dist-packages and
+    # python-support. We then compare that sys.path with the normal one
+    # (minus user packages if this is Python 2.6, because we don't
+    # support those (yet?).  The set of the normal one minus the set of
+    # the ones in ``python -S`` is the set of packages that are
+    # effectively site-packages.
+    #
+    # The given executable might not be the current executable, so it is
+    # appropriate to do another subprocess to figure out what the
+    # additional site-package paths are. Moreover, even if this
+    # executable *is* the current executable, this code might be run in
+    # the context of code that has manipulated the sys.path--for
+    # instance, to add local zc.buildout or setuptools eggs.
+    def get_sys_path(*args, **kwargs):
+        cmd = [executable]
+        cmd.extend(args)
+        cmd.extend([
+            "-c", "import sys, os;"
+            "print repr([os.path.normpath(p) for p in sys.path if p])"])
+        # Windows needs some (as yet to be determined) part of the real env.
+        env = os.environ.copy()
+        env.update(kwargs)
+        _proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        stdout, stderr = _proc.communicate();
+        if _proc.returncode:
+            raise RuntimeError(
+                'error trying to get system packages:\n%s' % (stderr,))
+        res = eval(stdout.strip())
+        try:
+            res.remove('.')
+        except ValueError:
+            pass
+        return res
+    stdlib = get_sys_path('-S') # stdlib only
+    no_user_paths = get_sys_path(PYTHONNOUSERSITE='x')
+    site_paths = [p for p in no_user_paths if p not in stdlib]
+    return (stdlib, site_paths)
+
+def _get_module_file(executable, name):
+    """Return a module's file path.
+
+    - executable is a path to the desired Python executable.
+    - name is the name of the (pure, not C) Python module.
+    """
+    cmd = [executable, "-c",
+           "import imp; "
+           "fp, path, desc = imp.find_module(%r); "
+           "fp.close; "
+           "print path" % (name,)]
+    _proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = _proc.communicate();
+    if _proc.returncode:
+        logger.info(
+            'Could not find file for module %s:\n%s', name, stderr)
+        return None
+    # else: ...
+    res = stdout.strip()
+    if res.endswith('.pyc') or res.endswith('.pyo'):
+        raise RuntimeError('Cannot find uncompiled version of %s' % (name,))
+    if not os.path.exists(res):
+        raise RuntimeError(
+            'File does not exist for module %s:\n%s' % (name, res))
+    return res
+
+def _generate_sitecustomize(dest, executable, initialization='',
+                            exec_sitecustomize=False):
+    """Write a sitecustomize file with optional custom initialization.
+
+    The created script will execute the underlying Python's
+    sitecustomize if exec_sitecustomize is True.
+    """
+    sitecustomize_path = os.path.join(dest, 'sitecustomize.py')
+    sitecustomize = open(sitecustomize_path, 'w')
+    if initialization:
+        sitecustomize.write(initialization + '\n')
+    if exec_sitecustomize:
+        real_sitecustomize_path = _get_module_file(
+            executable, 'sitecustomize')
+        if real_sitecustomize_path:
+            real_sitecustomize = open(real_sitecustomize_path, 'r')
+            sitecustomize.write(
+                '\n# The following is from\n# %s\n' %
+                (real_sitecustomize_path,))
+            sitecustomize.write(real_sitecustomize.read())
+            real_sitecustomize.close()
+    sitecustomize.close()
+    return sitecustomize_path
+
+def _generate_site(dest, working_set, executable, extra_paths=(),
+                   add_site_packages=False, relative_paths=False):
+    """Write a site.py file with eggs from working_set.
+
+    extra_paths will be added to the path.  If add_site_packages is True,
+    paths from the underlying Python will be added.
+    """
+    path = _get_path(working_set, extra_paths)
+    site_path = os.path.join(dest, 'site.py')
+    path_string, rpsetup = _relative_path_and_setup(
+        site_path, path, relative_paths, indent_level=2)
+    if rpsetup:
+        rpsetup = '\n'.join(
+            [(line and '    %s' % (line,) or line)
+             for line in rpsetup.split('\n')])
+    real_site_path = _get_module_file(executable, 'site')
+    real_site = open(real_site_path, 'r')
+    site = open(site_path, 'w')
+    extra_path_snippet = add_site_packages_snippet[add_site_packages]
+    extra_path_snippet_followup = add_site_packages_snippet_followup[
+        add_site_packages]
+    if add_site_packages:
+        stdlib, site_paths = _get_system_paths(executable)
+        extra_path_snippet = extra_path_snippet % _format_paths(
+            (repr(p) for p in site_paths), 2)
+    addsitepackages_marker = 'def addsitepackages('
+    enableusersite_marker = 'ENABLE_USER_SITE = '
+    successful_rewrite = False
+    for line in real_site.readlines():
+        if line.startswith(enableusersite_marker):
+            site.write(enableusersite_marker)
+            site.write('False # buildout does not support user sites.\n')
+        elif line.startswith(addsitepackages_marker):
+            site.write(addsitepackages_script % (
+                extra_path_snippet, rpsetup, path_string,
+                extra_path_snippet_followup))
+            site.write(line[len(addsitepackages_marker):])
+            successful_rewrite = True
+        else:
+            site.write(line)
+    if not successful_rewrite:
+        raise RuntimeError('Buildout did not successfully rewrite site.py')
+    return site_path
+
+add_site_packages_snippet = ['''
+    paths = []''', '''
+    paths = [ # These are the underlying Python's site-packages.
+        %s]
+    sys.path[0:0] = paths
+    known_paths.update([os.path.normcase(os.path.abspath(p)) for p in paths])
+    try:
+        import pkg_resources
+    except ImportError:
+        # No namespace packages in sys.path; no fixup needed.
+        pkg_resources = None''']
+
+add_site_packages_snippet_followup = ['', '''
+    if pkg_resources is not None:
+        # There may be namespace packages in sys.path.  This is much faster
+        # than importing pkg_resources after the sys.path has a large number
+        # of eggs.
+        for p in sys.path:
+            pkg_resources.fixup_namespace_packages(p)''']
+
+addsitepackages_script = '''\
+def addsitepackages(known_paths):%s
+%s    paths[0:0] = [ # eggs
+        %s
+        ]
+    # Process all dirs.  Look for .pth files.  If they exist, defer
+    # processing "import" varieties.
+    dotpth = os.extsep + "pth"
+    deferred = []
+    for path in reversed(paths):
+        # Duplicating addsitedir.
+        sitedir, sitedircase = makepath(path)
+        if not sitedircase in known_paths and os.path.exists(sitedir):
+            sys.path.insert(0, sitedir)
+            known_paths.add(sitedircase)
+        try:
+            names = os.listdir(sitedir)
+        except os.error:
+            continue
+        names = [name for name in names if name.endswith(dotpth)]
+        names.sort()
+        for name in names:
+            # Duplicating addpackage.
+            fullname = os.path.join(sitedir, name)
+            try:
+                f = open(fullname, "rU")
+            except IOError:
+                continue
+            try:
+                for line in f:
+                    if line.startswith("#"):
+                        continue
+                    if (line.startswith("import ") or
+                        line.startswith("import\t")):
+                        # This line is supposed to be executed.  It
+                        # might be a setuptools namespace package
+                        # installed with a system package manager.
+                        # Defer this so we can process egg namespace
+                        # packages first, or else the eggs with the same
+                        # namespace will be ignored.
+                        deferred.append((sitedir, name, fullname, line))
+                        continue
+                    line = line.rstrip()
+                    dir, dircase = makepath(sitedir, line)
+                    if not dircase in known_paths and os.path.exists(dir):
+                        sys.path.append(dir)
+                        known_paths.add(dircase)
+            finally:
+                f.close()%s
+    # Process "import ..." .pth lines.
+    for sitedir, name, fullname, line in deferred:
+        # Note that some lines--such as the one setuptools writes for
+        # namespace packages--expect some or all of sitedir, name, and
+        # fullname to be present in the frame locals, as it is in
+        # ``addpackage``.
+        try:
+            exec line
+        except:
+            print "Error in %%s" %% (fullname,)
+            raise
+    global addsitepackages
+    addsitepackages = original_addsitepackages
+    return known_paths
+
+buildout_addsitepackages = addsitepackages
+
+def original_addsitepackages('''
+
+def _generate_interpreter(name, dest, executable, site_py_dest,
+                          relative_paths=False):
+    """Write an interpreter script, using the site.py approach."""
+    full_name = os.path.join(dest, name)
+    site_py_dest_string, rpsetup = _relative_path_and_setup(
+        full_name, [site_py_dest], relative_paths)
+    if sys.platform == 'win32':
+        windows_import = '\nimport subprocess'
+        # os.exec* is a mess on Windows, particularly if the path
+        # to the executable has spaces and the Python is using MSVCRT.
+        # The standard fix is to surround the executable's path with quotes,
+        # but that has been unreliable in testing.
+        #
+        # Here's a demonstration of the problem.  Given a Python
+        # compiled with a MSVCRT-based compiler, such as the free Visual
+        # C++ 2008 Express Edition, and an executable path with spaces
+        # in it such as the below, we see the following.
+        #
+        # >>> import os
+        # >>> p0 = 'C:\\Documents and Settings\\Administrator\\My Documents\\Downloads\\Python-2.6.4\\PCbuild\\python.exe'
+        # >>> os.path.exists(p0)
+        # True
+        # >>> os.execv(p0, [])
+        # Traceback (most recent call last):
+        #  File "<stdin>", line 1, in <module>
+        # OSError: [Errno 22] Invalid argument
+        #
+        # That seems like a standard problem.  The standard solution is
+        # to quote the path (see, for instance
+        # http://bugs.python.org/issue436259).  However, this solution,
+        # and other variations, fail:
+        #
+        # >>> p1 = '"C:\\Documents and Settings\\Administrator\\My Documents\\Downloads\\Python-2.6.4\\PCbuild\\python.exe"'
+        # >>> os.execv(p1, [])
+        # Traceback (most recent call last):
+        #   File "<stdin>", line 1, in <module>
+        # OSError: [Errno 22] Invalid argument
+        #
+        # We simply use subprocess instead, since it handles everything
+        # nicely, and the transparency of exec* (that is, not running,
+        # perhaps unexpectedly, in a subprocess) is arguably not a
+        # necessity, at least for many use cases.
+        execute = 'subprocess.call(argv, env=environ)'
+    else:
+        windows_import = ''
+        execute = 'os.execve(sys.executable, argv, environ)'
+    contents = interpreter_template % dict(
+        python=_safe_arg(executable),
+        dash_S=' -S',
+        site_dest=site_py_dest_string,
+        relative_paths_setup=rpsetup,
+        windows_import=windows_import,
+        execute=execute,
+        )
+    return _write_script(full_name, contents, 'interpreter')
+
+interpreter_template = script_header + '''\
+
+%(relative_paths_setup)s
+import os
+import sys%(windows_import)s
+
+argv = [sys.executable] + sys.argv[1:]
+environ = os.environ.copy()
+path = %(site_dest)s
+if environ.get('PYTHONPATH'):
+    path = os.pathsep.join([path, environ['PYTHONPATH']])
+environ['PYTHONPATH'] = path
+%(execute)s
+'''
+
+# End of script generation code.
+############################################################################
 
 runsetup_template = """
 import sys

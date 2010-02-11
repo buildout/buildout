@@ -6,6 +6,25 @@ Change History
 
 New Features:
 
+- Buildout can be safely used with a system Python, as long as you use the
+  new z3c.recipe.scripts recipe to generate scripts and interpreters, rather
+  than zc.recipe.egg (which is still a fully supported, and simpler, way of
+  generating scripts and interpreters if you are using a "clean" Python).
+
+  A hopefully slight limitation: in no cases are distributions in your
+  site-packages used to satisfy buildout dependencies.  The
+  site-packages can be used in addition to the dependencies specified in
+  your buildout, and buildout dependencies can override code in your
+  site-packages, but even if your Python's site-packages has the same
+  exact version as specified in your buildout configuration, buildout
+  will still use its own copy.
+
+- Added new function, ``zc.buildout.easy_install.generate_scripts``, to
+  generate scripts and interpreter.  It produces a full-featured
+  interpreter (all command-line options supported) and the ability to
+  safely let scripts include site packages.  The ``z3c.recipe.scripts``
+  recipe uses this new function.
+
 - Improve bootstrap.
 
   * New options let you specify where to find ez_setup.py and where to find
@@ -22,6 +41,17 @@ Bugs fixed:
 - The handling and documenting of default buildout options was normalized.
   This means, among other things, that ``bin/buildout -vv`` and
   ``bin/buildout annotate`` correctly list more of the options.
+
+- Installing a namespace package using a Python that already has a package
+  in the same namespace (e.g., in the Python's site-packages) failed in
+  some cases.
+
+- Another variation of this error showed itself when at least two
+  dependencies were in a shared location like site-packages, and the
+  first one met the "versions" setting.  The first dependency would be
+  added, but subsequent dependencies from the same location (e.g.,
+  site-packages) would use the version of the package found in the
+  shared location, ignoring the version setting.
 
 1.4.3 (2009-12-10)
 ==================
