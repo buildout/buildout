@@ -4,6 +4,8 @@ Change History
 1.4.4 (?)
 =========
 
+- While installing a working set, avoid re-scanning the environment for
+  packages after each additional requirement is resolved.
 
 1.4.3 (2009-12-10)
 ==================

@@ -651,13 +651,10 @@ class Installer:
         # set, but they may have unmet requirements.  We'll simply keep
         # trying to resolve requirements, adding missing requirements as they
         # are reported.
-        #
-        # Note that we don't pass in the environment, because we want
-        # to look for new eggs unless what we have is the best that
-        # matches the requirement.
+        env = pkg_resources.Environment(ws.entries)
         while 1:
             try:
-                ws.resolve(requirements)
+                ws.resolve(requirements, env=env)
             except pkg_resources.DistributionNotFound, err:
                 [requirement] = err
                 requirement = self._constrain(requirement)
@@ -671,6 +668,7 @@ class Installer:
                                            ):
 
                     ws.add(dist)
+                    env.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict, err:
                 raise VersionConflict(err, ws)
