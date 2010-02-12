@@ -1287,12 +1287,7 @@ call to another text fixture to create.
             if not sitedircase in known_paths and os.path.exists(sitedir):
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
-                for dist in pkg_resources.find_distributions(sitedir, True):
-                    pkg_resources.fixup_namespace_packages(dist.location)
-                    if dist.has_metadata('namespace_packages.txt'):
-                        for namespace in dist.get_metadata_lines(
-                            'namespace_packages.txt'):
-                            pkg_resources.declare_namespace(namespace)
+                pkg_resources.working_set.add_entry(sitedir)
         original_paths = [
             ...
             ]
@@ -1354,12 +1349,7 @@ at that result.
             if not sitedircase in known_paths and os.path.exists(sitedir):
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
-                for dist in pkg_resources.find_distributions(sitedir, True):
-                    pkg_resources.fixup_namespace_packages(dist.location)
-                    if dist.has_metadata('namespace_packages.txt'):
-                        for namespace in dist.get_metadata_lines(
-                            'namespace_packages.txt'):
-                            pkg_resources.declare_namespace(namespace)
+                pkg_resources.working_set.add_entry(sitedir)
         original_paths = [
             ...
             ]

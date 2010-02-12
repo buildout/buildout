@@ -1442,12 +1442,7 @@ namespace_add_site_packages_setup = '''
     import pkg_resources'''
 
 addsitedir_namespace_originalpackages_snippet = '''
-            for dist in pkg_resources.find_distributions(sitedir, True):
-                pkg_resources.fixup_namespace_packages(dist.location)
-                if dist.has_metadata('namespace_packages.txt'):
-                    for namespace in dist.get_metadata_lines(
-                        'namespace_packages.txt'):
-                        pkg_resources.declare_namespace(namespace)'''
+            pkg_resources.working_set.add_entry(sitedir)'''
 
 original_path_snippet = '''
     original_paths = [
