@@ -997,8 +997,7 @@ The interpreter script is simple.  It puts the directory with the
 site.py and sitecustomize.py on the PYTHONPATH and (re)starts Python.
 
     >>> cat(py_path)
-    #!/usr/bin/python2.4 -S
-    <BLANKLINE>
+    #!/usr/bin/python -S
     import os
     import sys
     <BLANKLINE>
@@ -1012,30 +1011,27 @@ site.py and sitecustomize.py on the PYTHONPATH and (re)starts Python.
 
 The site.py file is a modified version of the underlying Python's site.py.
 The most important modification is that it has a different version of the
-addsitepackages function.  It has all of the trickier bits, and sets up the
-Python path, similarly to the behavior of the function it replaces.  The
-following shows the part that buildout inserts.
+addsitepackages function.  It sets up the Python path, similarly to the
+behavior of the function it replaces.  The following shows the part that
+buildout inserts, in the simplest case.
 
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
-        """Add site packages.
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-        This function is written by buildout.  See original_addsitepackages,
-        below, for the original version."""
-        paths = [
-            # Eggs.
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
             ]
-        for path in paths:
-            addsitedir(path, known_paths)
-        global addsitepackages
-        addsitepackages = original_addsitepackages
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
         return known_paths
-    <BLANKLINE>
-    buildout_addsitepackages = addsitepackages
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
 
@@ -1079,23 +1075,22 @@ If you provide initialization, it goes in sitecustomize.py.
     bar baz bing shazam
     <BLANKLINE>
 
-If you use relative paths, this affects the interpreter and site.py.
+If you use relative paths, this affects the interpreter and site.py.  (This is
+again the UNIX version; the Windows version uses subprocess instead of
+os.execve.)
 
     >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.generate_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', relative_paths=interpreter_dir)
     >>> cat(py_path)
-    #!/usr/bin/python2.4 -S
-    <BLANKLINE>
+    #!/usr/bin/python -S
     import os
+    import sys
     <BLANKLINE>
     join = os.path.join
     base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
     base = os.path.dirname(base)
-    <BLANKLINE>
-    import os
-    import sys
     <BLANKLINE>
     argv = [sys.executable] + sys.argv[1:]
     environ = os.environ.copy()
@@ -1112,19 +1107,14 @@ paths join a base to a path, as with the use of this argument in the
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
-        """Add site packages.
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-        This function is written by buildout.  See original_addsitepackages,
-        below, for the original version."""
-    <BLANKLINE>
-        import os
-    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
         join = os.path.join
         base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
         base = os.path.dirname(base)
         base = os.path.dirname(base)
-        paths = [
-            # Eggs.
+        buildout_paths = [
             join(base, 'eggs/demo-0.3-pyN.N.egg'),
             join(base, 'eggs/demoneeded-1.1-pyN.N.egg')
             ]...
@@ -1152,12 +1142,10 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
-        """Add site packages.
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-        This function is written by buildout.  See original_addsitepackages,
-        below, for the original version."""
-        paths = [
-            # Eggs.
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
             '/interpreter/other'
@@ -1213,19 +1201,29 @@ this is very straightforward.
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
-        """Add site packages.
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-        This function is written by buildout.  See original_addsitepackages,
-        below, for the original version."""
-        paths = [
-            # Eggs.
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
-            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
-            # These are the underlying Python's site-packages.
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+        original_paths = [
             ...
-            ]...
+            ]
+        for path in original_paths:
+            addsitedir(path, known_paths)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
 
-It simply adds the site-packages after the eggs.
+It simply adds the original paths using addsitedir after the code to add the
+buildout paths.
 
 Here's an example of the new script in use.  Other documents and tests in
 this package give the feature a more thorough workout, but this should
@@ -1271,44 +1269,36 @@ call to another text fixture to create.
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
-        """Add site packages.
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-        This function is written by buildout.  See original_addsitepackages,
-        below, for the original version."""
+        See original_addsitepackages, below, for the original version."""
         setuptools_path = '...setuptools...'
         sys.path.append(setuptools_path)
-        known_paths.add(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
         import pkg_resources
-        paths = [
-            # Eggs.
+        buildout_paths = [
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
             '...setuptools...',
-            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
-            # These are the underlying Python's site-packages.
-            ...
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
             ]
-        dotpth = os.extsep + "pth"
-        for path in paths:
-            # This duplicates addsitedir except for adding the pkg_resources call.
+        for path in buildout_paths:
             sitedir, sitedircase = makepath(path)
             if not sitedircase in known_paths and os.path.exists(sitedir):
                 sys.path.append(sitedir)
-                pkg_resources.working_set.add_entry(sitedir)
                 known_paths.add(sitedircase)
-            try:
-                names = os.listdir(sitedir)
-            except os.error:
-                continue
-            names = [name for name in names if name.endswith(dotpth)]
-            names.sort()
-            for name in names:
-                addpackage(sitedir, name, known_paths)
-        global addsitepackages
-        addsitepackages = original_addsitepackages
+                for dist in pkg_resources.find_distributions(sitedir, True):
+                    pkg_resources.fixup_namespace_packages(dist.location)
+                    if dist.has_metadata('namespace_packages.txt'):
+                        for namespace in dist.get_metadata_lines(
+                            'namespace_packages.txt'):
+                            pkg_resources.declare_namespace(namespace)
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            addsitedir(path, known_paths)
         return known_paths
-    <BLANKLINE>
-    buildout_addsitepackages = addsitepackages
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
 
@@ -1329,6 +1319,66 @@ need to process egg files specially to look for namespace packages there
 feature--lines that might be part of the setuptools namespace package
 implementation for system packages, as mentioned above, and that must
 come after processing egg namespaces.
+
+The most complex that this function gets is if you use namespace packages,
+include site-packages, and use relative paths.  For completeness, we'll look
+at that result.
+
+    >>> generated = zc.buildout.easy_install.generate_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', add_site_packages=True,
+    ...     relative_paths=interpreter_dir)
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        join = os.path.join
+        base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+        base = os.path.dirname(base)
+        base = os.path.dirname(base)
+        setuptools_path = '...setuptools...'
+        sys.path.append(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
+        import pkg_resources
+        buildout_paths = [
+            join(base, 'eggs/demo-0.3-pyN.N.egg'),
+            join(base, 'eggs/tellmy.fortune-1.0-pyN.N.egg'),
+            '...setuptools...',
+            join(base, 'eggs/demoneeded-1.1-pyN.N.egg')
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+                for dist in pkg_resources.find_distributions(sitedir, True):
+                    pkg_resources.fixup_namespace_packages(dist.location)
+                    if dist.has_metadata('namespace_packages.txt'):
+                        for namespace in dist.get_metadata_lines(
+                            'namespace_packages.txt'):
+                            pkg_resources.declare_namespace(namespace)
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            addsitedir(path, known_paths)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '...setuptools...',
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+     ...]
 
 The ``exec_sitecustomize`` argument does the same thing for the
 sitecustomize module--it allows you to include the code from the

@@ -175,14 +175,14 @@ custom Python.
     Generated interpreter '/sample-buildout/bin/py'.
 
     >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
-    ... # doctest: +NORMALIZE_WHITESPACE
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     <BLANKLINE>
     import os
     os.environ['zc.recipe.egg'] = 'baLOOba'
     <BLANKLINE>
     # The following is from
     # /executable_buildout/parts/py/sitecustomize.py
-    <BLANKLINE>
+    ...
     import os
     os.environ['zc.buildout'] = 'foo bar baz shazam'
 
@@ -227,15 +227,11 @@ Let's look at the site.py that was generated:
     #...
     def addsitepackages(known_paths):
         "..."
-    <BLANKLINE>
-        import os
-    <BLANKLINE>
         join = os.path.join
         base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
         base = os.path.dirname(base)
         base = os.path.dirname(base)
-        paths = [
-            # Eggs.
+        buildout_paths = [
             '/foo/bar',
             join(base, 'spam')
             ]...

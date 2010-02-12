@@ -273,11 +273,11 @@ into the sitecustomize.
     Generated interpreter '/sample-buildout/bin/py'.
 
     >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
-    ... # doctest: +NORMALIZE_WHITESPACE
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     <BLANKLINE>
     # The following is from
     # /executable_buildout/parts/py/sitecustomize.py
-    <BLANKLINE>
+    ...
     import os
     os.environ['zc.buildout'] = 'foo bar baz shazam'
 

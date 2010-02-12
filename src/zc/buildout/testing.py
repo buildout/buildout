@@ -310,6 +310,16 @@ def buildoutSetUp(test):
         old_wd = os.getcwd()
         os.chdir(buildout)
         make_buildout()
+        # Normally we don't process .pth files in extra-paths.  We want to
+        # in this case so that we can test with setuptools system installs
+        # (--single-version-externally-managed), which use .pth files.
+        initialization = (
+            ('import sys\n'
+             'import site\n'
+             'known_paths = set(sys.path)\n'
+             'site_packages_dir = %r\n'
+             'site.addsitedir(site_packages_dir, known_paths)\n'
+            ) % (site_packages_dir,)) + initialization
         initialization = '\n'.join(
             '  ' + line for line in initialization.split('\n'))
         install_develop(

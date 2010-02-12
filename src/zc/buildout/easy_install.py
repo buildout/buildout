@@ -1063,7 +1063,8 @@ def _generate_scripts(reqs, working_set, dest, path, scripts, relative_paths,
     return generated
 
 def _relative_path_and_setup(sname, path,
-                             relative_paths=False, indent_level=1):
+                             relative_paths=False, indent_level=1,
+                             omit_os_import=False):
     """Return a string of code of paths and of setup if appropriate.
 
     - sname is the full path to the script name to be created.
@@ -1080,8 +1081,10 @@ def _relative_path_and_setup(sname, path,
             [_relativitize(os.path.normcase(path_item), sname, relative_paths)
              for path_item in path], indent_level=indent_level)
         rpsetup = relative_paths_setup
+        if not omit_os_import:
+            rpsetup = '\n\nimport os\n' + rpsetup
         for i in range(_relative_depth(relative_paths, sname)):
-            rpsetup += "base = os.path.dirname(base)\n"
+            rpsetup += "\nbase = os.path.dirname(base)"
     else:
         spath = _format_paths((repr(p) for p in path),
                               indent_level=indent_level)
@@ -1143,11 +1146,8 @@ def _relativitize(path, script, relative_paths):
         return repr(path)
 
 relative_paths_setup = """
-import os
-
 join = os.path.join
-base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
-"""
+base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))"""
 
 def _write_script(full_name, contents, logged_type):
     """Write contents of script in full_name, logging the action.
@@ -1214,8 +1214,8 @@ sys.path[0:0] = [
 '''
 
 script_template = script_header + '''\
-
 %(relative_paths_setup)s
+
 import sys
 sys.path[0:0] = [
     %(path)s,
@@ -1240,8 +1240,8 @@ def _pyscript(path, dest, executable, rsetup):
     return _write_script(dest, contents, 'interpreter')
 
 py_script_template = script_header + '''\
-
 %(relative_paths_setup)s
+
 import sys
 
 sys.path[0:0] = [
@@ -1384,29 +1384,32 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
     """
     path = _get_path(working_set, extra_paths)
     site_path = os.path.join(dest, 'site.py')
-    path_string, rpsetup = _relative_path_and_setup(
-        site_path, path, relative_paths, indent_level=2)
-    if rpsetup:
-        rpsetup = '\n'.join(
+    egg_path_string, preamble = _relative_path_and_setup(
+        site_path, path, relative_paths, indent_level=2, omit_os_import=True)
+    if preamble:
+        preamble = '\n'.join(
             [(line and '    %s' % (line,) or line)
-             for line in rpsetup.split('\n')])
-    namespace_setup = ''
-    addsitedir = addsitedir_snippet
+             for line in preamble.split('\n')])
+    original_path_setup = ''
     if add_site_packages:
         stdlib, site_paths = _get_system_paths(executable)
-        path_string = ''.join([
-            path_string,
-            (",\n"
-             "        # These are the underlying Python's site-packages.\n"
-             "        "),
-            _format_paths((repr(p) for p in site_paths), 2)])
+        original_path_setup = original_path_snippet % (
+            _format_paths((repr(p) for p in site_paths), 2),)
         distribution = working_set.find(
             pkg_resources.Requirement.parse('setuptools'))
         if distribution is not None:
             # We need to worry about namespace packages.
-            namespace_setup = namespace_add_site_packages_setup % (
-                distribution.location,)
-            addsitedir = addsitedir_namespace_add_site_packages_snippet
+            if relative_paths:
+                location = _relativitize(
+                    distribution.location,
+                    os.path.normcase(os.path.abspath(site_path)),
+                    relative_paths)
+            else:
+                location = repr(distribution.location)
+            preamble += namespace_add_site_packages_setup % (location,)
+            original_path_setup = (
+                addsitedir_namespace_originalpackages_snippet +
+                original_path_setup)
     addsitepackages_marker = 'def addsitepackages('
     enableusersite_marker = 'ENABLE_USER_SITE = '
     successful_rewrite = False
@@ -1420,7 +1423,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
                 site.write('False # buildout does not support user sites.\n')
             elif line.startswith(addsitepackages_marker):
                 site.write(addsitepackages_script % (
-                    namespace_setup, rpsetup, path_string, addsitedir))
+                    preamble, egg_path_string, original_path_setup))
                 site.write(line[len(addsitepackages_marker):])
                 successful_rewrite = True
             else:
@@ -1433,48 +1436,40 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
     return site_path
 
 namespace_add_site_packages_setup = '''
-    setuptools_path = %r
+    setuptools_path = %s
     sys.path.append(setuptools_path)
-    known_paths.add(setuptools_path)
+    known_paths.add(os.path.normcase(setuptools_path))
     import pkg_resources'''
 
-addsitedir_snippet = '''
-    for path in paths:
-        addsitedir(path, known_paths)'''
+addsitedir_namespace_originalpackages_snippet = '''
+            for dist in pkg_resources.find_distributions(sitedir, True):
+                pkg_resources.fixup_namespace_packages(dist.location)
+                if dist.has_metadata('namespace_packages.txt'):
+                    for namespace in dist.get_metadata_lines(
+                        'namespace_packages.txt'):
+                        pkg_resources.declare_namespace(namespace)'''
 
-addsitedir_namespace_add_site_packages_snippet = '''
-    dotpth = os.extsep + "pth"
-    for path in paths:
-        # This duplicates addsitedir except for adding the pkg_resources call.
-        sitedir, sitedircase = makepath(path)
-        if not sitedircase in known_paths and os.path.exists(sitedir):
-            sys.path.append(sitedir)
-            pkg_resources.working_set.add_entry(sitedir)
-            known_paths.add(sitedircase)
-        try:
-            names = os.listdir(sitedir)
-        except os.error:
-            continue
-        names = [name for name in names if name.endswith(dotpth)]
-        names.sort()
-        for name in names:
-            addpackage(sitedir, name, known_paths)'''
+original_path_snippet = '''
+    original_paths = [
+        %s
+        ]
+    for path in original_paths:
+        addsitedir(path, known_paths)'''
 
 addsitepackages_script = '''\
 def addsitepackages(known_paths):
-    """Add site packages.
+    """Add site packages, as determined by zc.buildout.
 
-    This function is written by buildout.  See original_addsitepackages,
-    below, for the original version."""%s
-%s    paths = [
-        # Eggs.
+    See original_addsitepackages, below, for the original version."""%s
+    buildout_paths = [
         %s
-        ]%s
-    global addsitepackages
-    addsitepackages = original_addsitepackages
+        ]
+    for path in buildout_paths:
+        sitedir, sitedircase = makepath(path)
+        if not sitedircase in known_paths and os.path.exists(sitedir):
+            sys.path.append(sitedir)
+            known_paths.add(sitedircase)%s
     return known_paths
-
-buildout_addsitepackages = addsitepackages
 
 def original_addsitepackages('''
 
@@ -1483,7 +1478,9 @@ def _generate_interpreter(name, dest, executable, site_py_dest,
     """Write an interpreter script, using the site.py approach."""
     full_name = os.path.join(dest, name)
     site_py_dest_string, rpsetup = _relative_path_and_setup(
-        full_name, [site_py_dest], relative_paths)
+        full_name, [site_py_dest], relative_paths, omit_os_import=True)
+    if rpsetup:
+        rpsetup += "\n"
     if sys.platform == 'win32':
         windows_import = '\nimport subprocess'
         # os.exec* is a mess on Windows, particularly if the path
@@ -1534,12 +1531,10 @@ def _generate_interpreter(name, dest, executable, site_py_dest,
         )
     return _write_script(full_name, contents, 'interpreter')
 
-interpreter_template = script_header + '''\
-
-%(relative_paths_setup)s
+interpreter_template = script_header + '''
 import os
 import sys%(windows_import)s
-
+%(relative_paths_setup)s
 argv = [sys.executable] + sys.argv[1:]
 environ = os.environ.copy()
 path = %(site_dest)s
