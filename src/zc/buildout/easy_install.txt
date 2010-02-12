@@ -1020,66 +1020,17 @@ following shows the part that buildout inserts.
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
-        paths = []
-        paths[0:0] = [ # eggs
+        """Add site packages.
+    <BLANKLINE>
+        This function is written by buildout.  See original_addsitepackages,
+        below, for the original version."""
+        paths = [
+            # Eggs.
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
             ]
-        # Process all dirs.  Look for .pth files.  If they exist, defer
-        # processing "import" varieties.
-        dotpth = os.extsep + "pth"
-        deferred = []
-        for path in reversed(paths):
-            # Duplicating addsitedir.
-            sitedir, sitedircase = makepath(path)
-            if not sitedircase in known_paths and os.path.exists(sitedir):
-                sys.path.insert(0, sitedir)
-                known_paths.add(sitedircase)
-            try:
-                names = os.listdir(sitedir)
-            except os.error:
-                continue
-            names = [name for name in names if name.endswith(dotpth)]
-            names.sort()
-            for name in names:
-                # Duplicating addpackage.
-                fullname = os.path.join(sitedir, name)
-                try:
-                    f = open(fullname, "rU")
-                except IOError:
-                    continue
-                try:
-                    for line in f:
-                        if line.startswith("#"):
-                            continue
-                        if (line.startswith("import ") or
-                            line.startswith("import ")):
-                            # This line is supposed to be executed.  It
-                            # might be a setuptools namespace package
-                            # installed with a system package manager.
-                            # Defer this so we can process egg namespace
-                            # packages first, or else the eggs with the same
-                            # namespace will be ignored.
-                            deferred.append((sitedir, name, fullname, line))
-                            continue
-                        line = line.rstrip()
-                        dir, dircase = makepath(sitedir, line)
-                        if not dircase in known_paths and os.path.exists(dir):
-                            sys.path.append(dir)
-                            known_paths.add(dircase)
-                finally:
-                    f.close()
-        # Process "import ..." .pth lines.
-        for sitedir, name, fullname, line in deferred:
-            # Note that some lines--such as the one setuptools writes for
-            # namespace packages--expect some or all of sitedir, name, and
-            # fullname to be present in the frame locals, as it is in
-            # ``addpackage``.
-            try:
-                exec line
-            except:
-                print "Error in %s" % (fullname,)
-                raise
+        for path in paths:
+            addsitedir(path, known_paths)
         global addsitepackages
         addsitepackages = original_addsitepackages
         return known_paths
@@ -1087,12 +1038,6 @@ following shows the part that buildout inserts.
     buildout_addsitepackages = addsitepackages
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
-
-As you can see, it manipulates the path to insert the eggs and then processes
-any .pth files.  The lines in the .pth files that use the "import" feature
-are deferred because it is a pattern we will need in a later example, when we
-show how we can add site packages, and handle competing namespace packages
-in both site packages and eggs.
 
 Here are some examples of the interpreter in use.
 
@@ -1102,10 +1047,10 @@ Here are some examples of the interpreter in use.
     >>> res = call_py(interpreter_path, "import sys; print sys.path")
     >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
-     '/interpreter/eggs/demo-0.3-pyN.N.egg',
-     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
      '/interpreter/parts/interpreter',
-     ...]
+     ...,
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
     <BLANKLINE>
     >>> clean_paths = eval(res.strip()) # This is used later for comparison.
 
@@ -1167,7 +1112,10 @@ paths join a base to a path, as with the use of this argument in the
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
-        paths = []
+        """Add site packages.
+    <BLANKLINE>
+        This function is written by buildout.  See original_addsitepackages,
+        below, for the original version."""
     <BLANKLINE>
         import os
     <BLANKLINE>
@@ -1175,7 +1123,8 @@ paths join a base to a path, as with the use of this argument in the
         base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
         base = os.path.dirname(base)
         base = os.path.dirname(base)
-        paths[0:0] = [ # eggs
+        paths = [
+            # Eggs.
             join(base, 'eggs/demo-0.3-pyN.N.egg'),
             join(base, 'eggs/demoneeded-1.1-pyN.N.egg')
             ]...
@@ -1186,10 +1135,10 @@ The paths resolve in practice as you would expect.
     ...               "import sys, pprint; pprint.pprint(sys.path)")
     ... # doctest: +ELLIPSIS
     ['',
-     '/interpreter/eggs/demo-0.3-py2.4.egg',
-     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
      '/interpreter/parts/interpreter',
-     ...]
+     ...,
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
     <BLANKLINE>
 
 The ``extra_paths`` argument affects the path in site.py.  Notice that
@@ -1203,8 +1152,12 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
-        paths = []
-        paths[0:0] = [ # eggs
+        """Add site packages.
+    <BLANKLINE>
+        This function is written by buildout.  See original_addsitepackages,
+        below, for the original version."""
+        paths = [
+            # Eggs.
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
             '/interpreter/other'
@@ -1214,11 +1167,11 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
     ...               "import sys, pprint; pprint.pprint(sys.path)")
     ... # doctest: +ELLIPSIS
     ['',
+     '/interpreter/parts/interpreter',
+     ...,
      '/interpreter/eggs/demo-0.3-pyN.N.egg',
      '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
-     '/interpreter/other',
-     '/interpreter/parts/interpreter',
-     ...]
+     '/interpreter/other']
     <BLANKLINE>
 
 The ``generate_scripts`` function: using site-packages
@@ -1249,10 +1202,8 @@ and the Python you use is not managed precisely by your application (for
 instance, it is a system Python), you open yourself up to these
 possibilities.  Don't be unaware of the dangers.
 
-That explained, let's see how it works.  Unfortunately, because of how
-setuptools namespace packages are implemented differently for operating
-system packages (debs or rpms) and normal installation, there's a tricky
-dance.
+That explained, let's see how it works.  If you don't use namespace packages,
+this is very straightforward.
 
     >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.generate_scripts(
@@ -1262,94 +1213,19 @@ dance.
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
-        paths = [ # These are the underlying Python's site-packages.
-            '...']
-        sys.path[0:0] = paths
-        known_paths.update([os.path.normcase(os.path.abspath(p)) for p in paths])
-        try:
-            import pkg_resources
-        except ImportError:
-            # No namespace packages in sys.path; no fixup needed.
-            pkg_resources = None
-        paths[0:0] = [ # eggs
+        """Add site packages.
+    <BLANKLINE>
+        This function is written by buildout.  See original_addsitepackages,
+        below, for the original version."""
+        paths = [
+            # Eggs.
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
-            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
-            ]
-        # Process all dirs.  Look for .pth files.  If they exist, defer
-        # processing "import" varieties.
-        dotpth = os.extsep + "pth"
-        deferred = []
-        for path in reversed(paths):
-            # Duplicating addsitedir.
-            sitedir, sitedircase = makepath(path)
-            if not sitedircase in known_paths and os.path.exists(sitedir):
-                sys.path.insert(0, sitedir)
-                known_paths.add(sitedircase)
-            try:
-                names = os.listdir(sitedir)
-            except os.error:
-                continue
-            names = [name for name in names if name.endswith(dotpth)]
-            names.sort()
-            for name in names:
-                # Duplicating addpackage.
-                fullname = os.path.join(sitedir, name)
-                try:
-                    f = open(fullname, "rU")
-                except IOError:
-                    continue
-                try:
-                    for line in f:
-                        if line.startswith("#"):
-                            continue
-                        if (line.startswith("import ") or
-                            line.startswith("import	")):
-                            # This line is supposed to be executed.  It
-                            # might be a setuptools namespace package
-                            # installed with a system package manager.
-                            # Defer this so we can process egg namespace
-                            # packages first, or else the eggs with the same
-                            # namespace will be ignored.
-                            deferred.append((sitedir, name, fullname, line))
-                            continue
-                        line = line.rstrip()
-                        dir, dircase = makepath(sitedir, line)
-                        if not dircase in known_paths and os.path.exists(dir):
-                            sys.path.append(dir)
-                            known_paths.add(dircase)
-                finally:
-                    f.close()
-        if pkg_resources is not None:
-            # There may be namespace packages in sys.path.  This is much faster
-            # than importing pkg_resources after the sys.path has a large number
-            # of eggs.
-            for p in sys.path:
-                pkg_resources.fixup_namespace_packages(p)
-        # Process "import ..." .pth lines.
-        for sitedir, name, fullname, line in deferred:
-            # Note that some lines--such as the one setuptools writes for
-            # namespace packages--expect some or all of sitedir, name, and
-            # fullname to be present in the frame locals, as it is in
-            # ``addpackage``.
-            try:
-                exec line
-            except:
-                print "Error in %s" % (fullname,)
-                raise
-        global addsitepackages
-        addsitepackages = original_addsitepackages
-        return known_paths
-    <BLANKLINE>
-    buildout_addsitepackages = addsitepackages
-    <BLANKLINE>
-    def original_addsitepackages(known_paths):...
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+            # These are the underlying Python's site-packages.
+            ...
+            ]...
 
-As you can see, the script now first tries to import pkg_resources.  If it
-exists, then we need to process egg files specially to look for namespace
-packages there *before* we process process lines in .pth files that use the
-"import" feature--lines that might be part of the setuptools namespace
-package implementation for system packages, as mentioned above, and that
-must come after processing egg namespaces.
+It simply adds the site-packages after the eggs.
 
 Here's an example of the new script in use.  Other documents and tests in
 this package give the feature a more thorough workout, but this should
@@ -1358,10 +1234,10 @@ give you an idea of the feature.
     >>> res = call_py(interpreter_path, "import sys; print sys.path")
     >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
+     '/interpreter/parts/interpreter',
+     ...,
      '/interpreter/eggs/demo-0.3-py2.4.egg',
      '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
-     '...',
-     '/interpreter/parts/interpreter',
      ...]
     <BLANKLINE>
 
@@ -1373,6 +1249,86 @@ The clean_paths gathered earlier is a subset of this full list of paths.
     >>> set(os.path.normpath(p) for p in clean_paths).issubset(
     ...     os.path.normpath(p) for p in full_paths)
     True
+
+Unfortunately, because of how setuptools namespace packages are implemented
+differently for operating system packages (debs or rpms) as opposed to
+standard setuptools installation, there's a slightly trickier dance if you
+use them.  To show this we'll needs some extra eggs that use namespaces.
+We'll use the ``tellmy.fortune`` package, which we'll need to make an initial
+call to another text fixture to create.
+
+    >>> from zc.buildout.tests import create_sample_namespace_eggs
+    >>> namespace_eggs = tmpdir('namespace_eggs')
+    >>> create_sample_namespace_eggs(namespace_eggs)
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo', 'tellmy.fortune'], join(interpreter_dir, 'eggs'),
+    ...     links=[link_server, namespace_eggs], index=link_server+'index/')
+    >>> generated = zc.buildout.easy_install.generate_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', add_site_packages=True)
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages.
+    <BLANKLINE>
+        This function is written by buildout.  See original_addsitepackages,
+        below, for the original version."""
+        setuptools_path = '...setuptools...'
+        sys.path.append(setuptools_path)
+        known_paths.add(setuptools_path)
+        import pkg_resources
+        paths = [
+            # Eggs.
+            '/interpreter/eggs/demo-0.3-pyN.N.egg',
+            '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+            '...setuptools...',
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+            # These are the underlying Python's site-packages.
+            ...
+            ]
+        dotpth = os.extsep + "pth"
+        for path in paths:
+            # This duplicates addsitedir except for adding the pkg_resources call.
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                pkg_resources.working_set.add_entry(sitedir)
+                known_paths.add(sitedircase)
+            try:
+                names = os.listdir(sitedir)
+            except os.error:
+                continue
+            names = [name for name in names if name.endswith(dotpth)]
+            names.sort()
+            for name in names:
+                addpackage(sitedir, name, known_paths)
+        global addsitepackages
+        addsitepackages = original_addsitepackages
+        return known_paths
+    <BLANKLINE>
+    buildout_addsitepackages = addsitepackages
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '...setuptools...',
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+     ...]
+
+As you can see, the script now first imports pkg_resources.  Then we
+need to process egg files specially to look for namespace packages there
+*before* we process process lines in .pth files that use the "import"
+feature--lines that might be part of the setuptools namespace package
+implementation for system packages, as mentioned above, and that must
+come after processing egg namespaces.
 
 The ``exec_sitecustomize`` argument does the same thing for the
 sitecustomize module--it allows you to include the code from the
@@ -1392,6 +1348,9 @@ files then initialize the Python environment as we have already seen.  Let's
 see a simple example.
 
     >>> reset_interpreter()
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], join(interpreter_dir, 'eggs'), links=[link_server],
+    ...     index=link_server+'index/')
     >>> generated = zc.buildout.easy_install.generate_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     reqs=['demo'])

@@ -226,7 +226,7 @@ Let's look at the site.py that was generated:
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     #...
     def addsitepackages(known_paths):
-        paths = []
+        "..."
     <BLANKLINE>
         import os
     <BLANKLINE>
@@ -234,7 +234,8 @@ Let's look at the site.py that was generated:
         base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
         base = os.path.dirname(base)
         base = os.path.dirname(base)
-        paths[0:0] = [ # eggs
+        paths = [
+            # Eggs.
             '/foo/bar',
             join(base, 'spam')
             ]...

@@ -168,9 +168,8 @@ provided.
 Here's an example of using the generated interpreter.
 
     >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
-    ['',
-     '/sample-buildout/eggs/demo-0.2-pyN.N.egg',
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[-2:])"')
+    ['/sample-buildout/eggs/demo-0.2-pyN.N.egg',
      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg']
     <BLANKLINE>
 
@@ -241,13 +240,12 @@ Now let's take a look at add-site-packages.
     ...              ''' -c "import sys, pprint; pprint.pprint(sys.path)"''')
     ... # doctest: +ELLIPSIS
     ['',
+     '/sample-buildout/parts/py',
+     ...,
      '/sample-buildout/eggs/demo-0.2-pyN.N.egg',
      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
-     '/executable_buildout/eggs/setuptools-0.6c11-pyN.N.egg',
-     '/executable_buildout/site-packages',
-     '/sample-buildout/parts/py',
-     '/executable_buildout/parts/py',
-     ...]
+     '/executable_buildout/eggs/setuptools-X-pyN.N.egg',
+     '/executable_buildout/site-packages']
     <BLANKLINE>
 
 Next we will use the exec-sitecustomize option.  It simply copies
@@ -327,9 +325,8 @@ Now let's put it in action.
     Generated interpreter '/sample-buildout/bin/python'.
 
     >>> print system(join(sample_buildout, 'bin', 'python') +
-    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[:3])"')
-    ['',
-     '/sample-buildout/eggs/demo-0.2-pyN.N.egg',
+    ...              ' -c "import sys, pprint; pprint.pprint(sys.path[-2:])"')
+    ['/sample-buildout/eggs/demo-0.2-pyN.N.egg',
      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg']
     <BLANKLINE>
     >>> print system(join(sample_buildout, 'bin', 'python') +

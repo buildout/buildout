@@ -1390,69 +1390,66 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
         rpsetup = '\n'.join(
             [(line and '    %s' % (line,) or line)
              for line in rpsetup.split('\n')])
-    real_site_path = _get_module_file(executable, 'site')
-    real_site = open(real_site_path, 'r')
-    site = open(site_path, 'w')
-    extra_path_snippet = add_site_packages_snippet[add_site_packages]
-    extra_path_snippet_followup = add_site_packages_snippet_followup[
-        add_site_packages]
+    namespace_setup = ''
+    addsitedir = addsitedir_snippet
     if add_site_packages:
         stdlib, site_paths = _get_system_paths(executable)
-        extra_path_snippet = extra_path_snippet % _format_paths(
-            (repr(p) for p in site_paths), 2)
+        path_string = ''.join([
+            path_string,
+            (",\n"
+             "        # These are the underlying Python's site-packages.\n"
+             "        "),
+            _format_paths((repr(p) for p in site_paths), 2)])
+        distribution = working_set.find(
+            pkg_resources.Requirement.parse('setuptools'))
+        if distribution is not None:
+            # We need to worry about namespace packages.
+            namespace_setup = namespace_add_site_packages_setup % (
+                distribution.location,)
+            addsitedir = addsitedir_namespace_add_site_packages_snippet
     addsitepackages_marker = 'def addsitepackages('
     enableusersite_marker = 'ENABLE_USER_SITE = '
     successful_rewrite = False
-    for line in real_site.readlines():
-        if line.startswith(enableusersite_marker):
-            site.write(enableusersite_marker)
-            site.write('False # buildout does not support user sites.\n')
-        elif line.startswith(addsitepackages_marker):
-            site.write(addsitepackages_script % (
-                extra_path_snippet, rpsetup, path_string,
-                extra_path_snippet_followup))
-            site.write(line[len(addsitepackages_marker):])
-            successful_rewrite = True
-        else:
-            site.write(line)
+    real_site_path = _get_module_file(executable, 'site')
+    real_site = open(real_site_path, 'r')
+    site = open(site_path, 'w')
+    try:
+        for line in real_site.readlines():
+            if line.startswith(enableusersite_marker):
+                site.write(enableusersite_marker)
+                site.write('False # buildout does not support user sites.\n')
+            elif line.startswith(addsitepackages_marker):
+                site.write(addsitepackages_script % (
+                    namespace_setup, rpsetup, path_string, addsitedir))
+                site.write(line[len(addsitepackages_marker):])
+                successful_rewrite = True
+            else:
+                site.write(line)
+    finally:
+        site.close()
+        real_site.close()
     if not successful_rewrite:
         raise RuntimeError('Buildout did not successfully rewrite site.py')
     return site_path
 
-add_site_packages_snippet = ['''
-    paths = []''', '''
-    paths = [ # These are the underlying Python's site-packages.
-        %s]
-    sys.path[0:0] = paths
-    known_paths.update([os.path.normcase(os.path.abspath(p)) for p in paths])
-    try:
-        import pkg_resources
-    except ImportError:
-        # No namespace packages in sys.path; no fixup needed.
-        pkg_resources = None''']
+namespace_add_site_packages_setup = '''
+    setuptools_path = %r
+    sys.path.append(setuptools_path)
+    known_paths.add(setuptools_path)
+    import pkg_resources'''
 
-add_site_packages_snippet_followup = ['', '''
-    if pkg_resources is not None:
-        # There may be namespace packages in sys.path.  This is much faster
-        # than importing pkg_resources after the sys.path has a large number
-        # of eggs.
-        for p in sys.path:
-            pkg_resources.fixup_namespace_packages(p)''']
+addsitedir_snippet = '''
+    for path in paths:
+        addsitedir(path, known_paths)'''
 
-addsitepackages_script = '''\
-def addsitepackages(known_paths):%s
-%s    paths[0:0] = [ # eggs
-        %s
-        ]
-    # Process all dirs.  Look for .pth files.  If they exist, defer
-    # processing "import" varieties.
+addsitedir_namespace_add_site_packages_snippet = '''
     dotpth = os.extsep + "pth"
-    deferred = []
-    for path in reversed(paths):
-        # Duplicating addsitedir.
+    for path in paths:
+        # This duplicates addsitedir except for adding the pkg_resources call.
         sitedir, sitedircase = makepath(path)
         if not sitedircase in known_paths and os.path.exists(sitedir):
-            sys.path.insert(0, sitedir)
+            sys.path.append(sitedir)
+            pkg_resources.working_set.add_entry(sitedir)
             known_paths.add(sitedircase)
         try:
             names = os.listdir(sitedir)
@@ -1461,44 +1458,18 @@ def addsitepackages(known_paths):%s
         names = [name for name in names if name.endswith(dotpth)]
         names.sort()
         for name in names:
-            # Duplicating addpackage.
-            fullname = os.path.join(sitedir, name)
-            try:
-                f = open(fullname, "rU")
-            except IOError:
-                continue
-            try:
-                for line in f:
-                    if line.startswith("#"):
-                        continue
-                    if (line.startswith("import ") or
-                        line.startswith("import\t")):
-                        # This line is supposed to be executed.  It
-                        # might be a setuptools namespace package
-                        # installed with a system package manager.
-                        # Defer this so we can process egg namespace
-                        # packages first, or else the eggs with the same
-                        # namespace will be ignored.
-                        deferred.append((sitedir, name, fullname, line))
-                        continue
-                    line = line.rstrip()
-                    dir, dircase = makepath(sitedir, line)
-                    if not dircase in known_paths and os.path.exists(dir):
-                        sys.path.append(dir)
-                        known_paths.add(dircase)
-            finally:
-                f.close()%s
-    # Process "import ..." .pth lines.
-    for sitedir, name, fullname, line in deferred:
-        # Note that some lines--such as the one setuptools writes for
-        # namespace packages--expect some or all of sitedir, name, and
-        # fullname to be present in the frame locals, as it is in
-        # ``addpackage``.
-        try:
-            exec line
-        except:
-            print "Error in %%s" %% (fullname,)
-            raise
+            addpackage(sitedir, name, known_paths)'''
+
+addsitepackages_script = '''\
+def addsitepackages(known_paths):
+    """Add site packages.
+
+    This function is written by buildout.  See original_addsitepackages,
+    below, for the original version."""%s
+%s    paths = [
+        # Eggs.
+        %s
+        ]%s
     global addsitepackages
     addsitepackages = original_addsitepackages
     return known_paths

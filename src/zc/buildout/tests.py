@@ -2890,8 +2890,12 @@ def increment_on_command_line():
 ######################################################################
 
 def make_py_with_system_install(make_py, sample_eggs):
-    from zc.buildout.testing import write, mkdir
     py_path, site_packages_path = make_py()
+    create_sample_namespace_eggs(sample_eggs, site_packages_path)
+    return py_path
+
+def create_sample_namespace_eggs(dest, site_packages_path=None):
+    from zc.buildout.testing import write, mkdir
     for pkg, version in (('version', '1.0'), ('version', '1.1'),
                          ('fortune', '1.0')):
         tmp = tempfile.mkdtemp()
@@ -2918,14 +2922,13 @@ def make_py_with_system_install(make_py, sample_eggs):
                 " author='bob', url='bob', author_email='bob')\n"
                 % locals()
                 )
-            zc.buildout.testing.sdist(tmp, sample_eggs)
-            if pkg == 'version' and version == '1.1':
+            zc.buildout.testing.sdist(tmp, dest)
+            if (site_packages_path and pkg == 'version' and version == '1.1'):
                 # We install the 1.1 version in site packages the way a
                 # system packaging system (debs, rpms) would do it.
                 zc.buildout.testing.sys_install(tmp, site_packages_path)
         finally:
             shutil.rmtree(tmp)
-    return py_path
 
 def create_sample_eggs(test, executable=sys.executable):
     write = test.globs['write']
