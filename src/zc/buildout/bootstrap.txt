@@ -232,8 +232,8 @@ Here's the entire help text.
     >>> print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --help'),
-    ... # doctest: +ELLIPSIS
-    usage: [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    Usage: [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
     <BLANKLINE>
     Bootstraps a buildout-based project.
     <BLANKLINE>
@@ -244,7 +244,7 @@ Here's the entire help text.
     local resources, you can keep this script from going over the network.
     <BLANKLINE>
     <BLANKLINE>
-    options:
+    Options:
       -h, --help            show this help message and exit
       -v VERSION, --version=VERSION
                             use a specific zc.buildout version
