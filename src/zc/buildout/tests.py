@@ -385,6 +385,64 @@ buildout will tell us who's asking for something that we can't find.
     Error: Couldn't find a distribution for 'demoneeded'.
     """
 
+def show_eggs_from_site_packages():
+    """
+Sometimes you want to know what eggs are coming from site-packages.  This
+might be for a diagnostic, or so that you can get a starting value for the
+allowed-eggs-from-site-packages option.  The -v flag will also include this
+information.
+
+Our "py_path" has the "demoneeded," "demo"
+packages available.  We'll ask for "bigdemo," which will get both of them.
+
+Here's our set up.
+
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... prefer-final = true
+    ... find-links = %(link_server)s
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... python = primed_python
+    ... eggs = bigdemo
+    ... ''' % globals())
+
+Now here is the output.  The lines that begin with "Egg from site-packages:"
+indicate the eggs from site-packages that have been selected.  You'll see
+we have two: demo 0.3 and demoneeded 1.1.
+
+    >>> print system(py_path+" "+buildout+" -v")
+    Installing 'zc.buildout', 'setuptools'.
+    We have a develop egg: zc.buildout V
+    We have the best distribution that satisfies 'setuptools'.
+    Picked: setuptools = V
+    Installing 'zc.recipe.egg'.
+    We have a develop egg: zc.recipe.egg V
+    Installing eggs.
+    Installing 'bigdemo'.
+    We have no distributions for bigdemo that satisfies 'bigdemo'.
+    Getting distribution for 'bigdemo'.
+    Got bigdemo 0.1.
+    Picked: bigdemo = 0.1
+    Getting required 'demo'
+      required by bigdemo 0.1.
+    We have a develop egg: demo V
+    Egg from site-packages: demo 0.3
+    Getting required 'demoneeded'
+      required by demo 0.3.
+    We have a develop egg: demoneeded V
+    Egg from site-packages: demoneeded 1.1
+    <BLANKLINE>
+    """
 
 def test_comparing_saved_options_with_funny_characters():
     """
@@ -2003,6 +2061,197 @@ Now the install works correctly, as seen here.
 
     """
 
+def isolated_include_site_packages():
+    """
+
+This is an isolated test of the include_site_packages functionality, passing
+the argument directly to install, overriding a default.
+
+Our "py_path" has the "demoneeded" and "demo" packages available.  We'll
+simply be asking for "demoneeded" here.
+
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+    >>> zc.buildout.easy_install.include_site_packages(False)
+    True
+
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None, include_site_packages=True)
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+
+That worked fine.  Let's try again with site packages not allowed (and
+reversing the default).
+
+    >>> zc.buildout.easy_install.include_site_packages(True)
+    False
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None, include_site_packages=False)
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+
+That's a failure, as expected.
+
+Now we explore an important edge case.
+
+Some system Pythons include setuptools (and other Python packages) in their
+site-packages (or equivalent) using a .egg-info directory.  The pkg_resources
+module (from setuptools) considers a package installed using .egg-info to be a
+develop egg.
+
+zc.buildout.buildout.Buildout.bootstrap will make setuptools and zc.buildout
+available to the buildout via the eggs directory, for normal eggs; or the
+develop-eggs directory, for develop-eggs.
+
+If setuptools or zc.buildout is found in site-packages and considered by
+pkg_resources to be a develop egg, then the bootstrap code will use a .egg-link
+in the local develop-eggs, pointing to site-packages, in its entirety.  Because
+develop-eggs must always be available for searching for distributions, this
+indirectly brings site-packages back into the search path for distributions.
+
+Because of this, we have to take special care that we still exclude
+site-packages even in this case.  See the comments about site packages in the
+Installer._satisfied and Installer._obtain methods for the implementation
+(as of this writing).
+
+In this demonstration, we insert a link to the "demoneeded" distribution
+in our develop-eggs, which would bring the package back in, except for
+the special care we have taken to exclude it.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> mkdir(example_dest, 'develop-eggs')
+    >>> write(example_dest, 'develop-eggs', 'demoneeded.egg-link',
+    ...       site_packages_path)
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[],
+    ...     path=[join(example_dest, 'develop-eggs')],
+    ...     executable=py_path,
+    ...     index=None, include_site_packages=False)
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+
+The MissingDistribution error shows that buildout correctly excluded the
+"site-packages" source even though it was indirectly included in the path
+via a .egg-link file.
+
+    """
+
+def allowed_eggs_from_site_packages():
+    """
+Sometimes you need or want to control what eggs from site-packages are used.
+The allowed-eggs-from-site-packages option allows you to specify a whitelist of
+project names that may be included from site-packages.  You can use globs to
+specify the value.  It defaults to a single value of '*', indicating that any
+package may come from site-packages.
+
+This option interacts with include-site-packages in the following ways.
+
+If include-site-packages is true, then allowed-eggs-from-site-packages filters
+what eggs from site-packages may be chosen.  If allowed-eggs-from-site-packages
+is an empty list, then no eggs from site-packages are chosen, but site-packages
+will still be included at the end of path lists.
+
+If include-site-packages is false, allowed-eggs-from-site-packages is
+irrelevant.
+
+This test shows the interaction with the zc.buildout.easy_install API.  Another
+test below (allow_site_package_eggs_option) shows using it with a buildout.cfg.
+
+Our "py_path" has the "demoneeded" and "demo" packages available.  We'll
+simply be asking for "demoneeded" here.
+
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None,
+    ...     allowed_eggs_from_site_packages=['demoneeded', 'other'])
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+
+That worked fine.  It would work fine for a glob too.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None,
+    ...     allowed_eggs_from_site_packages=['?emon*', 'other'])
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+
+But now let's try again with 'demoneeded' not allowed.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None,
+    ...     allowed_eggs_from_site_packages=['demo'])
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+
+Here's the same, but with an empty list.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None,
+    ...     allowed_eggs_from_site_packages=[])
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+
+Of course, this doesn't stop us from getting a package from elsewhere.  Here,
+we add a link server.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, executable=py_path,
+    ...     links=[link_server], index=link_server+'index/',
+    ...     allowed_eggs_from_site_packages=['other'])
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+    >>> [dist.location for dist in workingset]
+    ['/site-packages-example-install/demoneeded-1.1-py2.6.egg']
+
+Finally, here's an example of an interaction: we say that it is OK to
+allow the "demoneeded" egg to come from site-packages, but we don't
+include-site-packages.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None, include_site_packages=False,
+    ...     allowed_eggs_from_site_packages=['demoneeded'])
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+
+    """
+
 if sys.version_info > (2, 4):
     def test_exit_codes():
         """
@@ -2930,24 +3179,59 @@ def create_sample_namespace_eggs(dest, site_packages_path=None):
         finally:
             shutil.rmtree(tmp)
 
+def _write_eggrecipedemoneeded(tmp, minor_version, suffix=''):
+    from zc.buildout.testing import write
+    write(tmp, 'README.txt', '')
+    write(tmp, 'eggrecipedemoneeded.py',
+          'y=%s\ndef f():\n  pass' % minor_version)
+    write(
+        tmp, 'setup.py',
+        "from setuptools import setup\n"
+        "setup(name='demoneeded', py_modules=['eggrecipedemoneeded'],"
+        " zip_safe=True, version='1.%s%s', author='bob', url='bob', "
+        "author_email='bob')\n"
+        % (minor_version, suffix)
+        )
+
+def _write_eggrecipedemo(tmp, minor_version, suffix=''):
+    from zc.buildout.testing import write
+    write(tmp, 'README.txt', '')
+    write(
+        tmp, 'eggrecipedemo.py',
+        'import eggrecipedemoneeded\n'
+        'x=%s\n'
+        'def main(): print x, eggrecipedemoneeded.y\n'
+        % minor_version)
+    write(
+        tmp, 'setup.py',
+        "from setuptools import setup\n"
+        "setup(name='demo', py_modules=['eggrecipedemo'],"
+        " install_requires = 'demoneeded',"
+        " entry_points={'console_scripts': "
+             "['demo = eggrecipedemo:main']},"
+        " zip_safe=True, version='0.%s%s')\n" % (minor_version, suffix)
+        )
+
+def create_sample_sys_install(site_packages_path):
+    for creator, minor_version in (
+        (_write_eggrecipedemoneeded, 1),
+        (_write_eggrecipedemo, 3)):
+        # Write the files and install in site_packages_path.
+        tmp = tempfile.mkdtemp()
+        try:
+            creator(tmp, minor_version)
+            zc.buildout.testing.sys_install(tmp, site_packages_path)
+        finally:
+            shutil.rmtree(tmp)
+
 def create_sample_eggs(test, executable=sys.executable):
-    write = test.globs['write']
+    from zc.buildout.testing import write
     dest = test.globs['sample_eggs']
     tmp = tempfile.mkdtemp()
     try:
-        write(tmp, 'README.txt', '')
-
         for i in (0, 1, 2):
-            write(tmp, 'eggrecipedemoneeded.py', 'y=%s\ndef f():\n  pass' % i)
-            c1 = i==2 and 'c1' or ''
-            write(
-                tmp, 'setup.py',
-                "from setuptools import setup\n"
-                "setup(name='demoneeded', py_modules=['eggrecipedemoneeded'],"
-                " zip_safe=True, version='1.%s%s', author='bob', url='bob', "
-                "author_email='bob')\n"
-                % (i, c1)
-                )
+            suffix = i==2 and 'c1' or ''
+            _write_eggrecipedemoneeded(tmp, i, suffix)
             zc.buildout.testing.sdist(tmp, dest)
 
         write(
@@ -2961,22 +3245,8 @@ def create_sample_eggs(test, executable=sys.executable):
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
 
         for i in (1, 2, 3, 4):
-            write(
-                tmp, 'eggrecipedemo.py',
-                'import eggrecipedemoneeded\n'
-                'x=%s\n'
-                'def main(): print x, eggrecipedemoneeded.y\n'
-                % i)
-            c1 = i==4 and 'c1' or ''
-            write(
-                tmp, 'setup.py',
-                "from setuptools import setup\n"
-                "setup(name='demo', py_modules=['eggrecipedemo'],"
-                " install_requires = 'demoneeded',"
-                " entry_points={'console_scripts': "
-                     "['demo = eggrecipedemo:main']},"
-                " zip_safe=True, version='0.%s%s')\n" % (i, c1)
-                )
+            suffix = i==4 and 'c1' or ''
+            _write_eggrecipedemo(tmp, i, suffix)
             zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
         write(tmp, 'eggrecipebigdemo.py', 'import eggrecipedemo')

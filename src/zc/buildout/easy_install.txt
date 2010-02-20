@@ -89,6 +89,14 @@ use_dependency_links
    for using dependency_links in preference to other
    locations. Defaults to true.
 
+include_site_packages
+    A flag indicating whether Python's non-standard-library packages should
+    be available for finding dependencies.  Defaults to true.
+
+    Paths outside of Python's standard library--or more precisely, those that
+    are not included when Python is started with the -S argument--are loosely
+    referred to as "site-packages" here.
+
 relative_paths
    Adjust egg paths so they are relative to the script path.  This
    allows scripts to work when scripts and eggs are moved, as long as
@@ -398,6 +406,68 @@ dictionary:
 
     >>> [d.version for d in ws]
     ['0.3', '1.1']
+
+Dependencies in Site Packages
+-----------------------------
+
+Paths outside of Python's standard library--or more precisely, those that are
+not included when Python is started with the -S argument--are loosely referred
+to as "site-packages" here.  These site-packages are searched by default for
+distributions.  This can be disabled, so that, for instance, a system Python
+can be used with buildout, cleaned of any packages installed by a user or
+system package manager.
+
+The default behavior can be controlled and introspected using
+zc.buildout.easy_install.include_site_packages.
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    True
+
+Here's an example of using a Python executable that includes our dependencies.
+
+Our "py_path" will have the "demoneeded," and "demo" packages available.
+ We'll simply be asking for "demoneeded" here, but without any external
+ index or links.
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None)
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+
+That worked fine.  Let's try again with site packages not allowed.  We'll
+change the policy by changing the default.  Notice that the function for
+changing the default value returns the previous value.
+
+    >>> zc.buildout.easy_install.include_site_packages(False)
+    True
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    False
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None)
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+Now we'll reset the default.
+
+    >>> zc.buildout.easy_install.include_site_packages(True)
+    False
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    True
 
 Dependency links
 ----------------
@@ -1259,6 +1329,7 @@ call to another text fixture to create.
     >>> namespace_eggs = tmpdir('namespace_eggs')
     >>> create_sample_namespace_eggs(namespace_eggs)
 
+    >>> reset_interpreter()
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo', 'tellmy.fortune'], join(interpreter_dir, 'eggs'),
     ...     links=[link_server, namespace_eggs], index=link_server+'index/')
@@ -1319,6 +1390,7 @@ The most complex that this function gets is if you use namespace packages,
 include site-packages, and use relative paths.  For completeness, we'll look
 at that result.
 
+    >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.generate_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', add_site_packages=True,

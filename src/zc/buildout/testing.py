@@ -222,11 +222,37 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+def get_installer_values():
+    """Get the current values for the easy_install module.
+
+    This is necessary because instantiating a Buildout will force the
+    Buildout's values on the installer.
+
+    Returns a dict of names-values suitable for set_installer_values."""
+    names = ('default_versions', 'download_cache', 'install_from_cache',
+             'prefer_final', 'include_site_packages',
+             'allowed_eggs_from_site_packages', 'use_dependency_links',
+             'allow_picked_versions', 'always_unzip'
+            )
+    values = {}
+    for name in names:
+        values[name] = getattr(zc.buildout.easy_install, name)()
+    return values
+
+def set_installer_values(values):
+    """Set the given values on the installer."""
+    for name, value in values.items():
+        getattr(zc.buildout.easy_install, name)(value)
+
 def make_buildout():
-    # Create a basic buildout.cfg to avoid a warning from buildout:
+    """Make a buildout that uses this version of zc.buildout."""
+    # Create a basic buildout.cfg to avoid a warning from buildout.
     open('buildout.cfg', 'w').write(
         "[buildout]\nparts =\n"
         )
+    # Get state of installer defaults so we can reinstate them (instantiating
+    # a Buildout will force the Buildout's defaults on the installer).
+    installer_values = get_installer_values()
     # Use the buildout bootstrap command to create a buildout
     zc.buildout.buildout.Buildout(
         'buildout.cfg',
@@ -234,20 +260,23 @@ def make_buildout():
          # trick bootstrap into putting the buildout develop egg
          # in the eggs dir.
          ('buildout', 'develop-eggs-directory', 'eggs'),
-         ]
+         ],
+        user_defaults=False,
         ).bootstrap([])
     # Create the develop-eggs dir, which didn't get created the usual
     # way due to the trick above:
     os.mkdir('develop-eggs')
+    # Reinstate the default values of the installer.
+    set_installer_values(installer_values)
 
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []
     test.globs['register_teardown'] = register_teardown = __tear_downs.append
 
-    prefer_final = zc.buildout.easy_install.prefer_final()
+    installer_values = get_installer_values()
     register_teardown(
-        lambda: zc.buildout.easy_install.prefer_final(prefer_final)
+        lambda: set_installer_values(installer_values)
         )
 
     here = os.getcwd()
@@ -366,8 +395,6 @@ def buildoutSetUp(test):
         wait_until = wait_until,
         make_py = make_py
         ))
-
-    zc.buildout.easy_install.prefer_final(prefer_final)
 
 def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
