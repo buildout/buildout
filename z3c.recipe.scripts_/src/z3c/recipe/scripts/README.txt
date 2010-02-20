@@ -39,6 +39,35 @@ add-site-packages
     from your eggs.  See the section on this option for motivations and
     warnings.
 
+allowed-eggs-from-site-packages
+    Sometimes you need or want to control what eggs from site-packages are
+    used. The allowed-eggs-from-site-packages option allows you to specify a
+    whitelist of project names that may be included from site-packages.  You
+    can use globs to specify the value.  It defaults to a single value of '*',
+    indicating that any package may come from site-packages.
+
+    Here's a usage example::
+
+        [buildout]
+        ...
+
+        allowed-eggs-from-site-packages =
+            demo
+            bigdemo
+            zope.*
+
+    This option interacts with the ``add-site-packages`` option in the
+    following ways.
+
+    If ``add-site-packages`` is true, then
+    ``allowed-eggs-from-site-packages`` filters what eggs from site-packages
+    may be chosen.  Therefore, if ``allowed-eggs-from-site-packages`` is an
+    empty list, then no eggs from site-packages are chosen, but site-packages
+    will still be included at the end of path lists.
+
+    If ``add-site-packages`` is false, the value of
+    ``allowed-eggs-from-site-packages`` is irrelevant.
+
 extends
     You can extend another section using this value.  It is intended to be
     used by extending a section that uses this package's scripts recipe.

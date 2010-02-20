@@ -31,6 +31,11 @@ class Base(ScriptBase):
             b_options['parts-directory'], self.name)
 
         value = options.setdefault(
+            'allowed-eggs-from-site-packages',
+            '*')
+        self.allowed_eggs = tuple(name.strip() for name in value.split('\n'))
+
+        value = options.setdefault(
             'add-site-packages',
             b_options.get('add-site-packages', 'false'))
         if value not in ('true', 'false'):

@@ -235,9 +235,200 @@ Let's look at the site.py that was generated:
             '/foo/bar',
             join(base, 'spam')
             ]...
-
-
 """
+
+def add_site_packages_option_reusing_eggs():
+    """
+The add-site-packages buildout option not only controls whether
+site-packages are included in the path, but whether eggs in site-packages
+can be used to fulfill direct and indirect dependencies of your package.  If
+it did not, it might fail to exclude site-packages because one of the
+dependencies actually was supposed to be fulfilled with it.
+
+The default is ``add-site-packages = false``.  This makes it possible to
+easily use a system Python.  As a demonstration, we will start with a
+Python executable that has the "demoneeded" and "demo" eggs installed.
+The eggs are not found.
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+    >>> print system(py_path+" "+buildout)
+    Installing eggs.
+    Couldn't find index page for 'demoneeded' (maybe misspelled?)
+    Getting distribution for 'demoneeded'.
+    While:
+      Installing eggs.
+      Getting distribution for 'demoneeded'.
+    Error: Couldn't find a distribution for 'demoneeded'.
+    <BLANKLINE>
+
+However, if we set add-site-packages to true, the package will be found.
+Notice we do not set find-links, but the eggs are still found because
+they are in the executable's path.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... python = primed_python
+    ... add-site-packages = true
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+    >>> print system(py_path+" "+buildout)
+    Installing eggs.
+    <BLANKLINE>
+
+We get an error if we specify anything but true or false:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... add-site-packages = no
+    ... eggs = other
+    ... ''' % globals())
+
+    >>> print system(py_path+" "+buildout)
+    While:
+      Installing.
+      Getting section eggs.
+      Initializing part eggs.
+    Error: Invalid value for add-site-packages option: no
+    <BLANKLINE>
+
+    """
+
+def allowed_eggs_from_site_packages_option():
+    """
+The allowed-eggs-from-site-packages option allows you to specify a
+whitelist of project names that may be included from site-packages.
+
+In the test below, our "py_path" has the "demoneeded" and "demo"
+packages available.  We'll simply be asking for "demoneeded" here.  The
+default value of '*' will allow it, as we've seen elsewhere. Here we
+explicitly use a "*" for the same result.  This also shows that we
+correctly parse a single-line value.
+
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... add-site-packages = true
+    ... allowed-eggs-from-site-packages = *
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+    >>> print system(py_path+" "+buildout)
+    Installing eggs.
+    <BLANKLINE>
+
+Specifying the egg exactly will work as well.  This shows we correctly
+parse a multi-line value.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... add-site-packages = true
+    ... allowed-eggs-from-site-packages = other
+    ...                                   demoneeded
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+    >>> print system(py_path+" "+buildout)
+    Uninstalling eggs.
+    Installing eggs.
+    <BLANKLINE>
+
+It will also work if we use a glob ("*" or "?").  (We won't show that here
+because we already tested it in
+zc.buildout.tests.allowed_eggs_from_site_packages.)
+
+However, if we do not include "demoneeded" in the
+"allowed-eggs-from-site-packages" key, we get an error, because the
+packages are not available in any links, and they are not allowed to
+come from the executable's site packages. (We won't show that here
+because we already tested it in the same test mentioned above.)
+
+Finally, here's a test with an empty value.  It shows that we parse an empty
+value correctly, and verifies that we really are controlling what eggs are
+allowed, because we see that we were unable to get "other".
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... add-site-packages = true
+    ... allowed-eggs-from-site-packages =
+    ... eggs = demoneeded
+    ... ''' % globals())
+    >>> print system(py_path+" "+buildout)
+    Uninstalling eggs.
+    Installing eggs.
+    Getting distribution for 'demoneeded'.
+    While:
+      Installing eggs.
+      Getting distribution for 'demoneeded'.
+    Error: Couldn't find a distribution for 'demoneeded'.
+    <BLANKLINE>
+
+    """
 
 def setUp(test):
     zc.buildout.tests.easy_install_SetUp(test)

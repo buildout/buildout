@@ -22,6 +22,8 @@ import zc.buildout.easy_install
 
 class Eggs(object):
 
+    add_site_packages = allowed_eggs = None
+
     def __init__(self, buildout, name, options):
         self.buildout = buildout
         self.name = self.default_eggs = name
@@ -76,6 +78,8 @@ class Eggs(object):
                 distributions, options['executable'],
                 [options['develop-eggs-directory'],
                  options['eggs-directory']],
+                include_site_packages=self.add_site_packages,
+                allowed_eggs_from_site_packages=self.allowed_eggs,
                 )
         else:
             kw = {}
@@ -88,6 +92,8 @@ class Eggs(object):
                 executable=options['executable'],
                 path=[options['develop-eggs-directory']],
                 newest=b_options.get('newest') == 'true',
+                include_site_packages=self.add_site_packages,
+                allowed_eggs_from_site_packages=self.allowed_eggs,
                 allow_hosts=self.allow_hosts,
                 **kw)
 
