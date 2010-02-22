@@ -1992,8 +1992,9 @@ Before the bugfix, running this buildout would generate this error:
     We already have: tellmy.version 1.0
     <BLANKLINE>
 
-The bugfix was simply to add Python's "-S" option when calling
-easyinstall (see zc.buildout.easy_install.Installer._call_easy_install).
+You can see the copiously commented fix for this in easy_install.py (see
+zc.buildout.easy_install.Installer._call_easy_install and particularly
+the comment leading up to zc.buildout.easy_install._easy_install_cmd).
 Now the install works correctly, as seen here.
 
     >>> print system(buildout)

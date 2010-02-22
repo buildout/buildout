@@ -163,24 +163,47 @@ else:
 #
 # The namespace packages installed in site-packages with
 # --single-version-externally-managed use a mechanism that cause them to
-# be processed when site.py is imported.  Simply starting Python with -S
-# addresses the problem in Python 2.4 and 2.5, but Python 2.6's distutils
-# imports a value from the site module, so we unfortunately have to do more
-# drastic surgery in the _easy_install_cmd code below.  The changes to
-# sys.modules specifically try to only remove namespace modules installed by
-# the --single-version-externally-managed code.
+# be processed when site.py is imported  (see
+# http://mail.python.org/pipermail/distutils-sig/2009-May/011730.html
+# for another description of the problem).  Simply starting Python with
+# -S addresses the problem in Python 2.4 and 2.5, but Python 2.6's
+# distutils imports a value from the site module, so we unfortunately
+# have to do more drastic surgery in the _easy_install_cmd code below.
+#
+# Here's an example of the .pth files created by setuptools when using that
+# flag:
+#
+# import sys,new,os;
+# p = os.path.join(sys._getframe(1).f_locals['sitedir'], *('<NAMESPACE>',));
+# ie = os.path.exists(os.path.join(p,'__init__.py'));
+# m = not ie and sys.modules.setdefault('<NAMESPACE>',new.module('<NAMESPACE>'));
+# mp = (m or []) and m.__dict__.setdefault('__path__',[]);
+# (p not in mp) and mp.append(p)
+#
+# The code, below, then, runs under -S, indicating that site.py should
+# not be loaded initially.  It gets the initial sys.path under these
+# circumstances, and then imports site (because Python 2.6's distutils
+# will want it, as mentioned above). It then reinstates the old sys.path
+# value. Then it removes namespace packages (created by the setuptools
+# code above) from sys.modules.  It identifies namespace packages by
+# iterating over every loaded module.  It first looks if there is a
+# __path__, so it is a package; and then it sees if that __path__ does
+# not have an __init__.py.  (Note that PEP 382,
+# http://www.python.org/dev/peps/pep-0382, makes it possible to have a
+# namespace package that has an __init__.py, but also should make it
+# unnecessary for site.py to preprocess these packages, so it should be
+# fine, as far as can be guessed as of this writing.)  Finally, it
+# imports easy_install and runs it.
 
 _easy_install_cmd = _safe_arg('''\
-import sys; \
-p = sys.path[:]; \
-m = sys.modules.keys(); \
-import site; \
-sys.path[:] = p; \
-m_attrs = set(('__builtins__', '__file__', '__package__', '__path__')); \
-match = set(('__path__',)); \
+import sys,os;\
+p = sys.path[:];\
+import site;\
+sys.path[:] = p;\
 [sys.modules.pop(k) for k, v in sys.modules.items()\
- if k not in m and v and m_attrs.intersection(dir(v)) == match]; \
-from setuptools.command.easy_install import main; \
+ if hasattr(v, '__path__') and len(v.__path__)==1 and\
+ not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))];\
+from setuptools.command.easy_install import main;\
 main()''')
 
 
