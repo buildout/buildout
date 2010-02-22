@@ -1267,7 +1267,7 @@ this is very straightforward.
     >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
-    ...     interpreter='py', add_site_packages=True)
+    ...     interpreter='py', include_site_packages=True)
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
@@ -1336,7 +1336,7 @@ call to another text fixture to create.
     ...     links=[link_server, namespace_eggs], index=link_server+'index/')
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
-    ...     interpreter='py', add_site_packages=True)
+    ...     interpreter='py', include_site_packages=True)
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
@@ -1394,7 +1394,7 @@ at that result.
     >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
-    ...     interpreter='py', add_site_packages=True,
+    ...     interpreter='py', include_site_packages=True,
     ...     relative_paths=interpreter_dir)
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE

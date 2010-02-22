@@ -1170,7 +1170,7 @@ def scripts(reqs, working_set, executable, dest,
 def sitepackage_safe_scripts(
     dest, working_set, executable, site_py_dest,
     reqs=(), scripts=None, interpreter=None, extra_paths=(),
-    initialization='', add_site_packages=False, exec_sitecustomize=False,
+    initialization='', include_site_packages=False, exec_sitecustomize=False,
     relative_paths=False, script_arguments='', script_initialization=''):
     """Generate scripts and/or an interpreter from a system Python.
 
@@ -1184,7 +1184,7 @@ def sitepackage_safe_scripts(
         site_py_dest, executable, initialization, exec_sitecustomize))
     generated.append(_generate_site(
         site_py_dest, working_set, executable, extra_paths,
-        add_site_packages, relative_paths))
+        include_site_packages, relative_paths))
     script_initialization = (
         '\nimport site # imports custom buildout-generated site.py\n%s' % (
             script_initialization,))
@@ -1521,10 +1521,10 @@ def _generate_sitecustomize(dest, executable, initialization='',
     return sitecustomize_path
 
 def _generate_site(dest, working_set, executable, extra_paths=(),
-                   add_site_packages=False, relative_paths=False):
+                   include_site_packages=False, relative_paths=False):
     """Write a site.py file with eggs from working_set.
 
-    extra_paths will be added to the path.  If add_site_packages is True,
+    extra_paths will be added to the path.  If include_site_packages is True,
     paths from the underlying Python will be added.
     """
     path = _get_path(working_set, extra_paths)
@@ -1536,7 +1536,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
             [(line and '    %s' % (line,) or line)
              for line in preamble.split('\n')])
     original_path_setup = ''
-    if add_site_packages:
+    if include_site_packages:
         stdlib, site_paths = _get_system_paths(executable)
         original_path_setup = original_path_snippet % (
             _format_paths((repr(p) for p in site_paths), 2),)
@@ -1551,7 +1551,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
                     relative_paths)
             else:
                 location = repr(distribution.location)
-            preamble += namespace_add_site_packages_setup % (location,)
+            preamble += namespace_include_site_packages_setup % (location,)
             original_path_setup = (
                 addsitedir_namespace_originalpackages_snippet +
                 original_path_setup)
@@ -1580,7 +1580,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
         raise RuntimeError('Buildout did not successfully rewrite site.py')
     return site_path
 
-namespace_add_site_packages_setup = '''
+namespace_include_site_packages_setup = '''
     setuptools_path = %s
     sys.path.append(setuptools_path)
     known_paths.add(os.path.normcase(setuptools_path))

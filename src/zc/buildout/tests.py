@@ -1912,7 +1912,7 @@ tellmy.version and tellmy.fortune.
     ... recipe = z3c.recipe.scripts
     ... python = primed_python
     ... interpreter = py
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... eggs = tellmy.version == 1.0
     ...        tellmy.fortune == 1.0
     ...        demo
@@ -1937,7 +1937,7 @@ tellmy.version and tellmy.fortune.
     Generated interpreter '/sample-buildout/bin/py'.
     <BLANKLINE>
 
-Finally, we are ready for the actual test.  Prior to the bug fix that
+Finally, we are ready to see if it worked.  Prior to the bug fix that
 this tests, the results of both calls below was the following::
 
     1.1

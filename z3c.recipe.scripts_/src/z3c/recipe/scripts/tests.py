@@ -25,7 +25,7 @@ from zope.testing import doctest, renormalizing
 # all of the examples.  The README tests ``extends``,
 # ``include-site-customization`` and ``name``.  That leaves ``python``,
 # ``extra-paths``, ``initialization``, ``relative-paths``, and
-# ``add-site-packages``.
+# ``include-site-packages``.
 
 def supports_python_option():
     """

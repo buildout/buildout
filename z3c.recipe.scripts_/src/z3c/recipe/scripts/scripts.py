@@ -31,13 +31,13 @@ class Base(ScriptBase):
             b_options['parts-directory'], self.name)
 
         value = options.setdefault(
-            'add-site-packages',
-            b_options.get('add-site-packages', 'false'))
+            'include-site-packages',
+            b_options.get('include-site-packages', 'false'))
         if value not in ('true', 'false'):
             raise zc.buildout.UserError(
-                "Invalid value for add-site-packages option: %s" %
+                "Invalid value for include-site-packages option: %s" %
                 (value,))
-        self.add_site_packages = (value == 'true')
+        self.include_site_packages = (value == 'true')
 
         value = options.setdefault(
             'exec-sitecustomize',
@@ -69,7 +69,7 @@ class Interpreter(Base):
             interpreter=options['name'],
             extra_paths=self.extra_paths,
             initialization=options.get('initialization', ''),
-            add_site_packages=self.add_site_packages,
+            include_site_packages=self.include_site_packages,
             exec_sitecustomize=self.exec_sitecustomize,
             relative_paths=self._relative_paths,
             ))
@@ -92,7 +92,7 @@ class Scripts(Base):
             interpreter=options.get('interpreter'),
             extra_paths=self.extra_paths,
             initialization=options.get('initialization', ''),
-            add_site_packages=self.add_site_packages,
+            include_site_packages=self.include_site_packages,
             exec_sitecustomize=self.exec_sitecustomize,
             relative_paths=self._relative_paths,
             script_arguments=options.get('arguments', ''),
