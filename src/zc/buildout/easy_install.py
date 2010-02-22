@@ -61,15 +61,16 @@ setuptools_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')
     ).location
 
-# Include buildout and setuptools eggs in paths
-buildout_and_setuptools_path = [
-    setuptools_loc,
-    pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('zc.buildout')).location,
-    ]
+# Include buildout and setuptools eggs in paths.  We prevent dupes just to
+# keep from duplicating any log messages about them.
+buildout_loc = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('zc.buildout')).location
+buildout_and_setuptools_path = [setuptools_loc]
+if os.path.normpath(setuptools_loc) != os.path.normpath(buildout_loc):
+    buildout_and_setuptools_path.append(buildout_loc)
 
 def _get_system_paths(executable):
-    """return lists of standard lib and site paths for executable.
+    """Return lists of standard lib and site paths for executable.
     """
     # We want to get a list of the site packages, which is not easy.
     # The canonical way to do this is to use
@@ -227,24 +228,47 @@ else:
 #
 # The namespace packages installed in site-packages with
 # --single-version-externally-managed use a mechanism that cause them to
-# be processed when site.py is imported.  Simply starting Python with -S
-# addresses the problem in Python 2.4 and 2.5, but Python 2.6's distutils
-# imports a value from the site module, so we unfortunately have to do more
-# drastic surgery in the _easy_install_cmd code below.  The changes to
-# sys.modules specifically try to only remove namespace modules installed by
-# the --single-version-externally-managed code.
+# be processed when site.py is imported  (see
+# http://mail.python.org/pipermail/distutils-sig/2009-May/011730.html
+# for another description of the problem).  Simply starting Python with
+# -S addresses the problem in Python 2.4 and 2.5, but Python 2.6's
+# distutils imports a value from the site module, so we unfortunately
+# have to do more drastic surgery in the _easy_install_cmd code below.
+#
+# Here's an example of the .pth files created by setuptools when using that
+# flag:
+#
+# import sys,new,os;
+# p = os.path.join(sys._getframe(1).f_locals['sitedir'], *('<NAMESPACE>',));
+# ie = os.path.exists(os.path.join(p,'__init__.py'));
+# m = not ie and sys.modules.setdefault('<NAMESPACE>',new.module('<NAMESPACE>'));
+# mp = (m or []) and m.__dict__.setdefault('__path__',[]);
+# (p not in mp) and mp.append(p)
+#
+# The code, below, then, runs under -S, indicating that site.py should
+# not be loaded initially.  It gets the initial sys.path under these
+# circumstances, and then imports site (because Python 2.6's distutils
+# will want it, as mentioned above). It then reinstates the old sys.path
+# value. Then it removes namespace packages (created by the setuptools
+# code above) from sys.modules.  It identifies namespace packages by
+# iterating over every loaded module.  It first looks if there is a
+# __path__, so it is a package; and then it sees if that __path__ does
+# not have an __init__.py.  (Note that PEP 382,
+# http://www.python.org/dev/peps/pep-0382, makes it possible to have a
+# namespace package that has an __init__.py, but also should make it
+# unnecessary for site.py to preprocess these packages, so it should be
+# fine, as far as can be guessed as of this writing.)  Finally, it
+# imports easy_install and runs it.
 
 _easy_install_cmd = _safe_arg('''\
-import sys; \
-p = sys.path[:]; \
-m = sys.modules.keys(); \
-import site; \
-sys.path[:] = p; \
-m_attrs = set(('__builtins__', '__file__', '__package__', '__path__')); \
-match = set(('__path__',)); \
+import sys,os;\
+p = sys.path[:];\
+import site;\
+sys.path[:] = p;\
 [sys.modules.pop(k) for k, v in sys.modules.items()\
- if k not in m and v and m_attrs.intersection(dir(v)) == match]; \
-from setuptools.command.easy_install import main; \
+ if hasattr(v, '__path__') and len(v.__path__)==1 and\
+ not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))];\
+from setuptools.command.easy_install import main;\
 main()''')
 
 
@@ -1126,8 +1150,9 @@ def scripts(reqs, working_set, executable, dest,
             ):
     """Generate scripts and/or an interpreter.
 
-    See generate_scripts for a newer version with more options and a
-    different approach.
+    See sitepackage_safe_scripts for a version that can be used with a Python
+    that can be used with a Python that has code installed in site-packages.
+    It has more options and a different approach.
     """
     path = _get_path(working_set, extra_paths)
     if initialization:
@@ -1142,12 +1167,12 @@ def scripts(reqs, working_set, executable, dest,
             _pyscript(spath, sname, executable, rpsetup))
     return generated
 
-def generate_scripts(
+def sitepackage_safe_scripts(
     dest, working_set, executable, site_py_dest,
     reqs=(), scripts=None, interpreter=None, extra_paths=(),
-    initialization='', add_site_packages=False, exec_sitecustomize=False,
+    initialization='', include_site_packages=False, exec_sitecustomize=False,
     relative_paths=False, script_arguments='', script_initialization=''):
-    """Generate scripts and/or an interpreter.
+    """Generate scripts and/or an interpreter from a system Python.
 
     This accomplishes the same job as the ``scripts`` function, above,
     but it does so in an alternative way that allows safely including
@@ -1159,9 +1184,9 @@ def generate_scripts(
         site_py_dest, executable, initialization, exec_sitecustomize))
     generated.append(_generate_site(
         site_py_dest, working_set, executable, extra_paths,
-        add_site_packages, relative_paths))
+        include_site_packages, relative_paths))
     script_initialization = (
-        '\nimport site # imports custom buildbot-generated site.py\n%s' % (
+        '\nimport site # imports custom buildout-generated site.py\n%s' % (
             script_initialization,))
     if not script_initialization.endswith('\n'):
         script_initialization += '\n'
@@ -1175,7 +1200,7 @@ def generate_scripts(
 
 # Utilities for the script generation functions.
 
-# These are shared by both ``scripts`` and ``generate_scripts``
+# These are shared by both ``scripts`` and ``sitepackage_safe_scripts``
 
 def _get_path(working_set, extra_paths=()):
     """Given working set and extra paths, return a normalized path list."""
@@ -1442,7 +1467,7 @@ if _interactive:
     __import__("code").interact(banner="", local=globals())
 '''
 
-# These are used only by the newer ``generate_scripts`` function.
+# These are used only by the newer ``sitepackage_safe_scripts`` function.
 
 def _get_module_file(executable, name):
     """Return a module's file path.
@@ -1496,10 +1521,10 @@ def _generate_sitecustomize(dest, executable, initialization='',
     return sitecustomize_path
 
 def _generate_site(dest, working_set, executable, extra_paths=(),
-                   add_site_packages=False, relative_paths=False):
+                   include_site_packages=False, relative_paths=False):
     """Write a site.py file with eggs from working_set.
 
-    extra_paths will be added to the path.  If add_site_packages is True,
+    extra_paths will be added to the path.  If include_site_packages is True,
     paths from the underlying Python will be added.
     """
     path = _get_path(working_set, extra_paths)
@@ -1511,7 +1536,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
             [(line and '    %s' % (line,) or line)
              for line in preamble.split('\n')])
     original_path_setup = ''
-    if add_site_packages:
+    if include_site_packages:
         stdlib, site_paths = _get_system_paths(executable)
         original_path_setup = original_path_snippet % (
             _format_paths((repr(p) for p in site_paths), 2),)
@@ -1526,7 +1551,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
                     relative_paths)
             else:
                 location = repr(distribution.location)
-            preamble += namespace_add_site_packages_setup % (location,)
+            preamble += namespace_include_site_packages_setup % (location,)
             original_path_setup = (
                 addsitedir_namespace_originalpackages_snippet +
                 original_path_setup)
@@ -1555,7 +1580,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
         raise RuntimeError('Buildout did not successfully rewrite site.py')
     return site_path
 
-namespace_add_site_packages_setup = '''
+namespace_include_site_packages_setup = '''
     setuptools_path = %s
     sys.path.append(setuptools_path)
     known_paths.add(os.path.normcase(setuptools_path))

@@ -237,15 +237,15 @@ Let's look at the site.py that was generated:
             ]...
 """
 
-def add_site_packages_option_reusing_eggs():
+def include_site_packages_option_reusing_eggs():
     """
-The add-site-packages buildout option not only controls whether
+The include-site-packages buildout option not only controls whether
 site-packages are included in the path, but whether eggs in site-packages
 can be used to fulfill direct and indirect dependencies of your package.  If
 it did not, it might fail to exclude site-packages because one of the
 dependencies actually was supposed to be fulfilled with it.
 
-The default is ``add-site-packages = false``.  This makes it possible to
+The default is ``include-site-packages = false``.  This makes it possible to
 easily use a system Python.  As a demonstration, we will start with a
 Python executable that has the "demoneeded" and "demo" eggs installed.
 The eggs are not found.
@@ -277,7 +277,7 @@ The eggs are not found.
     Error: Couldn't find a distribution for 'demoneeded'.
     <BLANKLINE>
 
-However, if we set add-site-packages to true, the package will be found.
+However, if we set include-site-packages to true, the package will be found.
 Notice we do not set find-links, but the eggs are still found because
 they are in the executable's path.
 
@@ -293,7 +293,7 @@ they are in the executable's path.
     ... [eggs]
     ... recipe = z3c.recipe.scripts
     ... python = primed_python
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... eggs = demoneeded
     ... ''' % globals())
 
@@ -311,7 +311,7 @@ We get an error if we specify anything but true or false:
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... add-site-packages = no
+    ... include-site-packages = no
     ... eggs = other
     ... ''' % globals())
 
@@ -320,7 +320,7 @@ We get an error if we specify anything but true or false:
       Installing.
       Getting section eggs.
       Initializing part eggs.
-    Error: Invalid value for add-site-packages option: no
+    Error: Invalid value for include-site-packages option: no
     <BLANKLINE>
 
     """
@@ -351,7 +351,7 @@ correctly parse a single-line value.
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... allowed-eggs-from-site-packages = *
     ... python = primed_python
     ... eggs = demoneeded
@@ -376,7 +376,7 @@ parse a multi-line value.
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... allowed-eggs-from-site-packages = other
     ...                                   demoneeded
     ... python = primed_python
@@ -414,7 +414,7 @@ allowed, because we see that we were unable to get "other".
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... allowed-eggs-from-site-packages =
     ... eggs = demoneeded
     ... ''' % globals())

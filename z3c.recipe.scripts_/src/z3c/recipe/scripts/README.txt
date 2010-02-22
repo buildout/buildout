@@ -33,7 +33,7 @@ this, we'll list the new options and describe them.
 In addition to these, the recipe offers these new options.  They are
 introduced here, and described more in depth below.
 
-add-site-packages
+include-site-packages
     You can choose to have the site-packages of the underlying Python
     available to your script or interpreter, in addition to the packages
     from your eggs.  See the section on this option for motivations and
@@ -56,16 +56,16 @@ allowed-eggs-from-site-packages
             bigdemo
             zope.*
 
-    This option interacts with the ``add-site-packages`` option in the
+    This option interacts with the ``include-site-packages`` option in the
     following ways.
 
-    If ``add-site-packages`` is true, then
+    If ``include-site-packages`` is true, then
     ``allowed-eggs-from-site-packages`` filters what eggs from site-packages
     may be chosen.  Therefore, if ``allowed-eggs-from-site-packages`` is an
     empty list, then no eggs from site-packages are chosen, but site-packages
     will still be included at the end of path lists.
 
-    If ``add-site-packages`` is false, the value of
+    If ``include-site-packages`` is false, the value of
     ``allowed-eggs-from-site-packages`` is irrelevant.
 
 extends
@@ -76,7 +76,7 @@ extends
 exec-sitecustomize
     Normally the Python's real sitecustomize module is not processed.
     If you want it to be processed, set this value to 'true'.  This will
-    be honored irrespective of the setting for include-site-paths.
+    be honored irrespective of the setting for include-site-packages.
 
 script-initialization
     The standard initialization code affects both an interpreter and scripts.
@@ -210,7 +210,7 @@ some advantages and some serious dangers.
 
 A typical reason to include site-packages is that it is easier to
 install one or more dependencies in your Python than it is with
-buildbot.  Some packages, such as lxml or Python PostgreSQL integration,
+buildout.  Some packages, such as lxml or Python PostgreSQL integration,
 have dependencies that can be much easier to build and/or install using
 other mechanisms, such as your operating system's package manager.  By
 installing some core packages into your Python's site-packages, this can
@@ -231,7 +231,7 @@ instance, it is a system Python), you open yourself up to these
 possibilities.  Don't be unaware of the dangers.
 
 To show off these features, we need to use buildout with a Python
-executable with some extra paths to show ``add-site-packages``; and one
+executable with some extra paths to show ``include-site-packages``; and one
 guaranteed to have a sitecustomize module to show
 ``exec-sitecustomize``.  We'll make one using a test fixture called
 ``make_py``. The os.environ change below will go into the sitecustomize,
@@ -244,7 +244,7 @@ and the site_packages_path will be in the Python's path.
     >>> print site_packages_path
     /executable_buildout/site-packages
 
-Now let's take a look at add-site-packages.
+Now let's take a look at include-site-packages.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -254,7 +254,7 @@ Now let's take a look at add-site-packages.
     ...
     ... [py]
     ... recipe = z3c.recipe.scripts:interpreter
-    ... add-site-packages = true
+    ... include-site-packages = true
     ... eggs = demo<0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
@@ -428,5 +428,4 @@ interpreter, so that you are not forced to use the name of the section.
     42
     <BLANKLINE>
 
-The other options all identical to the zc.recipe.egg script.  Here are some
-quick demos and discussions.
+The other options all identical to zc.recipe.egg.

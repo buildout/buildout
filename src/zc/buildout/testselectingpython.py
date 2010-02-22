@@ -61,7 +61,7 @@ def multi_python(test):
             ['setuptools'], executable_dir,
             index='http://www.python.org/pypi/',
             always_unzip=True, executable=other_executable)
-        zc.buildout.easy_install.generate_scripts(
+        zc.buildout.easy_install.sitepackage_safe_scripts(
             executable_dir, ws, other_executable, executable_parts,
             reqs=['setuptools'], interpreter='py')
         original_executable = other_executable
