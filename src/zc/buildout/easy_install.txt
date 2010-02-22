@@ -1260,6 +1260,7 @@ call to another text fixture to create.
     >>> namespace_eggs = tmpdir('namespace_eggs')
     >>> create_sample_namespace_eggs(namespace_eggs)
 
+    >>> reset_interpreter()
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo', 'tellmy.fortune'], join(interpreter_dir, 'eggs'),
     ...     links=[link_server, namespace_eggs], index=link_server+'index/')
@@ -1320,6 +1321,7 @@ The most complex that this function gets is if you use namespace packages,
 include site-packages, and use relative paths.  For completeness, we'll look
 at that result.
 
+    >>> reset_interpreter()
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', add_site_packages=True,
