@@ -1018,7 +1018,7 @@ def sitepackage_safe_scripts(
         site_py_dest, working_set, executable, extra_paths,
         add_site_packages, relative_paths))
     script_initialization = (
-        '\nimport site # imports custom buildbot-generated site.py\n%s' % (
+        '\nimport site # imports custom buildout-generated site.py\n%s' % (
             script_initialization,))
     if not script_initialization.endswith('\n'):
         script_initialization += '\n'
@@ -1302,7 +1302,7 @@ if _interactive:
 # These are used only by the newer ``sitepackage_safe_scripts`` function.
 
 def _get_system_paths(executable):
-    """return lists of standard lib and site paths for executable.
+    """Return lists of standard lib and site paths for executable.
     """
     # We want to get a list of the site packages, which is not easy.
     # The canonical way to do this is to use

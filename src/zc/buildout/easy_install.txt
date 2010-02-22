@@ -1171,7 +1171,7 @@ packages.  This has some advantages and some serious dangers.
 
 A typical reason to include site-packages is that it is easier to
 install one or more dependencies in your Python than it is with
-buildbot.  Some packages, such as lxml or Python PostgreSQL integration,
+buildout.  Some packages, such as lxml or Python PostgreSQL integration,
 have dependencies that can be much easier to build and/or install using
 other mechanisms, such as your operating system's package manager.  By
 installing some core packages into your Python's site-packages, this can
@@ -1428,7 +1428,7 @@ The demo script runs the entry point defined in the demo egg:
         ]
     <BLANKLINE>
     <BLANKLINE>
-    import site # imports custom buildbot-generated site.py
+    import site # imports custom buildout-generated site.py
     <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
@@ -1467,7 +1467,7 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
       '/interpreter/parts/interpreter',
       ]
     <BLANKLINE>
-    import site # imports custom buildbot-generated site.py
+    import site # imports custom buildout-generated site.py
     import os
     os.chdir("foo")
     <BLANKLINE>

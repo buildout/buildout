@@ -47,7 +47,7 @@ extends
 exec-sitecustomize
     Normally the Python's real sitecustomize module is not processed.
     If you want it to be processed, set this value to 'true'.  This will
-    be honored irrespective of the setting for include-site-paths.
+    be honored irrespective of the setting for add-site-packages.
 
 script-initialization
     The standard initialization code affects both an interpreter and scripts.
@@ -181,7 +181,7 @@ some advantages and some serious dangers.
 
 A typical reason to include site-packages is that it is easier to
 install one or more dependencies in your Python than it is with
-buildbot.  Some packages, such as lxml or Python PostgreSQL integration,
+buildout.  Some packages, such as lxml or Python PostgreSQL integration,
 have dependencies that can be much easier to build and/or install using
 other mechanisms, such as your operating system's package manager.  By
 installing some core packages into your Python's site-packages, this can
@@ -399,5 +399,4 @@ interpreter, so that you are not forced to use the name of the section.
     42
     <BLANKLINE>
 
-The other options all identical to the zc.recipe.egg script.  Here are some
-quick demos and discussions.
+The other options all identical to zc.recipe.egg.
