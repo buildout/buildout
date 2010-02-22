@@ -19,8 +19,8 @@ New Features:
   exact version as specified in your buildout configuration, buildout
   will still use its own copy.
 
-- Added new function, ``zc.buildout.easy_install.generate_scripts``, to
-  generate scripts and interpreter.  It produces a full-featured
+- Added new function, ``zc.buildout.easy_install.sitepackage_safe_scripts``,
+  to generate scripts and interpreter.  It produces a full-featured
   interpreter (all command-line options supported) and the ability to
   safely let scripts include site packages.  The ``z3c.recipe.scripts``
   recipe uses this new function.

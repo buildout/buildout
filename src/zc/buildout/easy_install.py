@@ -959,8 +959,9 @@ def scripts(reqs, working_set, executable, dest,
             ):
     """Generate scripts and/or an interpreter.
 
-    See generate_scripts for a newer version with more options and a
-    different approach.
+    See sitepackage_safe_scripts for a version that can be used with a Python
+    that can be used with a Python that has code installed in site-packages.
+    It has more options and a different approach.
     """
     path = _get_path(working_set, extra_paths)
     if initialization:
@@ -975,12 +976,12 @@ def scripts(reqs, working_set, executable, dest,
             _pyscript(spath, sname, executable, rpsetup))
     return generated
 
-def generate_scripts(
+def sitepackage_safe_scripts(
     dest, working_set, executable, site_py_dest,
     reqs=(), scripts=None, interpreter=None, extra_paths=(),
     initialization='', add_site_packages=False, exec_sitecustomize=False,
     relative_paths=False, script_arguments='', script_initialization=''):
-    """Generate scripts and/or an interpreter.
+    """Generate scripts and/or an interpreter from a system Python.
 
     This accomplishes the same job as the ``scripts`` function, above,
     but it does so in an alternative way that allows safely including
@@ -1008,7 +1009,7 @@ def generate_scripts(
 
 # Utilities for the script generation functions.
 
-# These are shared by both ``scripts`` and ``generate_scripts``
+# These are shared by both ``scripts`` and ``sitepackage_safe_scripts``
 
 def _get_path(working_set, extra_paths=()):
     """Given working set and extra paths, return a normalized path list."""
@@ -1275,7 +1276,7 @@ if _interactive:
     __import__("code").interact(banner="", local=globals())
 '''
 
-# These are used only by the newer ``generate_scripts`` function.
+# These are used only by the newer ``sitepackage_safe_scripts`` function.
 
 def _get_system_paths(executable):
     """return lists of standard lib and site paths for executable.

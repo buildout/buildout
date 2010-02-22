@@ -63,7 +63,7 @@ class Interpreter(Base):
         if not os.path.exists(options['parts-directory']):
             os.mkdir(options['parts-directory'])
             generated.append(options['parts-directory'])
-        generated.extend(zc.buildout.easy_install.generate_scripts(
+        generated.extend(zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'],
             options['parts-directory'],
             interpreter=options['name'],
@@ -86,7 +86,7 @@ class Scripts(Base):
         if not os.path.exists(options['parts-directory']):
             os.mkdir(options['parts-directory'])
             generated.append(options['parts-directory'])
-        generated.extend(zc.buildout.easy_install.generate_scripts(
+        generated.extend(zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'],
             options['parts-directory'], reqs=reqs, scripts=scripts,
             interpreter=options.get('interpreter'),
