@@ -11,11 +11,12 @@ New Features:
   than zc.recipe.egg (which is still a fully supported, and simpler, way of
   generating scripts and interpreters if you are using a "clean" Python).
 
-  (Note that this branch is incomplete in its implementation of this feature:
-  if eggs are in installed in site-packages but you do not want to use
-  site-packages, the eggs will drag in site-packages even if you try to
-  exclude it.  This is addressed in subsequent branches in the series of
-  which this one is a part.)
+  The z3c.recipe.scripts recipe allows you to control how you use the
+  code in site-packages.  You can exclude it entirely; allow eggs in it
+  to fulfill package dependencies declared in setup.py and buildout
+  configuration; allow it to be available but not used to fulfill
+  dependencies declared in setup.py or buildout configuration; or only
+  allow certain eggs in site-packages to fulfill dependencies.
 
 - Added new function, ``zc.buildout.easy_install.sitepackage_safe_scripts``,
   to generate scripts and interpreter.  It produces a full-featured

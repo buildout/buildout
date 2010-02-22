@@ -398,36 +398,6 @@ packages are not available in any links, and they are not allowed to
 come from the executable's site packages. (We won't show that here
 because we already tested it in the same test mentioned above.)
 
-Finally, here's a test with an empty value.  It shows that we parse an empty
-value correctly, and verifies that we really are controlling what eggs are
-allowed, because we see that we were unable to get "other".
-
-    >>> zc.buildout.easy_install.clear_index_cache()
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts = eggs
-    ... find-links =
-    ...
-    ... [primed_python]
-    ... executable = %(py_path)s
-    ...
-    ... [eggs]
-    ... recipe = z3c.recipe.scripts
-    ... include-site-packages = true
-    ... allowed-eggs-from-site-packages =
-    ... eggs = demoneeded
-    ... ''' % globals())
-    >>> print system(py_path+" "+buildout)
-    Uninstalling eggs.
-    Installing eggs.
-    Getting distribution for 'demoneeded'.
-    While:
-      Installing eggs.
-      Getting distribution for 'demoneeded'.
-    Error: Couldn't find a distribution for 'demoneeded'.
-    <BLANKLINE>
-
     """
 
 def setUp(test):

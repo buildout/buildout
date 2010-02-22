@@ -244,7 +244,8 @@ and the site_packages_path will be in the Python's path.
     >>> print site_packages_path
     /executable_buildout/site-packages
 
-Now let's take a look at include-site-packages.
+Now let's take a look at include-site-packages.  The default is false,
+so we will set it to true.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -265,6 +266,8 @@ Now let's take a look at include-site-packages.
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
 
+Now executable_buildout/site-packages is included in sys.path.
+
     >>> print system(join(sample_buildout, 'bin', 'py') +
     ...              ''' -c "import sys, pprint; pprint.pprint(sys.path)"''')
     ... # doctest: +ELLIPSIS
@@ -276,6 +279,95 @@ Now let's take a look at include-site-packages.
      '/executable_buildout/eggs/setuptools-X-pyN.N.egg',
      '/executable_buildout/site-packages']
     <BLANKLINE>
+
+As described above, the allowed-eggs-from-site-packages option lets us
+control what site-packages eggs zc.buildout will allow to fulfill
+dependencies.  The behavior was described above with an example (and the
+implementation is tested elsewhere), so we'll only look at some simple and
+common use cases here.
+
+Sometimes you may want to allow site-packages to be available but you don't
+want your package to depend on it using setup.py.  For instance, perhaps you
+are writing an application, and you want to depend on your system's packaging
+of the PostgreSQL code, but the system Python does not use eggs to
+package it, so you need to manage the two separately.  In this case, you
+might not want to use any eggs from site-packages, but you want it available.
+In this case, you can use allowed-eggs-from-site-packages with an empty value
+to keep any egg from being used from site-packages.
+
+Here's an example.  Let's say we have a Python with demo and demoneeded
+installed as eggs in the system Python.  Normally, they will be used to
+fulfill dependencies, because allowed-eggs-from-site-packages defaults to
+the value "*" (allow any package).  (We use an empty find-links value to say
+that buildout may not look elsewhere for the package. We use a different
+eggs-directory for isolation, so that eggs obtained other parts of the
+document do not affect this example.)
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> create_sample_sys_install(site_packages_path)
+    >>> import zc.buildout.easy_install
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... eggs-directory = tmpeggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... include-site-packages = true
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+    >>> print system(py_path+" "+buildout)
+    Creating directory '/sample-buildout/tmpeggs'.
+    Uninstalling py.
+    Installing eggs.
+    <BLANKLINE>
+
+That succeeds fine, getting demoneeded from the Python site-packages.
+
+However, when allowed-eggs-from-site-packages is an empty value, demoneeded
+is not allowed to come from site-packages, and the buildout fails.
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir('tmpeggs')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... eggs-directory = tmpeggs
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... include-site-packages = true
+    ... allowed-eggs-from-site-packages =
+    ... eggs = demoneeded
+    ... ''' % globals())
+    >>> print system(py_path+" "+buildout)
+    Creating directory '/sample-buildout/tmpeggs'.
+    Uninstalling eggs.
+    Installing eggs.
+    Getting distribution for 'demoneeded'.
+    While:
+      Installing eggs.
+      Getting distribution for 'demoneeded'.
+    Error: Couldn't find a distribution for 'demoneeded'.
+    <BLANKLINE>
+
+Remember that you can provide multiple lines to the
+allowed-eggs-from-site-packages option, each specifying a whitelist of
+allowed packages.  Globs (* and ?) are allowed.
 
 Next we will use the exec-sitecustomize option.  It simply copies
 Python's underlying sitecustomize module, if it exists, to the local
@@ -297,7 +389,6 @@ into the sitecustomize.
     ... """ % dict(server=link_server, py_path=py_path))
 
     >>> print system(buildout),
-    Uninstalling py.
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
 
@@ -318,7 +409,8 @@ into the sitecustomize.
 Options
 -------
 
-We'll focus now on the options that are different than zc.recipe.egg.
+We'll focus now on the remaining options that are different than
+zc.recipe.egg.
 
 Let's look at the ``extends`` option first.
 
