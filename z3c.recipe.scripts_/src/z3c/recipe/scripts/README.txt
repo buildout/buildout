@@ -325,7 +325,7 @@ document do not affect this example.)
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling py.
     Installing eggs.
@@ -354,7 +354,7 @@ is not allowed to come from site-packages, and the buildout fails.
     ... allowed-eggs-from-site-packages =
     ... eggs = demoneeded
     ... ''' % globals())
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling eggs.
     Installing eggs.

@@ -197,7 +197,7 @@ clear_index_cache = _indexes.clear
 
 if is_win32:
     # work around spawn lamosity on windows
-    # XXX need safe quoting (see the subproces.list2cmdline) and test
+    # XXX need safe quoting (see the subprocess.list2cmdline) and test
     def _safe_arg(arg):
         return '"%s"' % arg
 else:

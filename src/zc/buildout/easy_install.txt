@@ -998,7 +998,7 @@ The ``sitepackage_safe_scripts`` function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The newer function for creating scripts is ``sitepackage_safe_scripts``.
- It has the same basic functionality as the ``scripts`` function: it can
+It has the same basic functionality as the ``scripts`` function: it can
 create scripts to run arbitrary entry points, and to run a Python
 interpreter.  The following are the differences from a user's
 perspective.

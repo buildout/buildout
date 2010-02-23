@@ -267,7 +267,7 @@ The eggs are not found.
     ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Installing eggs.
     Couldn't find index page for 'demoneeded' (maybe misspelled?)
     Getting distribution for 'demoneeded'.
@@ -297,7 +297,7 @@ they are in the executable's path.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Installing eggs.
     <BLANKLINE>
 
@@ -315,7 +315,7 @@ We get an error if we specify anything but true or false:
     ... eggs = other
     ... ''' % globals())
 
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     While:
       Installing.
       Getting section eggs.
@@ -357,7 +357,7 @@ correctly parse a single-line value.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Installing eggs.
     <BLANKLINE>
 
@@ -383,7 +383,7 @@ parse a multi-line value.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(py_path+" "+buildout)
+    >>> print do_build(python=py_path)
     Uninstalling eggs.
     Installing eggs.
     <BLANKLINE>

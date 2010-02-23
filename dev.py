@@ -40,10 +40,12 @@ except ImportError:
 
     import pkg_resources
 
+env = os.environ.copy() # Windows needs yet-to-be-determined values from this.
+env['PYTHONPATH'] = os.path.dirname(pkg_resources.__file__)
 subprocess.Popen(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env = {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)}).wait()
+    env=env).wait()
 
 pkg_resources.working_set.add_entry('src')
 

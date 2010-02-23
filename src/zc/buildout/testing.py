@@ -374,6 +374,19 @@ def buildoutSetUp(test):
         return (
             os.path.join(buildout, 'bin', 'py'), site_packages_dir)
 
+    buildout = os.path.join(sample, 'bin', 'buildout')
+
+    def do_build(buildout=buildout, python=None, args=()):
+        if python is None:
+            return system(buildout)
+        if sys.platform == 'win32':
+            # We need to find the "real" script.
+            buildout += '-script.py'
+        cmd = [python, buildout]
+        cmd.extend(args)
+        return system(zc.buildout.easy_install._safe_arg(
+            ' '.join(zc.buildout.easy_install._safe_arg(arg) for arg in cmd)))
+
     test.globs.update(dict(
         sample_buildout = sample,
         ls = ls,
@@ -384,6 +397,7 @@ def buildoutSetUp(test):
         tmpdir = tmpdir,
         write = write,
         system = system,
+        do_build=do_build,
         call_py = call_py,
         get = get,
         cd = (lambda *path: os.chdir(os.path.join(*path))),
@@ -391,7 +405,7 @@ def buildoutSetUp(test):
         sdist = sdist,
         bdist_egg = bdist_egg,
         start_server = start_server,
-        buildout = os.path.join(sample, 'bin', 'buildout'),
+        buildout = buildout,
         wait_until = wait_until,
         make_py = make_py
         ))
