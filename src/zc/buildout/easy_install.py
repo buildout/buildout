@@ -1151,8 +1151,8 @@ def scripts(reqs, working_set, executable, dest,
     """Generate scripts and/or an interpreter.
 
     See sitepackage_safe_scripts for a version that can be used with a Python
-    that can be used with a Python that has code installed in site-packages.
-    It has more options and a different approach.
+    that has code installed in site-packages. It has more options and a
+    different approach.
     """
     path = _get_path(working_set, extra_paths)
     if initialization:
