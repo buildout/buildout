@@ -6,10 +6,14 @@ Change History
 
 New Features:
 
-- Buildout can be safely used with a system Python, as long as you use the
-  new z3c.recipe.scripts recipe to generate scripts and interpreters, rather
-  than zc.recipe.egg (which is still a fully supported, and simpler, way of
-  generating scripts and interpreters if you are using a "clean" Python).
+- Buildout can be safely used with a system Python (or any Python with code
+  in site-packages), as long as you use the new z3c.recipe.scripts
+  recipe to generate scripts and interpreters, rather than zc.recipe.egg.
+
+  zc.recipe.egg is still a fully supported, and simpler, way of
+  generating scripts and interpreters if you are using a "clean" Python,
+  without code installed in site-packages. It keeps its previous behavior in
+  order to provide backwards compatibility.
 
   The z3c.recipe.scripts recipe allows you to control how you use the
   code in site-packages.  You can exclude it entirely; allow eggs in it
