@@ -294,9 +294,9 @@ class Installer:
                  newest=True,
                  versions=None,
                  use_dependency_links=None,
+                 allow_hosts=('*',),
                  include_site_packages=None,
-                 allowed_eggs_from_site_packages=None,
-                 allow_hosts=('*',)
+                 allowed_eggs_from_site_packages=None
                  ):
         self._dest = dest
         self._allow_hosts = allow_hosts
@@ -1014,28 +1014,27 @@ def install(specs, dest,
             links=(), index=None,
             executable=sys.executable, always_unzip=None,
             path=None, working_set=None, newest=True, versions=None,
-            use_dependency_links=None, include_site_packages=None,
-            allowed_eggs_from_site_packages=None, allow_hosts=('*',)):
+            use_dependency_links=None, allow_hosts=('*',),
+            include_site_packages=None, allowed_eggs_from_site_packages=None):
     installer = Installer(dest, links, index, executable, always_unzip, path,
                           newest, versions, use_dependency_links,
+                          allow_hosts=allow_hosts,
                           include_site_packages=include_site_packages,
                           allowed_eggs_from_site_packages=
-                            allowed_eggs_from_site_packages,
-                          allow_hosts=allow_hosts)
+                            allowed_eggs_from_site_packages)
     return installer.install(specs, working_set)
 
 
 def build(spec, dest, build_ext,
           links=(), index=None,
           executable=sys.executable,
-          path=None, newest=True, versions=None, include_site_packages=None,
-          allowed_eggs_from_site_packages=None, allow_hosts=('*',)):
+          path=None, newest=True, versions=None, allow_hosts=('*',),
+          include_site_packages=None, allowed_eggs_from_site_packages=None):
     installer = Installer(dest, links, index, executable, True, path, newest,
-                          versions,
+                          versions, allow_hosts=allow_hosts,
                           include_site_packages=include_site_packages,
                           allowed_eggs_from_site_packages=
-                            allowed_eggs_from_site_packages,
-                          allow_hosts=allow_hosts)
+                            allowed_eggs_from_site_packages)
     return installer.build(spec, build_ext)
 
 
