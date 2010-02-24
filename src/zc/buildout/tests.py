@@ -420,7 +420,7 @@ Now here is the output.  The lines that begin with "Egg from site-packages:"
 indicate the eggs from site-packages that have been selected.  You'll see
 we have two: demo 0.3 and demoneeded 1.1.
 
-    >>> print do_build(python=py_path, args=['-v'])
+    >>> print system(buildout+" -v")
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout V
     We have the best distribution that satisfies 'setuptools'.

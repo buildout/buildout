@@ -56,10 +56,9 @@ The bin directory contains scripts.
     -  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
-The develop-eggs and parts directories are initially empty:
+The develop-eggs directory is initially empty:
 
     >>> ls(sample_buildout, 'develop-eggs')
-    >>> ls(sample_buildout, 'parts')
 
 The develop-eggs directory holds egg links for software being
 developed in the buildout.  We separate develop-eggs and other eggs to
@@ -68,6 +67,12 @@ example, a common developer technique is to define a common eggs
 directory in their home that all non-develop eggs are stored in.  This
 allows larger buildouts to be set up much more quickly and saves disk
 space.
+
+The parts directory just contains some helpers for the buildout script
+itself.
+
+    >>> ls(sample_buildout, 'parts')
+    d  buildout
 
 The parts directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would

@@ -391,9 +391,11 @@ class Buildout(UserDict.DictMixin):
         # Create buildout script
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, options['executable'],
-            options['bin-directory'])
+        partsdir = os.path.join(options['parts-directory'], 'buildout')
+        os.mkdir(partsdir)
+        zc.buildout.easy_install.sitepackage_safe_scripts(
+            options['bin-directory'], ws, options['executable'], partsdir,
+            reqs=['zc.buildout'])
 
     init = bootstrap
 

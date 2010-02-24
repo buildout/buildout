@@ -325,7 +325,7 @@ document do not affect this example.)
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print do_build(python=py_path)
+    >>> print system(buildout)
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling py.
     Installing eggs.
@@ -354,10 +354,11 @@ is not allowed to come from site-packages, and the buildout fails.
     ... allowed-eggs-from-site-packages =
     ... eggs = demoneeded
     ... ''' % globals())
-    >>> print do_build(python=py_path)
+    >>> print system(buildout)
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling eggs.
     Installing eggs.
+    Couldn't find index page for 'demoneeded' (maybe misspelled?)
     Getting distribution for 'demoneeded'.
     While:
       Installing eggs.
@@ -458,6 +459,7 @@ Note that the parts/py directory has been cleaned up, and parts/python has
 been created.
 
     >>> ls(sample_buildout, 'parts')
+    d  buildout
     d  demo
     d  python
 
