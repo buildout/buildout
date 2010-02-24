@@ -392,7 +392,8 @@ class Buildout(UserDict.DictMixin):
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
         partsdir = os.path.join(options['parts-directory'], 'buildout')
-        os.mkdir(partsdir)
+        if not os.path.exists(partsdir):
+            os.mkdir(partsdir)
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
             reqs=['zc.buildout'])
@@ -565,7 +566,7 @@ class Buildout(UserDict.DictMixin):
                 if installed_files is None:
                     self._logger.warning(
                         "The %s install returned None.  A path or "
-                        "iterable os paths should be returned.",
+                        "iterable of paths should be returned.",
                         part)
                     installed_files = ()
                 elif isinstance(installed_files, str):

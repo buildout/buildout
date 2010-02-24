@@ -2254,6 +2254,94 @@ include-site-packages.
 
     """
 
+def bootstrap_makes_buildout_that_works_with_system_python():
+    """
+In order to work smoothly with a system Python, bootstrapping creates
+the buildout script with
+zc.buildout.easy_install.sitepackage_safe_scripts. If it did not, a
+variety of problems might happen.  For instance, if another version of
+buildout or setuptools is installed in the site-packages than is
+desired, it may cause a problem.
+
+A problem actually experienced in the field is when
+a recipe wants a different version of a dependency that is installed in
+site-packages.  We will create a similar situation, and show that it is now
+handled.
+
+First let's write a dummy recipe.
+
+    >>> mkdir(sample_buildout, 'recipes')
+    >>> write(sample_buildout, 'recipes', 'dummy.py',
+    ... '''
+    ... import logging, os, zc.buildout
+    ...
+    ... class Dummy:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         pass
+    ...
+    ...     def install(self):
+    ...         return ()
+    ...
+    ...     def update(self):
+    ...         pass
+    ... ''')
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "recipes",
+    ...     entry_points = {'zc.buildout': ['dummy = dummy:Dummy']},
+    ...     install_requires = 'demoneeded==1.2c1',
+    ...     )
+    ... ''')
+    >>> write(sample_buildout, 'recipes', 'README.txt', " ")
+
+Now we'll try to use it with a Python that has a different version of
+demoneeded installed.
+
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+    >>> rmdir('develop-eggs')
+    >>> from zc.buildout.testing import make_buildout
+    >>> make_buildout(executable=py_path)
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = recipes
+    ... parts = dummy
+    ... find-links = %(link_server)s
+    ... executable = %(py_path)s
+    ...
+    ... [dummy]
+    ... recipe = recipes:dummy
+    ... ''' % globals())
+
+Now we actually run the buildout.  Before the change, we got the following
+error:
+
+    Develop: '/sample-buildout/recipes'
+    While:
+      Installing.
+      Getting section dummy.
+      Initializing section dummy.
+      Installing recipe recipes.
+    Error: There is a version conflict.
+    We already have: demoneeded 1.1
+    but recipes 0.0.0 requires 'demoneeded==1.2c1'.
+
+Now, it is handled smoothly.
+
+    >>> print system(buildout)
+    Develop: '/sample-buildout/recipes'
+    Getting distribution for 'demoneeded==1.2c1'.
+    Got demoneeded 1.2c1.
+    Installing dummy.
+    <BLANKLINE>
+
+    """
+
 if sys.version_info > (2, 4):
     def test_exit_codes():
         """

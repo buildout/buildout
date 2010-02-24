@@ -244,7 +244,7 @@ def set_installer_values(values):
     for name, value in values.items():
         getattr(zc.buildout.easy_install, name)(value)
 
-def make_buildout():
+def make_buildout(executable=None):
     """Make a buildout that uses this version of zc.buildout."""
     # Create a basic buildout.cfg to avoid a warning from buildout.
     open('buildout.cfg', 'w').write(
@@ -254,13 +254,16 @@ def make_buildout():
     # a Buildout will force the Buildout's defaults on the installer).
     installer_values = get_installer_values()
     # Use the buildout bootstrap command to create a buildout
+    config = [
+        ('buildout', 'log-level', 'WARNING'),
+        # trick bootstrap into putting the buildout develop egg
+        # in the eggs dir.
+        ('buildout', 'develop-eggs-directory', 'eggs'),
+        ]
+    if executable is not None:
+        config.append(('buildout', 'executable', executable))
     zc.buildout.buildout.Buildout(
-        'buildout.cfg',
-        [('buildout', 'log-level', 'WARNING'),
-         # trick bootstrap into putting the buildout develop egg
-         # in the eggs dir.
-         ('buildout', 'develop-eggs-directory', 'eggs'),
-         ],
+        'buildout.cfg', config,
         user_defaults=False,
         ).bootstrap([])
     # Create the develop-eggs dir, which didn't get created the usual
