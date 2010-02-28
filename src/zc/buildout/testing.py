@@ -90,12 +90,16 @@ def write(dir, *args):
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
 def system(command, input=''):
+    env = dict(os.environ)
+    env['COLUMNS'] = '80'
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         close_fds=MUST_CLOSE_FDS)
+                         close_fds=MUST_CLOSE_FDS,
+                         env=env,
+                         )
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input)
