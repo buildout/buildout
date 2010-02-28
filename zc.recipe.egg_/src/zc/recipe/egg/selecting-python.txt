@@ -24,8 +24,8 @@ We have a link server:
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update it's configuration file to
-install the demo package using Python 2.4. 
+We have a sample buildout.  Let's update its configuration file to
+install the demo package using Python 2.4.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -69,7 +69,7 @@ we'll get the Python 2.4 eggs for demo and demoneeded:
     d  setuptools-0.6-py2.4.egg
     d  setuptools-0.6-py2.5.egg
     -  zc.buildout-1.0-py2.5.egg
- 
+
 And the generated scripts invoke Python 2.4:
 
     >>> import sys

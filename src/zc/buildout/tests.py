@@ -2880,7 +2880,7 @@ def test_suite():
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile('WindowsError'), 'OSError'),
-               (re.compile(r'\[Error 17\] Cannot create a file '
+               (re.compile(r'\[Error \d+\] Cannot create a file '
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
                 ),
@@ -2933,6 +2933,7 @@ def test_suite():
                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile(r'\\[\\]?'), '/'),
+               (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
                ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),

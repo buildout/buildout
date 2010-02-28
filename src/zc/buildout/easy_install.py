@@ -495,7 +495,7 @@ class Installer:
 
                 if dist is None:
                     raise zc.buildout.UserError(
-                        "Couln't download distribution %s." % avail)
+                        "Couldn't download distribution %s." % avail)
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
@@ -628,9 +628,9 @@ class Installer:
         logger.debug('Installing %s.', repr(specs)[1:-1])
 
         path = self._path
-        dest = self._dest
-        if dest is not None and dest not in path:
-            path.insert(0, dest)
+        destination = self._dest
+        if destination is not None and destination not in path:
+            path.insert(0, destination)
 
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
@@ -661,7 +661,7 @@ class Installer:
             except pkg_resources.DistributionNotFound, err:
                 [requirement] = err
                 requirement = self._constrain(requirement)
-                if dest:
+                if destination:
                     logger.debug('Getting required %r', str(requirement))
                 else:
                     logger.debug('Adding required %r', str(requirement))
