@@ -121,6 +121,7 @@ _buildout_default_options = _annotate_section({
     'executable': sys.executable,
     'log-level': 'INFO',
     'log-format': '',
+    'socket-timeout': '',
     }, 'DEFAULT_VALUE')
 
 
@@ -245,6 +246,7 @@ class Buildout(UserDict.DictMixin):
                                                 options['installed'])
 
         self._setup_logging()
+        self._setup_socket_timeout()
 
         offline = options.get('offline', 'false')
         if offline not in ('true', 'false'):
@@ -748,6 +750,19 @@ class Buildout(UserDict.DictMixin):
 
     def _error(self, message, *args):
         raise zc.buildout.UserError(message % args)
+
+    def _setup_socket_timeout(self):
+        timeout = self['buildout']['socket-timeout']
+        if timeout <> '':
+            try:
+                timeout = int(timeout)
+                import socket
+                self._logger.info('Setting socket time out to %d seconds.', timeout)
+                socket.setdefaulttimeout(timeout)
+            except ValueError:
+                self._logger.warning("Default socket timeout is used !\n"
+                    "Value in configuration is not numeric: [%s].\n",
+                    timeout)
 
     def _setup_logging(self):
         root_logger = logging.getLogger()
@@ -1615,16 +1630,13 @@ def main(args=None):
                             _error("No file name specified for option", orig_op)
                 elif op_ == 't':
                     try:
-                        timeout = int(args.pop(0))
+                        timeout_string = args.pop(0)
+                        timeout = int(timeout_string)
+                        options.append(('buildout', 'socket-timeout', timeout_string))
                     except IndexError:
                         _error("No timeout value specified for option", orig_op)
                     except ValueError:
-                        _error("No timeout value must be numeric", orig_op)
-
-                    import socket
-                    print 'Setting socket time out to %d seconds' % timeout
-                    socket.setdefaulttimeout(timeout)
-
+                        _error("Timeout value must be numeric", orig_op)
             elif op:
                 if orig_op == '--help':
                     _help()

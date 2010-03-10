@@ -748,6 +748,8 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     python= buildout
         DEFAULT_VALUE
+    socket-timeout= 
+        DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
     path= foo bins
@@ -1491,6 +1493,56 @@ set the logging level to WARNING
     op3 b2 3
     recipe recipes:debug
 
+Socket timeout
+--------------
+
+The timeout of the connections to egg and configuration servers can be
+configured in the buildout section. Its value is configured in seconds.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... socket-timeout = 5
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... op = timeout
+    ... """)
+
+    >>> print system(buildout),
+    Setting socket time out to 5 seconds.
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    op timeout
+    recipe recipes:debug
+
+If the socket-timeout is not numeric, a warning is issued and the default
+timeout of the Python socket module is used.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... socket-timeout = 5s
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... op = timeout
+    ... """)
+
+    >>> print system(buildout),
+    Default socket timeout is used !
+    Value in configuration is not numeric: [5s].
+    <BLANKLINE>
+    Develop: '/sample-buildout/recipes'
+    Updating debug.
+    op timeout
+    recipe recipes:debug
+
 Uninstall recipes
 -----------------
 
@@ -2213,6 +2265,7 @@ database is shown.
     parts =
     parts-directory = /sample-buildout/parts
     python = buildout
+    socket-timeout = 
     verbosity = 20
     <BLANKLINE>
 
