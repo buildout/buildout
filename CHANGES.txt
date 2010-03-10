@@ -4,6 +4,10 @@ Change History
 1.4.4 (?)
 =========
 
+New feature:
+
+- Added buildout:socket-timout option so that socket timeout can be configured
+  both from command line and from config files. (gotcha)
 
 1.4.3 (2009-12-10)
 ==================
