@@ -355,7 +355,9 @@ class Buildout(UserDict.DictMixin):
         if options.get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
-                [options['develop-eggs-directory'], options['eggs-directory']]
+                [options['develop-eggs-directory'],
+                 options['eggs-directory']],
+                include_site_packages=False,
                 )
         else:
             ws = zc.buildout.easy_install.install(
@@ -365,7 +367,8 @@ class Buildout(UserDict.DictMixin):
                 executable=options['executable'],
                 path=[options['develop-eggs-directory']],
                 newest=self.newest,
-                allow_hosts=self._allow_hosts
+                allow_hosts=self._allow_hosts,
+                include_site_packages=False,
                 )
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
@@ -1034,7 +1037,8 @@ def _install_and_load(spec, group, entry, buildout):
                 path=path,
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
-                allow_hosts=buildout._allow_hosts
+                allow_hosts=buildout._allow_hosts,
+                include_site_packages=False,
                 )
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry

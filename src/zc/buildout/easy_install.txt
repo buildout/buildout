@@ -1499,6 +1499,11 @@ The demo script runs the entry point defined in the demo egg:
     <BLANKLINE>
     <BLANKLINE>
     import site # imports custom buildout-generated site.py
+    import os
+    path = '/interpreter/parts/interpreter'
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['PYTHONPATH'] = path
     <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
@@ -1528,7 +1533,7 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     reqs=['demo'], script_arguments='1, 2',
-    ...    script_initialization='import os\nos.chdir("foo")')
+    ...     script_initialization='import os\nos.chdir("foo")')
 
     >>> cat(demo_path) # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4 -S
@@ -1538,6 +1543,11 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
       ]
     <BLANKLINE>
     import site # imports custom buildout-generated site.py
+    import os
+    path = '/interpreter/parts/interpreter'
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['PYTHONPATH'] = path
     import os
     os.chdir("foo")
     <BLANKLINE>

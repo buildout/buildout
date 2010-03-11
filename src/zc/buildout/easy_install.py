@@ -99,6 +99,7 @@ def _get_system_paths(executable):
             "print repr([os.path.normpath(p) for p in sys.path if p])"])
         # Windows needs some (as yet to be determined) part of the real env.
         env = os.environ.copy()
+        env.pop('PYTHONPATH', None)
         env.update(kwargs)
         _proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
@@ -337,9 +338,6 @@ class Installer:
                     self._site_packages))
         if self._include_site_packages:
             path.extend(self._site_packages)
-        # else we could try to still include the buildout_and_setuptools_path
-        # if the elements are not in site_packages, but we're not bothering
-        # with this optimization for now, in the name of code simplicity.
         if dest is not None and dest not in path:
             path.insert(0, dest)
         self._path = path
@@ -1184,9 +1182,9 @@ def sitepackage_safe_scripts(
     generated.append(_generate_site(
         site_py_dest, working_set, executable, extra_paths,
         include_site_packages, relative_paths))
-    script_initialization = (
-        '\nimport site # imports custom buildout-generated site.py\n%s' % (
-            script_initialization,))
+    script_initialization = _script_initialization_template % dict(
+        site_py_dest=site_py_dest,
+        script_initialization=script_initialization)
     if not script_initialization.endswith('\n'):
         script_initialization += '\n'
     generated.extend(_generate_scripts(
@@ -1196,6 +1194,15 @@ def sitepackage_safe_scripts(
         generated.extend(_generate_interpreter(
             interpreter, dest, executable, site_py_dest, relative_paths))
     return generated
+
+_script_initialization_template = '''
+import site # imports custom buildout-generated site.py
+import os
+path = %(site_py_dest)r
+if os.environ.get('PYTHONPATH'):
+    path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+os.environ['PYTHONPATH'] = path
+%(script_initialization)s'''
 
 # Utilities for the script generation functions.
 
