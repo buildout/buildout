@@ -43,7 +43,7 @@ Create a buildout configuration to test:
 Run the buildout:
 
     >>> print system(buildout),
-    Getting distribution for 'foo-bar'.
+    Getting distribution for 'foo-bar==1'.
     Got foo-bar 1.
     Installing foo_bar.
     recipe v1
