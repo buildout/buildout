@@ -2858,6 +2858,7 @@ def test_suite():
     test_suite = [
         doctest.DocFileSuite(
             'buildout.txt', 'runsetup.txt', 'repeatable.txt', 'setup.txt',
+            'project_name_issue.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([

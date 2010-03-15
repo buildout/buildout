@@ -1,0 +1,50 @@
+Create a recipe egg with underscope(_) in name of egg:
+
+    >>> mkdir('foo_bar')
+    >>> write('foo_bar', 'recipe.py',
+    ... '''
+    ... class Recipe:
+    ...     def __init__(*a): pass
+    ...     def install(self):
+    ...         print 'recipe v1'
+    ...         return ()
+    ...     update = install
+    ... ''')
+    >>> write('foo_bar', 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='foo_bar', version='1', py_modules=['recipe'],
+    ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
+    ...       )
+    ... ''')
+
+Create the binary egg:
+
+    >>> print system(buildout+' setup foo_bar bdist_egg'), # doctest: +ELLIPSIS
+    Running setup script 'foo_bar/setup.py'.
+    ...
+
+Create a buildout configuration to test:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo_bar
+    ... find-links = %s
+    ... versions = versions
+    ... allow-picked-versions = false
+    ... [foo_bar]
+    ... recipe = foo_bar
+    ... [versions]
+    ... foo_bar = 1
+    ... setuptools = 0.6c11
+    ... ''' % join('foo_bar', 'dist'))
+
+Run the buildout:
+
+    >>> print system(buildout),
+    Getting distribution for 'foo-bar'.
+    Got foo-bar 1.
+    Installing foo_bar.
+    recipe v1
+
