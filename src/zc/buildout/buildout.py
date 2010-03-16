@@ -32,6 +32,7 @@ import pkg_resources
 import re
 import shutil
 import sys
+import socket
 import tempfile
 import UserDict
 import zc.buildout
@@ -123,6 +124,11 @@ _buildout_default_options = _annotate_section({
     'log-format': '',
     'socket-timeout': '',
     }, 'DEFAULT_VALUE')
+
+
+def _setup_socket_timeout(timeout):
+    socket.setdefaulttimeout(timeout)
+    return 'Setting socket time out to %d seconds.' % timeout
 
 
 class Buildout(UserDict.DictMixin):
@@ -756,9 +762,10 @@ class Buildout(UserDict.DictMixin):
         if timeout <> '':
             try:
                 timeout = int(timeout)
-                import socket
-                self._logger.info('Setting socket time out to %d seconds.', timeout)
-                socket.setdefaulttimeout(timeout)
+                socket_timeout = socket.getdefaulttimeout()
+                if socket_timeout <> timeout:
+                    info_msg = _setup_socket_timeout(timeout)
+                    self._logger.info(info_msg)
             except ValueError:
                 self._logger.warning("Default socket timeout is used !\n"
                     "Value in configuration is not numeric: [%s].\n",
@@ -1637,6 +1644,9 @@ def main(args=None):
                         _error("No timeout value specified for option", orig_op)
                     except ValueError:
                         _error("Timeout value must be numeric", orig_op)
+
+                    info_msg = _setup_socket_timeout(timeout)
+                    print info_msg
             elif op:
                 if orig_op == '--help':
                     _help()
