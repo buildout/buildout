@@ -1512,15 +1512,14 @@ configured in the buildout section. Its value is configured in seconds.
     ... """)
 
     >>> print system(buildout),
-    Setting socket time out to 5 seconds.
+    Socket timeout is set to 5 seconds.
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
     op timeout
     recipe recipes:debug
 
-If the socket-timeout is not numeric, a warning is issued and the default
-timeout of the Python socket module is used.
+If socket-timeout is not numeric, an error message is issued.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1535,13 +1534,7 @@ timeout of the Python socket module is used.
     ... """)
 
     >>> print system(buildout),
-    Default socket timeout is used !
-    Value in configuration is not numeric: [5s].
-    <BLANKLINE>
-    Develop: '/sample-buildout/recipes'
-    Updating debug.
-    op timeout
-    recipe recipes:debug
+    Error: Timeout value must be numeric [5s].
 
 Uninstall recipes
 -----------------
