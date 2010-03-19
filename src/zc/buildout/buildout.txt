@@ -2264,7 +2264,7 @@ database is shown.
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    Picked: setuptools = V.V
     <BLANKLINE>
     Configuration data:
     [buildout]
@@ -2274,7 +2274,7 @@ database is shown.
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
-    executable = /usr/local/bin/python2.3
+    executable = python
     find-links =
     install-from-cache = false
     installed = /sample-buildout/.installed.cfg
