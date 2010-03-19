@@ -843,16 +843,19 @@ class Buildout(UserDict.DictMixin):
         if not self.newest:
             return
 
+        options = self['buildout']
+
         ws = zc.buildout.easy_install.install(
             [
-            (spec + ' ' + self['buildout'].get(spec+'-version', '')).strip()
+            (spec + ' ' + options.get(spec+'-version', '')).strip()
             for spec in ('zc.buildout', 'setuptools')
             ],
-            self['buildout']['eggs-directory'],
-            links = self['buildout'].get('find-links', '').split(),
-            index = self['buildout'].get('index'),
-            path = [self['buildout']['develop-eggs-directory']],
-            allow_hosts = self._allow_hosts
+            options['eggs-directory'],
+            links = options.get('find-links', '').split(),
+            index = options.get('index'),
+            path = [options['develop-eggs-directory']],
+            allow_hosts = self._allow_hosts,
+            include_site_packages=False
             )
 
         upgraded = []
@@ -868,7 +871,7 @@ class Buildout(UserDict.DictMixin):
         __doing__ = 'Upgrading.'
 
         should_run = realpath(
-            os.path.join(os.path.abspath(self['buildout']['bin-directory']),
+            os.path.join(os.path.abspath(options['bin-directory']),
                          'buildout')
             )
         if sys.platform == 'win32':
@@ -900,21 +903,26 @@ class Buildout(UserDict.DictMixin):
 
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'],
-            )
+        partsdir = os.path.join(options['parts-directory'], 'buildout')
+        if not os.path.exists(partsdir):
+            os.mkdir(partsdir)
+        zc.buildout.easy_install.sitepackage_safe_scripts(
+            options['bin-directory'], ws, sys.executable, partsdir,
+            reqs=['zc.buildout'])
 
         # Restart
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
         if not __debug__:
             args.insert(0, '-O')
-        args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-
+        args.insert(0, zc.buildout.easy_install._safe_arg(sys.executable))
+        env = os.environ.copy()
+        env['PYTHONPATH'] = partsdir
         if is_jython:
-            sys.exit(subprocess.Popen([sys.executable] + list(args)).wait())
+            sys.exit(
+                subprocess.Popen(
+                    [sys.executable] + list(args), env=env).wait())
         else:
-            sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+            sys.exit(os.spawnve(os.P_WAIT, sys.executable, args, env))
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -935,7 +943,8 @@ class Buildout(UserDict.DictMixin):
                 working_set=pkg_resources.working_set,
                 links = self['buildout'].get('find-links', '').split(),
                 index = self['buildout'].get('index'),
-                newest=self.newest, allow_hosts=self._allow_hosts)
+                newest=self.newest, allow_hosts=self._allow_hosts,
+                include_site_packages=False)
 
             # Clear cache because extensions might now let us read pages we
             # couldn't read before.

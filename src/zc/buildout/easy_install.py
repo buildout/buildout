@@ -1486,8 +1486,10 @@ def _get_module_file(executable, name):
            "fp, path, desc = imp.find_module(%r); "
            "fp.close; "
            "print path" % (name,)]
+    env = os.environ.copy()
+    env.pop('PYTHONPATH', None)
     _proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     stdout, stderr = _proc.communicate();
     if _proc.returncode:
         logger.info(
@@ -1583,7 +1585,9 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
         site.close()
         real_site.close()
     if not successful_rewrite:
-        raise RuntimeError('Buildout did not successfully rewrite site.py')
+        raise RuntimeError(
+            'Buildout did not successfully rewrite %s to %s' %
+            (real_site_path, site_path))
     return site_path
 
 namespace_include_site_packages_setup = '''
