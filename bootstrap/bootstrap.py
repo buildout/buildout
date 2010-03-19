@@ -32,16 +32,20 @@ if sys.platform == 'win32':
 else:
     quote = str
 
-# In order to be more robust in the face of system Pythons, we want to run
-# with site-packages loaded.  This is somewhat tricky, in particular because
-# Python 2.6's distutils imports site, so starting with the -S flag is not
-# sufficient.
+# In order to be more robust in the face of system Pythons, we want to
+# run without site-packages loaded.  This is somewhat tricky, in
+# particular because Python 2.6's distutils imports site, so starting
+# with the -S flag is not sufficient.  However, we'll start with that:
 if 'site' in sys.modules:
     # We will restart with python -S.
     args = sys.argv[:]
     args[0:0] = [sys.executable, '-S']
     args = map(quote, args)
     os.execv(sys.executable, args)
+# Now we are running with -S.  We'll get the clean sys.path, import site
+# because distutils will do it later, and then reset the path and clean
+# out any namespace packages from site-packages that might have been
+# loaded by .pth files.
 clean_path = sys.path[:]
 import site
 sys.path[:] = clean_path
