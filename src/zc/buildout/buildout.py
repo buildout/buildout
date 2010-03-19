@@ -903,6 +903,11 @@ class Buildout(UserDict.DictMixin):
         if not __debug__:
             args.insert(0, '-O')
         args.insert(0, zc.buildout.easy_install._safe_arg(sys.executable))
+        # We want to make sure that our new site.py is used for rerunning
+        # buildout, so we put the partsdir in PYTHONPATH for our restart.
+        # This overrides any set PYTHONPATH, but since we generally are
+        # trying to run with a completely "clean" python (only the standard
+        # library) then that should be fine.
         env = os.environ.copy()
         env['PYTHONPATH'] = partsdir
         if is_jython:

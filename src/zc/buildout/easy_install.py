@@ -99,6 +99,9 @@ def _get_system_paths(executable):
             "print repr([os.path.normpath(p) for p in sys.path if p])"])
         # Windows needs some (as yet to be determined) part of the real env.
         env = os.environ.copy()
+        # We need to make sure that PYTHONPATH, which will often be set
+        # to include a custom buildout-generated site.py, is not set, or
+        # else we will not get an accurate sys.path for the executable.
         env.pop('PYTHONPATH', None)
         env.update(kwargs)
         _proc = subprocess.Popen(
@@ -1487,6 +1490,10 @@ def _get_module_file(executable, name):
            "fp.close; "
            "print path" % (name,)]
     env = os.environ.copy()
+    # We need to make sure that PYTHONPATH, which will often be set to
+    # include a custom buildout-generated site.py, is not set, or else
+    # we will not get an accurate value for the "real" site.py and
+    # sitecustomize.py.
     env.pop('PYTHONPATH', None)
     _proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)

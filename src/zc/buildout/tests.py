@@ -2294,6 +2294,51 @@ This also works for the generated interpreter.
     3
     <BLANKLINE>
 
+If you have a PYTHONPATH in your environment, it will be honored, after
+the buildout-generated path.
+
+    >>> original_pythonpath = os.environ.get('PYTHONPATH')
+    >>> os.environ['PYTHONPATH'] = 'foo'
+    >>> test = (
+    ...     "import subprocess, sys; subprocess.call("
+    ...     "[sys.executable, '-c', "
+    ...     "'import sys, pprint; pprint.pprint(sys.path)'])")
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     reqs=['demo'], interpreter='py',
+    ...     script_initialization=test + '; sys.exit(0)')
+
+This works for the script.  As you can see, /sample_buildout/foo is included
+right after the "parts" directory that contains site.py and sitecustomize.py.
+You can also see, actually more easily than in the other example, that we
+have the desired eggs available.
+
+    >>> print system(join(interpreter_bin_dir, 'demo')), # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/parts/interpreter',
+     '/sample-buildout/foo',
+     ...
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
+
+This also works for the generated interpreter, with identical results.
+
+    >>> print call_py(join(interpreter_bin_dir, 'py'), test),
+    ... # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/parts/interpreter',
+     '/sample-buildout/foo',
+     ...
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
+
+    >>> # Cleanup
+    >>> if original_pythonpath:
+    ...     os.environ['PYTHONPATH'] = original_pythonpath
+    ... else:
+    ...     del os.environ['PYTHONPATH']
+    ...
+
     """
 
 def bootstrap_makes_buildout_that_works_with_system_python():
