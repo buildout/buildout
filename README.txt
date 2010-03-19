@@ -35,7 +35,15 @@ Existing recipes include:
 `zc.recipe.egg <http://pypi.python.org/pypi/zc.recipe.egg>`_
    The egg recipe installes one or more eggs, with their
    dependencies.  It installs their console-script entry points with
-   the needed eggs included in their paths.
+   the needed eggs included in their paths.  It is suitable for use with
+   a "clean" Python: one without packages installed in site-packages.
+
+`z3c.recipe.scripts <http://pypi.python.org/pypi/z3c.recipe.scripts>`_
+  Like zc.recipe.egg, this recipe builds interpreter scripts and entry
+  point scripts based on eggs.  It can be used with a Python that has
+  packages installed in site-packages, such as a system Python.  The
+  interpreter also has more features than the one offered by
+  zc.recipe.egg.
 
 `zc.recipe.testrunner <http://pypi.python.org/pypi/zc.recipe.testrunner>`_
    The testrunner egg creates a test runner script for one or

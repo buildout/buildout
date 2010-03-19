@@ -13,7 +13,7 @@
 ##############################################################################
 """Bootstrap the buildout project itself.
 
-This is different from a normal boostrapping process because the
+This is different from a normal bootstrapping process because the
 buildout egg itself is installed as a develop egg.
 
 $Id$
@@ -31,7 +31,10 @@ if os.path.isdir('build'):
     shutil.rmtree('build')
 
 try:
+    to_reload = False
     import pkg_resources
+    to_reload = True
+    import setuptools # A flag.  Sometimes pkg_resources is installed alone.
 except ImportError:
     ez = {}
     exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
@@ -39,11 +42,15 @@ except ImportError:
     ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
     import pkg_resources
+    if to_reload:
+        reload(pkg_resources)
 
+env = os.environ.copy() # Windows needs yet-to-be-determined values from this.
+env['PYTHONPATH'] = os.path.dirname(pkg_resources.__file__)
 subprocess.Popen(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env = {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)}).wait()
+    env=env).wait()
 
 pkg_resources.working_set.add_entry('src')
 

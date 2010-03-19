@@ -56,10 +56,9 @@ The bin directory contains scripts.
     -  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
-The develop-eggs and parts directories are initially empty:
+The develop-eggs directory is initially empty:
 
     >>> ls(sample_buildout, 'develop-eggs')
-    >>> ls(sample_buildout, 'parts')
 
 The develop-eggs directory holds egg links for software being
 developed in the buildout.  We separate develop-eggs and other eggs to
@@ -68,6 +67,12 @@ example, a common developer technique is to define a common eggs
 directory in their home that all non-develop eggs are stored in.  This
 allows larger buildouts to be set up much more quickly and saves disk
 space.
+
+The parts directory just contains some helpers for the buildout script
+itself.
+
+    >>> ls(sample_buildout, 'parts')
+    d  buildout
 
 The parts directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would
@@ -576,7 +581,7 @@ When we rerun the buildout:
 .. Wait for the file to really disappear. My linux is weird.
 
     >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
-    ...            timeout=100)
+    ...            timeout=200)
 
 we get the same error, but we don't get the directory left behind:
 
@@ -724,6 +729,10 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
+    allow-hosts= *
+        DEFAULT_VALUE
+    allow-picked-versions= true
+        DEFAULT_VALUE
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
@@ -736,19 +745,33 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
+    find-links=
+        DEFAULT_VALUE
+    install-from-cache= false
+        DEFAULT_VALUE
     installed= .installed.cfg
         DEFAULT_VALUE
     log-format=
         DEFAULT_VALUE
     log-level= INFO
         DEFAULT_VALUE
+    newest= true
+        DEFAULT_VALUE
+    offline= false
+        DEFAULT_VALUE
     parts= data-dir
         /sample-buildout/buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
+    prefer-final= false
+        DEFAULT_VALUE
     python= buildout
         DEFAULT_VALUE
-    socket-timeout= 
+    socket-timeout=
+        DEFAULT_VALUE
+    unzip= false
+        DEFAULT_VALUE
+    use-dependency-links= true
         DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
@@ -2246,17 +2269,21 @@ database is shown.
 
     >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools'.
-    We have a develop egg: zc.buildout 1.0.0.
+    We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
     <BLANKLINE>
     Configuration data:
     [buildout]
+    allow-hosts = *
+    allow-picked-versions = true
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
     executable = /usr/local/bin/python2.3
+    find-links =
+    install-from-cache = false
     installed = /sample-buildout/.installed.cfg
     log-format =
     log-level = INFO
@@ -2264,8 +2291,11 @@ database is shown.
     offline = false
     parts =
     parts-directory = /sample-buildout/parts
+    prefer-final = false
     python = buildout
-    socket-timeout = 
+    socket-timeout =
+    unzip = false
+    use-dependency-links = true
     verbosity = 20
     <BLANKLINE>
 
