@@ -909,8 +909,11 @@ class Buildout(UserDict.DictMixin):
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
         partsdir = os.path.join(options['parts-directory'], 'buildout')
-        if not os.path.exists(partsdir):
-            os.mkdir(partsdir)
+        if os.path.exists(partsdir):
+            # This is primarily for unit tests, in which .py files change too
+            # fast for Python to know to regenerate the .pyc/.pyo files.
+            shutil.rmtree(partsdir)
+        os.mkdir(partsdir)
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, sys.executable, partsdir,
             reqs=['zc.buildout'])
