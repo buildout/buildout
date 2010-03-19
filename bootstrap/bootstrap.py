@@ -23,6 +23,35 @@ $Id$
 import os, shutil, sys, tempfile, textwrap, urllib, urllib2
 from optparse import OptionParser
 
+if sys.platform == 'win32':
+    def quote(c):
+        if ' ' in c:
+            return '"%s"' % c # work around spawn lamosity on windows
+        else:
+            return c
+else:
+    quote = str
+
+# In order to be more robust in the face of system Pythons, we want to run
+# with site-packages loaded.  This is somewhat tricky, in particular because
+# Python 2.6's distutils imports site, so starting with the -S flag is not
+# sufficient.
+if 'site' in sys.modules:
+    # We will restart with python -S.
+    args = sys.argv[:]
+    args[0:0] = [sys.executable, '-S']
+    args = map(quote, args)
+    os.execv(sys.executable, args)
+clean_path = sys.path[:]
+import site
+sys.path[:] = clean_path
+for k, v in sys.modules.items():
+    if (hasattr(v, '__path__') and
+        len(v.__path__)==1 and
+        not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))):
+        # This is a namespace package.  Remove it.
+        sys.modules.pop(k)
+
 is_jython = sys.platform.startswith('java')
 
 setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
@@ -127,16 +156,6 @@ except ImportError:
     for path in sys.path:
         if path not in pkg_resources.working_set.entries:
             pkg_resources.working_set.add_entry(path)
-
-if sys.platform == 'win32':
-    def quote(c):
-        if ' ' in c:
-            return '"%s"' % c # work around spawn lamosity on windows
-        else:
-            return c
-else:
-    def quote (c):
-        return c
 
 cmd = [quote(sys.executable),
        '-c',

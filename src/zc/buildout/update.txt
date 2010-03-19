@@ -78,22 +78,26 @@ new versions found in new releases:
     zc.buildout 99.99
     setuptools 99.99
 
-Our buildout script has been updated to use the new eggs:
+Our buildout script's site.py has been updated to use the new eggs:
 
-    >>> cat(sample_buildout, 'bin', 'buildout')
-    ... # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    >>> cat(sample_buildout, 'parts', 'buildout', 'site.py')
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    "...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
-      '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
+            '/sample-buildout/eggs/zc.buildout-99.99-pyN.N.egg',
+            '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+        return known_paths
+    ...
 
 Now, let's recreate the sample buildout. If we specify constraints on
 the versions of zc.buildout and setuptools to use, running the
@@ -120,7 +124,6 @@ Now we can see that we actually "upgrade" to an earlier version.
       zc.buildout version 1.0.0,
       setuptools version 0.6;
     restarting.
-    Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
