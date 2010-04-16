@@ -32,7 +32,6 @@ import pkg_resources
 import re
 import shutil
 import sys
-import socket
 import tempfile
 import UserDict
 import zc.buildout
@@ -122,19 +121,7 @@ _buildout_default_options = _annotate_section({
     'executable': sys.executable,
     'log-level': 'INFO',
     'log-format': '',
-    'socket-timeout': '',
     }, 'DEFAULT_VALUE')
-
-DEFAULT_SOCKET_TIMEOUT = socket.getdefaulttimeout()
-
-def _setup_socket_timeout(timeout_string):
-    try:
-        timeout = int(timeout_string)
-    except ValueError:
-        _error("Timeout value must be numeric [%s]." % timeout_string)
-    current_timeout = socket.getdefaulttimeout()
-    if current_timeout <> timeout:
-        socket.setdefaulttimeout(timeout)
 
 
 class Buildout(UserDict.DictMixin):
@@ -258,7 +245,6 @@ class Buildout(UserDict.DictMixin):
                                                 options['installed'])
 
         self._setup_logging()
-        self._display_socket_timeout()
 
         offline = options.get('offline', 'false')
         if offline not in ('true', 'false'):
@@ -762,12 +748,6 @@ class Buildout(UserDict.DictMixin):
 
     def _error(self, message, *args):
         raise zc.buildout.UserError(message % args)
-
-    def _display_socket_timeout(self):
-        current_timeout = socket.getdefaulttimeout()
-        if current_timeout <> DEFAULT_SOCKET_TIMEOUT:
-            info_msg = 'Socket timeout is set to %d seconds.' % current_timeout
-            self._logger.info(info_msg)
 
     def _setup_logging(self):
         root_logger = logging.getLogger()
@@ -1336,17 +1316,12 @@ def _open(base, filename, seen, dl_options, override):
         os.remove(path)
 
     extends = extended_by = None
-    socket_timeout = None
     for section in parser.sections():
         options = dict(parser.items(section))
         if section == 'buildout':
             extends = options.pop('extends', extends)
             extended_by = options.pop('extended-by', extended_by)
-            socket_timeout = options.pop('socket-timeout', socket_timeout)
         result[section] = options
-
-    if socket_timeout is not None:
-        _setup_socket_timeout(socket_timeout)
 
     result = _annotate(result, filename)
 
@@ -1640,11 +1615,16 @@ def main(args=None):
                             _error("No file name specified for option", orig_op)
                 elif op_ == 't':
                     try:
-                        timeout_string = args.pop(0)
-                        _setup_socket_timeout(timeout_string)
-                        options.append(('buildout', 'socket-timeout', timeout_string))
+                        timeout = int(args.pop(0))
                     except IndexError:
-                        _error("No timeout value specified for option t", orig_op)
+                        _error("No timeout value specified for option", orig_op)
+                    except ValueError:
+                        _error("No timeout value must be numeric", orig_op)
+
+                    import socket
+                    print 'Setting socket time out to %d seconds' % timeout
+                    socket.setdefaulttimeout(timeout)
+
             elif op:
                 if orig_op == '--help':
                     _help()
