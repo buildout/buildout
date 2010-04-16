@@ -344,6 +344,48 @@ You can also control the name used for scripts:
     -  buildout
     -  foo
 
+If a wrong script name is provided, buildout tells about it:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = undefined
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing demo.
+    Could not generate script 'undefined' as it is not defined in the target egg.
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = demo
+    ...
+    ... [demo]
+    ... recipe = zc.recipe.egg
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... scripts = foo=undefined
+    ... """ % dict(server=link_server))
+
+    >>> print system(buildout),
+    Uninstalling demo.
+    Installing demo.
+    Could not generate script 'foo' as script 'undefined' is not defined in the target egg.
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
 Specifying extra script paths
 -----------------------------
 
