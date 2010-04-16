@@ -940,10 +940,7 @@ def scripts(reqs, working_set, executable, dest,
         else:
             entry_points.append(req)
 
-    entry_points_names = []
-
     for name, module_name, attrs in entry_points:
-        entry_points_names.append(name)
         if scripts is not None:
             sname = scripts.get(name)
             if sname is None:
@@ -958,18 +955,6 @@ def scripts(reqs, working_set, executable, dest,
             _script(module_name, attrs, spath, sname, executable, arguments,
                     initialization, rpsetup)
             )
-
-    # warn when a script name passed in 'scripts' argument
-    # is not defined in an entry point.
-    if scripts is not None:
-        for name, target in scripts.items():
-            if name not in entry_points_names:
-                if name == target:
-                    logger.warning("Could not generate script '%s' as it is not "
-                        "defined in the egg entry points.", name)
-                else:
-                    logger.warning("Could not generate script '%s' as script "
-                        "'%s' is not defined in the egg entry points.", name, target)
 
     if interpreter:
         sname = os.path.join(dest, interpreter)
@@ -1267,3 +1252,4 @@ def redo_pyc(egg):
                     subprocess.call([sys.executable, args])
                 else:
                     os.spawnv(os.P_WAIT, sys.executable, args)
+

@@ -6,11 +6,8 @@ Change History
 
 New feature:
 
-- Warn when a script name passed in 'scripts' argument of easy_install.scripts
-  is not defined in an entry point.
-
 - Added buildout:socket-timout option so that socket timeout can be configured
-  both from command line and from config files.
+  both from command line and from config files. (gotcha)
 
 1.4.3 (2009-12-10)
 ==================
