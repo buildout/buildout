@@ -361,7 +361,7 @@ If a wrong script name is provided, buildout tells about it:
     >>> print system(buildout),
     Uninstalling demo.
     Installing demo.
-    Could not generate script 'undefined' as it is not defined in the target egg.
+    Could not generate script 'undefined' as it is not defined in the egg entry points.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -381,7 +381,7 @@ If a wrong script name is provided, buildout tells about it:
     >>> print system(buildout),
     Uninstalling demo.
     Installing demo.
-    Could not generate script 'foo' as script 'undefined' is not defined in the target egg.
+    Could not generate script 'foo' as script 'undefined' is not defined in the egg entry points.
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
