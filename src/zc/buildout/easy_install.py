@@ -966,10 +966,10 @@ def scripts(reqs, working_set, executable, dest,
             if name not in entry_points_names:
                 if name == target:
                     logger.warning("Could not generate script '%s' as it is not "
-                        "defined in the target egg.", name)
+                        "defined in the egg entry points.", name)
                 else:
                     logger.warning("Could not generate script '%s' as script "
-                        "'%s' is not defined in the target egg.", name, target)
+                        "'%s' is not defined in the egg entry points.", name, target)
 
     if interpreter:
         sname = os.path.join(dest, interpreter)
