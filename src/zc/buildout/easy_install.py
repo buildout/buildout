@@ -1199,12 +1199,12 @@ def sitepackage_safe_scripts(
     return generated
 
 _script_initialization_template = '''
-import site # imports custom buildout-generated site.py
 import os
-path = %(site_py_dest)r
+path = sys.path[0]
 if os.environ.get('PYTHONPATH'):
     path = os.pathsep.join([path, os.environ['PYTHONPATH']])
 os.environ['PYTHONPATH'] = path
+import site # imports custom buildout-generated site.py
 %(script_initialization)s'''
 
 # Utilities for the script generation functions.
