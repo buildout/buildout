@@ -47,7 +47,7 @@ Make sure the bootstrap script actually works::
     X...
     d  zc.buildout-...egg
 
-Now trying the `--version` option, that let you define a version for
+Now we will try the `--version` option, which lets you define a version for
 `zc.buildout`. If not provided, bootstrap will look for the latest one.
 
 Let's try with an unknown version::

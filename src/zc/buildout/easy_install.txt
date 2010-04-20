@@ -1498,12 +1498,12 @@ The demo script runs the entry point defined in the demo egg:
         ]
     <BLANKLINE>
     <BLANKLINE>
-    import site # imports custom buildout-generated site.py
     import os
-    path = '/interpreter/parts/interpreter'
+    path = sys.path[0]
     if os.environ.get('PYTHONPATH'):
         path = os.pathsep.join([path, os.environ['PYTHONPATH']])
     os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
     <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
@@ -1542,12 +1542,12 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
       '/interpreter/parts/interpreter',
       ]
     <BLANKLINE>
-    import site # imports custom buildout-generated site.py
     import os
-    path = '/interpreter/parts/interpreter'
+    path = sys.path[0]
     if os.environ.get('PYTHONPATH'):
         path = os.pathsep.join([path, os.environ['PYTHONPATH']])
     os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
     import os
     os.chdir("foo")
     <BLANKLINE>

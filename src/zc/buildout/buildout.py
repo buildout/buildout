@@ -129,6 +129,7 @@ _buildout_default_options = _annotate_section({
     'parts-directory': 'parts',
     'prefer-final': 'false',
     'python': 'buildout',
+    'relative-paths': 'false',
     'socket-timeout': '',
     'unzip': 'false',
     'use-dependency-links': 'true',
@@ -411,9 +412,16 @@ class Buildout(UserDict.DictMixin):
         partsdir = os.path.join(options['parts-directory'], 'buildout')
         if not os.path.exists(partsdir):
             os.mkdir(partsdir)
+        # (Honor the relative-paths option.)
+        relative_paths = options.get('relative-paths', 'false')
+        if relative_paths == 'true':
+            relative_paths = options['directory']
+        else:
+            assert relative_paths == 'false'
+            relative_paths = ''
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
-            reqs=['zc.buildout'])
+            reqs=['zc.buildout'], relative_paths=relative_paths)
 
     init = bootstrap
 
