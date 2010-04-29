@@ -100,8 +100,8 @@ Our buildout script's site.py has been updated to use the new eggs:
     ...
 
 Now, let's recreate the sample buildout. If we specify constraints on
-the versions of zc.buildout and setuptools to use, running the
-buildout will install earlier versions of these packages:
+the versions of zc.buildout and setuptools (or distribute) to use,
+running the buildout will install earlier versions of these packages:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -112,6 +112,7 @@ buildout will install earlier versions of these packages:
     ... develop = showversions
     ... zc.buildout-version = < 99
     ... setuptools-version = < 99
+    ... distribute-version = < 99
     ...
     ... [show-versions]
     ... recipe = showversions

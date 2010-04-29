@@ -858,10 +858,15 @@ class Buildout(UserDict.DictMixin):
 
         options = self['buildout']
 
+        specs = ['zc.buildout']
+        if zc.buildout.easy_install.is_distribute:
+            specs.append('distribute')
+        else:
+            specs.append('setuptools')
         ws = zc.buildout.easy_install.install(
             [
             (spec + ' ' + options.get(spec+'-version', '')).strip()
-            for spec in ('zc.buildout', 'setuptools')
+            for spec in specs
             ],
             options['eggs-directory'],
             links = options.get('find-links', '').split(),

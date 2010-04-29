@@ -222,7 +222,9 @@ dependencies.  We might do this to specify a specific version.
     d  other-1.0-py2.4.egg
 
 We can request that eggs be unzipped even if they are zip safe.  This
-can be useful when debugging.
+can be useful when debugging.  (Note that Distribute will unzip eggs by
+default, so if you are using Distribute, most or all eggs will already be
+unzipped without this flag.)
 
     >>> rmdir(dest)
     >>> dest = tmpdir('sample-install')
@@ -1284,6 +1286,7 @@ this is very straightforward.
             if not sitedircase in known_paths and os.path.exists(sitedir):
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
         original_paths = [
             ...
             ]
@@ -1360,6 +1363,7 @@ call to another text fixture to create.
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
                 pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
         original_paths = [
             ...
             ]
@@ -1423,6 +1427,7 @@ at that result.
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
                 pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
         original_paths = [
             ...
             ]

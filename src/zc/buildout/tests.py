@@ -864,7 +864,8 @@ On the other hand, if we have a regular egg, rather than a develop egg:
     -  z3c.recipe.scripts.egg-link
     -  zc.recipe.egg.egg-link
 
-    >>> ls('eggs') # doctest: +ELLIPSIS
+    >>> print 'START ->'; ls('eggs') # doctest: +ELLIPSIS
+    START...
     -  foox-0.0.0-py2.4.egg
     ...
 
@@ -3103,6 +3104,13 @@ honoring our version specification.
     >>> write('foo.py', '')
     >>> _ = system(buildout+' setup . sdist')
 
+    >>> if zc.buildout.easy_install.is_distribute:
+    ...     distribute_version = 'distribute = %s' % (
+    ...         pkg_resources.working_set.find(
+    ...             pkg_resources.Requirement.parse('distribute')).version,)
+    ... else:
+    ...     distribute_version = ''
+    ...
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -3114,12 +3122,14 @@ honoring our version specification.
     ... [versions]
     ... setuptools = %s
     ... foo = 1
+    ... %s
     ...
     ... [foo]
     ... recipe = zc.recipe.egg
     ... eggs = foo
-    ... ''' % pkg_resources.working_set.find(
-    ...    pkg_resources.Requirement.parse('setuptools')).version)
+    ... ''' % (pkg_resources.working_set.find(
+    ...         pkg_resources.Requirement.parse('setuptools')).version,
+    ...        distribute_version))
 
     >>> print system(buildout),
     Installing foo.
@@ -3623,11 +3633,13 @@ def updateSetup(test):
 
     # now let's make the new releases
     makeNewRelease('zc.buildout', ws, new_releases)
-    makeNewRelease('setuptools', ws, new_releases)
-
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
-    os.mkdir(os.path.join(new_releases, 'setuptools'))
-
+    if zc.buildout.easy_install.is_distribute:
+        makeNewRelease('distribute', ws, new_releases)
+        os.mkdir(os.path.join(new_releases, 'distribute'))
+    else:
+        makeNewRelease('setuptools', ws, new_releases)
+        os.mkdir(os.path.join(new_releases, 'setuptools'))
 
 
 normalize_bang = (
@@ -3651,7 +3663,8 @@ def test_suite():
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile('executable = [\S ]+python\S*', re.I),
                 'executable = python'),
-               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                'setuptools.egg'),
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
@@ -3666,6 +3679,7 @@ def test_suite():
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
                 ),
+               (re.compile('distribute'), 'setuptools'),
                ])
             ),
         doctest.DocFileSuite(
@@ -3695,9 +3709,18 @@ def test_suite():
                (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
                            '-py\d.\d.egg'),
                 '\\1.egg'),
+               (re.compile('distribute-\d+[.]\d+\S*'
+                           '-py\d.\d.egg'),
+                'setuptools.egg'),
                (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
                 '\\1 V.V'),
-               (re.compile('[-d]  setuptools'), '-  setuptools'),
+               (re.compile('distribute( version)? \d+[.]\d+\S*'),
+                'setuptools V.V'),
+               (re.compile('[-d]  (setuptools|distribute)'), '-  setuptools'),
+               (re.compile('distribute'), 'setuptools'),
+               (re.compile("\nUnused options for buildout: "
+                           "'(distribute|setuptools)\-version'\."),
+                '')
                ])
             ),
 
@@ -3713,13 +3736,17 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                normalize_bang,
                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                'setuptools.egg'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
                # Normalize generate_script's Windows interpreter to UNIX:
                (re.compile(r'\nimport subprocess\n'), '\n'),
                (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
                 'os.execve(sys.executable, argv, environ)'),
+               (re.compile('distribute'), 'setuptools'),
+               # Distribute unzips eggs by default.
+               (re.compile('\-  demoneeded'), 'd  demoneeded'),
                ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
@@ -3751,7 +3778,7 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                (re.compile("buildout: Running \S*setup.py"),
                 'buildout: Running setup.py'),
-               (re.compile('setuptools-\S+-'),
+               (re.compile('(setuptools|distribute)-\S+-'),
                 'setuptools.egg'),
                (re.compile('zc.buildout-\S+-'),
                 'zc.buildout.egg'),
@@ -3759,7 +3786,7 @@ def test_suite():
                 'File "one.py"'),
                (re.compile(r'We have a develop egg: (\S+) (\S+)'),
                 r'We have a develop egg: \1 V'),
-               (re.compile('Picked: setuptools = \S+'),
+               (re.compile('Picked: (setuptools|distribute) = \S+'),
                 'Picked: setuptools = V'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile(
@@ -3770,6 +3797,9 @@ def test_suite():
                # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
                (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
                 "Unused options for buildout: 'scripts' 'eggs'."),
+               (re.compile('distribute'), 'setuptools'),
+               # Distribute unzips eggs by default.
+               (re.compile('\-  demoneeded'), 'd  demoneeded'),
                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),

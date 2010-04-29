@@ -115,7 +115,7 @@ parser.add_option("-c", None, action="store", dest="config_file",
 
 options, args = parser.parse_args()
 
-# if -c was provided, we push it back into args for buildout' main function
+# if -c was provided, we push it back into args for buildout's main function
 if options.config_file is not None:
     args += ['-c', options.config_file]
 

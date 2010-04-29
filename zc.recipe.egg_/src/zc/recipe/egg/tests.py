@@ -50,9 +50,12 @@ def test_suite():
                zc.buildout.tests.normalize_bang,
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('[-d]  setuptools-[^-]+-'), 'setuptools-X-'),
+               (re.compile('[-d]  (setuptools|distribute)-[^-]+-'),
+                'setuptools-X-'),
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
+               # Distribute unzips eggs by default.
+               (re.compile('\-  demoneeded'), 'd  demoneeded'),
                ])
             ),
         doctest.DocFileSuite(
@@ -64,7 +67,7 @@ def test_suite():
                (re.compile('__buildout_signature__ = '
                            'sample-\S+\s+'
                            'zc.recipe.egg-\S+\s+'
-                           'setuptools-\S+\s+'
+                           '(setuptools|distribute)-\S+\s+'
                            'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-\n'),
@@ -104,14 +107,17 @@ def test_suite():
                    zc.buildout.testing.normalize_path,
                    zc.buildout.testing.normalize_endings,
                    zc.buildout.testing.normalize_script,
-                   (re.compile('Got setuptools \S+'), 'Got setuptools V'),
-                   (re.compile('([d-]  )?setuptools-\S+-py'),
+                   (re.compile('Got (setuptools|distribute) \S+'),
+                    'Got setuptools V'),
+                   (re.compile('([d-]  )?(setuptools|distribute)-\S+-py'),
                     'setuptools-V-py'),
                    (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
                    (re.compile('zc.buildout-\S+[.]egg'),
                     'zc.buildout.egg'),
                    (re.compile('zc.buildout[.]egg-link'),
                     'zc.buildout.egg'),
+                   # Distribute unzips eggs by default.
+                   (re.compile('\-  demoneeded'), 'd  demoneeded'),
                    ]),
                 ),
             )

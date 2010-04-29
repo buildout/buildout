@@ -20,6 +20,7 @@ $Id$
 """
 
 import os, shutil, sys, subprocess, urllib2
+from optparse import OptionParser
 
 if sys.platform == 'win32':
     def quote(c):
@@ -56,10 +57,36 @@ for k, v in sys.modules.items():
 
 is_jython = sys.platform.startswith('java')
 
+setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
+distribute_source = 'http://python-distribute.org/distribute_setup.py'
+
+usage = '''\
+[DESIRED PYTHON FOR DEVELOPING BUILDOUT] dev.py [options]
+
+Bootstraps buildout itself for development.
+
+This is different from a normal bootstrapping process because the
+buildout egg itself is installed as a develop egg.
+'''
+
+parser = OptionParser(usage=usage)
+parser.add_option("-d", "--distribute",
+                   action="store_true", dest="use_distribute", default=False,
+                   help="Use Distribute rather than Setuptools.")
+
+options, args = parser.parse_args()
+
+if args:
+    parser.error('This script accepts no arguments other than its options.')
+
+if options.use_distribute:
+    setup_source = distribute_source
+else:
+    setup_source = setuptools_source
+
 for d in 'eggs', 'develop-eggs', 'bin':
     if not os.path.exists(d):
         os.mkdir(d)
-
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
@@ -67,22 +94,32 @@ try:
     to_reload = False
     import pkg_resources
     to_reload = True
+    if not hasattr(pkg_resources, '_distribute'):
+        raise ImportError
     import setuptools # A flag.  Sometimes pkg_resources is installed alone.
 except ImportError:
+    ez_code = urllib2.urlopen(setup_source).read().replace('\r\n', '\n')
     ez = {}
-    exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
-                         ).read() in ez
-    ez['use_setuptools'](to_dir='eggs', download_delay=0)
-
-    import pkg_resources
+    exec ez_code in ez
+    setup_args = dict(to_dir='eggs', download_delay=0)
+    if options.use_distribute:
+        setup_args['no_fake'] = True
+    ez['use_setuptools'](**setup_args)
     if to_reload:
         reload(pkg_resources)
+    else:
+        import pkg_resources
+    # This does not (always?) update the default working set.  We will
+    # do it.
+    for path in sys.path:
+        if path not in pkg_resources.working_set.entries:
+            pkg_resources.working_set.add_entry(path)
 
 env = os.environ.copy() # Windows needs yet-to-be-determined values from this.
 env['PYTHONPATH'] = os.path.dirname(pkg_resources.__file__)
 subprocess.Popen(
     [sys.executable] +
-    ['-S', 'setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
+    ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
     env=env).wait()
 
 pkg_resources.working_set.add_entry('src')

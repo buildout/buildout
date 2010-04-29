@@ -770,6 +770,7 @@ COMMAND_LINE_VALUE).
     relative-paths= false
         DEFAULT_VALUE
     socket-timeout=
+        DEFAULT_VALUE
     unzip= false
         DEFAULT_VALUE
     use-dependency-links= true

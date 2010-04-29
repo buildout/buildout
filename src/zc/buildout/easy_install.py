@@ -51,6 +51,8 @@ url_match = re.compile('[a-z0-9+.-]+://').match
 
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
+is_distribute = (
+    pkg_resources.Requirement.parse('setuptools').key=='distribute')
 
 if is_jython:
     import java.lang.System
@@ -802,6 +804,8 @@ class Installer:
 
 
     def _constrain(self, requirement):
+        if is_distribute and requirement.key == 'setuptools':
+            requirement = pkg_resources.Requirement.parse('distribute')
         version = self._versions.get(requirement.project_name)
         if version:
             if version not in requirement:
@@ -1484,7 +1488,7 @@ def _get_module_file(executable, name):
     - executable is a path to the desired Python executable.
     - name is the name of the (pure, not C) Python module.
     """
-    cmd = [executable, "-c",
+    cmd = [executable, "-Sc",
            "import imp; "
            "fp, path, desc = imp.find_module(%r); "
            "fp.close; "
@@ -1607,6 +1611,7 @@ addsitedir_namespace_originalpackages_snippet = '''
             pkg_resources.working_set.add_entry(sitedir)'''
 
 original_path_snippet = '''
+    sys.__egginsert = len(buildout_paths) # Support distribute.
     original_paths = [
         %s
         ]
