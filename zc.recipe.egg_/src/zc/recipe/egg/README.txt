@@ -154,6 +154,8 @@ dependent-scripts
 interpreter
    The name of a script to generate that allows access to a Python
    interpreter that has the path set based on the eggs installed.
+   (See the ``z3c.recipe.scripts`` recipe for a more full-featured
+   interpreter.)
 
 extra-paths
    Extra paths to include in a generated script.
@@ -577,7 +579,7 @@ declare entry points using the entry-points option:
     -  demo
     -  other
 
-    >>> cat(sample_buildout, 'bin', 'other')
+    >>> cat(sample_buildout, 'bin', 'other') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
@@ -640,3 +642,4 @@ be made to contact an index server:
     Uninstalling bigdemo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
+
