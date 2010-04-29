@@ -28,6 +28,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import textwrap
 import threading
 import time
 import urllib2
@@ -109,6 +110,16 @@ def system(command, input=''):
     e.close()
     return result
 
+def call_py(interpreter, cmd, flags=None):
+    if sys.platform == 'win32':
+        args = ['"%s"' % arg for arg in (interpreter, flags, cmd) if arg]
+        args.insert(-1, '"-c"')
+        return system('"%s"' % ' '.join(args))
+    else:
+        cmd = repr(cmd)
+        return system(
+            ' '.join(arg for arg in (interpreter, flags, '-c', cmd) if arg))
+
 def get(url):
     return urllib2.urlopen(url).read()
 
@@ -120,7 +131,11 @@ def _runsetup(setup, executable, *args):
     args = [zc.buildout.easy_install._safe_arg(arg)
             for arg in args]
     args.insert(0, '-q')
-    args.append(dict(os.environ, PYTHONPATH=setuptools_location))
+    env = dict(os.environ)
+    if executable == sys.executable:
+        env['PYTHONPATH'] = setuptools_location
+    # else pass an executable that has setuptools! See testselectingpython.py.
+    args.append(env)
 
     here = os.getcwd()
     try:
@@ -138,6 +153,11 @@ def sdist(setup, dest):
 
 def bdist_egg(setup, executable, dest):
     _runsetup(setup, executable, 'bdist_egg', '-d', dest)
+
+def sys_install(setup, dest):
+    _runsetup(setup, sys.executable, 'install', '--install-purelib', dest,
+              '--record', os.path.join(dest, '__added_files__'),
+              '--single-version-externally-managed')
 
 def find_python(version):
     e = os.environ.get('PYTHON%s' % version)
@@ -206,14 +226,64 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+def get_installer_values():
+    """Get the current values for the easy_install module.
+
+    This is necessary because instantiating a Buildout will force the
+    Buildout's values on the installer.
+
+    Returns a dict of names-values suitable for set_installer_values."""
+    names = ('default_versions', 'download_cache', 'install_from_cache',
+             'prefer_final', 'include_site_packages',
+             'allowed_eggs_from_site_packages', 'use_dependency_links',
+             'allow_picked_versions', 'always_unzip'
+            )
+    values = {}
+    for name in names:
+        values[name] = getattr(zc.buildout.easy_install, name)()
+    return values
+
+def set_installer_values(values):
+    """Set the given values on the installer."""
+    for name, value in values.items():
+        getattr(zc.buildout.easy_install, name)(value)
+
+def make_buildout(executable=None):
+    """Make a buildout that uses this version of zc.buildout."""
+    # Create a basic buildout.cfg to avoid a warning from buildout.
+    open('buildout.cfg', 'w').write(
+        "[buildout]\nparts =\n"
+        )
+    # Get state of installer defaults so we can reinstate them (instantiating
+    # a Buildout will force the Buildout's defaults on the installer).
+    installer_values = get_installer_values()
+    # Use the buildout bootstrap command to create a buildout
+    config = [
+        ('buildout', 'log-level', 'WARNING'),
+        # trick bootstrap into putting the buildout develop egg
+        # in the eggs dir.
+        ('buildout', 'develop-eggs-directory', 'eggs'),
+        ]
+    if executable is not None:
+        config.append(('buildout', 'executable', executable))
+    zc.buildout.buildout.Buildout(
+        'buildout.cfg', config,
+        user_defaults=False,
+        ).bootstrap([])
+    # Create the develop-eggs dir, which didn't get created the usual
+    # way due to the trick above:
+    os.mkdir('develop-eggs')
+    # Reinstate the default values of the installer.
+    set_installer_values(installer_values)
+
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []
     test.globs['register_teardown'] = register_teardown = __tear_downs.append
 
-    prefer_final = zc.buildout.easy_install.prefer_final()
+    installer_values = get_installer_values()
     register_teardown(
-        lambda: zc.buildout.easy_install.prefer_final(prefer_final)
+        lambda: set_installer_values(installer_values)
         )
 
     here = os.getcwd()
@@ -259,33 +329,57 @@ def buildoutSetUp(test):
     sample = tmpdir('sample-buildout')
 
     os.chdir(sample)
-
-    # Create a basic buildout.cfg to avoid a warning from buildout:
-    open('buildout.cfg', 'w').write(
-        "[buildout]\nparts =\n"
-        )
-
-    # Use the buildout bootstrap command to create a buildout
-    zc.buildout.buildout.Buildout(
-        'buildout.cfg',
-        [('buildout', 'log-level', 'WARNING'),
-         # trick bootstrap into putting the buildout develop egg
-         # in the eggs dir.
-         ('buildout', 'develop-eggs-directory', 'eggs'),
-         ]
-        ).bootstrap([])
-
-
-
-    # Create the develop-eggs dir, which didn't get created the usual
-    # way due to the trick above:
-    os.mkdir('develop-eggs')
+    make_buildout()
 
     def start_server(path):
         port, thread = _start_server(path, name=path)
         url = 'http://localhost:%s/' % port
         register_teardown(lambda: stop_server(url, thread))
         return url
+
+    def make_py(initialization=''):
+        """Returns paths to new executable and to its site-packages.
+        """
+        buildout = tmpdir('executable_buildout')
+        site_packages_dir = os.path.join(buildout, 'site-packages')
+        mkdir(site_packages_dir)
+        old_wd = os.getcwd()
+        os.chdir(buildout)
+        make_buildout()
+        # Normally we don't process .pth files in extra-paths.  We want to
+        # in this case so that we can test with setuptools system installs
+        # (--single-version-externally-managed), which use .pth files.
+        initialization = (
+            ('import sys\n'
+             'import site\n'
+             'known_paths = set(sys.path)\n'
+             'site_packages_dir = %r\n'
+             'site.addsitedir(site_packages_dir, known_paths)\n'
+            ) % (site_packages_dir,)) + initialization
+        initialization = '\n'.join(
+            '  ' + line for line in initialization.split('\n'))
+        install_develop(
+            'zc.recipe.egg', os.path.join(buildout, 'develop-eggs'))
+        install_develop(
+            'z3c.recipe.scripts', os.path.join(buildout, 'develop-eggs'))
+        write('buildout.cfg', textwrap.dedent('''\
+            [buildout]
+            parts = py
+
+            [py]
+            recipe = z3c.recipe.scripts
+            interpreter = py
+            initialization =
+            %(initialization)s
+            extra-paths = %(site-packages)s
+            eggs = setuptools
+            ''') % {
+                'initialization': initialization,
+                'site-packages': site_packages_dir})
+        system(os.path.join(buildout, 'bin', 'buildout'))
+        os.chdir(old_wd)
+        return (
+            os.path.join(buildout, 'bin', 'py'), site_packages_dir)
 
     test.globs.update(dict(
         sample_buildout = sample,
@@ -297,6 +391,7 @@ def buildoutSetUp(test):
         tmpdir = tmpdir,
         write = write,
         system = system,
+        call_py = call_py,
         get = get,
         cd = (lambda *path: os.chdir(os.path.join(*path))),
         join = os.path.join,
@@ -305,9 +400,8 @@ def buildoutSetUp(test):
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
+        make_py = make_py
         ))
-
-    zc.buildout.easy_install.prefer_final(prefer_final)
 
 def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:

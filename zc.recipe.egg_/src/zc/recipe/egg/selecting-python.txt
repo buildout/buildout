@@ -35,7 +35,7 @@ install the demo package using Python 2.4.
     ... index = http://www.python.org/pypi/
     ...
     ... [python2.4]
-    ... executable = %(python23)s
+    ... executable = %(python24)s
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
@@ -43,7 +43,7 @@ install the demo package using Python 2.4.
     ... find-links = %(server)s
     ... python = python2.4
     ... interpreter = py-demo
-    ... """ % dict(server=link_server, python23=other_executable))
+    ... """ % dict(server=link_server, python24=other_executable))
 
 Now, if we run the buildout:
 
