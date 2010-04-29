@@ -19,11 +19,11 @@ New Features:
   order to provide backwards compatibility.
 
   The z3c.recipe.scripts recipe allows you to control how you use the
-  code in site-packages.  You can exclude it entirely; allow eggs in it
-  to fulfill package dependencies declared in setup.py and buildout
-  configuration; allow it to be available but not used to fulfill
-  dependencies declared in setup.py or buildout configuration; or only
-  allow certain eggs in site-packages to fulfill dependencies.
+  code in site-packages.  You can exclude it entirely (preferred); allow
+  eggs in it to fulfill package dependencies declared in setup.py and
+  buildout configuration; allow it to be available but not used to
+  fulfill dependencies declared in setup.py or buildout configuration;
+  or only allow certain eggs in site-packages to fulfill dependencies.
 
 - Added new function, ``zc.buildout.easy_install.sitepackage_safe_scripts``,
   to generate scripts and interpreter.  It produces a full-featured
@@ -44,7 +44,10 @@ New Features:
 
 - You can develop zc.buildout using Distribute instead of Setuptools.  Use
   the --distribute option on the dev.py script.  (Releases should be tested
-  with both Distribute and Setuptools.)
+  with both Distribute and Setuptools.)  The tests for zc.buildout pass
+  with Setuptools and Python 2.4, 2.5, and 2.6; and with Distribute and
+  Python 2.5 and 2.6.  Using zc.buildout with Distribute and Python 2.4
+  is not recommended.
 
 - The ``distribute-version`` now works in the [buildout] section, mirroring
   the ``setuptools-version`` option (this is for consistency; using the
