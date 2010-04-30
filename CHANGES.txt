@@ -1,6 +1,13 @@
 Change History
 **************
 
+1.5.0b2 (2010-04-30)
+==================
+
+This is a re-release of 1.4.3 to hide the brown-bag release of 1.5.0b1.
+The changes in 1.5.0b1 will reappear as 1.5.0 soon, when the additional
+reported problems have been addressed.
+
 1.4.3 (2009-12-10)
 ==================
 
