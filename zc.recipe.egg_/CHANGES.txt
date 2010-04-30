@@ -1,6 +1,12 @@
 Change History
 **************
 
+1.2.3b1 (2010-04-29)
+====================
+
+- Refactored to be used with z3c.recipe.scripts and zc.buildout 1.5.0.  No
+  new user-visible features.
+
 1.2.2 (2009-03-18)
 ==================
 
@@ -76,7 +82,7 @@ Feature Changes
 
   - Cause develop eggs to be created after other parts.
 
-- The develop and build recipes now return the paths created, so that 
+- The develop and build recipes now return the paths created, so that
   created eggs or egg links are removed when a part is removed (or
   changed).
 
