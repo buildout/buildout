@@ -1,6 +1,13 @@
 Change History
 **************
 
+1.2.3b2 (2010-04-30)
+====================
+
+This is a re-release of 1.2.2 to hide the brown-bag release of 1.2.3b1.
+The changes in 1.2.3b1 will reappear as 1.2.3 soon, when the additional
+reported problems have been addressed.
+
 1.2.2 (2009-03-18)
 ==================
 
@@ -76,7 +83,7 @@ Feature Changes
 
   - Cause develop eggs to be created after other parts.
 
-- The develop and build recipes now return the paths created, so that 
+- The develop and build recipes now return the paths created, so that
   created eggs or egg links are removed when a part is removed (or
   changed).
 
