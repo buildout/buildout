@@ -16,7 +16,7 @@
 $Id$
 """
 
-version = '1.2.3dev'
+version = '1.2.3b1'
 
 import os
 from setuptools import setup, find_packages
@@ -66,7 +66,7 @@ setup(
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
     install_requires = [
-        'zc.buildout >=1.5.0dev',
+        'zc.buildout >=1.5.0b1',
         'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
