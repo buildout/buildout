@@ -1673,7 +1673,8 @@ original_path_snippet = '''
         %s
         ]
     for path in original_paths:
-        addsitedir(path, known_paths)'''
+        if path not in known_paths:
+            addsitedir(path, known_paths)'''
 
 addsitepackages_script = '''\
 def addsitepackages(known_paths):
