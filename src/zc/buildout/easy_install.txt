@@ -1291,7 +1291,8 @@ this is very straightforward.
             ...
             ]
         for path in original_paths:
-            addsitedir(path, known_paths)
+            if path not in known_paths:
+                addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
@@ -1368,7 +1369,8 @@ call to another text fixture to create.
             ...
             ]
         for path in original_paths:
-            addsitedir(path, known_paths)
+            if path not in known_paths:
+                addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
@@ -1432,7 +1434,8 @@ at that result.
             ...
             ]
         for path in original_paths:
-            addsitedir(path, known_paths)
+            if path not in known_paths:
+                addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
