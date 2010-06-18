@@ -83,6 +83,7 @@ setup(
     install_requires = 'setuptools',
     include_package_data = True,
     entry_points = entry_points,
+    extras_require = dict(test=['zope.testing']),
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',
