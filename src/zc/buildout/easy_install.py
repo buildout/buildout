@@ -58,7 +58,6 @@ if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
-
 setuptools_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')
     ).location
@@ -873,7 +872,13 @@ class Installer:
                         dist = best[req.key] = env.best_match(req, ws)
                     except pkg_resources.VersionConflict, err:
                         raise VersionConflict(err, ws)
-                    if dist is None:
+                    if dist is None or (
+                        dist.location in self._site_packages and not
+                        self.allow_site_package_egg(dist.project_name)):
+                        # If we didn't find a distribution in the
+                        # environment, or what we found is from site
+                        # packages and not allowed to be there, try
+                        # again.
                         if destination:
                             logger.debug('Getting required %r', str(req))
                         else:
@@ -1548,15 +1553,15 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
     """
     path = _get_path(working_set, extra_paths)
     site_path = os.path.join(dest, 'site.py')
-    egg_path_string, preamble = _relative_path_and_setup(
-        site_path, path, relative_paths, indent_level=2, omit_os_import=True)
-    if preamble:
-        preamble = '\n'.join(
-            [(line and '    %s' % (line,) or line)
-             for line in preamble.split('\n')])
-    original_path_setup = ''
+    original_path_setup = preamble = ''
     if include_site_packages:
         stdlib, site_paths = _get_system_paths(executable)
+        # We want to make sure that paths from site-packages, such as those
+        # allowed by allowed_eggs_from_site_packages, always come last, or
+        # else site-packages paths may include packages that mask the eggs we
+        # really want.
+        path = [p for p in path if p not in site_paths]
+        # Now we set up the code we need.
         original_path_setup = original_path_snippet % (
             _format_paths((repr(p) for p in site_paths), 2),)
         distribution = working_set.find(
@@ -1570,10 +1575,17 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
                     relative_paths)
             else:
                 location = repr(distribution.location)
-            preamble += namespace_include_site_packages_setup % (location,)
+            preamble = namespace_include_site_packages_setup % (location,)
             original_path_setup = (
                 addsitedir_namespace_originalpackages_snippet +
                 original_path_setup)
+    egg_path_string, relative_preamble = _relative_path_and_setup(
+        site_path, path, relative_paths, indent_level=2, omit_os_import=True)
+    if relative_preamble:
+        relative_preamble = '\n'.join(
+            [(line and '    %s' % (line,) or line)
+             for line in relative_preamble.split('\n')])
+        preamble = relative_preamble + preamble
     addsitepackages_marker = 'def addsitepackages('
     enableusersite_marker = 'ENABLE_USER_SITE = '
     successful_rewrite = False
