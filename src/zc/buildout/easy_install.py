@@ -818,7 +818,7 @@ class Installer:
     def _maybe_add_setuptools(self, ws, dist):
         if dist.has_metadata('namespace_packages.txt'):
             for r in dist.requires():
-                if r.project_name == 'setuptools':
+                if r.project_name in ('setuptools', 'distribute'):
                     break
             else:
                 # We have a namespace package but no requirement for setuptools
