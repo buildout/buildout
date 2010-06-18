@@ -20,7 +20,7 @@ use the -c option to specify an alternate configuration file.
 $Id$
 """
 
-import os, shutil, sys, tempfile, textwrap, urllib, urllib2
+import os, shutil, sys, tempfile, textwrap, urllib, urllib2, subprocess
 from optparse import OptionParser
 
 if sys.platform == 'win32':
@@ -32,11 +32,18 @@ if sys.platform == 'win32':
 else:
     quote = str
 
+# Detect https://bugs.launchpad.net/virtualenv/+bug/572545 .
+proc = subprocess.Popen(
+    [sys.executable, '-Sc', 'import ConfigParser'],
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+proc.communicate()
+has_broken_dash_S = bool(proc.returncode)
+
 # In order to be more robust in the face of system Pythons, we want to
 # run without site-packages loaded.  This is somewhat tricky, in
 # particular because Python 2.6's distutils imports site, so starting
 # with the -S flag is not sufficient.  However, we'll start with that:
-if 'site' in sys.modules:
+if not has_broken_dash_S and 'site' in sys.modules:
     # We will restart with python -S.
     args = sys.argv[:]
     args[0:0] = [sys.executable, '-S']
@@ -166,6 +173,9 @@ cmd = [quote(sys.executable),
        quote('from setuptools.command.easy_install import main; main()'),
        '-mqNxd',
        quote(eggs_dir)]
+
+if not has_broken_dash_S:
+    cmd.insert(1, '-S')
 
 if options.download_base:
     cmd.extend(['-f', quote(options.download_base)])

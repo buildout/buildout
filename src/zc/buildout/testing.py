@@ -596,7 +596,7 @@ else:
     sep = re.escape(os.path.sep)
 normalize_path = (
     re.compile(
-        r'''[^'" \t\n\r]+%(sep)s_[Tt][Ee][Ss][Tt]_%(sep)s([^"' \t\n\r]+)'''
+        r'''[^'" \t\n\r!]+%(sep)s_[Tt][Ee][Ss][Tt]_%(sep)s([^"' \t\n\r]+)'''
         % dict(sep=sep)),
     _normalize_path,
     )

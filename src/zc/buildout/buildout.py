@@ -34,6 +34,7 @@ import shutil
 import sys
 import tempfile
 import UserDict
+import warnings
 import zc.buildout
 import zc.buildout.download
 import zc.buildout.easy_install
@@ -50,6 +51,9 @@ is_jython = sys.platform.startswith('java')
 
 if is_jython:
     import subprocess
+
+_sys_executable_has_broken_dash_S = (
+    zc.buildout.easy_install._has_broken_dash_S(sys.executable))
 
 class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing.
@@ -359,7 +363,7 @@ class Buildout(UserDict.DictMixin):
                 distributions, options['executable'],
                 [options['develop-eggs-directory'],
                  options['eggs-directory']],
-                include_site_packages=False,
+                include_site_packages=_sys_executable_has_broken_dash_S,
                 )
         else:
             ws = zc.buildout.easy_install.install(
@@ -370,7 +374,7 @@ class Buildout(UserDict.DictMixin):
                 path=[options['develop-eggs-directory']],
                 newest=self.newest,
                 allow_hosts=self._allow_hosts,
-                include_site_packages=False,
+                include_site_packages=_sys_executable_has_broken_dash_S,
                 )
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
@@ -408,7 +412,8 @@ class Buildout(UserDict.DictMixin):
             relative_paths = ''
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
-            reqs=['zc.buildout'], relative_paths=relative_paths)
+            reqs=['zc.buildout'], relative_paths=relative_paths,
+            include_site_packages=_sys_executable_has_broken_dash_S)
 
     init = bootstrap
 
@@ -854,7 +859,7 @@ class Buildout(UserDict.DictMixin):
             index = options.get('index'),
             path = [options['develop-eggs-directory']],
             allow_hosts = self._allow_hosts,
-            include_site_packages=False
+            include_site_packages=_sys_executable_has_broken_dash_S
             )
 
         upgraded = []
@@ -910,7 +915,8 @@ class Buildout(UserDict.DictMixin):
         os.mkdir(partsdir)
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, sys.executable, partsdir,
-            reqs=['zc.buildout'])
+            reqs=['zc.buildout'],
+            include_site_packages=_sys_executable_has_broken_dash_S)
 
         # Restart
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
@@ -951,7 +957,7 @@ class Buildout(UserDict.DictMixin):
                 links = self['buildout'].get('find-links', '').split(),
                 index = self['buildout'].get('index'),
                 newest=self.newest, allow_hosts=self._allow_hosts,
-                include_site_packages=False)
+                include_site_packages=_sys_executable_has_broken_dash_S)
 
             # Clear cache because extensions might now let us read pages we
             # couldn't read before.
@@ -1069,8 +1075,7 @@ def _install_and_load(spec, group, entry, buildout):
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
                 allow_hosts=buildout._allow_hosts,
-                include_site_packages=False,
-                )
+                include_site_packages=_sys_executable_has_broken_dash_S)
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
         return pkg_resources.load_entry_point(
@@ -1577,6 +1582,11 @@ Options:
     will be started. This is especially useful for debuging recipe
     problems.
 
+  -s
+
+    Squelch warnings about using an executable with a broken -S
+    implementation.
+
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
 configuration file.  For example, to run the buildout in offline mode,
@@ -1642,11 +1652,12 @@ def main(args=None):
     windows_restart = False
     user_defaults = True
     debug = False
+    ignore_broken_dash_s = False
     while args:
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWUoOnNDA':
+            while op and op[0] in 'vqhWUoOnNDAs':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1665,6 +1676,8 @@ def main(args=None):
                     options.append(('buildout', 'newest', 'false'))
                 elif op[0] == 'D':
                     debug = True
+                elif op[0] == 's':
+                    ignore_broken_dash_s = True
                 else:
                     _help()
                 op = op[1:]
@@ -1708,6 +1721,17 @@ def main(args=None):
             # The rest should be commands, so we'll stop here
             break
 
+    if verbosity < 0 or ignore_broken_dash_s:
+        broken_dash_S_filter_action = 'ignore'
+    elif verbosity == 0: # This is the default.
+        broken_dash_S_filter_action = 'once'
+    else:
+        broken_dash_S_filter_action = 'default'
+    warnings.filterwarnings(
+        broken_dash_S_filter_action,
+        re.escape(
+            zc.buildout.easy_install.BROKEN_DASH_S_WARNING),
+        UserWarning)
     if verbosity:
         options.append(('buildout', 'verbosity', str(verbosity)))
 

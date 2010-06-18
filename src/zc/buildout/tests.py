@@ -3923,14 +3923,29 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               normalize_bang,
-               (re.compile('Downloading.*setuptools.*egg\n'), ''),
-               (re.compile('options:'), 'Options:'),
-               (re.compile('usage:'), 'Usage:'),
-               ]),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                normalize_bang,
+                (re.compile('Downloading.*setuptools.*egg\n'), ''),
+                (re.compile('options:'), 'Options:'),
+                (re.compile('usage:'), 'Usage:'),
+                ]),
+            ))
+        test_suite.append(doctest.DocFileSuite(
+            'virtualenv.txt',
+            setUp=easy_install_SetUp,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                (re.compile('(setuptools|distribute)-\S+-'),
+                 'setuptools.egg'),
+                (re.compile('zc.buildout-\S+-'),
+                 'zc.buildout.egg'),
+                ]),
             ))
 
     return unittest.TestSuite(test_suite)

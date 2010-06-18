@@ -33,6 +33,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import warnings
 import zc.buildout
 import zipimport
 
@@ -54,6 +55,18 @@ is_jython = sys.platform.startswith('java')
 is_distribute = (
     pkg_resources.Requirement.parse('setuptools').key=='distribute')
 
+BROKEN_DASH_S_WARNING = (
+    'Buildout has been asked to exclude or limit site-packages so that '
+    'builds can be repeatable when using a system Python.  However, '
+    'the chosen Python executable has a broken implementation of -S (see '
+    'https://bugs.launchpad.net/virtualenv/+bug/572545 for an example '
+    "problem) and this breaks buildout's ability to isolate site-packages.  "
+    "If the executable already has a clean site-packages (e.g., "
+    "using virtualenv's ``--no-site-packages`` option) you may be getting "
+    'equivalent repeatability.  To silence this warning, use the -s argument '
+    'to the buildout script.  Alternatively, use a Python executable with a '
+    'working -S (such as a standard Python binary).')
+
 if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
@@ -69,6 +82,14 @@ buildout_loc = pkg_resources.working_set.find(
 buildout_and_setuptools_path = [setuptools_loc]
 if os.path.normpath(setuptools_loc) != os.path.normpath(buildout_loc):
     buildout_and_setuptools_path.append(buildout_loc)
+
+def _has_broken_dash_S(executable):
+    """Detect https://bugs.launchpad.net/virtualenv/+bug/572545 ."""
+    proc = subprocess.Popen(
+        [executable, '-Sc', 'import ConfigParser'],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.communicate()
+    return bool(proc.returncode)
 
 def _get_system_paths(executable):
     """Return lists of standard lib and site paths for executable.
@@ -209,10 +230,10 @@ else:
     _safe_arg = str
 
 # The following string is used to run easy_install in
-# Installer._call_easy_install.  It is started with python -S (that is,
-# don't import site at start).  That flag, and all of the code in this
-# snippet above the last two lines, exist to work around a relatively rare
-# problem.  If
+# Installer._call_easy_install.  It is usually started with python -S
+# (that is, don't import site at start).  That flag, and all of the code
+# in this snippet above the last two lines, exist to work around a
+# relatively rare problem.  If
 #
 # - your buildout configuration is trying to install a package that is within
 #   a namespace package, and
@@ -264,17 +285,16 @@ else:
 # unnecessary for site.py to preprocess these packages, so it should be
 # fine, as far as can be guessed as of this writing.)  Finally, it
 # imports easy_install and runs it.
-
-_easy_install_cmd = _safe_arg('''\
+_easy_install_preface = '''\
 import sys,os;\
 p = sys.path[:];\
 import site;\
 sys.path[:] = p;\
 [sys.modules.pop(k) for k, v in sys.modules.items()\
  if hasattr(v, '__path__') and len(v.__path__)==1 and\
- not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))];\
-from setuptools.command.easy_install import main;\
-main()''')
+ not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))];'''
+_easy_install_cmd = (
+    'from setuptools.command.easy_install import main;main()')
 
 
 class Installer:
@@ -321,6 +341,7 @@ class Installer:
 
         self._index_url = index
         self._executable = executable
+        self._has_broken_dash_S = _has_broken_dash_S(self._executable)
         if always_unzip is not None:
             self._always_unzip = always_unzip
         path = (path and path[:] or [])
@@ -329,6 +350,17 @@ class Installer:
         if allowed_eggs_from_site_packages is not None:
             self._allowed_eggs_from_site_packages = tuple(
                 allowed_eggs_from_site_packages)
+        if self._has_broken_dash_S:
+            if (not self._include_site_packages or
+                self._allowed_eggs_from_site_packages != ('*',)):
+                # We can't do this if the executable has a broken -S.
+                warnings.warn(BROKEN_DASH_S_WARNING)
+                self._include_site_packages = True
+                self._allowed_eggs_from_site_packages = ('*',)
+            self._easy_install_cmd = _easy_install_preface + _easy_install_cmd
+        else:
+            self._easy_install_cmd = _easy_install_cmd
+        self._easy_install_cmd = _safe_arg(self._easy_install_cmd)
         stdlib, self._site_packages = _get_system_paths(executable)
         version_info = _get_version_info(executable)
         if version_info == sys.version_info:
@@ -487,7 +519,9 @@ class Installer:
         try:
             path = setuptools_loc
 
-            args = ('-Sc', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
+            args = ('-c', self._easy_install_cmd, '-mUNxd', _safe_arg(tmp))
+            if not self._has_broken_dash_S:
+                args = ('-S',) + args
             if self._always_unzip:
                 args += ('-Z', )
             level = logger.getEffectiveLevel()
@@ -1176,6 +1210,11 @@ def scripts(reqs, working_set, executable, dest,
             _pyscript(spath, sname, executable, rpsetup))
     return generated
 
+# We need to give an alternate name to the ``scripts`` function so that it
+# can be referenced within sitepackage_safe_scripts, which uses ``scripts``
+# as an argument name.
+_original_scripts_function = scripts
+
 def sitepackage_safe_scripts(
     dest, working_set, executable, site_py_dest,
     reqs=(), scripts=None, interpreter=None, extra_paths=(),
@@ -1188,6 +1227,12 @@ def sitepackage_safe_scripts(
     Python site packages, if desired, and  choosing to execute the Python's
     sitecustomize.
     """
+    if _has_broken_dash_S(executable):
+        if not include_site_packages:
+            warnings.warn(BROKEN_DASH_S_WARNING)
+        return _original_scripts_function(
+            reqs, working_set, executable, dest, scripts, extra_paths,
+            script_arguments, interpreter, initialization, relative_paths)
     generated = []
     generated.append(_generate_sitecustomize(
         site_py_dest, executable, initialization, exec_sitecustomize))
