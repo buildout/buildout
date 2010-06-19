@@ -1012,7 +1012,7 @@ Extending sections (macros)
 ---------------------------
 
 A section (other than the buildout section) can extend one or more
-other sections using the ``<`` option.  Options from the referenced
+other sections using the ``<=`` option.  Options from the referenced
 sections are copied to the refering section *before* variable
 substitution.  This, together with the ability to refer to variables
 of the current section allows sections to be used as macros.
