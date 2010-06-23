@@ -1502,7 +1502,7 @@ def _error(*message):
     sys.exit(1)
 
 _internal_error_template = """
-An internal error occured due to a bug in either zc.buildout or in a
+An internal error occurred due to a bug in either zc.buildout or in a
 recipe being used:
 """
 

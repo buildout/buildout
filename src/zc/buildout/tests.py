@@ -1442,7 +1442,7 @@ def internal_errors():
       Getting section data-dir.
       Initializing part data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -2546,7 +2546,7 @@ if sys.version_info > (2, 4):
           Initializing section x.
           Loading zc.buildout recipe entry zc.buildout.testexit:default.
         <BLANKLINE>
-        An internal error occured due to a bug in either zc.buildout or in a
+        An internal error occurred due to a bug in either zc.buildout or in a
         recipe being used:
         Traceback (most recent call last):
         ...

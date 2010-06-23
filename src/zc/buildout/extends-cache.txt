@@ -383,7 +383,7 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Installing.
   Checking for upgrades.
-An internal error occured ...
+An internal error occurred ...
 ValueError: install_from_cache set to true with no download cache
 
 

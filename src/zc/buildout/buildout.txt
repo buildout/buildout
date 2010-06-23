@@ -463,7 +463,7 @@ leave previously created paths in place:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
       ...
@@ -495,7 +495,7 @@ If we fix the typo:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -572,7 +572,7 @@ When we rerun the buildout:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -653,7 +653,7 @@ directories will be created:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
