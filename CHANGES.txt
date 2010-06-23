@@ -501,7 +501,7 @@ Bugs Fixed
 - 92891: bootstrap crashes with recipe option in buildout section.
 
 - 113085: Buildout exited with a zero exist status when internal errors
-  occured.
+  occurred.
 
 
 1.0.0b23 (2007-03-19)
