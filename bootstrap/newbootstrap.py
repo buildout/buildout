@@ -134,12 +134,10 @@ args = args + ['bootstrap']
 
 
 try:
-    to_reload = False
     import pkg_resources
-    to_reload = True
+    import setuptools # A flag.  Sometimes pkg_resources is installed alone.
     if not hasattr(pkg_resources, '_distribute'):
         raise ImportError
-    import setuptools # A flag.  Sometimes pkg_resources is installed alone.
 except ImportError:
     ez_code = urllib2.urlopen(
         options.setup_source).read().replace('\r\n', '\n')
@@ -151,10 +149,8 @@ except ImportError:
     if options.use_distribute:
         setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
-    if to_reload:
-        reload(pkg_resources)
-    else:
-        import pkg_resources
+    reload(sys.modules['pkg_resources'])
+    import pkg_resources
     # This does not (always?) update the default working set.  We will
     # do it.
     for path in sys.path:
