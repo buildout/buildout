@@ -3717,6 +3717,8 @@ normalize_bang = (
     '#!/usr/local/bin/python2.4',
     )
 
+hide_distribute_additions = (re.compile('install_dir .+\n'), '')
+
 def test_suite():
     test_suite = [
         doctest.DocFileSuite(
@@ -3724,44 +3726,46 @@ def test_suite():
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               (re.compile('__buildout_signature__ = recipes-\S+'),
-                '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('executable = [\S ]+python\S*', re.I),
-                'executable = python'),
-               (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
-                'setuptools.egg'),
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
-                'zc.buildout.egg'),
-               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-               (re.compile('Picked: (\S+) = \S+'),
-                'Picked: \\1 = V.V'),
-               (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
-                'We have a develop egg: zc.buildout X.X.'),
-               (re.compile(r'\\[\\]?'), '/'),
-               (re.compile('WindowsError'), 'OSError'),
-               (re.compile(r'\[Error \d+\] Cannot create a file '
-                           r'when that file already exists: '),
-                '[Errno 17] File exists: '
-                ),
-               (re.compile('distribute'), 'setuptools'),
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('__buildout_signature__ = recipes-\S+'),
+                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+                (re.compile('executable = [\S ]+python\S*', re.I),
+                 'executable = python'),
+                (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                 'setuptools.egg'),
+                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                 'zc.buildout.egg'),
+                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
+                (re.compile('Picked: (\S+) = \S+'),
+                 'Picked: \\1 = V.V'),
+                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
+                 'We have a develop egg: zc.buildout X.X.'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile('WindowsError'), 'OSError'),
+                (re.compile(r'\[Error \d+\] Cannot create a file '
+                            r'when that file already exists: '),
+                 '[Errno 17] File exists: '
+                 ),
+                (re.compile('distribute'), 'setuptools'),
+                ])
             ),
         doctest.DocFileSuite(
             'debugging.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               (re.compile(r'\S+buildout.py'), 'buildout.py'),
-               (re.compile(r'line \d+'), 'line NNN'),
-               (re.compile(r'py\(\d+\)'), 'py(NNN)'),
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile(r'\S+buildout.py'), 'buildout.py'),
+                (re.compile(r'line \d+'), 'line NNN'),
+                (re.compile(r'py\(\d+\)'), 'py(NNN)'),
+                ])
             ),
 
         doctest.DocFileSuite(
@@ -3769,28 +3773,29 @@ def test_suite():
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               normalize_bang,
-               (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
-               (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                           '-py\d.\d.egg'),
-                '\\1.egg'),
-               (re.compile('distribute-\d+[.]\d+\S*'
-                           '-py\d.\d.egg'),
-                'setuptools.egg'),
-               (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
-                '\\1 V.V'),
-               (re.compile('distribute( version)? \d+[.]\d+\S*'),
-                'setuptools V.V'),
-               (re.compile('[-d]  (setuptools|distribute)'), '-  setuptools'),
-               (re.compile('distribute'), 'setuptools'),
-               (re.compile("\nUnused options for buildout: "
-                           "'(distribute|setuptools)\-version'\."),
-                '')
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                normalize_bang,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
+                (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
+                            '-py\d.\d.egg'),
+                 '\\1.egg'),
+                (re.compile('distribute-\d+[.]\d+\S*'
+                            '-py\d.\d.egg'),
+                 'setuptools.egg'),
+                (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
+                 '\\1 V.V'),
+                (re.compile('distribute( version)? \d+[.]\d+\S*'),
+                 'setuptools V.V'),
+                (re.compile('[-d]  (setuptools|distribute)'), '-  setuptools'),
+                (re.compile('distribute'), 'setuptools'),
+                (re.compile("\nUnused options for buildout: "
+                            "'(distribute|setuptools)\-version'\."),
+                 '')
+                ])
             ),
 
         doctest.DocFileSuite(
@@ -3799,28 +3804,29 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               normalize_bang,
-               (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-               (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
-                'setuptools.egg'),
-               (re.compile(r'\\[\\]?'), '/'),
-               (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
-               # Normalize generate_script's Windows interpreter to UNIX:
-               (re.compile(r'\nimport subprocess\n'), '\n'),
-               (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
-                'os.execve(sys.executable, argv, environ)'),
-               (re.compile('distribute'), 'setuptools'),
-               # Distribute unzips eggs by default.
-               (re.compile('\-  demoneeded'), 'd  demoneeded'),
-               ]+(sys.version_info < (2, 5) and [
-                  (re.compile('.*No module named runpy.*', re.S), ''),
-                  (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
-                  (re.compile('.*Error: what does not exist.*', re.S), ''),
-                  ] or [])),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                normalize_bang,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
+                (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                 'setuptools.egg'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
+                # Normalize generate_script's Windows interpreter to UNIX:
+                (re.compile(r'\nimport subprocess\n'), '\n'),
+                (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
+                 'os.execve(sys.executable, argv, environ)'),
+                (re.compile('distribute'), 'setuptools'),
+                # Distribute unzips eggs by default.
+                (re.compile('\-  demoneeded'), 'd  demoneeded'),
+                ]+(sys.version_info < (2, 5) and [
+                   (re.compile('.*No module named runpy.*', re.S), ''),
+                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
+                   (re.compile('.*Error: what does not exist.*', re.S), ''),
+                   ] or [])),
             ),
 
         doctest.DocFileSuite(
@@ -3841,35 +3847,36 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               (re.compile("buildout: Running \S*setup.py"),
-                'buildout: Running setup.py'),
-               (re.compile('(setuptools|distribute)-\S+-'),
-                'setuptools.egg'),
-               (re.compile('zc.buildout-\S+-'),
-                'zc.buildout.egg'),
-               (re.compile('File "\S+one.py"'),
-                'File "one.py"'),
-               (re.compile(r'We have a develop egg: (\S+) (\S+)'),
-                r'We have a develop egg: \1 V'),
-               (re.compile('Picked: (setuptools|distribute) = \S+'),
-                'Picked: setuptools = V'),
-               (re.compile(r'\\[\\]?'), '/'),
-               (re.compile(
-                   '-q develop -mxN -d "/sample-buildout/develop-eggs'),
-                   '-q develop -mxN -d /sample-buildout/develop-eggs'
-                ),
-               (re.compile(r'^[*]...'), '...'),
-               # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
-               (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
-                "Unused options for buildout: 'scripts' 'eggs'."),
-               (re.compile('distribute'), 'setuptools'),
-               # Distribute unzips eggs by default.
-               (re.compile('\-  demoneeded'), 'd  demoneeded'),
-               ]),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile("buildout: Running \S*setup.py"),
+                 'buildout: Running setup.py'),
+                (re.compile('(setuptools|distribute)-\S+-'),
+                 'setuptools.egg'),
+                (re.compile('zc.buildout-\S+-'),
+                 'zc.buildout.egg'),
+                (re.compile('File "\S+one.py"'),
+                 'File "one.py"'),
+                (re.compile(r'We have a develop egg: (\S+) (\S+)'),
+                 r'We have a develop egg: \1 V'),
+                (re.compile('Picked: (setuptools|distribute) = \S+'),
+                 'Picked: setuptools = V'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile(
+                    '-q develop -mxN -d "/sample-buildout/develop-eggs'),
+                    '-q develop -mxN -d /sample-buildout/develop-eggs'
+                 ),
+                (re.compile(r'^[*]...'), '...'),
+                # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
+                (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
+                 "Unused options for buildout: 'scripts' 'eggs'."),
+                (re.compile('distribute'), 'setuptools'),
+                # Distribute unzips eggs by default.
+                (re.compile('\-  demoneeded'), 'd  demoneeded'),
+                ]),
             ),
         zc.buildout.testselectingpython.test_suite(),
         zc.buildout.rmtree.test_suite(),
@@ -3878,28 +3885,29 @@ def test_suite():
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               (re.compile('__buildout_signature__ = recipes-\S+'),
-                '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
-                'zc.buildout.egg'),
-               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-               (re.compile('Picked: (\S+) = \S+'),
-                'Picked: \\1 = V.V'),
-               (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
-                'We have a develop egg: zc.buildout X.X.'),
-               (re.compile(r'\\[\\]?'), '/'),
-               (re.compile('WindowsError'), 'OSError'),
-               (re.compile(r'\[Error 17\] Cannot create a file '
-                           r'when that file already exists: '),
-                '[Errno 17] File exists: '
-                ),
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('__buildout_signature__ = recipes-\S+'),
+                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                 'zc.buildout.egg'),
+                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
+                (re.compile('Picked: (\S+) = \S+'),
+                 'Picked: \\1 = V.V'),
+                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
+                 'We have a develop egg: zc.buildout X.X.'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile('WindowsError'), 'OSError'),
+                (re.compile(r'\[Error 17\] Cannot create a file '
+                            r'when that file already exists: '),
+                 '[Errno 17] File exists: '
+                 ),
+                ])
             ),
         doctest.DocFileSuite(
             'testing_bugfix.txt'),
@@ -3941,6 +3949,7 @@ def test_suite():
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.hide_distribute_additions,
                 (re.compile('(setuptools|distribute)-\S+-'),
                  'setuptools.egg'),
                 (re.compile('zc.buildout-\S+-'),
