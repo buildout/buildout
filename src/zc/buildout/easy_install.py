@@ -259,7 +259,7 @@ else:
 # for another description of the problem).  Simply starting Python with
 # -S addresses the problem in Python 2.4 and 2.5, but Python 2.6's
 # distutils imports a value from the site module, so we unfortunately
-# have to do more drastic surgery in the _easy_install_cmd code below.
+# have to do more drastic surgery in the _easy_install_preface code below.
 #
 # Here's an example of the .pth files created by setuptools when using that
 # flag:
@@ -357,9 +357,9 @@ class Installer:
                 warnings.warn(BROKEN_DASH_S_WARNING)
                 self._include_site_packages = True
                 self._allowed_eggs_from_site_packages = ('*',)
-            self._easy_install_cmd = _easy_install_preface + _easy_install_cmd
-        else:
             self._easy_install_cmd = _easy_install_cmd
+        else:
+            self._easy_install_cmd = _easy_install_preface + _easy_install_cmd
         self._easy_install_cmd = _safe_arg(self._easy_install_cmd)
         stdlib, self._site_packages = _get_system_paths(executable)
         version_info = _get_version_info(executable)
