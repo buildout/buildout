@@ -144,7 +144,8 @@ def _get_system_paths(executable):
     return (stdlib, site_paths)
 
 def _get_version_info(executable):
-    cmd = [executable, '-Sc', 'import sys; print repr(sys.version_info)']
+    cmd = [executable, '-Sc',
+           'import sys; print(repr(tuple(x for x in sys.version_info)))']
     _proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = _proc.communicate();
@@ -1541,7 +1542,7 @@ def _get_module_file(executable, name):
     cmd = [executable, "-Sc",
            "import imp; "
            "fp, path, desc = imp.find_module(%r); "
-           "fp.close; "
+           "fp.close(); "
            "print path" % (name,)]
     env = os.environ.copy()
     # We need to make sure that PYTHONPATH, which will often be set to

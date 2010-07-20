@@ -82,17 +82,30 @@ first.
     ... sys.executable = %r
     ... if 'BROKEN_DASH_S' in os.environ:
     ...     class ImportHook:
-    ...         @staticmethod
-    ...         def find_module(fullname, path=None):
+    ...         site = None
+    ...
+    ...         @classmethod
+    ...         def find_module(klass, fullname, path=None):
+    ...             if klass.site is None and 'site' in sys.modules:
+    ...                 # Pop site out of sys.modules. This will be a
+    ...                 # close-enough approximation of site not being
+    ...                 # loaded for our tests--it lets us provoke the
+    ...                 # right errors when the fixes are absent, and
+    ...                 # works well enough when the fixes are present.
+    ...                 klass.site = sys.modules.pop('site')
     ...             if fullname == 'ConfigParser':
-    ...                 raise ImportError()
+    ...                 raise ImportError(fullname)
+    ...             elif fullname == 'site':
+    ...                 # Keep the site module from being processed twice.
+    ...                 return klass
+    ...
+    ...         @classmethod
+    ...         def load_module(klass, fullname):
+    ...             if fullname == 'site':
+    ...                 return klass.site
+    ...             raise ImportError(fullname)
     ...
     ...     sys.meta_path.append(ImportHook)
-    ...     sys.modules.pop('site', None) # Keeps site out of sys.modules.
-    ...     # This will be a close-enough approximation of site not being
-    ...     # loaded for our tests--it lets us provoke the right errors when
-    ...     # the fixes are absent, and works well enough when the fixes are
-    ...     # present.
     ... ''' % (py_path,))
     >>> sitecustomize_file.close()
     >>> print call_py(
