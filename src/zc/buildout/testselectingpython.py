@@ -11,8 +11,8 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import os, re, subprocess, sys, textwrap, unittest
-from zope.testing import doctest, renormalizing
+import os, re, subprocess, sys, textwrap, unittest, doctest
+from zope.testing import renormalizing
 import zc.buildout.tests
 import zc.buildout.testing
 
