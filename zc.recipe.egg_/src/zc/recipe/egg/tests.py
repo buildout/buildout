@@ -17,8 +17,8 @@ import zc.buildout.tests
 import zc.buildout.testselectingpython
 import zc.buildout.testing
 
-import unittest
-from zope.testing import doctest, renormalizing
+import unittest, doctest
+from zope.testing import renormalizing
 
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
