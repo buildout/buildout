@@ -17,8 +17,8 @@ import zc.buildout.tests
 import zc.buildout.testselectingpython
 import zc.buildout.testing
 
-import unittest
-from zope.testing import doctest, renormalizing
+import unittest, doctest
+from zope.testing import renormalizing
 
 # We do not explicitly test the recipe support for the ``eggs``,
 # ``find-links``, and ``index`` options because they are used for most or
