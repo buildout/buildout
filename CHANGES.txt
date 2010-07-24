@@ -6,6 +6,8 @@ Change History
 
 New Features:
 
+- zc.buildout supports Python 2.7.
+
 - Added buildout:socket-timout option so that socket timeout can be configured
   both from command line and from config files. (gotcha)
 
@@ -45,8 +47,8 @@ New Features:
 - You can develop zc.buildout using Distribute instead of Setuptools.  Use
   the --distribute option on the dev.py script.  (Releases should be tested
   with both Distribute and Setuptools.)  The tests for zc.buildout pass
-  with Setuptools and Python 2.4, 2.5, and 2.6; and with Distribute and
-  Python 2.5 and 2.6.  Using zc.buildout with Distribute and Python 2.4
+  with Setuptools and Python 2.4, 2.5, 2.6, and 2.7; and with Distribute and
+  Python 2.5, 2.6, and 2.7.  Using zc.buildout with Distribute and Python 2.4
   is not recommended.
 
 - The ``distribute-version`` now works in the [buildout] section, mirroring

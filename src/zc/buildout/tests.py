@@ -3718,7 +3718,18 @@ normalize_bang = (
     )
 
 hide_distribute_additions = (re.compile('install_dir .+\n'), '')
-
+hide_zip_safe_message = (
+    # This comes in a different place in the output in Python 2.7.  It's not
+    # important to our tests.  Hide it.
+    re.compile(
+        '((?<=\n)\n)?zip_safe flag not set; analyzing archive contents...\n'),
+    '')
+hide_first_index_page_message = (
+    # This comes in a different place in the output in Python 2.7.  It's not
+    # important to our tests.  Hide it.
+    re.compile(
+        "Couldn't find index page for '[^']+' \(maybe misspelled\?\)\n"),
+    '')
 def test_suite():
     test_suite = [
         doctest.DocFileSuite(
@@ -3731,6 +3742,7 @@ def test_suite():
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.tests.hide_distribute_additions,
+                hide_zip_safe_message,
                 (re.compile('__buildout_signature__ = recipes-\S+'),
                  '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                 (re.compile('executable = [\S ]+python\S*', re.I),
@@ -3809,6 +3821,7 @@ def test_suite():
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_egg_py,
                 normalize_bang,
+                hide_first_index_page_message,
                 zc.buildout.tests.hide_distribute_additions,
                 (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                 (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
@@ -3852,6 +3865,7 @@ def test_suite():
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.tests.hide_distribute_additions,
+                hide_first_index_page_message,
                 (re.compile("buildout: Running \S*setup.py"),
                  'buildout: Running setup.py'),
                 (re.compile('(setuptools|distribute)-\S+-'),
@@ -3910,7 +3924,17 @@ def test_suite():
                 ])
             ),
         doctest.DocFileSuite(
-            'testing_bugfix.txt'),
+            'testing_bugfix.txt',
+            checker=renormalizing.RENormalizing([
+                # Python 2.7
+                (re.compile(
+                    re.escape(
+                        'testrunner.logsupport.NullHandler instance at')),
+                 'testrunner.logsupport.NullHandler object at'),
+                (re.compile(re.escape('logging.StreamHandler instance at')),
+                 'logging.StreamHandler object at'),
+                ])
+            ),
     ]
 
     # adding bootstrap.txt doctest to the suite

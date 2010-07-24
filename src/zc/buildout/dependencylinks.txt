@@ -20,7 +20,7 @@ testing repository.
 
 Turn on logging on this server so that we can see when eggs are pulled
 from it.
-    
+
     >>> get(link_server2 + 'enable_server_logging')
     GET 200 /enable_server_logging
     ''
@@ -83,10 +83,9 @@ buildout to see where the egg comes from this time.
     ...     for egg in glob(join(sample_buildout, 'eggs', 'demoneeded*.egg')):
     ...         remove(sample_buildout, 'eggs', egg)
     >>> remove_demoneeded_egg()
-    >>> print system(buildout)
+    >>> print system(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/depdemo'
-    Updating eggs.
-    Couldn't find index page for 'demoneeded' (maybe misspelled?)
+    ...
     Getting distribution for 'demoneeded'.
     While:
       Updating eggs.

@@ -52,11 +52,11 @@ Now we will try the `--version` option, which lets you define a version for
 
 Let's try with an unknown version::
 
-    >>> print 'X'; print system(
+    >>> print 'XX'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
     ...
-    X
+    X...
     No local packages or download links found for zc.buildout==UNKNOWN...
     ...
 
@@ -128,8 +128,7 @@ option::
     ...
     X
     ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
+    Generated script '/sample/bin/buildout'...
     X
 
 Let's make sure the generated `buildout` script uses it::
@@ -158,8 +157,7 @@ Make sure both options can be used together::
     ...
     X
     ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
+    Generated script '/sample/bin/buildout'...
     X
 
 Let's make sure the generated `buildout` script uses ``Distribute`` *and*
@@ -192,8 +190,7 @@ Last, the -c option needs to work on bootstrap.py::
     ...
     X
     ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
+    Generated script '/sample/bin/buildout'...
     X
 
 You can specify a location of ez_setup.py or distribute_setup, so you

@@ -85,15 +85,16 @@ def test_suite():
             'custom.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
                 zc.buildout.tests.hide_distribute_additions,
-               (re.compile("(d  ((ext)?demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
-                '\\1V.V.egg'),
-               (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
-               (re.compile('extdemo[.]pyd'), 'extdemo.so')
-               ]),
+                zc.buildout.tests.hide_zip_safe_message,
+                (re.compile("(d  ((ext)?demo(needed)?|other)"
+                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                 '\\1V.V.egg'),
+                (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
+                (re.compile('extdemo[.]pyd'), 'extdemo.so')
+                ]),
             ),
 
         ))
