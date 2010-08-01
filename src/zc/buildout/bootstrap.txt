@@ -47,6 +47,87 @@ Make sure the bootstrap script actually works::
     X...
     d  zc.buildout-...egg
 
+The buildout script it has generated is a new-style script, using a
+customized site.py.
+
+    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+        '/sample/parts/buildout',
+        ]
+    <BLANKLINE>
+    <BLANKLINE>
+    import os
+    path = sys.path[0]
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+    <BLANKLINE>
+
+The bootstrap process prefers final versions of zc.buildout, so it has
+selected the (generated-locally) 99.99 egg rather than the also-available
+100.0b1 egg.  We can see that in the buildout script's site.py.
+
+    >>> buildout_site_py = join(
+    ...     sample_buildout, 'parts', 'buildout', 'site.py')
+    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample/eggs/setuptools-...egg',
+            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            ]
+    ...
+
+If you want to accept early releases of zc.buildout, you either need to
+specify an explicit version (using --version here and specifying the
+version in the buildout configuration file using the
+``buildout-version`` option or the ``versions`` option) or specify that you
+accept early releases.
+
+You accept early releases by using ``--accept-early-release`` on the
+bootstrap script and specifying ``prefer-final-build-system = false`` in the
+buildout configuration file.  You must do both.
+
+Here's an example.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... prefer-final-build-system = false
+    ... ''')
+    >>> ignored = system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --accept-early-release')
+    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample/eggs/setuptools-...egg',
+            '/sample/eggs/zc.buildout-100.0b1-pyN.N.egg'
+            ]
+    ...
+
+Notice we are now using zc.buildout 100.0b1, a non-final release.
+
+Now we'll go back to the default of preferring final versions.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+
 Now we will try the `--version` option, which lets you define a version for
 `zc.buildout`. If not provided, bootstrap will look for the latest one.
 
@@ -71,11 +152,9 @@ Now let's try with `1.1.2`, which happens to exist::
     <BLANKLINE>
     X
 
-Let's make sure the generated `buildout` script uses it::
+Versions older than 1.5.0 put their egg dependencies in the ``buildout`` script.
+Let's make sure it was generated as we expect::
 
-    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
-    >>> if sys.platform.startswith('win'):
-    ...     buildout_script += '-script.py'
     >>> print open(buildout_script).read() # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
@@ -102,7 +181,7 @@ Let's try with `1.2.1`::
     <BLANKLINE>
     X
 
-Let's make sure the generated `buildout` script uses it::
+Let's make sure the generated ``buildout`` script uses it::
 
     >>> print open(buildout_script).read() # doctest: +ELLIPSIS
     #...
@@ -119,7 +198,7 @@ Let's make sure the generated `buildout` script uses it::
         zc.buildout.buildout.main()
     <BLANKLINE>
 
-`zc.buildout` now can also run with `Distribute` with the `--distribute`
+``zc.buildout`` now can also run with `Distribute` with the `--distribute`
 option::
 
     >>> print 'X'; print system(
@@ -131,22 +210,14 @@ option::
     Generated script '/sample/bin/buildout'...
     X
 
-Let's make sure the generated `buildout` script uses it::
-
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/distribute-...egg',
-      '/sample/eggs/zc.buildout-...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
+Let's make sure the generated ``site.py`` uses it::
+    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample/eggs/distribute-...egg',
+            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            ]
+    ...
 
 Make sure both options can be used together::
 
@@ -160,8 +231,8 @@ Make sure both options can be used together::
     Generated script '/sample/bin/buildout'...
     X
 
-Let's make sure the generated `buildout` script uses ``Distribute`` *and*
-``zc.buildout-1.2.1``::
+Let's make sure the old-style generated ``buildout`` script uses
+``Distribute`` *and* ``zc.buildout-1.2.1``::
 
     >>> print open(buildout_script).read() # doctest: +ELLIPSIS
     #...
@@ -258,5 +329,14 @@ Here's the entire help text.
       --eggs=EGGS           Specify a directory for storing eggs.  Defaults to a
                             temporary directory that is deleted when the bootstrap
                             script completes.
+      --accept-early-release
+                            Normally, if you do not specify a --version, the
+                            bootstrap script gets the newest *final* versions of
+                            zc.buildout for you.  If you use this flag, bootstrap
+                            will get the newest releases even if they are alphas
+                            or betas.  Note that, if you do want to use early
+                            buildout releases, you probably want to also set
+                            ``prefer-final-build-system= false`` in the [buildout]
+                            section of your configuration file.
       -c CONFIG_FILE        Specify the path to the buildout configuration file to
                             be used.

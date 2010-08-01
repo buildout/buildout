@@ -3126,6 +3126,105 @@ We get an error if we specify anything but true or false:
 
     """
 
+def buildout_prefer_final_build_system_option():
+    """
+The prefer-final-build-system buildout option can be used for overriding
+the default preference for final distributions for recipes, buildout
+extensions, and buildout itself.
+
+Set up.  This creates sdists for demorecipe 1.0 and 1.1b1, and for
+demoextension 1.0 and 1.1b1.
+
+    >>> create_sample_recipe_sdists(sample_eggs)
+    >>> create_sample_extension_sdists(sample_eggs)
+
+The default is prefer-final-build-system = true:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = demo
+    ... find-links = %(link_server)s
+    ... extensions = demoextension
+    ...
+    ... [demo]
+    ... recipe = demorecipe
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing ...
+    Picked: demoextension = 1.0
+    ...
+    Picked: demorecipe = 1.0
+    ...
+
+Here we see that the final versions of demorecipe and demoextension were used.
+
+We get the same behavior if we explicitly state that
+prefer-final-build-system = true.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = demo
+    ... find-links = %(link_server)s
+    ... extensions = demoextension
+    ... prefer-final-build-system = true
+    ...
+    ... [demo]
+    ... recipe = demorecipe
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing ...
+    Picked: demoextension = 1.0
+    ...
+    Picked: demorecipe = 1.0
+    ...
+
+If we specify prefer-final-build-system = false, we'll get the newest
+distributions in the build system:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = demo
+    ... find-links = %(link_server)s
+    ... extensions = demoextension
+    ... prefer-final-build-system = false
+    ...
+    ... [demo]
+    ... recipe = demorecipe
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing ...
+    Picked: demoextension = 1.1b1
+    ...
+    Picked: demorecipe = 1.1b1
+    ...
+
+We get an error if we specify anything but true or false:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = demo
+    ... find-links = %(link_server)s
+    ... extensions = demoextension
+    ... prefer-final-build-system = no
+    ...
+    ... [demo]
+    ... recipe = demorecipe
+    ... ''' % globals())
+
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    While:
+      Initializing.
+    Error: Invalid value for prefer-final-build-system option: no
+
+    """
+
 def develop_with_modules():
     """
 Distribution setup scripts can import modules in the distribution directory:
@@ -3492,6 +3591,68 @@ def create_sample_namespace_eggs(dest, site_packages_path=None):
         finally:
             shutil.rmtree(tmp)
 
+def create_sample_extension_sdists(dest):
+    from zc.buildout.testing import write, mkdir
+    name = 'demoextension'
+    for version in ('1.0', '1.1b1'):
+        tmp = tempfile.mkdtemp()
+        try:
+            write(tmp, 'README.txt', '')
+            write(tmp, name + '.py',
+                  "def ext(buildout):\n"
+                  "    pass\n"
+                  "def unload(buildout):\n"
+                  "    pass\n"
+                  % locals())
+            write(tmp, 'setup.py',
+                  "from setuptools import setup\n"
+                  "setup(\n"
+                  "    name = %(name)r,\n"
+                  "    py_modules = [%(name)r],\n"
+                  "    entry_points = {\n"
+                  "       'zc.buildout.extension': "
+                              "['ext = %(name)s:ext'],\n"
+                  "       'zc.buildout.unloadextension': "
+                              "['ext = %(name)s:unload'],\n"
+                  "       },\n"
+                  "    zip_safe=True, version=%(version)r,\n"
+                  "    author='bob', url='bob', author_email='bob')\n"
+                  % locals())
+            zc.buildout.testing.sdist(tmp, dest)
+        finally:
+            shutil.rmtree(tmp)
+
+def create_sample_recipe_sdists(dest):
+    from zc.buildout.testing import write, mkdir
+    name = 'demorecipe'
+    for version in ('1.0', '1.1b1'):
+        tmp = tempfile.mkdtemp()
+        try:
+            write(tmp, 'README.txt', '')
+            write(tmp, name + '.py',
+                  "import logging, os, zc.buildout\n"
+                  "class Demorecipe:\n"
+                  "    def __init__(self, buildout, name, options):\n"
+                  "        self.name, self.options = name, options\n"
+                  "    def install(self):\n"
+                  "        return ()\n"
+                  "    def update(self):\n"
+                  "        pass\n"
+                  % locals())
+            write(tmp, 'setup.py',
+                  "from setuptools import setup\n"
+                  "setup(\n"
+                  "    name = %(name)r,\n"
+                  "    py_modules = [%(name)r],\n"
+                  "    entry_points = {'zc.buildout': "
+                                       "['default = %(name)s:Demorecipe']},\n"
+                  "    zip_safe=True, version=%(version)r,\n"
+                  "    author='bob', url='bob', author_email='bob')\n"
+                  % locals())
+            zc.buildout.testing.sdist(tmp, dest)
+        finally:
+            shutil.rmtree(tmp)
+
 def _write_eggrecipedemoneeded(tmp, minor_version, suffix=''):
     from zc.buildout.testing import write
     write(tmp, 'README.txt', '')
@@ -3639,37 +3800,33 @@ def easy_install_SetUp(test):
 
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
-def makeNewRelease(project, ws, dest):
+def makeNewRelease(project, ws, dest, version='99.99'):
     dist = ws.find(pkg_resources.Requirement.parse(project))
     eggname, oldver, pyver = egg_parse(
         os.path.basename(dist.location)
         ).groups()
-    dest = os.path.join(dest, "%s-99.99-py%s.egg" % (eggname, pyver))
+    dest = os.path.join(dest, "%s-%s-py%s.egg" % (eggname, version, pyver))
     if os.path.isfile(dist.location):
         shutil.copy(dist.location, dest)
         zip = zipfile.ZipFile(dest, 'a')
         zip.writestr(
             'EGG-INFO/PKG-INFO',
             zip.read('EGG-INFO/PKG-INFO').replace("Version: %s" % oldver,
-                                                  "Version: 99.99")
+                                                  "Version: %s" % version)
             )
         zip.close()
     else:
         shutil.copytree(dist.location, dest)
         info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
         info = open(info_path).read().replace("Version: %s" % oldver,
-                                              "Version: 99.99")
+                                              "Version: %s" % version)
         open(info_path, 'w').write(info)
 
-
-def updateSetup(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    new_releases = test.globs['tmpdir']('new_releases')
-    test.globs['new_releases'] = new_releases
+def getWorkingSetWithBuildoutEgg(test):
     sample_buildout = test.globs['sample_buildout']
     eggs = os.path.join(sample_buildout, 'eggs')
 
-    # If the zc.buildout dist is a develo dist, convert it to a
+    # If the zc.buildout dist is a develop dist, convert it to a
     # regular egg in the sample buildout
     req = pkg_resources.Requirement.parse('zc.buildout')
     dist = pkg_resources.working_set.find(req)
@@ -3699,9 +3856,16 @@ def updateSetup(test):
             os.path.join(sample_buildout, 'bin'))
     else:
         ws = pkg_resources.working_set
+    return ws
 
+def updateSetup(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    new_releases = test.globs['tmpdir']('new_releases')
+    test.globs['new_releases'] = new_releases
+    ws = getWorkingSetWithBuildoutEgg(test)
     # now let's make the new releases
     makeNewRelease('zc.buildout', ws, new_releases)
+    makeNewRelease('zc.buildout', ws, new_releases, '100.0b1')
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
     if zc.buildout.easy_install.is_distribute:
         makeNewRelease('distribute', ws, new_releases)
@@ -3710,6 +3874,13 @@ def updateSetup(test):
         makeNewRelease('setuptools', ws, new_releases)
         os.mkdir(os.path.join(new_releases, 'setuptools'))
 
+def bootstrapSetup(test):
+    easy_install_SetUp(test)
+    sample_eggs = test.globs['sample_eggs']
+    ws = getWorkingSetWithBuildoutEgg(test)
+    makeNewRelease('zc.buildout', ws, sample_eggs)
+    makeNewRelease('zc.buildout', ws, sample_eggs, '100.0b1')
+    os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
 
 normalize_bang = (
     re.compile(re.escape('#!'+
@@ -3952,12 +4123,13 @@ def test_suite():
     if os.path.exists(bootstrap_py):
         test_suite.append(doctest.DocFileSuite(
             'bootstrap.txt',
-            setUp=easy_install_SetUp,
+            setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
                 normalize_bang,
                 (re.compile('Downloading.*setuptools.*egg\n'), ''),
                 (re.compile('options:'), 'Options:'),

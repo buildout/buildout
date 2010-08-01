@@ -322,7 +322,8 @@ class Installer:
                  use_dependency_links=None,
                  allow_hosts=('*',),
                  include_site_packages=None,
-                 allowed_eggs_from_site_packages=None
+                 allowed_eggs_from_site_packages=None,
+                 prefer_final=None,
                  ):
         self._dest = dest
         self._allow_hosts = allow_hosts
@@ -336,6 +337,8 @@ class Installer:
 
         if use_dependency_links is not None:
             self._use_dependency_links = use_dependency_links
+        if prefer_final is not None:
+            self._prefer_final = prefer_final
         self._links = links = list(_fix_file_links(links))
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
@@ -1060,13 +1063,14 @@ def install(specs, dest,
             executable=sys.executable, always_unzip=None,
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',),
-            include_site_packages=None, allowed_eggs_from_site_packages=None):
-    installer = Installer(dest, links, index, executable, always_unzip, path,
-                          newest, versions, use_dependency_links,
-                          allow_hosts=allow_hosts,
-                          include_site_packages=include_site_packages,
-                          allowed_eggs_from_site_packages=
-                            allowed_eggs_from_site_packages)
+            include_site_packages=None, allowed_eggs_from_site_packages=None,
+            prefer_final=None):
+    installer = Installer(
+        dest, links, index, executable, always_unzip, path, newest,
+        versions, use_dependency_links, allow_hosts=allow_hosts,
+        include_site_packages=include_site_packages,
+        allowed_eggs_from_site_packages=allowed_eggs_from_site_packages,
+        prefer_final=prefer_final)
     return installer.install(specs, working_set)
 
 
@@ -1075,11 +1079,11 @@ def build(spec, dest, build_ext,
           executable=sys.executable,
           path=None, newest=True, versions=None, allow_hosts=('*',),
           include_site_packages=None, allowed_eggs_from_site_packages=None):
-    installer = Installer(dest, links, index, executable, True, path, newest,
-                          versions, allow_hosts=allow_hosts,
-                          include_site_packages=include_site_packages,
-                          allowed_eggs_from_site_packages=
-                            allowed_eggs_from_site_packages)
+    installer = Installer(
+        dest, links, index, executable, True, path, newest, versions,
+        allow_hosts=allow_hosts,
+        include_site_packages=include_site_packages,
+        allowed_eggs_from_site_packages=allowed_eggs_from_site_packages)
     return installer.build(spec, build_ext)
 
 
@@ -1175,11 +1179,12 @@ def develop(setup, dest,
         [f() for f in undo]
 
 def working_set(specs, executable, path, include_site_packages=None,
-                allowed_eggs_from_site_packages=None):
+                allowed_eggs_from_site_packages=None, prefer_final=None):
     return install(
         specs, None, executable=executable, path=path,
         include_site_packages=include_site_packages,
-        allowed_eggs_from_site_packages=allowed_eggs_from_site_packages)
+        allowed_eggs_from_site_packages=allowed_eggs_from_site_packages,
+        prefer_final=prefer_final)
 
 ############################################################################
 # Script generation functions

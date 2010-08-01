@@ -3,13 +3,14 @@ Automatic Buildout Updates
 
 When a buildout is run, one of the first steps performed is to check
 for updates to either zc.buildout or setuptools.  To demonstrate this,
-we've creates some "new releases" of buildout and setuptools in a
+we've created some "new releases" of buildout and setuptools in a
 new_releases folder:
 
     >>> ls(new_releases)
     d  setuptools
     -  setuptools-99.99-py2.4.egg
     d  zc.buildout
+    -  zc.buildout-100.0b1-pyN.N.egg
     -  zc.buildout-99.99-py2.4.egg
 
 Let's update the sample buildout.cfg to look in this area:
@@ -77,6 +78,11 @@ new versions found in new releases:
     Installing show-versions.
     zc.buildout 99.99
     setuptools 99.99
+
+Notice that, even though we have a newer beta version of zc.buildout
+available, the final "99.99" was selected.  If you want to get non-final
+versions, specify a specific version in your buildout's versions section,
+or use the ``prefer-final-build-system = false`` discussed below.
 
 Our buildout script's site.py has been updated to use the new eggs:
 
@@ -162,7 +168,7 @@ Or in non-newest mode:
     setuptools 0.6
 
 We also won't upgrade if the buildout script being run isn't in the
-buildouts bin directory.  To see this we'll create a new buildout
+buildout's bin directory.  To see this we'll create a new buildout
 directory:
 
     >>> sample_buildout2 = tmpdir('sample_buildout2')
@@ -187,3 +193,33 @@ directory:
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
+
+Notice that, as mentioned above, the ``prefer-final-build-system =
+false`` means that newer non-final versions of these dependencies are
+preferred.
+
+    >>> cd(sample_buildout)
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ... prefer-final-build-system = false
+    ...
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+    >>> print system(buildout),
+    Getting distribution for 'zc.buildout'.
+    Got zc.buildout 100.0b1.
+    Upgraded:
+      zc.buildout version 100.0b1,
+      setuptools version 99.99;
+    restarting.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout 100.0b1
+    setuptools 99.99

@@ -116,6 +116,17 @@ parser.add_option("--eggs",
                   help=("Specify a directory for storing eggs.  Defaults to "
                         "a temporary directory that is deleted when the "
                         "bootstrap script completes."))
+parser.add_option("--accept-early-release", dest='accept_early_release',
+                  action="store_true", default=False,
+                  help=("Normally, if you do not specify a --version, the "
+                        "bootstrap script gets the newest *final* versions "
+                        "of zc.buildout for you.  If you use this flag, "
+                        "bootstrap will get the newest releases even if they "
+                        "are alphas or betas.  Note that, if you do want to "
+                        "use early buildout releases, you probably want "
+                        "to also set ``prefer-final-build-system= false`` "
+                        "in the [buildout] section of your configuration "
+                        "file."))
 parser.add_option("-c", None, action="store", dest="config_file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
@@ -177,23 +188,56 @@ cmd = [quote(sys.executable),
 if not has_broken_dash_S:
     cmd.insert(1, '-S')
 
-if options.download_base:
-    cmd.extend(['-f', quote(options.download_base)])
-
-requirement = 'zc.buildout'
-if options.version:
-    requirement = '=='.join((requirement, options.version))
-cmd.append(requirement)
+find_links = options.download_base
+if not find_links:
+    find_links = os.environ.get('bootstrap-testing-find-links')
+if find_links:
+    cmd.extend(['-f', quote(find_links)])
 
 if options.use_distribute:
     setup_requirement = 'distribute'
 else:
     setup_requirement = 'setuptools'
 ws = pkg_resources.working_set
+setup_requirement_path = ws.find(
+    pkg_resources.Requirement.parse(setup_requirement)).location
 env = dict(
     os.environ,
-    PYTHONPATH=ws.find(
-        pkg_resources.Requirement.parse(setup_requirement)).location)
+    PYTHONPATH=setup_requirement_path)
+
+requirement = 'zc.buildout'
+version = options.version
+if version is None and not options.accept_early_release:
+    # Figure out the most recent final version of zc.buildout.
+    import setuptools.package_index
+    _final_parts = '*final-', '*final'
+    def _final_version(parsed_version):
+        for part in parsed_version:
+            if (part[:1] == '*') and (part not in _final_parts):
+                return False
+        return True
+    index = setuptools.package_index.PackageIndex(
+        search_path=[setup_requirement_path])
+    if find_links:
+        index.add_find_links((find_links,))
+    req = pkg_resources.Requirement.parse(requirement)
+    if index.obtain(req) is not None:
+        best = []
+        bestv = None
+        for dist in index[req.project_name]:
+            distv = dist.parsed_version
+            if _final_version(distv):
+                if bestv is None or distv > bestv:
+                    best = [dist]
+                    bestv = distv
+                elif distv == bestv:
+                    best.append(dist)
+        if best:
+            best.sort()
+            version = best[-1].version
+if version:
+    requirement = '=='.join((requirement, version))
+cmd.append(requirement)
 
 if is_jython:
     import subprocess
