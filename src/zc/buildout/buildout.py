@@ -123,6 +123,22 @@ _buildout_default_options = _annotate_section({
     'log-format': '',
     }, 'DEFAULT_VALUE')
 
+# _buildout_version and _buildout_1_4_default_versions are part of a
+# hack specific to zc.buildout 1.4.4. Search for
+# _buildout_1_4_default_versions below to see the usage.
+_buildout_version = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('zc.buildout')).version
+
+_buildout_1_4_default_versions = {
+    # Buildout and recipes that are likely to change to 1.5.0 sooner rather
+    # than later.
+    'zc.buildout': _buildout_version,
+    'zc.recipe.egg': '1.2.2',
+    'zc.recipe.testrunner': '1.3.0',
+    'z3c.recipe.i18n': '0.7.0',
+    'z3c.recipe.tag:': '0.3.0',
+    'djangorecipe': '0.20',
+    }
 
 class Buildout(UserDict.DictMixin):
 
@@ -261,9 +277,16 @@ class Buildout(UserDict.DictMixin):
             options['newest'] = newest
         self.newest = newest == 'true'
 
-        versions = options.get('versions')
-        if versions:
-            zc.buildout.easy_install.default_versions(dict(self[versions]))
+        # This is a hacked version of zc.buildout for 1.4.4.
+        # This means that buildout uses the defaults set up above.  The point
+        # of it is to keep from migrating to 1.5 unless explicitly
+        # requested.  This lets 1.4.4 be an "aspirin release" that people can
+        # use if they are having trouble with the 1.5 releases.
+        versions = _buildout_1_4_default_versions.copy()
+        versions_section = options.get('versions')
+        if versions_section:
+            versions.update(dict(self[versions_section]))
+        zc.buildout.easy_install.default_versions(versions)
 
         prefer_final = options.get('prefer-final', 'false')
         if prefer_final not in ('true', 'false'):

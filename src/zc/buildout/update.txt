@@ -1,10 +1,20 @@
 Automatic Buildout Updates
 ==========================
 
-When a buildout is run, one of the first steps performed is to check
-for updates to either zc.buildout or setuptools.  To demonstrate this,
-we've creates some "new releases" of buildout and setuptools in a
-new_releases folder:
+NOTE: buildout 1.4.4 is a version that has been hacked to prefer itself, and
+not upgrade.  It is intended as a way for people who have trouble with the new
+1.5 line to easily keep from upgrading until they are ready.  In the future,
+we suggest that you specify the versions of your dependencies using the
+standard buildout mechanism
+(http://pypi.python.org/pypi/zc.buildout#repeatable-buildouts-controlling-eggs-used).
+However, for now, you can use 1.4.4 to easily control your dependencies.
+When this file changes because of the hack, the documentation indicates this
+with a "HACK" label.
+
+When a buildout is run, one of the first steps performed is to check for
+updates to either zc.buildout or setuptools (HACK: not zc.buildout).  To
+demonstrate this, we've created some "new releases" of buildout and
+setuptools in a new_releases folder:
 
     >>> ls(new_releases)
     d  setuptools
@@ -61,31 +71,29 @@ zc.buildout used:
 
 
 Now if we run the buildout, the buildout will upgrade itself to the
-new versions found in new releases:
+new versions found in new releases (HACK: only setuptools):
 
     >>> print system(buildout),
-    Getting distribution for 'zc.buildout'.
-    Got zc.buildout 99.99.
     Getting distribution for 'setuptools'.
     Got setuptools 99.99.
     Upgraded:
-      zc.buildout version 99.99,
       setuptools version 99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
-    zc.buildout 99.99
+    zc.buildout 1.4.4
     setuptools 99.99
 
-Our buildout script has been updated to use the new eggs:
+Our buildout script has been updated to use the new eggs (HACK: only for
+setuptools):
 
     >>> cat(sample_buildout, 'bin', 'buildout')
     #!/usr/local/bin/python2.4
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
+      '/sample-buildout/eggs/zc.buildout-1.4.4-py2.4.egg',
       '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
       ]
     <BLANKLINE>
@@ -95,8 +103,8 @@ Our buildout script has been updated to use the new eggs:
         zc.buildout.buildout.main()
 
 Now, let's recreate the sample buildout. If we specify constraints on
-the versions of zc.buildout and setuptools to use, running the
-buildout will install earlier versions of these packages:
+the versions of zc.buildout and setuptools to use, running the buildout
+will install earlier versions of these packages (HACK: only setuptools):
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -116,7 +124,6 @@ Now we can see that we actually "upgrade" to an earlier version.
 
     >>> print system(buildout),
     Upgraded:
-      zc.buildout version 1.0.0,
       setuptools version 0.6;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
@@ -175,8 +182,6 @@ directory:
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/develop-eggs'.
-    Getting distribution for 'zc.buildout'.
-    Got zc.buildout 99.99.
     Getting distribution for 'setuptools'.
     Got setuptools 99.99.
     Not upgrading because not running a local buildout command.

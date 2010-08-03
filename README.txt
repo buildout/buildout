@@ -2,6 +2,11 @@
 Buildout
 ********
 
+*Note*: the 1.4.4 release is a release for people who encounter trouble
+with the 1.5 line.  By switching to `the associated bootstrap script
+<http://svn.zope.org/repos/main/zc.buildout/branches/1.4/bootstrap/bootstrap.py>`_
+you can stay on 1.4.4 until you are ready to migrate.
+
 .. contents::
 
 The Buildout project provides support for creating applications,
@@ -126,7 +131,7 @@ If I need to run a previous version of zc.buildout, I use the
 `--version` option of the bootstrap.py script::
 
     $ python bootstrap.py --version 1.1.3
-    
+
 The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
 is a slightly more complex example of this type of buildout.
 

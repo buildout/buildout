@@ -367,7 +367,8 @@ version information to be used when no version information is passes.
 If called with an argument, it sets the default versions:
 
     >>> zc.buildout.easy_install.default_versions(dict(demoneeded='1'))
-    {}
+    ... # doctest: +ELLIPSIS
+    {...}
 
 It always returns the previous default versions.  If called without an
 argument, it simply returns the default versions without changing

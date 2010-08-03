@@ -2779,37 +2779,33 @@ def easy_install_SetUp(test):
 
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
-def makeNewRelease(project, ws, dest):
+def makeNewRelease(project, ws, dest, version='99.99'):
     dist = ws.find(pkg_resources.Requirement.parse(project))
     eggname, oldver, pyver = egg_parse(
         os.path.basename(dist.location)
         ).groups()
-    dest = os.path.join(dest, "%s-99.99-py%s.egg" % (eggname, pyver))
+    dest = os.path.join(dest, "%s-%s-py%s.egg" % (eggname, version, pyver))
     if os.path.isfile(dist.location):
         shutil.copy(dist.location, dest)
         zip = zipfile.ZipFile(dest, 'a')
         zip.writestr(
             'EGG-INFO/PKG-INFO',
             zip.read('EGG-INFO/PKG-INFO').replace("Version: %s" % oldver,
-                                                  "Version: 99.99")
+                                                  "Version: %s" % version)
             )
         zip.close()
     else:
         shutil.copytree(dist.location, dest)
         info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
         info = open(info_path).read().replace("Version: %s" % oldver,
-                                              "Version: 99.99")
+                                              "Version: %s" % version)
         open(info_path, 'w').write(info)
 
-
-def updateSetup(test):
-    zc.buildout.testing.buildoutSetUp(test)
-    new_releases = test.globs['tmpdir']('new_releases')
-    test.globs['new_releases'] = new_releases
+def getWorkingSetWithBuildoutEgg(test):
     sample_buildout = test.globs['sample_buildout']
     eggs = os.path.join(sample_buildout, 'eggs')
 
-    # If the zc.buildout dist is a develo dist, convert it to a
+    # If the zc.buildout dist is a develop dist, convert it to a
     # regular egg in the sample buildout
     req = pkg_resources.Requirement.parse('zc.buildout')
     dist = pkg_resources.working_set.find(req)
@@ -2818,7 +2814,8 @@ def updateSetup(test):
         here = os.getcwd()
         os.chdir(os.path.dirname(dist.location))
         assert os.spawnle(
-            os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable),
+            os.P_WAIT, sys.executable,
+            zc.buildout.easy_install._safe_arg(sys.executable),
             os.path.join(os.path.dirname(dist.location), 'setup.py'),
             '-q', 'bdist_egg', '-d', eggs,
             dict(os.environ,
@@ -2838,14 +2835,25 @@ def updateSetup(test):
             os.path.join(sample_buildout, 'bin'))
     else:
         ws = pkg_resources.working_set
+    return ws
 
+def updateSetup(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    new_releases = test.globs['tmpdir']('new_releases')
+    test.globs['new_releases'] = new_releases
+    ws = getWorkingSetWithBuildoutEgg(test)
     # now let's make the new releases
     makeNewRelease('zc.buildout', ws, new_releases)
-    makeNewRelease('setuptools', ws, new_releases)
-
     os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+    makeNewRelease('setuptools', ws, new_releases)
     os.mkdir(os.path.join(new_releases, 'setuptools'))
 
+def bootstrapSetup(test):
+    easy_install_SetUp(test)
+    sample_eggs = test.globs['sample_eggs']
+    ws = getWorkingSetWithBuildoutEgg(test)
+    makeNewRelease('zc.buildout', ws, sample_eggs, '1.4.4')
+    os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
 
 
 normalize_bang = (
@@ -3031,7 +3039,7 @@ def test_suite():
     if os.path.exists(bootstrap_py):
         test_suite.append(doctest.DocFileSuite(
             'bootstrap.txt',
-            setUp=easy_install_SetUp,
+            setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
