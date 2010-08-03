@@ -23,6 +23,8 @@ def read(*rnames):
 long_description=(
         read('README.txt')
         + '\n' +
+        read('SYSTEM_PYTHON_HELP.txt')
+        + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +

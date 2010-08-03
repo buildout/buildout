@@ -1189,14 +1189,15 @@ def working_set(specs, executable, path, include_site_packages=None,
 ############################################################################
 # Script generation functions
 
-def scripts(reqs, working_set, executable, dest,
-            scripts=None,
-            extra_paths=(),
-            arguments='',
-            interpreter=None,
-            initialization='',
-            relative_paths=False,
-            ):
+def scripts(
+    reqs, working_set, executable, dest,
+    scripts=None,
+    extra_paths=(),
+    arguments='',
+    interpreter=None,
+    initialization='',
+    relative_paths=False,
+    ):
     """Generate scripts and/or an interpreter.
 
     See sitepackage_safe_scripts for a version that can be used with a Python
@@ -1223,9 +1224,17 @@ _original_scripts_function = scripts
 
 def sitepackage_safe_scripts(
     dest, working_set, executable, site_py_dest,
-    reqs=(), scripts=None, interpreter=None, extra_paths=(),
-    initialization='', include_site_packages=False, exec_sitecustomize=False,
-    relative_paths=False, script_arguments='', script_initialization=''):
+    reqs=(),
+    scripts=None,
+    interpreter=None,
+    extra_paths=(),
+    initialization='',
+    include_site_packages=False,
+    exec_sitecustomize=False,
+    relative_paths=False,
+    script_arguments='',
+    script_initialization='',
+    ):
     """Generate scripts and/or an interpreter from a system Python.
 
     This accomplishes the same job as the ``scripts`` function, above,
