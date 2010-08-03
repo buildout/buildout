@@ -1068,6 +1068,7 @@ def _install_and_load(spec, group, entry, buildout):
             group, entry, spec, v)
         raise
 
+
 class Options(UserDict.DictMixin):
 
     def __init__(self, buildout, section, data):
@@ -1277,30 +1278,31 @@ class Options(UserDict.DictMixin):
                 self.name)
         return self._created
 
-    def get_bool(self, name, default=None, on_error=None):
+    def query_bool(self, name, default=None):
         """Given a name, return a boolean value for that name.
 
-        ``default``, if given, should be 'true', 'false', or None.  None
-        is the default, and means that there is no default for the
-        value: the call should raise a MissingOption error if the name
-        is not present.
-
-        ``on_error``, if given, should be a callable that takes the name and
-        the found value.
+        ``default``, if given, should be 'true', 'false', or None.
         """
-        if default is None:
-            value = self[name]
+        if default is not None:
+            value = self.setdefault(name, default=default)
         else:
-            value = self.get(name, default=default)
-        if value not in ('true', 'false'):
-            if on_error is None:
-                raise zc.buildout.UserError(
-                    'Invalid value for %s option: %s' % (name, value))
-            else:
-                on_error(name, value)
-        else:
-            return value == 'true'
+            value = self.get(name)
+            if value is None:
+                return value
+        return _convert_bool(name, value)
 
+    def get_bool(self, name):
+        """Given a name, return a boolean value for that name.
+        """
+        return _convert_bool(name, self[name])
+
+
+def _convert_bool(name, value):
+    if value not in ('true', 'false'):
+        raise zc.buildout.UserError(
+            'Invalid value for %s option: %s' % (name, value))
+    else:
+        return value == 'true'
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
