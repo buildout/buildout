@@ -1598,7 +1598,7 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
     source_dir = os.path.join(*os.path.split(real_site_path)[:-1])
     try:
         orig_prefix = open(os.path.join(source_dir, 'orig-prefix.txt')).read()
-        open(os.path.join(dest, 'orig-prefix.txt'), 'w').write(open_prefix)
+        open(os.path.join(dest, 'orig-prefix.txt'), 'w').write(orig_prefix)
     except IOError:
         pass
     if not successful_rewrite:
