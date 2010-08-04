@@ -1726,8 +1726,8 @@ def main(args=None):
             buildout = Buildout(config_file, options,
                                 user_defaults, windows_restart, command)
             getattr(buildout, command)(args)
-        except SystemExit:
-            pass
+#        except SystemExit:
+#            pass
         except Exception, v:
             _doing()
             exc_info = sys.exc_info()

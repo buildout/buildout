@@ -83,7 +83,7 @@ Our buildout script's site.py has been updated to use the new eggs:
     >>> cat(sample_buildout, 'parts', 'buildout', 'site.py')
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     "...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""

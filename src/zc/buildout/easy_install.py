@@ -1595,6 +1595,12 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
     finally:
         site.close()
         real_site.close()
+    source_dir = os.path.join(*os.path.split(real_site_path)[:-1])
+    try:
+        orig_prefix = open(os.path.join(source_dir, 'orig-prefix.txt')).read()
+        open(os.path.join(dest, 'orig-prefix.txt'), 'w').write(open_prefix)
+    except IOError:
+        pass
     if not successful_rewrite:
         raise RuntimeError(
             'Buildout did not successfully rewrite %s to %s' %
@@ -1619,7 +1625,7 @@ original_path_snippet = '''
         addsitedir(path, known_paths)'''
 
 addsitepackages_script = '''\
-def addsitepackages(known_paths):
+def addsitepackages(known_paths, sys_prefix='ignored'):
     """Add site packages, as determined by zc.buildout.
 
     See original_addsitepackages, below, for the original version."""%s

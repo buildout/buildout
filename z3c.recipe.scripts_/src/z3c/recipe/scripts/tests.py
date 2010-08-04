@@ -225,7 +225,7 @@ Let's look at the site.py that was generated:
     >>> sys.stdout.write('#'); cat(sample_buildout, 'parts', 'py', 'site.py')
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         "..."
         join = os.path.join
         base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))

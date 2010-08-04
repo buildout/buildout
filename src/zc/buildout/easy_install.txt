@@ -1091,7 +1091,7 @@ buildout inserts, in the simplest case.
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
@@ -1179,7 +1179,7 @@ paths join a base to a path, as with the use of this argument in the
 
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
@@ -1214,7 +1214,7 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
     ...     interpreter='py', extra_paths=[join(interpreter_dir, 'other')])
     >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
@@ -1273,7 +1273,7 @@ this is very straightforward.
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
@@ -1343,7 +1343,7 @@ call to another text fixture to create.
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
@@ -1403,7 +1403,7 @@ at that result.
     >>> sys.stdout.write('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
-    def addsitepackages(known_paths):
+    def addsitepackages(known_paths, sys_prefix='ignored'):
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
