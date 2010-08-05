@@ -4150,6 +4150,10 @@ def test_suite():
                  'setuptools.egg'),
                 (re.compile('zc.buildout-\S+-'),
                  'zc.buildout.egg'),
+                (re.compile(re.escape('#!"/executable_buildout/bin/py"')),
+                 '#!/executable_buildout/bin/py'), # Windows.
+                (re.compile(re.escape('/broken_s/')),
+                 '/broken_S/'), # Windows.
                 ]),
             ))
 

@@ -43,11 +43,17 @@ behavior as the problematic one we care about from virtualenv.  Let's do that
 first.
 
     >>> import os, sys
+    >>> from zc.buildout.easy_install import _safe_arg
     >>> py_path, site_packages_path = make_py()
-    >>> py_file = open(py_path)
+    >>> if sys.platform == 'win32':
+    ...     py_script_path = py_path + '-script.py'
+    ... else:
+    ...     py_script_path = py_path
+    ...
+    >>> py_file = open(py_script_path)
     >>> py_lines = py_file.readlines()
     >>> py_file.close()
-    >>> py_file = open(py_path, 'w')
+    >>> py_file = open(py_script_path, 'w')
     >>> extra = '''\
     ... new_argv = argv[:1]
     ... for ix, val in enumerate(argv[1:]):
@@ -109,11 +115,11 @@ first.
     ... ''' % (py_path,))
     >>> sitecustomize_file.close()
     >>> print call_py(
-    ...     py_path,
+    ...     _safe_arg(py_path),
     ...     "import ConfigParser")
     <BLANKLINE>
     >>> print 'X'; print call_py(
-    ...     py_path,
+    ...     _safe_arg(py_path),
     ...     "import ConfigParser",
     ...     '-S') # doctest: +ELLIPSIS
     X...Traceback (most recent call last):
@@ -152,7 +158,7 @@ First, let's try running bootstrap.
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
     >>> print 'X'; print system(
-    ...     zc.buildout.easy_install._safe_arg(py_path)+' '+
+    ...     _safe_arg(py_path)+' '+
     ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
     X...
     Generated script '/broken_S/bin/buildout'.

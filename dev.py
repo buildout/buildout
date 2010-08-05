@@ -122,7 +122,7 @@ except ImportError:
 env = os.environ.copy() # Windows needs yet-to-be-determined values from this.
 env['PYTHONPATH'] = os.path.dirname(pkg_resources.__file__)
 
-cmd = [quote(sys.executable),
+cmd = [sys.executable,
        'setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs']
 
 if not has_broken_dash_S:
