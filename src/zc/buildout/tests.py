@@ -1442,7 +1442,7 @@ def internal_errors():
       Getting section data-dir.
       Initializing part data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -2615,7 +2615,7 @@ if sys.version_info > (2, 4):
           Initializing section x.
           Loading zc.buildout recipe entry zc.buildout.testexit:default.
         <BLANKLINE>
-        An internal error occured due to a bug in either zc.buildout or in a
+        An internal error occurred due to a bug in either zc.buildout or in a
         recipe being used:
         Traceback (most recent call last):
         ...
@@ -3128,9 +3128,11 @@ We get an error if we specify anything but true or false:
 
 def buildout_prefer_final_build_system_option():
     """
-The prefer-final-build-system buildout option can be used for overriding
+The accept-buildout-test-releases buildout option can be used for overriding
 the default preference for final distributions for recipes, buildout
-extensions, and buildout itself.
+extensions, and buildout itself.  It is usually controlled via the bootstrap
+script rather than in the configuration file, but we will test the machinery
+using the file.
 
 Set up.  This creates sdists for demorecipe 1.0 and 1.1b1, and for
 demoextension 1.0 and 1.1b1.
@@ -3138,7 +3140,7 @@ demoextension 1.0 and 1.1b1.
     >>> create_sample_recipe_sdists(sample_eggs)
     >>> create_sample_extension_sdists(sample_eggs)
 
-The default is prefer-final-build-system = true:
+The default is accept-buildout-test-releases = false:
 
     >>> write('buildout.cfg',
     ... '''
@@ -3161,7 +3163,7 @@ The default is prefer-final-build-system = true:
 Here we see that the final versions of demorecipe and demoextension were used.
 
 We get the same behavior if we explicitly state that
-prefer-final-build-system = true.
+accept-buildout-test-releases = false.
 
     >>> write('buildout.cfg',
     ... '''
@@ -3169,7 +3171,7 @@ prefer-final-build-system = true.
     ... parts = demo
     ... find-links = %(link_server)s
     ... extensions = demoextension
-    ... prefer-final-build-system = true
+    ... accept-buildout-test-releases = false
     ...
     ... [demo]
     ... recipe = demorecipe
@@ -3182,7 +3184,7 @@ prefer-final-build-system = true.
     Picked: demorecipe = 1.0
     ...
 
-If we specify prefer-final-build-system = false, we'll get the newest
+If we specify accept-buildout-test-releases = true, we'll get the newest
 distributions in the build system:
 
     >>> write('buildout.cfg',
@@ -3191,7 +3193,7 @@ distributions in the build system:
     ... parts = demo
     ... find-links = %(link_server)s
     ... extensions = demoextension
-    ... prefer-final-build-system = false
+    ... accept-buildout-test-releases = true
     ...
     ... [demo]
     ... recipe = demorecipe
@@ -3212,7 +3214,7 @@ We get an error if we specify anything but true or false:
     ... parts = demo
     ... find-links = %(link_server)s
     ... extensions = demoextension
-    ... prefer-final-build-system = no
+    ... accept-buildout-test-releases = no
     ...
     ... [demo]
     ... recipe = demorecipe
@@ -3221,7 +3223,7 @@ We get an error if we specify anything but true or false:
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
     While:
       Initializing.
-    Error: Invalid value for prefer-final-build-system option: no
+    Error: Invalid value for accept-buildout-test-releases option: no
 
     """
 

@@ -463,7 +463,7 @@ leave previously created paths in place:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
       ...
@@ -495,7 +495,7 @@ If we fix the typo:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -572,7 +572,7 @@ When we rerun the buildout:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -653,7 +653,7 @@ directories will be created:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -729,6 +729,8 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
+    accept-buildout-test-releases= false
+        DEFAULT_VALUE
     allow-hosts= *
         DEFAULT_VALUE
     allow-picked-versions= true
@@ -764,8 +766,6 @@ COMMAND_LINE_VALUE).
     parts-directory= parts
         DEFAULT_VALUE
     prefer-final= false
-        DEFAULT_VALUE
-    prefer-final-build-system= true
         DEFAULT_VALUE
     python= buildout
         DEFAULT_VALUE
@@ -1014,7 +1014,7 @@ Extending sections (macros)
 ---------------------------
 
 A section (other than the buildout section) can extend one or more
-other sections using the ``<`` option.  Options from the referenced
+other sections using the ``<=`` option.  Options from the referenced
 sections are copied to the refering section *before* variable
 substitution.  This, together with the ability to refer to variables
 of the current section allows sections to be used as macros.
@@ -2229,6 +2229,7 @@ database is shown.
     <BLANKLINE>
     Configuration data:
     [buildout]
+    accept-buildout-test-releases = false
     allow-hosts = *
     allow-picked-versions = true
     bin-directory = /sample-buildout/bin
@@ -2246,7 +2247,6 @@ database is shown.
     parts =
     parts-directory = /sample-buildout/parts
     prefer-final = false
-    prefer-final-build-system = true
     python = buildout
     relative-paths = false
     socket-timeout =
@@ -2502,19 +2502,18 @@ new releases, final releases are preferred.  If there are final
 releases that satisfy distribution requirements, then those releases
 are used even if newer non-final releases are available.
 
-A separate option controls the behavior of the build system itself.
-When buildout looks for recipes, extensions, and for updates to itself,
-it does prefer final releases by default, as of the 1.5.0 release.  The
-``prefer-final-build-system`` option will let you override this behavior.
-
-  [buildout]
-  ...
-  prefer-final-build-system = false
-
 In buildout version 2, all final releases will be preferred by
 default--that is ``prefer-final`` will also default to 'true'. You will
 then need to use a 'false' value for ``prefer-final`` to get the newest
-releases, like with ``prefer-final-build-system``.
+releases.
+
+A separate option controls the behavior of the build system itself.
+When buildout looks for recipes, extensions, and for updates to itself,
+it does prefer final releases by default, as of the 1.5.0 release.  The
+``accept-buildout-test-releases`` option will let you override this behavior.
+However, it is typically changed by the --accept-buildout-test-releases
+option to the bootstrap script, since bootstrapping is the first step to
+selecting a buildout.
 
 Finding distributions
 ---------------------

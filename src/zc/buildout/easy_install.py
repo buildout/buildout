@@ -577,7 +577,7 @@ class Installer:
 
             if exit_code:
                 logger.error(
-                    "An error occured when trying to install %s. "
+                    "An error occurred when trying to install %s. "
                     "Look above this message for any errors that "
                     "were output by easy_install.",
                     dist)

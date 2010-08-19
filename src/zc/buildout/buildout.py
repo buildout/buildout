@@ -116,6 +116,7 @@ def _unannotate(data):
     return data
 
 _buildout_default_options = _annotate_section({
+    'accept-buildout-test-releases': 'false',
     'allow-hosts': '*',
     'allow-picked-versions': 'true',
     'bin-directory': 'bin',
@@ -131,7 +132,6 @@ _buildout_default_options = _annotate_section({
     'offline': 'false',
     'parts-directory': 'parts',
     'prefer-final': 'false',
-    'prefer-final-build-system': 'true',
     'python': 'buildout',
     'relative-paths': 'false',
     'socket-timeout': '',
@@ -235,8 +235,8 @@ class Buildout(UserDict.DictMixin):
         self._logger = logging.getLogger('zc.buildout')
         self.offline = (buildout_section['offline'] == 'true')
         self.newest = (buildout_section['newest'] == 'true')
-        self.prefer_final_build_system = (
-            buildout_section['prefer-final-build-system'] == 'true')
+        self.accept_buildout_test_releases = (
+            buildout_section['accept-buildout-test-releases'] == 'true')
 
         ##################################################################
         ## WARNING!!!
@@ -281,8 +281,8 @@ class Buildout(UserDict.DictMixin):
         self.newest = options.get_bool('newest')
         zc.buildout.easy_install.prefer_final(
             options.get_bool('prefer-final'))
-        self.prefer_final_build_system = options.get_bool(
-            'prefer-final-build-system')
+        self.accept_buildout_test_releases = options.get_bool(
+            'accept-buildout-test-releases')
         zc.buildout.easy_install.use_dependency_links(
             options.get_bool('use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
@@ -338,7 +338,7 @@ class Buildout(UserDict.DictMixin):
                 [options['develop-eggs-directory'],
                  options['eggs-directory']],
                 include_site_packages=_sys_executable_has_broken_dash_S,
-                prefer_final = self.prefer_final_build_system,
+                prefer_final=not self.accept_buildout_test_releases,
                 )
         else:
             ws = zc.buildout.easy_install.install(
@@ -350,7 +350,7 @@ class Buildout(UserDict.DictMixin):
                 newest=self.newest,
                 allow_hosts=self._allow_hosts,
                 include_site_packages=_sys_executable_has_broken_dash_S,
-                prefer_final = self.prefer_final_build_system,
+                prefer_final=not self.accept_buildout_test_releases,
                 )
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
@@ -373,7 +373,9 @@ class Buildout(UserDict.DictMixin):
                     else:
                         shutil.copy2(dist.location, dest)
 
-        # Create buildout script
+        # Create buildout script.
+        # Ideally the (possibly) new version of buildout would get a
+        # chance to write the script.  Not sure how to do that.
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
         partsdir = os.path.join(options['parts-directory'], 'buildout')
@@ -386,12 +388,19 @@ class Buildout(UserDict.DictMixin):
         else:
             assert relative_paths == 'false'
             relative_paths = ''
-        # Ideally the (possibly) new version of buildout would get a
-        # chance to write the script.  Not sure how to do that.
+        if (self.accept_buildout_test_releases and
+            self._annotated['buildout']['accept-buildout-test-releases'][1] ==
+            'COMMAND_LINE_VALUE'):
+            # Bootstrap was called with '--accept-buildout-test-releases'.
+            # Continue to honor that setting.
+            script_initialization = _early_release_initialization_code
+        else:
+            script_initialization = ''
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
             reqs=['zc.buildout'], relative_paths=relative_paths,
-            include_site_packages=_sys_executable_has_broken_dash_S)
+            include_site_packages=_sys_executable_has_broken_dash_S,
+            script_initialization=script_initialization,)
 
     init = bootstrap
 
@@ -838,7 +847,7 @@ class Buildout(UserDict.DictMixin):
             path = [options['develop-eggs-directory']],
             allow_hosts = self._allow_hosts,
             include_site_packages=_sys_executable_has_broken_dash_S,
-            prefer_final=self.prefer_final_build_system,
+            prefer_final=not self.accept_buildout_test_releases,
             )
 
         upgraded = []
@@ -886,18 +895,27 @@ class Buildout(UserDict.DictMixin):
 
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
+        # Ideally the new version of buildout would get a chance to write the
+        # script.  Not sure how to do that.
         partsdir = os.path.join(options['parts-directory'], 'buildout')
         if os.path.exists(partsdir):
             # This is primarily for unit tests, in which .py files change too
             # fast for Python to know to regenerate the .pyc/.pyo files.
             shutil.rmtree(partsdir)
         os.mkdir(partsdir)
-        # Ideally the new version of buildout would get a chance to write the
-        # script.  Not sure how to do that.
+        if (self.accept_buildout_test_releases and
+            self._annotated['buildout']['accept-buildout-test-releases'][1] ==
+            'COMMAND_LINE_VALUE'):
+            # Bootstrap was called with '--accept-buildout-test-releases'.
+            # Continue to honor that setting.
+            script_initialization = _early_release_initialization_code
+        else:
+            script_initialization = ''
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, sys.executable, partsdir,
             reqs=['zc.buildout'],
-            include_site_packages=_sys_executable_has_broken_dash_S)
+            include_site_packages=_sys_executable_has_broken_dash_S,
+            script_initialization=script_initialization)
 
         # Restart
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
@@ -939,7 +957,7 @@ class Buildout(UserDict.DictMixin):
                 index = self['buildout'].get('index'),
                 newest=self.newest, allow_hosts=self._allow_hosts,
                 include_site_packages=_sys_executable_has_broken_dash_S,
-                prefer_final=self.prefer_final_build_system)
+                prefer_final=not self.accept_buildout_test_releases)
 
             # Clear cache because extensions might now let us read pages we
             # couldn't read before.
@@ -1055,7 +1073,7 @@ def _install_and_load(spec, group, entry, buildout):
                 newest=buildout.newest,
                 allow_hosts=buildout._allow_hosts,
                 include_site_packages=_sys_executable_has_broken_dash_S,
-                prefer_final=buildout.prefer_final_build_system)
+                prefer_final=not buildout.accept_buildout_test_releases)
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
         return pkg_resources.load_entry_point(
@@ -1514,7 +1532,7 @@ def _error(*message):
     sys.exit(1)
 
 _internal_error_template = """
-An internal error occured due to a bug in either zc.buildout or in a
+An internal error occurred due to a bug in either zc.buildout or in a
 recipe being used:
 """
 
@@ -1525,6 +1543,13 @@ def _check_for_unused_options_in_section(buildout, section):
         buildout._logger.warn("Unused options for %s: %s."
                               % (section, ' '.join(map(repr, unused)))
                               )
+
+_early_release_initialization_code = """\
+sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
+print ('NOTE: Accepting early releases of build system packages.  Rerun '
+       'bootstrap without --accept-buildout-test-releases (-t) to return to '
+       'default behavior.')
+"""
 
 _usage = """\
 Usage: buildout [options] [assignments] [command [command arguments]]

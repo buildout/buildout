@@ -81,8 +81,10 @@ new versions found in new releases:
 
 Notice that, even though we have a newer beta version of zc.buildout
 available, the final "99.99" was selected.  If you want to get non-final
-versions, specify a specific version in your buildout's versions section,
-or use the ``prefer-final-build-system = false`` discussed below.
+versions, specify a specific version in your buildout's versions
+section, you typically want to use the --accept-buildout-test-releases
+option to the bootstrap script, which internally uses the
+``accept-buildout-test-releases = true`` discussed below.
 
 Our buildout script's site.py has been updated to use the new eggs:
 
@@ -194,9 +196,14 @@ directory:
 
     >>> ls('bin')
 
-Notice that, as mentioned above, the ``prefer-final-build-system =
-false`` means that newer non-final versions of these dependencies are
-preferred.
+As mentioned above, the ``accept-buildout-test-releases = true`` means that
+newer non-final versions of these dependencies are preferred.  Typically
+users are not expected to actually manipulate this value.  Instead, the
+bootstrap script creates a buildout buildout script that passes in the
+value as a command line override. This then results in the buildout
+script being rewritten to remember the decision.
+
+We'll mimic this by passing the argument actually in the command line.
 
     >>> cd(sample_buildout)
     >>> write(sample_buildout, 'buildout.cfg',
@@ -206,20 +213,39 @@ preferred.
     ... index = %(new_releases)s
     ... parts = show-versions
     ... develop = showversions
-    ... prefer-final-build-system = false
     ...
     ... [show-versions]
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print system(buildout),
+    >>> print system(buildout +
+    ...              ' buildout:accept-buildout-test-releases=true'),
+    ... # doctest: +NORMALIZE_WHITESPACE
     Getting distribution for 'zc.buildout'.
     Got zc.buildout 100.0b1.
     Upgraded:
       zc.buildout version 100.0b1,
       setuptools version 99.99;
     restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    NOTE: Accepting early releases of build system packages.  Rerun bootstrap
+          without --accept-buildout-test-releases (-t) to return to default
+          behavior.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 100.0b1
     setuptools 99.99
+
+The buildout script shows the change.
+
+    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> import sys
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
+    print ('NOTE: Accepting early releases of build system packages.  Rerun '
+           'bootstrap without --accept-buildout-test-releases (-t) to return to '
+           'default behavior.')
+    ...

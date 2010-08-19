@@ -16,8 +16,6 @@
 Simply run this script in a directory containing a buildout.cfg.
 The script accepts buildout command-line options, so you can
 use the -c option to specify an alternate configuration file.
-
-$Id$
 """
 
 import os, shutil, sys, tempfile, textwrap, urllib, urllib2, subprocess
@@ -121,17 +119,15 @@ parser.add_option("--eggs",
                   help=("Specify a directory for storing eggs.  Defaults to "
                         "a temporary directory that is deleted when the "
                         "bootstrap script completes."))
-parser.add_option("--accept-early-release", dest='accept_early_release',
+parser.add_option("-t", "--accept-buildout-test-releases",
+                  dest='accept_buildout_test_releases',
                   action="store_true", default=False,
                   help=("Normally, if you do not specify a --version, the "
-                        "bootstrap script gets the newest *final* versions "
-                        "of zc.buildout for you.  If you use this flag, "
-                        "bootstrap will get the newest releases even if they "
-                        "are alphas or betas.  Note that, if you do want to "
-                        "use early buildout releases, you probably want "
-                        "to also set ``prefer-final-build-system= false`` "
-                        "in the [buildout] section of your configuration "
-                        "file."))
+                        "bootstrap script and buildout gets the newest "
+                        "*final* versions of zc.buildout and its recipes and "
+                        "extensions for you.  If you use this flag, "
+                        "bootstrap and buildout will get the newest releases "
+                        "even if they are alphas or betas."))
 parser.add_option("-c", None, action="store", dest="config_file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
@@ -153,16 +149,15 @@ if options.setup_source is None:
     else:
         options.setup_source = setuptools_source
 
-args = args + ['bootstrap']
-
+if options.accept_buildout_test_releases:
+    args.append('buildout:accept-buildout-test-releases=true')
+args.append('bootstrap')
 
 try:
-    to_reload = False
     import pkg_resources
-    to_reload = True
+    import setuptools # A flag.  Sometimes pkg_resources is installed alone.
     if not hasattr(pkg_resources, '_distribute'):
         raise ImportError
-    import setuptools # A flag.  Sometimes pkg_resources is installed alone.
 except ImportError:
     ez_code = urllib2.urlopen(
         options.setup_source).read().replace('\r\n', '\n')
@@ -174,10 +169,8 @@ except ImportError:
     if options.use_distribute:
         setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
-    if to_reload:
-        reload(pkg_resources)
-    else:
-        import pkg_resources
+    reload(sys.modules['pkg_resources'])
+    import pkg_resources
     # This does not (always?) update the default working set.  We will
     # do it.
     for path in sys.path:
@@ -212,7 +205,7 @@ env = dict(
 
 requirement = 'zc.buildout'
 version = options.version
-if version is None and not options.accept_early_release:
+if version is None and not options.accept_buildout_test_releases:
     # Figure out the most recent final version of zc.buildout.
     import setuptools.package_index
     _final_parts = '*final-', '*final'
@@ -252,7 +245,7 @@ else: # Windows prefers this, apparently; otherwise we would prefer subprocess
 if exitcode != 0:
     sys.stdout.flush()
     sys.stderr.flush()
-    print ("An error occured when trying to install zc.buildout. "
+    print ("An error occurred when trying to install zc.buildout. "
            "Look above this message for any errors that "
            "were output by easy_install.")
     sys.exit(exitcode)

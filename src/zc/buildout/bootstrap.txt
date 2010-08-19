@@ -93,23 +93,14 @@ If you want to accept early releases of zc.buildout, you either need to
 specify an explicit version (using --version here and specifying the
 version in the buildout configuration file using the
 ``buildout-version`` option or the ``versions`` option) or specify that you
-accept early releases.
-
-You accept early releases by using ``--accept-early-release`` on the
-bootstrap script and specifying ``prefer-final-build-system = false`` in the
-buildout configuration file.  You must do both.
+accept early releases by using ``--accept-buildout-test-releases`` on the
+bootstrap script.
 
 Here's an example.
 
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts =
-    ... prefer-final-build-system = false
-    ... ''')
     >>> ignored = system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --accept-early-release')
+    ...     'bootstrap.py --accept-buildout-test-releases')
     >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
     "...
         buildout_paths = [
@@ -120,13 +111,41 @@ Here's an example.
 
 Notice we are now using zc.buildout 100.0b1, a non-final release.
 
-Now we'll go back to the default of preferring final versions.
+The buildout script remembers the decision to accept early releases, and
+alerts the user.
 
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts =
-    ... ''')
+    >>> print system(join('bin', 'buildout')),
+    ... # doctest: +NORMALIZE_WHITESPACE
+    NOTE: Accepting early releases of build system packages.  Rerun bootstrap
+          without --accept-buildout-test-releases (-t) to return to default
+          behavior.
+
+This is accomplished within the script itself.
+
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
+    print ('NOTE: Accepting early releases of build system packages.  Rerun '
+           'bootstrap without --accept-buildout-test-releases (-t) to return to '
+           'default behavior.')
+    ...
+
+As the note says, to undo, you just need to re-run bootstrap without
+--accept-buildout-test-releases.
+
+    >>> ignored = system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py')
+    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample/eggs/setuptools-...egg',
+            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            ]
+    ...
+    >>> ('buildout:accept-buildout-test-releases=true' in
+    ... open(buildout_script).read())
+    False
 
 Now we will try the `--version` option, which lets you define a version for
 `zc.buildout`. If not provided, bootstrap will look for the latest one.
@@ -329,14 +348,12 @@ Here's the entire help text.
       --eggs=EGGS           Specify a directory for storing eggs.  Defaults to a
                             temporary directory that is deleted when the bootstrap
                             script completes.
-      --accept-early-release
+      -t, --accept-buildout-test-releases
                             Normally, if you do not specify a --version, the
-                            bootstrap script gets the newest *final* versions of
-                            zc.buildout for you.  If you use this flag, bootstrap
+                            bootstrap script and buildout gets the newest *final*
+                            versions of zc.buildout and its recipes and extensions
+                            for you.  If you use this flag, bootstrap and buildout
                             will get the newest releases even if they are alphas
-                            or betas.  Note that, if you do want to use early
-                            buildout releases, you probably want to also set
-                            ``prefer-final-build-system= false`` in the [buildout]
-                            section of your configuration file.
+                            or betas.
       -c CONFIG_FILE        Specify the path to the buildout configuration file to
                             be used.
