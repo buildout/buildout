@@ -28,8 +28,8 @@ Working with a System Python
 ============================
 
 While there are a number of new features available in zc.buildout 1.5,
-the biggest is that Buildout itself attempts to support usage with a system
-Python.  This can work if you follow a couple of simple rules.
+the biggest is that Buildout itself supports usage with a system Python.
+This can work if you follow a couple of simple rules.
 
 1. Use the new bootstrap.py (available from
    svn://svn.zope.org/repos/main/zc.buildout/trunk/bootstrap/bootstrap.py).
@@ -38,10 +38,11 @@ Python.  This can work if you follow a couple of simple rules.
    and higher.  Specifically, they should use
    ``zc.buildout.easy_install.sitepackage_safe_scripts`` to generate
    their scripts, if any, rather than ``zc.buildout.easy_install.scripts``.
-   See the Recipes_ section below for more details on recipes that are
-   available as of this writing, and `Updating Recipes`_ for
-   instructions on how to update a recipe.  Note that you should generally
-   only need to update recipes that generate scripts.
+   See the `Recipes That Support a System Python`_ section below for more
+   details on recipes that are available as of this writing, and
+   `Updating Recipes to Support a System Python`_ for instructions on
+   how to update a recipe.  Note that you should generally only need to
+   update recipes that generate scripts.
 
 It's important to note that recipes not upgraded for zc.buildout 1.5.0
 should continue to work--just not with a system Python.
@@ -59,8 +60,8 @@ zc.buildout code for this feature has been tested by many users already.
 Moreover, it has automated tests to exercise the problems that have been
 encountered and fixed.
 
-Recipes
-=======
+Recipes That Support a System Python
+====================================
 
 zc.recipe.egg continues to generate old-style scripts that are not safe
 for use with a system Python.  This was done for backwards
@@ -79,7 +80,8 @@ Python.
 
 This is the only updated recipe as of this writing. Others should be
 updated soon: see their change documents for details, or see `Updating
-Recipes`_ for instructions on how to update recipes yourself.
+Recipes to Support a System Python`_ for instructions on how to update
+recipes yourself.
 
 Templates for creating Python scripts with the z3c.recipe.filetemplate
 recipe can be easily changed to support a system Python.  Use
@@ -99,8 +101,8 @@ Buildout configuration section labeled "scripts".
     sys.path.insert(0, ${scripts:parts-directory|path-repr})
     import site
 
-Updating Recipes
-================
+Updating Recipes to Support a System Python
+===========================================
 
 You should generally only need to update recipes that generate scripts.
 These recipes need to change from using ``zc.buildout.easy_install.scripts``
@@ -146,6 +148,7 @@ this.
 
 ::
 
+        self.options = options
         b_options = buildout['buildout']
         options['parts-directory'] = os.path.join(
             b_options['parts-directory'], self.name)
