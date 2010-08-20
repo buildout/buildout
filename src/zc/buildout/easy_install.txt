@@ -1277,6 +1277,7 @@ this is very straightforward.
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
+        setuptools_path = None
         buildout_paths = [
             '/interpreter/eggs/demo-0.3-pyN.N.egg',
             '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
@@ -1291,7 +1292,7 @@ this is very straightforward.
             ...
             ]
         for path in original_paths:
-            if path not in known_paths:
+            if path == setuptools_path or path not in known_paths:
                 addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>
@@ -1369,7 +1370,7 @@ call to another text fixture to create.
             ...
             ]
         for path in original_paths:
-            if path not in known_paths:
+            if path == setuptools_path or path not in known_paths:
                 addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>
@@ -1434,7 +1435,7 @@ at that result.
             ...
             ]
         for path in original_paths:
-            if path not in known_paths:
+            if path == setuptools_path or path not in known_paths:
                 addsitedir(path, known_paths)
         return known_paths
     <BLANKLINE>

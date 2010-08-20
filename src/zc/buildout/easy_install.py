@@ -1650,6 +1650,8 @@ def _generate_site(dest, working_set, executable, extra_paths=(),
             original_path_setup = (
                 addsitedir_namespace_originalpackages_snippet +
                 original_path_setup)
+        else:
+            preamble = '\n    setuptools_path = None'
     egg_path_string, relative_preamble = _relative_path_and_setup(
         site_path, path, relative_paths, indent_level=2, omit_os_import=True)
     if relative_preamble:
@@ -1699,7 +1701,7 @@ original_path_snippet = '''
         %s
         ]
     for path in original_paths:
-        if path not in known_paths:
+        if path == setuptools_path or path not in known_paths:
             addsitedir(path, known_paths)'''
 
 addsitepackages_script = '''\
