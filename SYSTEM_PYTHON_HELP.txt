@@ -84,19 +84,28 @@ Recipes to Support a System Python`_ for instructions on how to update
 recipes yourself.
 
 Templates for creating Python scripts with the z3c.recipe.filetemplate
-recipe can be easily changed to support a system Python.  Use
-z3c.recipe.scripts to generate a script or interpreter with the
-dependencies you want.  This will create a directory in ``parts`` that
-has a site.py and sitecustomize.py.  Now, in your Python template, have
-a shebang line that makes Python start with -S:
-``#!${buildout:executable} -S`` will work on many modern
-distributions, for instance.  Then include the following snippet at the top of
-the file (after ``${python-relative-path-setup}`` if you are using the
-relative path support).  This assumes that the scripts generated were from a
-Buildout configuration section labeled "scripts".
+recipe can be easily changed to support a system Python.
 
-::
+- If you don't care about supporting relative paths, simply using a
+  generated interpreter with the eggs you want should be sufficient, as
+  it was before. For instance, if the interpreter is named "py", use
+  ``#!${buildout:bin-directory/py}`` or ``#!/usr/bin/env
+  ${buildout:bin-directory/py}``).
 
+- If you do care about relative paths,  (``relative-paths = true`` in
+  your buildout configuration), then z3c.recipe.scripts does require a
+  bit more changes, as is usual for the relative path support in that
+  package.  First, use z3c.recipe.scripts to generate a script or
+  interpreter with the dependencies you want.  This will create a
+  directory in ``parts`` that has a site.py and sitecustomize.py.  Then,
+  begin your script as in the snippet below.  The example assumes that
+  the z3c.recipe.scripts generated were from a Buildout configuration
+  section labeled "scripts": adjust accordingly.
+
+  ::
+
+    #!${buildout:executable} -S
+    ${python-relative-path-setup}
     import sys
     sys.path.insert(0, ${scripts:parts-directory|path-repr})
     import site
