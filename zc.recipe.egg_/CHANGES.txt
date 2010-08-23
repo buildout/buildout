@@ -1,10 +1,11 @@
 Change History
 **************
 
-1.3.1 (unreleased)
+1.3.1 (2010-08-23)
 ==================
 
-(no changes so far)
+- Support recipes that are using zc.recipe.egg by passing in a dict, rather
+  than a zc.buildout.buildout.Options object as was expected/tested.
 
 1.3.0 (2010-08-23)
 ==================

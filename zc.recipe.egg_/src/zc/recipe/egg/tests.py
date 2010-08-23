@@ -29,6 +29,40 @@ def dirname(d, level=1):
         return d
     return dirname(os.path.dirname(d), level-1)
 
+def testUsingDictAsOptions():
+    """
+Some recipes using zc.recipe.egg have been passing dictionaries rather than
+zc.buildout.buildout.Options objects.  That's unexpected, but to save
+complaints, we'll support it.
+
+Note that this test intends to show that a dictionary can be used as an
+options object.  It also uses a dictionary for the buildout object, which is
+not intended.
+
+    >>> import zc.buildout.buildout
+    >>> import zc.recipe.egg
+    >>> faux_egg_options = {
+    ...     'find-links': 'example.com',
+    ...     'bin-directory': '/somewhere/over/rainbow'}
+    >>> faux_buildout_options = zc.buildout.buildout._unannotate_section(
+    ...     zc.buildout.buildout._buildout_default_options.copy())
+    >>> faux_buildout = {
+    ...     'faux': faux_egg_options, 'buildout': faux_buildout_options}
+    >>> scripts = zc.recipe.egg.Scripts(
+    ...     faux_buildout, 'faux', faux_egg_options)
+    >>> scripts.links
+    ['example.com']
+    >>> import zc.buildout.easy_install
+    >>> old_install = zc.buildout.easy_install.install
+    >>> old_scripts = zc.buildout.easy_install.scripts
+    >>> def whatever(*args, **kwargs): pass
+    >>> zc.buildout.easy_install.install = whatever
+    >>> zc.buildout.easy_install.scripts = whatever
+    >>> scripts.install() # This used to fail!
+    >>> zc.buildout.easy_install.install = old_install
+    >>> zc.buildout.easy_install.scripts = old_scripts
+"""
+
 def setUp(test):
     zc.buildout.tests.easy_install_SetUp(test)
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
@@ -96,7 +130,9 @@ def test_suite():
                 (re.compile('extdemo[.]pyd'), 'extdemo.so')
                 ]),
             ),
-
+        doctest.DocTestSuite(
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            ),
         ))
 
     if sys.version_info[:2] != (2, 4):

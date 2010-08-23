@@ -16,7 +16,8 @@
 $Id$
 """
 
-import logging, os, re, zipfile
+import UserDict, logging, os, re, zipfile
+import zc.buildout
 import zc.buildout.easy_install
 
 
@@ -27,6 +28,11 @@ class Eggs(object):
     def __init__(self, buildout, name, options):
         self.buildout = buildout
         self.name = self.default_eggs = name
+        if getattr(options, 'query_bool', None) is None:
+            # Someone is not passing us a zc.buildout.buildout.Options
+            # object.  Maybe we should have a deprecation warning.
+            # Whatever.
+            options = _BackwardsSupportOption(options)
         self.options = options
         b_options = buildout['buildout']
         links = options.get('find-links', b_options['find-links'])
@@ -190,3 +196,32 @@ class Scripts(ScriptBase):
             )
 
 Egg = Scripts
+
+
+class _BackwardsSupportOption(UserDict.UserDict):
+
+    def query_bool(self, name, default=None):
+        """Given a name, return a boolean value for that name.
+
+        ``default``, if given, should be 'true', 'false', or None.
+        """
+        if default is not None:
+            value = self.setdefault(name, default)
+        else:
+            value = self.get(name)
+            if value is None:
+                return value
+        return _convert_bool(name, value)
+
+    def get_bool(self, name):
+        """Given a name, return a boolean value for that name.
+        """
+        return _convert_bool(name, self[name])
+
+
+def _convert_bool(name, value):
+    if value not in ('true', 'false'):
+        raise zc.buildout.UserError(
+            'Invalid value for %s option: %s' % (name, value))
+    else:
+        return value == 'true'
