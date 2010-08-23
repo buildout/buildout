@@ -35,23 +35,13 @@ class Base(ScriptBase):
             '*')
         self.allowed_eggs = tuple(name.strip() for name in value.split('\n'))
 
-        value = options.setdefault(
+        self.include_site_packages = options.query_bool(
             'include-site-packages',
-            b_options.get('include-site-packages', 'false'))
-        if value not in ('true', 'false'):
-            raise zc.buildout.UserError(
-                "Invalid value for include-site-packages option: %s" %
-                (value,))
-        self.include_site_packages = (value == 'true')
+            default=b_options.get('include-site-packages', 'false'))
 
-        value = options.setdefault(
+        self.exec_sitecustomize = options.query_bool(
             'exec-sitecustomize',
-            b_options.get('exec-sitecustomize', 'false'))
-        if value not in ('true', 'false'):
-            raise zc.buildout.UserError(
-                "Invalid value for exec-sitecustomize option: %s" %
-                (value,))
-        self.exec_sitecustomize = (value == 'true')
+            default=b_options.get('exec-sitecustomize', 'false'))
 
 
 class Interpreter(Base):

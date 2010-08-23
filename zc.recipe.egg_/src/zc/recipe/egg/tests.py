@@ -43,54 +43,58 @@ def test_suite():
             'README.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               zc.buildout.tests.normalize_bang,
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
-                'zc.buildout.egg'),
-               (re.compile('[-d]  (setuptools|distribute)-[^-]+-'),
-                'setuptools-X-'),
-               (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
-               (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
-               # Distribute unzips eggs by default.
-               (re.compile('\-  demoneeded'), 'd  demoneeded'),
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.normalize_bang,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                 'zc.buildout.egg'),
+                (re.compile('[-d]  (setuptools|distribute)-[^-]+-'),
+                 'setuptools-X-'),
+                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
+                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
+                # Distribute unzips eggs by default.
+                (re.compile('\-  demoneeded'), 'd  demoneeded'),
+                ])
             ),
         doctest.DocFileSuite(
             'api.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               (re.compile('__buildout_signature__ = '
-                           'sample-\S+\s+'
-                           'zc.recipe.egg-\S+\s+'
-                           '(setuptools|distribute)-\S+\s+'
-                           'zc.buildout-\S+\s*'
-                           ),
-                '__buildout_signature__ = sample- zc.recipe.egg-\n'),
-               (re.compile('executable = [\S ]+python\S*', re.I),
-                'executable = python'),
-               (re.compile('find-links = http://localhost:\d+/'),
-                'find-links = http://localhost:8080/'),
-               (re.compile('index = http://localhost:\d+/index'),
-                'index = http://localhost:8080/index'),
-               ])
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.tests.hide_distribute_additions,
+                (re.compile('__buildout_signature__ = '
+                            'sample-\S+\s+'
+                            'zc.recipe.egg-\S+\s+'
+                            '(setuptools|distribute)-\S+\s+'
+                            'zc.buildout-\S+\s*'
+                            ),
+                 '__buildout_signature__ = sample- zc.recipe.egg-\n'),
+                (re.compile('executable = [\S ]+python\S*', re.I),
+                 'executable = python'),
+                (re.compile('find-links = http://localhost:\d+/'),
+                 'find-links = http://localhost:8080/'),
+                (re.compile('index = http://localhost:\d+/index'),
+                 'index = http://localhost:8080/index'),
+                ])
             ),
         doctest.DocFileSuite(
             'custom.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               (re.compile("(d  ((ext)?demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
-                '\\1V.V.egg'),
-               (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
-               (re.compile('extdemo[.]pyd'), 'extdemo.so')
-               ]),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.tests.hide_distribute_additions,
+                zc.buildout.tests.hide_zip_safe_message,
+                (re.compile("(d  ((ext)?demo(needed)?|other)"
+                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                 '\\1V.V.egg'),
+                (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
+                (re.compile('extdemo[.]pyd'), 'extdemo.so')
+                ]),
             ),
 
         ))
@@ -104,21 +108,22 @@ def test_suite():
                 setUp=setUpSelecting,
                 tearDown=zc.buildout.testing.buildoutTearDown,
                 checker=renormalizing.RENormalizing([
-                   zc.buildout.testing.normalize_path,
-                   zc.buildout.testing.normalize_endings,
-                   zc.buildout.testing.normalize_script,
-                   (re.compile('Got (setuptools|distribute) \S+'),
-                    'Got setuptools V'),
-                   (re.compile('([d-]  )?(setuptools|distribute)-\S+-py'),
-                    'setuptools-V-py'),
-                   (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
-                   (re.compile('zc.buildout-\S+[.]egg'),
-                    'zc.buildout.egg'),
-                   (re.compile('zc.buildout[.]egg-link'),
-                    'zc.buildout.egg'),
-                   # Distribute unzips eggs by default.
-                   (re.compile('\-  demoneeded'), 'd  demoneeded'),
-                   ]),
+                    zc.buildout.testing.normalize_path,
+                    zc.buildout.testing.normalize_endings,
+                    zc.buildout.testing.normalize_script,
+                    zc.buildout.tests.hide_distribute_additions,
+                    (re.compile('Got (setuptools|distribute) \S+'),
+                     'Got setuptools V'),
+                    (re.compile('([d-]  )?(setuptools|distribute)-\S+-py'),
+                     'setuptools-V-py'),
+                    (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
+                    (re.compile('zc.buildout-\S+[.]egg'),
+                     'zc.buildout.egg'),
+                    (re.compile('zc.buildout[.]egg-link'),
+                     'zc.buildout.egg'),
+                    # Distribute unzips eggs by default.
+                    (re.compile('\-  demoneeded'), 'd  demoneeded'),
+                    ]),
                 ),
             )
 
