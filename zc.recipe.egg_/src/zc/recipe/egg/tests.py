@@ -41,11 +41,10 @@ not intended.
 
     >>> import zc.buildout.buildout
     >>> import zc.recipe.egg
-    >>> faux_egg_options = {
-    ...     'find-links': 'example.com',
-    ...     'bin-directory': '/somewhere/over/rainbow'}
+    >>> faux_egg_options = {'find-links': 'example.com'}
     >>> faux_buildout_options = zc.buildout.buildout._unannotate_section(
     ...     zc.buildout.buildout._buildout_default_options.copy())
+    >>> faux_buildout_options['bin-directory'] = '/somewhere/over/rainbow'
     >>> faux_buildout = {
     ...     'faux': faux_egg_options, 'buildout': faux_buildout_options}
     >>> scripts = zc.recipe.egg.Scripts(
