@@ -52,9 +52,6 @@ class Eggs(object):
         options['develop-eggs-directory'] = b_options['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
 
-        # verify that this is None, 'true' or 'false'
-        get_bool(options, 'unzip')
-
         python = options.setdefault('python', b_options['python'])
         options['executable'] = buildout[python]['executable']
 
@@ -84,7 +81,7 @@ class Eggs(object):
         else:
             kw = {}
             if 'unzip' in options:
-                kw['always_unzip'] = get_bool(options, 'unzip')
+                kw['always_unzip'] = options.query_bool('unzip', None)
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
                 links=self.links,
@@ -159,7 +156,7 @@ class ScriptBase(Eggs):
                     raise zc.buildout.UserError("Invalid entry point")
                 reqs.append(parsed.groups())
 
-            if get_bool(options, 'dependent-scripts'):
+            if options.query_bool('dependent-scripts', 'false'):
                 # Generate scripts for all packages in the working set,
                 # except setuptools.
                 reqs = list(reqs)
@@ -191,18 +188,5 @@ class Scripts(ScriptBase):
             arguments=options.get('arguments', ''),
             relative_paths=self._relative_paths
             )
-
-
-def get_bool(options, name, default=False):
-    value = options.get(name)
-    if not value:
-        return default
-    if value == 'true':
-        return True
-    elif value == 'false':
-        return False
-    else:
-        raise zc.buildout.UserError(
-            "Invalid value for %s option: %s" % (name, value))
 
 Egg = Scripts

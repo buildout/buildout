@@ -19,7 +19,7 @@ buildout egg itself is installed as a develop egg.
 $Id$
 """
 
-import os, shutil, sys, subprocess, urllib2
+import os, shutil, sys, subprocess, urllib2, subprocess
 from optparse import OptionParser
 
 if sys.platform == 'win32':
@@ -31,11 +31,15 @@ if sys.platform == 'win32':
 else:
     quote = str
 
+# Detect https://bugs.launchpad.net/virtualenv/+bug/572545 .
+has_broken_dash_S = subprocess.call(
+    [sys.executable, '-Sc', 'import ConfigParser'])
+
 # In order to be more robust in the face of system Pythons, we want to
 # run without site-packages loaded.  This is somewhat tricky, in
 # particular because Python 2.6's distutils imports site, so starting
 # with the -S flag is not sufficient.  However, we'll start with that:
-if 'site' in sys.modules:
+if not has_broken_dash_S and 'site' in sys.modules:
     # We will restart with python -S.
     args = sys.argv[:]
     args[0:0] = [sys.executable, '-S']
@@ -117,10 +121,14 @@ except ImportError:
 
 env = os.environ.copy() # Windows needs yet-to-be-determined values from this.
 env['PYTHONPATH'] = os.path.dirname(pkg_resources.__file__)
-subprocess.Popen(
-    [sys.executable] +
-    ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env=env).wait()
+
+cmd = [sys.executable,
+       'setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs']
+
+if not has_broken_dash_S:
+    cmd.insert(1, '-S')
+
+subprocess.Popen(cmd, env=env).wait()
 
 pkg_resources.working_set.add_entry('src')
 

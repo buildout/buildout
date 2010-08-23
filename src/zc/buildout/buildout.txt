@@ -729,6 +729,8 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
+    accept-buildout-test-releases= false
+        DEFAULT_VALUE
     allow-hosts= *
         DEFAULT_VALUE
     allow-picked-versions= true
@@ -2227,6 +2229,7 @@ database is shown.
     <BLANKLINE>
     Configuration data:
     [buildout]
+    accept-buildout-test-releases = false
     allow-hosts = *
     allow-picked-versions = true
     bin-directory = /sample-buildout/bin
@@ -2484,25 +2487,33 @@ the buildout -o option.
 Preferring Final Releases
 -------------------------
 
-Currently, when searching for new releases, the newest available
-release is used.  This isn't usually ideal, as you may get a
-development release or alpha releases not ready to be widely used.
-You can request that final releases be preferred using the prefer
-final option in the buildout section::
+Currently, when searching for new releases of your project's
+dependencies, the newest available release is used.  This isn't usually
+ideal, as you may get a development release or alpha releases not ready
+to be widely used. You can request that final releases be preferred
+using the ``prefer-final`` option in the buildout section::
 
   [buildout]
   ...
   prefer-final = true
 
-When the prefer-final option is set to true, then when searching for
+When the ``prefer-final`` option is set to true, then when searching for
 new releases, final releases are preferred.  If there are final
 releases that satisfy distribution requirements, then those releases
-are used even if newer non-final releases are available.  The buildout
-prefer-final option can be used to override this behavior.
+are used even if newer non-final releases are available.
 
-In buildout version 2, final releases will be preferred by default.
-You will then need to use a false value for prefer-final to get the
-newest releases.
+In buildout version 2, all final releases will be preferred by
+default--that is ``prefer-final`` will also default to 'true'. You will
+then need to use a 'false' value for ``prefer-final`` to get the newest
+releases.
+
+A separate option controls the behavior of the build system itself.
+When buildout looks for recipes, extensions, and for updates to itself,
+it does prefer final releases by default, as of the 1.5.0 release.  The
+``accept-buildout-test-releases`` option will let you override this behavior.
+However, it is typically changed by the --accept-buildout-test-releases
+option to the bootstrap script, since bootstrapping is the first step to
+selecting a buildout.
 
 Finding distributions
 ---------------------

@@ -2,14 +2,14 @@ Allow hosts
 -----------
 
 On some environments the links visited by `zc.buildout` can be forbidden
-by paranoiac firewalls. These URL might be on the chain of links 
+by paranoiac firewalls. These URL might be on the chain of links
 visited by `zc.buildout` whether they are defined in the `find-links` option
 or by various eggs in their `url`, `download_url` and `dependency_links` metadata.
 
-It is even harder to track that package_index works like a spider and 
+It is even harder to track that package_index works like a spider and
 might visit links and go to other location.
 
-The `allow-hosts` option provides a way to prevent this, and 
+The `allow-hosts` option provides a way to prevent this, and
 works exactly like the one provided in `easy_install`
 (see `easy_install allow-hosts option`_).
 
@@ -17,7 +17,7 @@ You can provide a list of allowed host, together with wildcards::
 
     [buildout]
     ...
-    
+
     allow-hosts =
         *.python.org
         example.com
@@ -36,7 +36,7 @@ Let's create a develop egg in our buildout that specifies
     ...     zip_safe=True, version='1')
     ... ''')
 
-Now let's configure the buildout to use the develop egg, 
+Now let's configure the buildout to use the develop egg,
 together with some rules that disallow any website but PyPI and
 local files::
 
@@ -55,14 +55,11 @@ local files::
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print system(buildout)
+    >>> print system(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
-    Installing eggs.
-    <BLANKLINE>
+    ...
     Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
-    <BLANKLINE>
-    Couldn't find index page for 'kss.core' (maybe misspelled?)
-    Getting distribution for 'kss.core'.
+    ...
     While:
       Installing eggs.
       Getting distribution for 'kss.core'.
@@ -91,14 +88,11 @@ XXX (showcase with a svn:// file)
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print system(buildout)
+    >>> print system(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
-    Installing eggs.
-    <BLANKLINE>
+    ...
     Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
-    <BLANKLINE>
-    Couldn't find index page for 'kss.core' (maybe misspelled?)
-    Getting distribution for 'kss.core'.
+    ...
     While:
       Installing eggs.
       Getting distribution for 'kss.core'.
@@ -115,7 +109,7 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     ... [buildout]
     ... parts=python
     ... foo = ${python:interpreter}
-    ... 
+    ...
     ... [python]
     ... recipe=zc.recipe.egg
     ... eggs=zc.buildout

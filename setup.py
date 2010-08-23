@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "1.5.0dev"
+version = "1.5.0"
 
 import os
 from setuptools import setup
@@ -22,6 +22,8 @@ def read(*rnames):
 
 long_description=(
         read('README.txt')
+        + '\n' +
+        read('SYSTEM_PYTHON_HELP.txt')
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
@@ -83,6 +85,7 @@ setup(
     install_requires = 'setuptools',
     include_package_data = True,
     entry_points = entry_points,
+    extras_require = dict(test=['zope.testing']),
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',

@@ -15,7 +15,7 @@ The handers before calling set up are:
     >>> len(logging.getLogger().handlers)
     1
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS
-    [<zope.testrunner.logsupport.NullHandler instance at ...>]
+    [<zope...testrunner.logsupport.NullHandler instance at ...>]
 
 After calling it, a ``logging.StreamHandler`` was added:
 
@@ -27,7 +27,7 @@ After calling it, a ``logging.StreamHandler`` was added:
     >>> len(logging.getLogger().handlers)
     2
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-    [<zope.testrunner.logsupport.NullHandler instance at ...>,
+    [<zope...testrunner.logsupport.NullHandler instance at ...>,
      <logging.StreamHandler instance at ...>]
 
 But tear down removes the new logging handler:
@@ -36,4 +36,4 @@ But tear down removes the new logging handler:
     >>> len(logging.getLogger().handlers)
     1
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS
-    [<zope.testrunner.logsupport.NullHandler instance at ...>]
+    [<zope...testrunner.logsupport.NullHandler instance at ...>]
