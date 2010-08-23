@@ -200,6 +200,9 @@ Egg = Scripts
 
 class _BackwardsSupportOption(UserDict.UserDict):
 
+    def __init__(self, data):
+        self.data = data # We want to show mutations to the underlying dict.
+
     def query_bool(self, name, default=None):
         """Given a name, return a boolean value for that name.
 
