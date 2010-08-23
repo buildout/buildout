@@ -1,7 +1,7 @@
 Change History
 **************
 
-1.0.0 (unreleased)
+1.0.0 (2010-08-23)
 ==================
 
 (no significant changes)
