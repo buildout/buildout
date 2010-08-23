@@ -167,7 +167,7 @@ First, let's try running bootstrap.
 If bootstrap didn't look out for a broken -S, that would have failed.  Moreover,
 take a look at bin/buildout:
 
-    >>> cat('bin', 'buildout')
+    >>> cat('bin', 'buildout') # doctest: +NORMALIZE_WHITESPACE
     #!/executable_buildout/bin/py
     <BLANKLINE>
     import sys
