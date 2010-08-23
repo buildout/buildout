@@ -14,7 +14,7 @@
 """Setup for z3c.recipe.scripts package
 """
 
-version = '1.0.0'
+version = '1.0.1dev'
 
 import os
 from setuptools import setup, find_packages
