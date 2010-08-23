@@ -34,6 +34,7 @@ import shutil
 import sys
 import tempfile
 import UserDict
+import warnings
 import zc.buildout
 import zc.buildout.download
 import zc.buildout.easy_install
@@ -50,6 +51,9 @@ is_jython = sys.platform.startswith('java')
 
 if is_jython:
     import subprocess
+
+_sys_executable_has_broken_dash_S = (
+    zc.buildout.easy_install._has_broken_dash_S(sys.executable))
 
 class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing.
@@ -112,15 +116,27 @@ def _unannotate(data):
     return data
 
 _buildout_default_options = _annotate_section({
-    'eggs-directory': 'eggs',
-    'develop-eggs-directory': 'develop-eggs',
+    'accept-buildout-test-releases': 'false',
+    'allow-hosts': '*',
+    'allow-picked-versions': 'true',
     'bin-directory': 'bin',
-    'parts-directory': 'parts',
-    'installed': '.installed.cfg',
-    'python': 'buildout',
+    'develop-eggs-directory': 'develop-eggs',
+    'eggs-directory': 'eggs',
     'executable': sys.executable,
-    'log-level': 'INFO',
+    'find-links': '',
+    'install-from-cache': 'false',
+    'installed': '.installed.cfg',
     'log-format': '',
+    'log-level': 'INFO',
+    'newest': 'true',
+    'offline': 'false',
+    'parts-directory': 'parts',
+    'prefer-final': 'false',
+    'python': 'buildout',
+    'relative-paths': 'false',
+    'socket-timeout': '',
+    'unzip': 'false',
+    'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
 
@@ -191,7 +207,7 @@ class Buildout(UserDict.DictMixin):
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
         # used already (Gottfried Ganssauge)
-        buildout_section = data.get('buildout')
+        buildout_section = data['buildout']
 
         # Try to make sure we have absolute paths for standard
         # directories. We do this before doing substitutions, in case
@@ -204,22 +220,30 @@ class Buildout(UserDict.DictMixin):
                 d = self._buildout_path(buildout_section[name+'-directory'])
                 buildout_section[name+'-directory'] = d
 
-        links = buildout_section and buildout_section.get('find-links', '')
+        # Attributes on this buildout object shouldn't be used by
+        # recipes in their __init__.  It can cause bugs, because the
+        # recipes will be instantiated below (``options = self['buildout']``)
+        # before this has completed initializing.  These attributes are
+        # left behind for legacy support but recipe authors should
+        # beware of using them.  A better practice is for a recipe to
+        # use the buildout['buildout'] options.
+        links = buildout_section['find-links']
         self._links = links and links.split() or ()
-
-        allow_hosts = buildout_section and buildout_section.get(
-             'allow-hosts', '*').split('\n')
+        allow_hosts = buildout_section['allow-hosts'].split('\n')
         self._allow_hosts = tuple([host.strip() for host in allow_hosts
                                    if host.strip() != ''])
-
         self._logger = logging.getLogger('zc.buildout')
-        self.offline = False
-        self.newest = True
+        self.offline = (buildout_section['offline'] == 'true')
+        self.newest = (buildout_section['newest'] == 'true')
+        self.accept_buildout_test_releases = (
+            buildout_section['accept-buildout-test-releases'] == 'true')
 
         ##################################################################
         ## WARNING!!!
         ## ALL ATTRIBUTES MUST HAVE REASONABLE DEFAULTS AT THIS POINT
-        ## OTHERWISE ATTRIBUTEERRORS MIGHT HAPPEN ANY TIME
+        ## OTHERWISE ATTRIBUTEERRORS MIGHT HAPPEN ANY TIME FROM RECIPES.
+        ## RECIPES SHOULD GENERALLY USE buildout['buildout'] OPTIONS, NOT
+        ## BUILDOUT ATTRIBUTES.
         ##################################################################
         # initialize some attrs and buildout directories.
         options = self['buildout']
@@ -228,7 +252,7 @@ class Buildout(UserDict.DictMixin):
         links = options.get('find-links', '')
         self._links = links and links.split() or ()
 
-        allow_hosts = options.get('allow-hosts', '*').split('\n')
+        allow_hosts = options['allow-hosts'].split('\n')
         self._allow_hosts = tuple([host.strip() for host in allow_hosts
                                    if host.strip() != ''])
 
@@ -246,44 +270,26 @@ class Buildout(UserDict.DictMixin):
 
         self._setup_logging()
 
-        offline = options.get('offline', 'false')
-        if offline not in ('true', 'false'):
-            self._error('Invalid value for offline option: %s', offline)
-        options['offline'] = offline
-        self.offline = offline == 'true'
-
-        if self.offline:
-            newest = options['newest'] = 'false'
-        else:
-            newest = options.get('newest', 'true')
-            if newest not in ('true', 'false'):
-                self._error('Invalid value for newest option: %s', newest)
-            options['newest'] = newest
-        self.newest = newest == 'true'
-
         versions = options.get('versions')
         if versions:
             zc.buildout.easy_install.default_versions(dict(self[versions]))
 
-        prefer_final = options.get('prefer-final', 'false')
-        if prefer_final not in ('true', 'false'):
-            self._error('Invalid value for prefer-final option: %s',
-                        prefer_final)
-        zc.buildout.easy_install.prefer_final(prefer_final=='true')
 
-        use_dependency_links = options.get('use-dependency-links', 'true')
-        if use_dependency_links not in ('true', 'false'):
-            self._error('Invalid value for use-dependency-links option: %s',
-                        use_dependency_links)
+        self.offline = options.get_bool('offline')
+        if self.offline:
+            options['newest'] = 'false'
+        self.newest = options.get_bool('newest')
+        zc.buildout.easy_install.prefer_final(
+            options.get_bool('prefer-final'))
+        self.accept_buildout_test_releases = options.get_bool(
+            'accept-buildout-test-releases')
         zc.buildout.easy_install.use_dependency_links(
-            use_dependency_links == 'true')
-
-        allow_picked_versions = options.get('allow-picked-versions', 'true')
-        if allow_picked_versions not in ('true', 'false'):
-            self._error('Invalid value for allow-picked-versions option: %s',
-                        allow_picked_versions)
+            options.get_bool('use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
-            allow_picked_versions=='true')
+            options.get_bool('allow-picked-versions'))
+        zc.buildout.easy_install.install_from_cache(
+            options.get_bool('install-from-cache'))
+        zc.buildout.easy_install.always_unzip(options.get_bool('unzip'))
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -299,23 +305,6 @@ class Buildout(UserDict.DictMixin):
                 os.mkdir(download_cache)
 
             zc.buildout.easy_install.download_cache(download_cache)
-
-        install_from_cache = options.get('install-from-cache')
-        if install_from_cache:
-            if install_from_cache not in ('true', 'false'):
-                self._error('Invalid value for install-from-cache option: %s',
-                            install_from_cache)
-            if install_from_cache == 'true':
-                zc.buildout.easy_install.install_from_cache(True)
-
-
-        always_unzip = options.get('unzip')
-        if always_unzip:
-            if always_unzip not in ('true', 'false'):
-                self._error('Invalid value for unzip option: %s',
-                            always_unzip)
-            if always_unzip == 'true':
-                zc.buildout.easy_install.always_unzip(True)
 
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
@@ -338,11 +327,37 @@ class Buildout(UserDict.DictMixin):
 
         self._setup_directories()
 
+        options = self['buildout']
+
+        # Get a base working set for our distributions that corresponds to the
+        # stated desires in the configuration.
+        distributions = ['setuptools', 'zc.buildout']
+        if options.get('offline') == 'true':
+            ws = zc.buildout.easy_install.working_set(
+                distributions, options['executable'],
+                [options['develop-eggs-directory'],
+                 options['eggs-directory']],
+                include_site_packages=_sys_executable_has_broken_dash_S,
+                prefer_final=not self.accept_buildout_test_releases,
+                )
+        else:
+            ws = zc.buildout.easy_install.install(
+                distributions, options['eggs-directory'],
+                links=self._links,
+                index=options.get('index'),
+                executable=options['executable'],
+                path=[options['develop-eggs-directory']],
+                newest=self.newest,
+                allow_hosts=self._allow_hosts,
+                include_site_packages=_sys_executable_has_broken_dash_S,
+                prefer_final=not self.accept_buildout_test_releases,
+                )
+
         # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
         for name in 'setuptools', 'zc.buildout':
             r = pkg_resources.Requirement.parse(name)
-            dist = pkg_resources.working_set.find(r)
+            dist = ws.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 dest = os.path.join(self['buildout']['develop-eggs-directory'],
                                     name+'.egg-link')
@@ -358,12 +373,34 @@ class Buildout(UserDict.DictMixin):
                     else:
                         shutil.copy2(dist.location, dest)
 
-        # Create buildout script
+        # Create buildout script.
+        # Ideally the (possibly) new version of buildout would get a
+        # chance to write the script.  Not sure how to do that.
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'])
+        partsdir = os.path.join(options['parts-directory'], 'buildout')
+        if not os.path.exists(partsdir):
+            os.mkdir(partsdir)
+        # (Honor the relative-paths option.)
+        relative_paths = options.get('relative-paths', 'false')
+        if relative_paths == 'true':
+            relative_paths = options['directory']
+        else:
+            assert relative_paths == 'false'
+            relative_paths = ''
+        if (self.accept_buildout_test_releases and
+            self._annotated['buildout']['accept-buildout-test-releases'][1] ==
+            'COMMAND_LINE_VALUE'):
+            # Bootstrap was called with '--accept-buildout-test-releases'.
+            # Continue to honor that setting.
+            script_initialization = _early_release_initialization_code
+        else:
+            script_initialization = ''
+        zc.buildout.easy_install.sitepackage_safe_scripts(
+            options['bin-directory'], ws, options['executable'], partsdir,
+            reqs=['zc.buildout'], relative_paths=relative_paths,
+            include_site_packages=_sys_executable_has_broken_dash_S,
+            script_initialization=script_initialization,)
 
     init = bootstrap
 
@@ -377,7 +414,7 @@ class Buildout(UserDict.DictMixin):
         # for eggs:
         sys.path.insert(0, self['buildout']['develop-eggs-directory'])
 
-        # Check for updates. This could cause the process to be rstarted
+        # Check for updates. This could cause the process to be restarted.
         self._maybe_upgrade()
 
         # load installed data
@@ -430,7 +467,7 @@ class Buildout(UserDict.DictMixin):
         # compute new part recipe signatures
         self._compute_part_signatures(install_parts)
 
-        # uninstall parts that are no-longer used or who's configs
+        # uninstall parts that are no-longer used or whose configs
         # have changed
         for part in reversed(installed_parts):
             if part in install_parts:
@@ -533,7 +570,7 @@ class Buildout(UserDict.DictMixin):
                 if installed_files is None:
                     self._logger.warning(
                         "The %s install returned None.  A path or "
-                        "iterable os paths should be returned.",
+                        "iterable of paths should be returned.",
                         part)
                     installed_files = ()
                 elif isinstance(installed_files, str):
@@ -576,11 +613,11 @@ class Buildout(UserDict.DictMixin):
         f.close()
 
     def _uninstall_part(self, part, installed_part_options):
-        # ununstall part
+        # uninstall part
         __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
 
-        # run uinstall recipe
+        # run uninstall recipe
         recipe, entry = _recipe(installed_part_options[part])
         try:
             uninstaller = _install_and_load(
@@ -792,16 +829,25 @@ class Buildout(UserDict.DictMixin):
         if not self.newest:
             return
 
+        options = self['buildout']
+
+        specs = ['zc.buildout']
+        if zc.buildout.easy_install.is_distribute:
+            specs.append('distribute')
+        else:
+            specs.append('setuptools')
         ws = zc.buildout.easy_install.install(
             [
-            (spec + ' ' + self['buildout'].get(spec+'-version', '')).strip()
-            for spec in ('zc.buildout', 'setuptools')
+            (spec + ' ' + options.get(spec+'-version', '')).strip()
+            for spec in specs
             ],
-            self['buildout']['eggs-directory'],
-            links = self['buildout'].get('find-links', '').split(),
-            index = self['buildout'].get('index'),
-            path = [self['buildout']['develop-eggs-directory']],
-            allow_hosts = self._allow_hosts
+            options['eggs-directory'],
+            links = options.get('find-links', '').split(),
+            index = options.get('index'),
+            path = [options['develop-eggs-directory']],
+            allow_hosts = self._allow_hosts,
+            include_site_packages=_sys_executable_has_broken_dash_S,
+            prefer_final=not self.accept_buildout_test_releases,
             )
 
         upgraded = []
@@ -817,7 +863,7 @@ class Buildout(UserDict.DictMixin):
         __doing__ = 'Upgrading.'
 
         should_run = realpath(
-            os.path.join(os.path.abspath(self['buildout']['bin-directory']),
+            os.path.join(os.path.abspath(options['bin-directory']),
                          'buildout')
             )
         if sys.platform == 'win32':
@@ -849,21 +895,46 @@ class Buildout(UserDict.DictMixin):
 
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'],
-            )
+        # Ideally the new version of buildout would get a chance to write the
+        # script.  Not sure how to do that.
+        partsdir = os.path.join(options['parts-directory'], 'buildout')
+        if os.path.exists(partsdir):
+            # This is primarily for unit tests, in which .py files change too
+            # fast for Python to know to regenerate the .pyc/.pyo files.
+            shutil.rmtree(partsdir)
+        os.mkdir(partsdir)
+        if (self.accept_buildout_test_releases and
+            self._annotated['buildout']['accept-buildout-test-releases'][1] ==
+            'COMMAND_LINE_VALUE'):
+            # Bootstrap was called with '--accept-buildout-test-releases'.
+            # Continue to honor that setting.
+            script_initialization = _early_release_initialization_code
+        else:
+            script_initialization = ''
+        zc.buildout.easy_install.sitepackage_safe_scripts(
+            options['bin-directory'], ws, sys.executable, partsdir,
+            reqs=['zc.buildout'],
+            include_site_packages=_sys_executable_has_broken_dash_S,
+            script_initialization=script_initialization)
 
         # Restart
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
         if not __debug__:
             args.insert(0, '-O')
-        args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-
+        args.insert(0, zc.buildout.easy_install._safe_arg(sys.executable))
+        # We want to make sure that our new site.py is used for rerunning
+        # buildout, so we put the partsdir in PYTHONPATH for our restart.
+        # This overrides any set PYTHONPATH, but since we generally are
+        # trying to run with a completely "clean" python (only the standard
+        # library) then that should be fine.
+        env = os.environ.copy()
+        env['PYTHONPATH'] = partsdir
         if is_jython:
-            sys.exit(subprocess.Popen([sys.executable] + list(args)).wait())
+            sys.exit(
+                subprocess.Popen(
+                    [sys.executable] + list(args), env=env).wait())
         else:
-            sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+            sys.exit(os.spawnve(os.P_WAIT, sys.executable, args, env))
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -884,7 +955,9 @@ class Buildout(UserDict.DictMixin):
                 working_set=pkg_resources.working_set,
                 links = self['buildout'].get('find-links', '').split(),
                 index = self['buildout'].get('index'),
-                newest=self.newest, allow_hosts=self._allow_hosts)
+                newest=self.newest, allow_hosts=self._allow_hosts,
+                include_site_packages=_sys_executable_has_broken_dash_S,
+                prefer_final=not self.accept_buildout_test_releases)
 
             # Clear cache because extensions might now let us read pages we
             # couldn't read before.
@@ -915,6 +988,7 @@ class Buildout(UserDict.DictMixin):
         setup = os.path.abspath(setup)
 
         fd, tsetup = tempfile.mkstemp()
+        exe = zc.buildout.easy_install._safe_arg(sys.executable)
         try:
             os.write(fd, zc.buildout.easy_install.runsetup_template % dict(
                 setuptools=pkg_resources_loc,
@@ -928,14 +1002,10 @@ class Buildout(UserDict.DictMixin):
                 for a in args:
                     arg_list.append(zc.buildout.easy_install._safe_arg(a))
 
-                subprocess.Popen(
-                    [zc.buildout.easy_install._safe_arg(sys.executable)]
-                    + list(tsetup)
-                    + arg_list
-                    ).wait()
+                subprocess.Popen([exe] + list(tsetup) + arg_list).wait()
 
             else:
-                os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
+                os.spawnl(os.P_WAIT, sys.executable, exe, tsetup,
                         *[zc.buildout.easy_install._safe_arg(a)
                             for a in args])
         finally:
@@ -1001,8 +1071,9 @@ def _install_and_load(spec, group, entry, buildout):
                 path=path,
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
-                allow_hosts=buildout._allow_hosts
-                )
+                allow_hosts=buildout._allow_hosts,
+                include_site_packages=_sys_executable_has_broken_dash_S,
+                prefer_final=not buildout.accept_buildout_test_releases)
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
         return pkg_resources.load_entry_point(
@@ -1014,6 +1085,7 @@ def _install_and_load(spec, group, entry, buildout):
             "Could't load %s entry point %s\nfrom %s:\n%s.",
             group, entry, spec, v)
         raise
+
 
 class Options(UserDict.DictMixin):
 
@@ -1223,6 +1295,32 @@ class Options(UserDict.DictMixin):
                 "Attempt to register a created path while not installing",
                 self.name)
         return self._created
+
+    def query_bool(self, name, default=None):
+        """Given a name, return a boolean value for that name.
+
+        ``default``, if given, should be 'true', 'false', or None.
+        """
+        if default is not None:
+            value = self.setdefault(name, default=default)
+        else:
+            value = self.get(name)
+            if value is None:
+                return value
+        return _convert_bool(name, value)
+
+    def get_bool(self, name):
+        """Given a name, return a boolean value for that name.
+        """
+        return _convert_bool(name, self[name])
+
+
+def _convert_bool(name, value):
+    if value not in ('true', 'false'):
+        raise zc.buildout.UserError(
+            'Invalid value for %s option: %s' % (name, value))
+    else:
+        return value == 'true'
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'
@@ -1434,7 +1532,7 @@ def _error(*message):
     sys.exit(1)
 
 _internal_error_template = """
-An internal error occured due to a bug in either zc.buildout or in a
+An internal error occurred due to a bug in either zc.buildout or in a
 recipe being used:
 """
 
@@ -1445,6 +1543,13 @@ def _check_for_unused_options_in_section(buildout, section):
         buildout._logger.warn("Unused options for %s: %s."
                               % (section, ' '.join(map(repr, unused)))
                               )
+
+_early_release_initialization_code = """\
+sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
+print ('NOTE: Accepting early releases of build system packages.  Rerun '
+       'bootstrap without --accept-buildout-test-releases (-t) to return to '
+       'default behavior.')
+"""
 
 _usage = """\
 Usage: buildout [options] [assignments] [command [command arguments]]
@@ -1508,6 +1613,11 @@ Options:
     Debug errors.  If an error occurs, then the post-mortem debugger
     will be started. This is especially useful for debuging recipe
     problems.
+
+  -s
+
+    Squelch warnings about using an executable with a broken -S
+    implementation.
 
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
@@ -1574,11 +1684,12 @@ def main(args=None):
     windows_restart = False
     user_defaults = True
     debug = False
+    ignore_broken_dash_s = False
     while args:
         if args[0][0] == '-':
             op = orig_op = args.pop(0)
             op = op[1:]
-            while op and op[0] in 'vqhWUoOnNDA':
+            while op and op[0] in 'vqhWUoOnNDAs':
                 if op[0] == 'v':
                     verbosity += 10
                 elif op[0] == 'q':
@@ -1597,6 +1708,8 @@ def main(args=None):
                     options.append(('buildout', 'newest', 'false'))
                 elif op[0] == 'D':
                     debug = True
+                elif op[0] == 's':
+                    ignore_broken_dash_s = True
                 else:
                     _help()
                 op = op[1:]
@@ -1640,6 +1753,17 @@ def main(args=None):
             # The rest should be commands, so we'll stop here
             break
 
+    if verbosity < 0 or ignore_broken_dash_s:
+        broken_dash_S_filter_action = 'ignore'
+    elif verbosity == 0: # This is the default.
+        broken_dash_S_filter_action = 'once'
+    else:
+        broken_dash_S_filter_action = 'default'
+    warnings.filterwarnings(
+        broken_dash_S_filter_action,
+        re.escape(
+            zc.buildout.easy_install.BROKEN_DASH_S_WARNING),
+        UserWarning)
     if verbosity:
         options.append(('buildout', 'verbosity', str(verbosity)))
 

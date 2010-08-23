@@ -5,12 +5,12 @@ Buildouts can be pretty complex.  When things go wrong, it isn't
 always obvious why.  Errors can occur due to problems in user input or
 due to bugs in zc.buildout or recipes.  When an error occurs, Python's
 post-mortem debugger can be used to inspect the state of the buildout
-or recipe code were there error occured.  To enable this, use the -D
+or recipe code where the error occurred.  To enable this, use the -D
 option to the buildout.  Let's create a recipe that has a bug:
 
     >>> mkdir(sample_buildout, 'recipes')
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import os, zc.buildout
     ...
@@ -35,7 +35,7 @@ option to the buildout.  Let's create a recipe that has a bug:
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(name = "recipes",
     ...       entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
     ...       )

@@ -1,0 +1,12 @@
+Change History
+**************
+
+1.0.0 (2010-08-23)
+==================
+
+(no significant changes)
+
+1.0.0b1 (2010-04-29)
+====================
+
+Initial public version.

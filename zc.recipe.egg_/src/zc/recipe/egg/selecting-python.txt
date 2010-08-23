@@ -24,8 +24,8 @@ We have a link server:
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update it's configuration file to
-install the demo package using Python 2.4. 
+We have a sample buildout.  Let's update its configuration file to
+install the demo package using Python 2.4.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -35,7 +35,7 @@ install the demo package using Python 2.4.
     ... index = http://www.python.org/pypi/
     ...
     ... [python2.4]
-    ... executable = %(python23)s
+    ... executable = %(python24)s
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
@@ -43,7 +43,7 @@ install the demo package using Python 2.4.
     ... find-links = %(server)s
     ... python = python2.4
     ... interpreter = py-demo
-    ... """ % dict(server=link_server, python23=other_executable))
+    ... """ % dict(server=link_server, python24=other_executable))
 
 Now, if we run the buildout:
 
@@ -55,8 +55,6 @@ Now, if we run the buildout:
    Getting distribution for 'demo<0.3'.
    Got demo 0.2.
    Getting distribution for 'demoneeded'.
-   Getting distribution for 'setuptools'.
-   Got setuptools 0.6.
    Got demoneeded 1.2c1.
    Generated script '/sample-buildout/bin/demo'.
    Generated interpreter '/sample-buildout/bin/py-demo'.
@@ -66,10 +64,9 @@ we'll get the Python 2.4 eggs for demo and demoneeded:
     >>> ls(sample_buildout, 'eggs')
     -  demo-0.2-py2.4.egg
     -  demoneeded-1.2c1-py2.4.egg
-    d  setuptools-0.6-py2.4.egg
     d  setuptools-0.6-py2.5.egg
     -  zc.buildout-1.0-py2.5.egg
- 
+
 And the generated scripts invoke Python 2.4:
 
     >>> import sys

@@ -35,7 +35,15 @@ Existing recipes include:
 `zc.recipe.egg <http://pypi.python.org/pypi/zc.recipe.egg>`_
    The egg recipe installes one or more eggs, with their
    dependencies.  It installs their console-script entry points with
-   the needed eggs included in their paths.
+   the needed eggs included in their paths.  It is suitable for use with
+   a "clean" Python: one without packages installed in site-packages.
+
+`z3c.recipe.scripts <http://pypi.python.org/pypi/z3c.recipe.scripts>`_
+  Like zc.recipe.egg, this recipe builds interpreter scripts and entry
+  point scripts based on eggs.  It can be used with a Python that has
+  packages installed in site-packages, such as a system Python.  The
+  interpreter also has more features than the one offered by
+  zc.recipe.egg.
 
 `zc.recipe.testrunner <http://pypi.python.org/pypi/zc.recipe.testrunner>`_
    The testrunner egg creates a test runner script for one or
@@ -126,7 +134,7 @@ If I need to run a previous version of zc.buildout, I use the
 `--version` option of the bootstrap.py script::
 
     $ python bootstrap.py --version 1.1.3
-    
+
 The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
 is a slightly more complex example of this type of buildout.
 
@@ -191,5 +199,4 @@ Please send questions and comments to the
 `distutils SIG mailing list <mailto://distutils-sig@python.org>`_.
 
 Report bugs using the `zc.buildout Launchpad Bug Tracker
-<https://launchpad.net/products/zc.buildout/+bugs>`_.
-
+<https://launchpad.net/zc.buildout/+bugs>`_.
