@@ -122,7 +122,6 @@ computed by the egg recipe by looking at .installed.cfg:
 
 If we use the extra-paths option:
 
-
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
@@ -151,4 +150,3 @@ recipe instance:
     other 1.0
     demoneeded 1.2c1
     extra paths: ['/foo/bar', '/spam/eggs']
-
