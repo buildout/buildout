@@ -9,3 +9,9 @@ When you're developing buildout itself, you need to know two things:
 
 - Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
   dev.py``.
+
++1 for testing:
+
+- You should have specific python versions at specific locations or
+  PYTHONx.x environment variables pointing to those
+  See zc.buildout testing.py, def find_python(version)
