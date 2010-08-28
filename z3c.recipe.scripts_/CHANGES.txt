@@ -4,7 +4,13 @@ Change History
 1.0.1 (unreleased)
 ==================
 
-(no changes so far)
+Fixes
+-----
+
+- If a section extends another one, it should be able to override it.
+
+- The allowed-eggs-from-site-packages should be looked for in the buildout
+  section if it is not found locally.
 
 1.0.0 (2010-08-23)
 ==================
