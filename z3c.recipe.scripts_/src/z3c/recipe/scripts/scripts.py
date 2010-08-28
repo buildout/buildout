@@ -23,7 +23,8 @@ class Base(ScriptBase):
 
     def __init__(self, buildout, name, options):
         if 'extends' in options:
-            options.update(buildout[options['extends']])
+            for key, value in buildout[options['extends']].items():
+                options.setdefault(key, value)
         super(Base, self).__init__(buildout, name, options)
         self.default_eggs = '' # Disables feature from zc.recipe.egg.
         b_options = buildout['buildout']
@@ -32,7 +33,7 @@ class Base(ScriptBase):
 
         value = options.setdefault(
             'allowed-eggs-from-site-packages',
-            '*')
+            b_options.get('allowed-eggs-from-site-packages', '*'))
         self.allowed_eggs = tuple(name.strip() for name in value.split('\n'))
 
         self.include_site_packages = options.query_bool(

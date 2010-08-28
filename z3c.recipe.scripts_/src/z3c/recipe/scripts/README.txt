@@ -325,11 +325,10 @@ document do not affect this example.)
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(buildout)
+    >>> print system(buildout),
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling py.
     Installing eggs.
-    <BLANKLINE>
 
 That succeeds fine, getting demoneeded from the Python site-packages.
 
@@ -351,10 +350,11 @@ is not allowed to come from site-packages, and the buildout fails.
     ... [eggs]
     ... recipe = z3c.recipe.scripts
     ... include-site-packages = true
+    ... python = primed_python
     ... allowed-eggs-from-site-packages =
     ... eggs = demoneeded
     ... ''' % globals())
-    >>> print system(buildout)
+    >>> print system(buildout),
     Creating directory '/sample-buildout/tmpeggs'.
     Uninstalling eggs.
     Installing eggs.
@@ -364,7 +364,70 @@ is not allowed to come from site-packages, and the buildout fails.
       Installing eggs.
       Getting distribution for 'demoneeded'.
     Error: Couldn't find a distribution for 'demoneeded'.
-    <BLANKLINE>
+
+The include-sitepackages and allowed-eggs-from-site-packages options both
+can be obtained from the buildout section if they are not set locally.
+
+.. ReST comment: PyPI readers don't need the demonstration, but here it is.
+
+   This succeeds:
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> create_sample_sys_install(site_packages_path)
+    >>> import zc.buildout.easy_install
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... eggs-directory = tmpeggs
+    ... include-site-packages = true
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+
+    >>> print system(buildout),
+    Installing eggs.
+
+   This fails:
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir('tmpeggs')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... eggs-directory = tmpeggs
+    ... include-site-packages = true
+    ... allowed-eggs-from-site-packages =
+    ... find-links =
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... python = primed_python
+    ... eggs = demoneeded
+    ... ''' % globals())
+    >>> print system(buildout),
+    Creating directory '/sample-buildout/tmpeggs'.
+    Uninstalling eggs.
+    Installing eggs.
+    Couldn't find index page for 'demoneeded' (maybe misspelled?)
+    Getting distribution for 'demoneeded'.
+    While:
+      Installing eggs.
+      Getting distribution for 'demoneeded'.
+    Error: Couldn't find a distribution for 'demoneeded'.
 
 Remember that you can provide multiple lines to the
 allowed-eggs-from-site-packages option, each specifying a whitelist of
@@ -407,6 +470,42 @@ into the sitecustomize.
     foo bar baz shazam
     <BLANKLINE>
 
+It also will be honored in the buildout section if it is not set locally.
+
+.. ReST comment: PyPI users don't need to see this test.  This verifies that
+   exec-sitecustomize is honored if it is in the buildout section.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = py
+    ... executable = %(py_path)s
+    ... exec-sitecustomize = true
+    ...
+    ... [py]
+    ... recipe = z3c.recipe.scripts:interpreter
+    ... eggs = demo<0.3
+    ... find-links = %(server)s
+    ... index = %(server)s/index
+    ... """ % dict(server=link_server, py_path=py_path))
+
+    >>> print system(buildout),
+    Updating py.
+
+    >>> cat(sample_buildout, 'parts', 'py', 'sitecustomize.py')
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    <BLANKLINE>
+    # The following is from
+    # /executable_buildout/parts/py/sitecustomize.py
+    ...
+    import os
+    os.environ['zc.buildout'] = 'foo bar baz shazam'
+
+    >>> print system(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import os; print os.environ['zc.buildout']"''')
+    foo bar baz shazam
+    <BLANKLINE>
+
 Options
 -------
 
@@ -425,6 +524,9 @@ Let's look at the ``extends`` option first.
     ... eggs = demo<0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
+    ... initialization =
+    ...     import os
+    ...     os.environ['zc.buildout'] = 'sha boo bop bazoodle'
     ...
     ... [python]
     ... recipe = z3c.recipe.scripts:interpreter
