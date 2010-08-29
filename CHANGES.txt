@@ -1,15 +1,15 @@
 Change History
 **************
 
-1.5.1 (unreleased)
+1.5.1 (2010-08-29)
 ==================
 
 New features:
 
 - Scripts store the old PYTHONPATH in BUILDOUT_ORIGINAL_PYTHONPATH if it
   existed, and store nothing in the value if it did not exist.  This allows
-  recipes that do not want subprocesses to have the system-Python-protected
-  site.py to set the environment of the subprocess appropriately.
+  code that does not want subprocesses to have the system-Python-protected
+  site.py to set the environment of the subprocess as it was originally.
 
 Bugs fixed:
 
