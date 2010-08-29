@@ -4,7 +4,11 @@ Change History
 1.5.1 (unreleased)
 ==================
 
-(no changes so far)
+Bugs fixed:
+
+- https://bugs.launchpad.net/bugs/623590 : If include-site-packages were
+  true and versions were not set explicitly, system eggs were preferred
+  over newer released eggs.  Fixed.
 
 1.5.0 (2010-08-23)
 ==================

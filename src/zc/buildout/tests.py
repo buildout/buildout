@@ -420,7 +420,7 @@ Now here is the output.  The lines that begin with "Egg from site-packages:"
 indicate the eggs from site-packages that have been selected.  You'll see
 we have two: demo 0.3 and demoneeded 1.1.
 
-    >>> print system(buildout+" -v")
+    >>> print system(buildout+" -v"),
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout V
     We have the best distribution that satisfies 'setuptools'.
@@ -435,13 +435,12 @@ we have two: demo 0.3 and demoneeded 1.1.
     Picked: bigdemo = 0.1
     Getting required 'demo'
       required by bigdemo 0.1.
-    We have a develop egg: demo V
+    We have the best distribution that satisfies 'demo'.
     Egg from site-packages: demo 0.3
     Getting required 'demoneeded'
       required by demo 0.3.
-    We have a develop egg: demoneeded V
+    We have the best distribution that satisfies 'demoneeded'.
     Egg from site-packages: demoneeded 1.1
-    <BLANKLINE>
     """
 
 def test_comparing_saved_options_with_funny_characters():
@@ -2149,6 +2148,35 @@ The MissingDistribution error shows that buildout correctly excluded the
 via a .egg-link file.
 
     """
+
+def include_site_packages_bug_623590():
+    """
+As mentioned in isolated_include_site_packages, some system Pythons
+include various Python packages in their site-packages (or equivalent)
+using a .egg-info directory.  The pkg_resources module (from setuptools)
+considers a package installed using .egg-info to be a develop egg
+
+We generally prefer develop eggs when we are selecting dependencies, because
+we expect them to be eggs that buildout has been told to develop.  However,
+we should not consider these site-packages eggs as develop eggs--they should
+not have automatic precedence over eggs available elsewhere.
+
+We have specific code to handle this case, as identified in bug 623590.
+See zc.buildout.easy_install.Installer._satisfied, as of this writing,
+for the pertinent code. Here's the test for the bugfix.
+
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+    >>> zc.buildout.easy_install.include_site_packages(False)
+    True
+
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demo'], example_dest, links=[sample_eggs], executable=py_path,
+    ...     index=None, include_site_packages=True, prefer_final=False)
+    >>> [(dist.project_name, dist.version) for dist in workingset]
+    [('demo', '0.4c1'), ('demoneeded', '1.2c1')]
+"""
 
 def allowed_eggs_from_site_packages():
     """
