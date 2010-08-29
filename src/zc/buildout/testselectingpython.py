@@ -49,8 +49,9 @@ def multi_python(test):
             import sys
             sys.exit(1)
         ''')
-    if subprocess.call([other_executable, '-c', command],
-                       env=os.environ):
+    env = dict(os.environ)
+    env.pop('PYTHONPATH', None)
+    if subprocess.call([other_executable, '-c', command], env=env):
         # the other executable does not have setuptools.  Get setuptools.
         # We will do this using the same tools we are testing, for better or
         # worse.  Alternatively, we could try using bootstrap.
@@ -67,7 +68,7 @@ def multi_python(test):
         original_executable = other_executable
         other_executable = os.path.join(executable_dir, 'py')
         assert not subprocess.call(
-            [other_executable, '-c', command], env=os.environ), (
+            [other_executable, '-c', command], env=env), (
             'test set up failed')
     sample_eggs = test.globs['tmpdir']('sample_eggs')
     os.mkdir(os.path.join(sample_eggs, 'index'))
