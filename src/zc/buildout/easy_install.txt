@@ -1510,6 +1510,7 @@ The demo script runs the entry point defined in the demo egg:
     import os
     path = sys.path[0]
     if os.environ.get('PYTHONPATH'):
+        os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ['PYTHONPATH']
         path = os.pathsep.join([path, os.environ['PYTHONPATH']])
     os.environ['PYTHONPATH'] = path
     import site # imports custom buildout-generated site.py
@@ -1554,6 +1555,7 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
     import os
     path = sys.path[0]
     if os.environ.get('PYTHONPATH'):
+        os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ['PYTHONPATH']
         path = os.pathsep.join([path, os.environ['PYTHONPATH']])
     os.environ['PYTHONPATH'] = path
     import site # imports custom buildout-generated site.py
