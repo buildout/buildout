@@ -443,7 +443,12 @@ class Installer:
         # env.__getitem__
 
         for dist in dists:
-            if (dist.precedence == pkg_resources.DEVELOP_DIST):
+            if (dist.precedence == pkg_resources.DEVELOP_DIST and
+                dist.location not in self._site_packages):
+                # System eggs are sometimes installed as develop eggs.
+                # Those are not the kind of develop eggs we are looking for
+                # here: we want ones that the buildout itself has locally as
+                # develop eggs.
                 logger.debug('We have a develop egg: %s', dist)
                 return dist, None
 
