@@ -78,10 +78,10 @@ case, you should be able to simply change ``recipe = zc.recipe.egg`` to
 buildout configuration and your generated scripts will work with a system
 Python.
 
-This is the only updated recipe as of this writing. Others should be
-updated soon: see their change documents for details, or see `Updating
-Recipes to Support a System Python`_ for instructions on how to update
-recipes yourself.
+Other updated recipes include zc.recipe.testrunner 1.4.0 and
+z3c.recipe.tag 0.4.0.  Others should be updated soon: see their change
+documents for details, or see `Updating Recipes to Support a System
+Python`_ for instructions on how to update recipes yourself.
 
 Templates for creating Python scripts with the z3c.recipe.filetemplate
 recipe can be easily changed to support a system Python.
