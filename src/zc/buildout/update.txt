@@ -95,6 +95,10 @@ Our buildout script's site.py has been updated to use the new eggs:
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
+        setuptools_path = '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+        sys.path.append(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
+        import pkg_resources
         buildout_paths = [
             '/sample-buildout/eggs/zc.buildout-99.99-pyN.N.egg',
             '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
@@ -104,6 +108,14 @@ Our buildout script's site.py has been updated to use the new eggs:
             if not sitedircase in known_paths and os.path.exists(sitedir):
                 sys.path.append(sitedir)
                 known_paths.add(sitedircase)
+                pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support setuptools.
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            if path == setuptools_path or path not in known_paths:
+                addsitedir(path, known_paths)
         return known_paths
     ...
 

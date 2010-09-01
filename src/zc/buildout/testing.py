@@ -365,6 +365,8 @@ def buildoutSetUp(test):
         write('buildout.cfg', textwrap.dedent('''\
             [buildout]
             parts = py
+            include-site-packages = false
+            exec-sitecustomize = false
 
             [py]
             recipe = z3c.recipe.scripts
