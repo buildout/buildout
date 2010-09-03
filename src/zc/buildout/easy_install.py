@@ -1287,8 +1287,8 @@ _script_initialization_template = '''
 import os
 path = sys.path[0]
 if os.environ.get('PYTHONPATH'):
-    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ['PYTHONPATH']
     path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
 os.environ['PYTHONPATH'] = path
 import site # imports custom buildout-generated site.py
 %(script_initialization)s'''
