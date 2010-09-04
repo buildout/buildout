@@ -119,11 +119,14 @@ _buildout_default_options = _annotate_section({
     'accept-buildout-test-releases': 'false',
     'allow-hosts': '*',
     'allow-picked-versions': 'true',
+    'allowed-eggs-from-site-packages': '*',
     'bin-directory': 'bin',
     'develop-eggs-directory': 'develop-eggs',
     'eggs-directory': 'eggs',
     'executable': sys.executable,
+    'exec-sitecustomize': 'true',
     'find-links': '',
+    'include-site-packages': 'true',
     'install-from-cache': 'false',
     'installed': '.installed.cfg',
     'log-format': '',
@@ -290,6 +293,18 @@ class Buildout(UserDict.DictMixin):
         zc.buildout.easy_install.install_from_cache(
             options.get_bool('install-from-cache'))
         zc.buildout.easy_install.always_unzip(options.get_bool('unzip'))
+        allowed_eggs = tuple(name.strip() for name in options[
+            'allowed-eggs-from-site-packages'].split('\n'))
+        self.include_site_packages = options.get_bool('include-site-packages')
+        self.exec_sitecustomize = options.get_bool('exec-sitecustomize')
+        if (_sys_executable_has_broken_dash_S and
+            (not self.include_site_packages or allowed_eggs != ('*',))):
+            # We can't do this if the executable has a broken -S.
+            warnings.warn(zc.buildout.easy_install.BROKEN_DASH_S_WARNING)
+            self.include_site_packages = True
+        zc.buildout.easy_install.allowed_eggs_from_site_packages(allowed_eggs)
+        zc.buildout.easy_install.include_site_packages(
+            self.include_site_packages)
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -337,7 +352,6 @@ class Buildout(UserDict.DictMixin):
                 distributions, options['executable'],
                 [options['develop-eggs-directory'],
                  options['eggs-directory']],
-                include_site_packages=_sys_executable_has_broken_dash_S,
                 prefer_final=not self.accept_buildout_test_releases,
                 )
         else:
@@ -349,7 +363,6 @@ class Buildout(UserDict.DictMixin):
                 path=[options['develop-eggs-directory']],
                 newest=self.newest,
                 allow_hosts=self._allow_hosts,
-                include_site_packages=_sys_executable_has_broken_dash_S,
                 prefer_final=not self.accept_buildout_test_releases,
                 )
 
@@ -399,8 +412,10 @@ class Buildout(UserDict.DictMixin):
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
             reqs=['zc.buildout'], relative_paths=relative_paths,
-            include_site_packages=_sys_executable_has_broken_dash_S,
-            script_initialization=script_initialization,)
+            include_site_packages=self.include_site_packages,
+            script_initialization=script_initialization,
+            exec_sitecustomize=self.exec_sitecustomize,
+            )
 
     init = bootstrap
 
@@ -846,7 +861,6 @@ class Buildout(UserDict.DictMixin):
             index = options.get('index'),
             path = [options['develop-eggs-directory']],
             allow_hosts = self._allow_hosts,
-            include_site_packages=_sys_executable_has_broken_dash_S,
             prefer_final=not self.accept_buildout_test_releases,
             )
 
@@ -911,11 +925,20 @@ class Buildout(UserDict.DictMixin):
             script_initialization = _early_release_initialization_code
         else:
             script_initialization = ''
+        # (Honor the relative-paths option.)
+        relative_paths = options.get('relative-paths', 'false')
+        if relative_paths == 'true':
+            relative_paths = options['directory']
+        else:
+            assert relative_paths == 'false'
+            relative_paths = ''
         zc.buildout.easy_install.sitepackage_safe_scripts(
-            options['bin-directory'], ws, sys.executable, partsdir,
-            reqs=['zc.buildout'],
-            include_site_packages=_sys_executable_has_broken_dash_S,
-            script_initialization=script_initialization)
+            options['bin-directory'], ws, options['executable'], partsdir,
+            reqs=['zc.buildout'], relative_paths=relative_paths,
+            include_site_packages=self.include_site_packages,
+            script_initialization=script_initialization,
+            exec_sitecustomize=self.exec_sitecustomize,
+            )
 
         # Restart
         args = map(zc.buildout.easy_install._safe_arg, sys.argv)
@@ -956,7 +979,6 @@ class Buildout(UserDict.DictMixin):
                 links = self['buildout'].get('find-links', '').split(),
                 index = self['buildout'].get('index'),
                 newest=self.newest, allow_hosts=self._allow_hosts,
-                include_site_packages=_sys_executable_has_broken_dash_S,
                 prefer_final=not self.accept_buildout_test_releases)
 
             # Clear cache because extensions might now let us read pages we
@@ -1072,7 +1094,6 @@ def _install_and_load(spec, group, entry, buildout):
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
                 allow_hosts=buildout._allow_hosts,
-                include_site_packages=_sys_executable_has_broken_dash_S,
                 prefer_final=not buildout.accept_buildout_test_releases)
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry

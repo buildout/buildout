@@ -196,6 +196,7 @@ use local dev versions of zc.buildout and z3c.recipe.scripts.
     ... [buildout]
     ... parts = eggs
     ... find-links = %(link_server)s
+    ... include-site-packages = false
     ...
     ... [primed_python]
     ... executable = %(py_path)s
@@ -207,7 +208,7 @@ use local dev versions of zc.buildout and z3c.recipe.scripts.
     ... eggs = demo
     ... ''' % globals())
 
-    >>> print system(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >>> print system(buildout), # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Installing eggs.
     Getting distribution for 'demo'.
     Got demo 0.4c1.
@@ -226,20 +227,17 @@ use local dev versions of zc.buildout and z3c.recipe.scripts.
        to the buildout script.  Alternatively, use a Python executable with a
        working -S (such as a standard Python binary).
       warnings.warn(BROKEN_DASH_S_WARNING)
-    <BLANKLINE>
 
 So, it did what we asked as best it could, but gave a big warning.  If
 you don't want those warnings for those particular recipes that use the
 new features, you can use the "-s" option to squelch the warnings.
 
-    >>> print system(buildout + ' -s')
+    >>> print system(buildout + ' -s'),
     Updating eggs.
-    <BLANKLINE>
 
 A lower verbosity (one or more -q options) also quiets the warning.
 
-    >>> print system(buildout + ' -q')
-    <BLANKLINE>
+    >>> print system(buildout + ' -q'),
 
 Notice that, as we saw before with bin/buildout, the generated scripts
 are old-style, because the new-style feature gracefully degrades to the

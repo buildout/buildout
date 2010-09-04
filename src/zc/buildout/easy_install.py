@@ -1287,8 +1287,8 @@ _script_initialization_template = '''
 import os
 path = sys.path[0]
 if os.environ.get('PYTHONPATH'):
-    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ['PYTHONPATH']
     path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
 os.environ['PYTHONPATH'] = path
 import site # imports custom buildout-generated site.py
 %(script_initialization)s'''
@@ -1564,7 +1564,7 @@ if _interactive:
 
 # These are used only by the newer ``sitepackage_safe_scripts`` function.
 
-def _get_module_file(executable, name):
+def _get_module_file(executable, name, silent=False):
     """Return a module's file path.
 
     - executable is a path to the desired Python executable.
@@ -1585,8 +1585,9 @@ def _get_module_file(executable, name):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     stdout, stderr = _proc.communicate();
     if _proc.returncode:
-        logger.info(
-            'Could not find file for module %s:\n%s', name, stderr)
+        if not silent:
+            logger.info(
+                'Could not find file for module %s:\n%s', name, stderr)
         return None
     # else: ...
     res = stdout.strip()
@@ -1610,7 +1611,7 @@ def _generate_sitecustomize(dest, executable, initialization='',
         sitecustomize.write(initialization + '\n')
     if exec_sitecustomize:
         real_sitecustomize_path = _get_module_file(
-            executable, 'sitecustomize')
+            executable, 'sitecustomize', silent=True)
         if real_sitecustomize_path:
             real_sitecustomize = open(real_sitecustomize_path, 'r')
             sitecustomize.write(

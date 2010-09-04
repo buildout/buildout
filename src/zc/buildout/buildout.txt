@@ -735,6 +735,8 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     allow-picked-versions= true
         DEFAULT_VALUE
+    allowed-eggs-from-site-packages= *
+        DEFAULT_VALUE
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
@@ -745,9 +747,13 @@ COMMAND_LINE_VALUE).
         COMPUTED_VALUE
     eggs-directory= eggs
         DEFAULT_VALUE
+    exec-sitecustomize= true
+        DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
     find-links=
+        DEFAULT_VALUE
+    include-site-packages= true
         DEFAULT_VALUE
     install-from-cache= false
         DEFAULT_VALUE
@@ -2232,12 +2238,15 @@ database is shown.
     accept-buildout-test-releases = false
     allow-hosts = *
     allow-picked-versions = true
+    allowed-eggs-from-site-packages = *
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
+    exec-sitecustomize = true
     executable = python
     find-links =
+    include-site-packages = true
     install-from-cache = false
     installed = /sample-buildout/.installed.cfg
     log-format =
@@ -2259,6 +2268,37 @@ All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
 
+allowed-eggs-from-site-packages
+    Sometimes you need or want to control what eggs from site-packages are
+    used. The allowed-eggs-from-site-packages option allows you to specify a
+    whitelist of project names that may be included from site-packages.  You
+    can use globs to specify the value.  It defaults to a single value of '*',
+    indicating that any package may come from site-packages.
+
+    Here's a usage example::
+
+        [buildout]
+        ...
+
+        allowed-eggs-from-site-packages =
+            demo
+            bigdemo
+            zope.*
+
+    This option interacts with the ``include-site-packages`` option in the
+    following ways.
+
+    If ``include-site-packages`` is true, then
+    ``allowed-eggs-from-site-packages`` filters what eggs from site-packages
+    may be chosen.  Therefore, if ``allowed-eggs-from-site-packages`` is an
+    empty list, then no eggs from site-packages are chosen, but site-packages
+    will still be included at the end of path lists.
+
+    If ``include-site-packages`` is false, the value of
+    ``allowed-eggs-from-site-packages`` is irrelevant.
+
+    See the ``include-site-packages`` description for more information.
+
 bin-directory
    The directory path where scripts are written.  This can be a
    relative path, which is interpreted relative to the directory
@@ -2279,9 +2319,26 @@ eggs-directory
    *never* be modified.  This can be a relative path, which is
    interpreted relative to the directory option.
 
+exec-sitecustomize
+    Normally the Python's real sitecustomize module is processed.
+    If you do not want it to be processed in order to increase the
+    repeatability of your buildout, set this value to 'false'.  This will
+    be honored irrespective of the setting for include-site-packages.
+    This option will be honored by some recipes and not others.
+    z3c.recipe.scripts honors this and zc.recipe.egg does not, for
+    instance.
+
 executable
    The Python executable used to run the buildout.  See the python
    option below.
+
+include-site-packages
+    You can choose not to have the site-packages of the underlying Python
+    available to your script or interpreter, in addition to the packages
+    from your eggs.  This can increase repeatability for your buildout.
+    This option will be better used by some recipes than others.
+    z3c.recipe.scripts honors this fully and zc.recipe.egg only
+    partially, for instance.
 
 installed
    The file path where information about the results of the previous
@@ -2421,8 +2478,8 @@ If relative-paths is ``true``, the buildout script uses relative paths.
     import os
     path = sys.path[0]
     if os.environ.get('PYTHONPATH'):
-        os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ['PYTHONPATH']
         path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
     os.environ['PYTHONPATH'] = path
     import site # imports custom buildout-generated site.py
     <BLANKLINE>

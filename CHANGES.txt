@@ -4,7 +4,22 @@ Change History
 1.5.2 (unreleased)
 ==================
 
-(no changes)
+- IMPORTANT: For better backwards compatibility with the pre-1.5 line,
+  this release has two big changes from 1.5.0 and 1.5.1.
+
+  - Buildout defaults to including site packages.
+
+  - Buildout loads recipes and extensions with the same constraints to
+    site-packages that it builds eggs, instead of never allowing access
+    to site-packages.
+
+  This means that the default configuration should better support
+  pre-existing use of system Python in recipes or builds.
+
+- To make it easier to detect the fact that buildout has set the PYTHONPATH,
+  BUILDOUT_ORIGINAL_PYTHONPATH is always set in the environment, even if
+  PYTHONPATH was not originally set.  BUILDOUT_ORIGINAL_PYTHONPATH will
+  be an empty string if PYTHONPATH was not set.
 
 1.5.1 (2010-08-29)
 ==================

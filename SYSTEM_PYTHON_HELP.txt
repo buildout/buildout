@@ -44,8 +44,17 @@ This can work if you follow a couple of simple rules.
    how to update a recipe.  Note that you should generally only need to
    update recipes that generate scripts.
 
+You can then use ``include-site-packages = false`` and
+``exec-sitecustomize = false`` buildout options to eliminate access to
+your Python's site packages and not execute its sitecustomize file, if
+it exists, respectively.
+
+Alternately, you can use the ``allowed-eggs-from-site-packages`` buildout
+option as a glob-aware whitelist of eggs that may come from site-packages.
+This value defaults to "*", accepting all eggs.
+
 It's important to note that recipes not upgraded for zc.buildout 1.5.0
-should continue to work--just not with a system Python.
+should continue to work--just without internal support for a system Python.
 
 Using a system Python is inherently fragile.  Using a clean,
 freshly-installed Python without customization in site-packages is more
@@ -58,7 +67,7 @@ for more discussion.
 However, using a system Python can be very convenient, and the
 zc.buildout code for this feature has been tested by many users already.
 Moreover, it has automated tests to exercise the problems that have been
-encountered and fixed.
+encountered and fixed.  Many people rely on it.
 
 Recipes That Support a System Python
 ====================================
@@ -184,10 +193,9 @@ You might even be able to adopt some of it by subclassing or delegating.
 The Scripts class in that file is the closest to what you might be used
 to from zc.recipe.egg.
 
-Important note for recipe authors: the code in recipes is *always run
-without access to the site-packages*.  This is irrespective of the
-``include-site-packages`` option discussed elsewhere, which controls the
-software being built, but not the environment in which Buildout itself runs.
+Important note for recipe authors: As of buildout 1.5.2, the code in
+recipes is *always run with the access to the site-packages as
+configured in the buildout section*.
 
 virtualenv
 ==========
