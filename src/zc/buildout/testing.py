@@ -320,6 +320,7 @@ def buildoutSetUp(test):
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
     os.environ['buildout-testing-index-url'] = (
         zc.buildout.easy_install.default_index_url)
+    os.environ.pop('PYTHONPATH', None)
 
     def tmpdir(name):
         path = os.path.join(base, name)
@@ -365,6 +366,8 @@ def buildoutSetUp(test):
         write('buildout.cfg', textwrap.dedent('''\
             [buildout]
             parts = py
+            include-site-packages = false
+            exec-sitecustomize = false
 
             [py]
             recipe = z3c.recipe.scripts

@@ -60,7 +60,8 @@ clean_path = sys.path[:]
 import site
 sys.path[:] = clean_path
 for k, v in sys.modules.items():
-    if (hasattr(v, '__path__') and
+    if k in ('setuptools', 'pkg_resources') or (
+        hasattr(v, '__path__') and
         len(v.__path__)==1 and
         not os.path.exists(os.path.join(v.__path__[0],'__init__.py'))):
         # This is a namespace package.  Remove it.
@@ -169,7 +170,8 @@ except ImportError:
     if options.use_distribute:
         setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
-    reload(sys.modules['pkg_resources'])
+    if 'pkg_resources' in sys.modules:
+        reload(sys.modules['pkg_resources'])
     import pkg_resources
     # This does not (always?) update the default working set.  We will
     # do it.
