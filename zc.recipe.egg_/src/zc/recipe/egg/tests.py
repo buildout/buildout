@@ -126,7 +126,7 @@ def test_suite():
                             "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
                 (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
-                (re.compile('extdemo[.]pyd'), 'extdemo.so')
+                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
                 (re.compile("extdemo[.]c\n"
                             "extdemo[.]obj : warning LNK4197: export 'initextdemo' specified multiple times; using first specification\n"
                             "   Creating library build\\\\temp[.]win-amd64-2[.][4567]\\\\Release\\\\extdemo[.]lib and object build\\\\temp[.]win-amd64-2[.][4567]\\\\Release\\\\extdemo[.]exp\n"),
