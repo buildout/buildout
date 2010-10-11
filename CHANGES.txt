@@ -1,8 +1,11 @@
 Change History
 **************
 
-1.5.2 (unreleased)
+1.5.2 (2010-10-11)
 ==================
+
+- changed metadata 'url' to pypi.python.org in order to solve
+  a temporary outage of buildout.org
 
 - IMPORTANT: For better backwards compatibility with the pre-1.5 line,
   this release has two big changes from 1.5.0 and 1.5.1.
