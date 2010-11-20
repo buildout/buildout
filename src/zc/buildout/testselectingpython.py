@@ -16,10 +16,11 @@ from zope.testing import renormalizing
 import zc.buildout.tests
 import zc.buildout.testing
 
-if sys.version_info[:2] == (2, 4):
-    other_version = "2.5"
+
+if sys.version_info[:2] == (2, 5):
+    other_version = "2.6"
 else:
-    other_version = "2.4"
+    other_version = "2.5"
 
 __test__ = dict(
     test_selecting_python_via_easy_install=
