@@ -92,7 +92,7 @@ def _has_broken_dash_S(executable):
     # file does not pass the -script.py's returncode back properly, at least in
     # some circumstances. Therefore...print statements.
     stdout, stderr = subprocess.Popen(
-        [executable, '-Sc',
+        [executable, '-S', '-c',
          'try:\n'
          '    import ConfigParser\n'
          'except ImportError:\n'
