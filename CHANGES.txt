@@ -4,6 +4,13 @@ Change History
 1.5.3 (unreleased)
 ==================
 
+- changed broken dash S check to pass the configuration options
+  -S -c separately, to make zc.buildout more compatible with the PyPy
+  interpreter, which has less flexible argument parsing than CPython.
+
+  Note that PyPy post 1.4.0 is needed to make buildout work at all,
+  due to missing support for the ``-E`` option, which only got added
+  afterwards.
 
 1.5.2 (2010-10-11)
 ==================

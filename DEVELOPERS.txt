@@ -15,3 +15,7 @@ When you're developing buildout itself, you need to know two things:
 - You should have specific python versions at specific locations or
   PYTHONx.x environment variables pointing to those
   See zc.buildout testing.py, def find_python(version)
+
+  The way to start the tests for Python 2.5 for instance would be::
+
+    $ env PYTHON2.5=/path/to/python2.5 bin/test
