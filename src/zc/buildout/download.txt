@@ -537,6 +537,25 @@ conversions:
 >>> path, is_temp = Download()(server_url+'foo.txt', md5(text).hexdigest())
 >>> remove(path)
 
+When "downloading" a directory given by file-system path or ``file:`` URL and
+using a download cache at the same time, the cached directory wasn't handled
+correctly. Consequently, the cache was defeated and an attempt to cache the
+directory a second time broke. This is how it should work:
+
+>>> download = Download(cache=cache)
+>>> dirpath = join(server_data, 'some_directory')
+>>> mkdir(dirpath)
+>>> dest, _ = download(dirpath)
+
+If we now modify the source tree, the second download will produce the
+original one from the cache:
+
+>>> mkdir(join(dirpath, 'foo'))
+>>> ls(dirpath)
+d foo
+>>> dest, _ = download(dirpath)
+>>> ls(dest)
+
 
 Clean up
 --------
