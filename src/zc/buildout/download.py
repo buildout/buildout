@@ -149,8 +149,11 @@ class Download(object):
         returned and the client code is responsible for cleaning it up.
 
         """
+        # Make sure the drive letter in windows-style file paths isn't
+        # interpreted as a URL scheme.
         if re.match(r"^[A-Za-z]:\\", url):
             url = 'file:' + url
+
         parsed_url = urlparse.urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
