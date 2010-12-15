@@ -4,7 +4,11 @@ Change History
 1.4.5 (unreleased)
 ==================
 
-(No changes)
+Bugs fixed:
+
+- In the download module, fixed the handling of directories that are pointed
+  to by file-system paths and ``file:`` URLs.
+
 
 1.4.4 (2010-08-20)
 ==================
