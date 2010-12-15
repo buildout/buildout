@@ -118,7 +118,7 @@ class Download(object):
         cached_path = os.path.join(cache_dir, cache_key)
 
         self.logger.debug('Searching cache at %s' % cache_dir)
-        if os.path.isfile(cached_path):
+        if os.path.exists(cached_path):
             is_temp = False
             if self.fallback:
                 try:
@@ -247,8 +247,11 @@ def locate_at(source, dest):
     if dest is None or realpath(dest) == realpath(source):
         return source
 
-    try:
-        os.link(source, dest)
-    except (AttributeError, OSError):
-        shutil.copyfile(source, dest)
+    if os.path.isdir(source):
+        shutil.copytree(source, dest)
+    else:
+        try:
+            os.link(source, dest)
+        except (AttributeError, OSError):
+            shutil.copyfile(source, dest)
     return dest
