@@ -386,6 +386,104 @@ While:
 An internal error occurred ...
 ValueError: install_from_cache set to true with no download cache
 
+>>> rmdir('home', '.buildout')
+
+Newest and non-newest behaviour for extends cache
+-------------------------------------------------
+
+While offline mode forbids network access completely, 'newest' mode determines
+whether to look for updated versions of a resource even if some version of it
+is already present locally. If we run buildout in newest mode
+(``newest = true``), the configuration files are updated with each run:
+
+>>> mkdir("cache")
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... """)
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends-cache = cache
+... extends = %sbase.cfg
+... """ % server_url)
+>>> print system(buildout)
+>>> ls('cache')
+-  5aedc98d7e769290a29d654a591a3a45
+>>> cat('cache', os.listdir(cache)[0])
+[buildout]
+parts =
+
+A change to ``base.cfg`` is picked up on the next buildout run:
+
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... foo = bar
+... """)
+>>> print system(buildout + " -n")
+Unused options for buildout: 'foo'.
+>>> cat('cache', os.listdir(cache)[0])
+[buildout]
+parts =
+foo = bar
+
+In contrast, when not using ``newest`` mode (``newest = false``), the files
+already present in the extends cache will not be updated:
+
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... """)
+>>> print system(buildout + " -N")
+Unused options for buildout: 'foo'.
+>>> cat('cache', os.listdir(cache)[0])
+[buildout]
+parts =
+foo = bar
+
+Even when updating base configuration files with a buildout run, any given
+configuration file will be downloaded only once during that particular run. If
+some base configuration file is extended more than once, its cached copy is
+used:
+
+>>> write(server_data, 'baseA.cfg', """\
+... [buildout]
+... extends = %sbase.cfg
+... foo = bar
+... """ % server_url)
+>>> write(server_data, 'baseB.cfg', """\
+... [buildout]
+... extends-cache = cache
+... extends = %sbase.cfg
+... bar = foo
+... """ % server_url)
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends-cache = cache
+... newest = true
+... extends = %sbaseA.cfg %sbaseB.cfg
+... """ % (server_url, server_url))
+>>> print system(buildout + " -n")
+Unused options for buildout: 'bar' 'foo'.
+
+(XXX We patch download utility's API to produce readable output for the test;
+a better solution would utilise the logging already done by the utility.)
+
+>>> import zc.buildout
+>>> old_download = zc.buildout.download.Download.download
+>>> def wrapper_download(self, url, md5sum=None, path=None):
+...   print "The URL %s was downloaded." % url
+...   return old_download(url, md5sum, path)
+>>> zc.buildout.download.Download.download = wrapper_download
+
+>>> zc.buildout.buildout.main([])
+The URL http://localhost/baseA.cfg was downloaded.
+The URL http://localhost/base.cfg was downloaded.
+The URL http://localhost/baseB.cfg was downloaded.
+Unused options for buildout: 'bar' 'foo'.
+
+>>> zc.buildout.download.Download.download = old_download
+
 
 Clean up
 --------

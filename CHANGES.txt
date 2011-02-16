@@ -12,6 +12,9 @@ Change History
   due to missing support for the ``-E`` option, which only got added
   afterwards.
 
+- Made sure to download extended configuration files only once per buildout
+  run even if they are referenced multiple times (patch by Rafael Monnerat).
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed
