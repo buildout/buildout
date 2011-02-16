@@ -45,11 +45,14 @@ class Download(object):
 
     Handles the download cache and offline mode.
 
-    Download(options=None, cache=None, namespace=None, hash_name=False)
+    Download(options=None, cache=None, namespace=None,
+             offline=False, fallback=False, hash_name=False, logger=None)
 
     options: mapping of buildout options (e.g. a ``buildout`` config section)
     cache: path to the download cache (excluding namespaces)
     namespace: namespace directory to use inside the cache
+    offline: whether to operate in offline mode
+    fallback: whether to use the cache as a fallback (try downloading first)
     hash_name: whether to use a hash of the URL as cache file name
     logger: an optional logger to receive download-related log messages
 
