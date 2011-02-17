@@ -20,6 +20,9 @@ Bugs fixed:
 - In the download module, fixed the handling of directories that are pointed
   to by file-system paths and ``file:`` URLs.
 
+- Removed any traces of the implementation of ``extended-by``. Raise a
+  UserError if the option is encountered instead of ignoring it, though.
+
 1.5.2 (2010-10-11)
 ==================
 

@@ -485,6 +485,25 @@ Unused options for buildout: 'bar' 'foo'.
 >>> zc.buildout.download.Download.download = old_download
 
 
+The deprecated ``extended-by`` option
+-------------------------------------
+
+The ``buildout`` section used to recognise an option named ``extended-by``
+that was deprecated at some point and removed in the 1.5 line. Since ignoring
+this option silently was considered harmful as a matter of principle, a
+UserError is raised if that option is encountered now:
+
+>>> write(server_data, 'base.cfg', """\
+... [buildout]
+... parts =
+... extended-by = foo.cfg
+... """)
+>>> print system(buildout)
+While:
+  Initializing.
+Error: No-longer supported "extended-by" option found in http://localhost/base.cfg.
+
+
 Clean up
 --------
 
