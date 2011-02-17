@@ -1437,12 +1437,15 @@ def _open(base, filename, seen, dl_options, override, downloaded):
         fp.close()
         os.remove(path)
 
-    extends = extended_by = None
+    extends = None
     for section in parser.sections():
         options = dict(parser.items(section))
         if section == 'buildout':
             extends = options.pop('extends', extends)
-            extended_by = options.pop('extended-by', extended_by)
+            if 'extended-by' in options:
+                raise zc.buildout.UserError(
+                    'No-longer supported "extended-by" option found in %s.' %
+                    filename)
         result[section] = options
 
     result = _annotate(result, filename)
@@ -1459,14 +1462,6 @@ def _open(base, filename, seen, dl_options, override, downloaded):
                     downloaded))
         result = _update(eresult, result)
 
-    if extended_by:
-        self._logger.warn(
-            "The extendedBy option is deprecated.  Stop using it."
-            )
-        for fname in extended_by.split():
-            result = _update(
-                result,
-                _open(base, fname, seen, dl_options, override, downloaded))
     seen.pop()
     return result
 
