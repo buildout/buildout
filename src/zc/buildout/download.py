@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Zope Foundation and Contributors.
+# Copyright (c) 2009-2011 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -83,29 +83,33 @@ class Download(object):
         if self.download_cache is not None:
             return os.path.join(self.download_cache, self.namespace or '')
 
-    def __call__(self, url, md5sum=None, path=None):
+    def __call__(self, url, md5sum=None, path=None, shared=False):
         """Download a file according to the utility's configuration.
 
         url: URL to download
         md5sum: MD5 checksum to match
         path: where to place the downloaded file
+        shared: whether to attempt hard-linking multiple copies of the
+                resource in the file system (cached copy, target path etc)
 
         Returns the path to the downloaded file.
 
         """
         if self.cache:
-            local_path, is_temp = self.download_cached(url, md5sum)
+            local_path, is_temp = self.download_cached(url, md5sum, shared)
         else:
-            local_path, is_temp = self.download(url, md5sum, path)
+            local_path, is_temp = self.download(url, md5sum, path, shared)
 
-        return locate_at(local_path, path), is_temp
+        return locate_at(local_path, path, shared), is_temp
 
-    def download_cached(self, url, md5sum=None):
+    def download_cached(self, url, md5sum=None, shared=False):
         """Download a file from a URL using the cache.
 
         This method assumes that the cache has been configured. Optionally, it
         raises a ChecksumError if a cached copy of a file has an MD5 mismatch,
-        but will not remove the copy in that case.
+        but will not remove the copy in that case. If the resource comes from
+        the file system or shall be stored at a target path, an optimisation
+        may be attempted to share the file instead of copying it.
 
         """
         if not os.path.exists(self.download_cache):
@@ -125,7 +129,8 @@ class Download(object):
             is_temp = False
             if self.fallback:
                 try:
-                    _, is_temp = self.download(url, md5sum, cached_path)
+                    _, is_temp = self.download(
+                        url, md5sum, cached_path, shared)
                 except ChecksumError:
                     raise
                 except Exception:
@@ -139,17 +144,19 @@ class Download(object):
         else:
             self.logger.debug('Cache miss; will cache %s as %s' %
                               (url, cached_path))
-            _, is_temp = self.download(url, md5sum, cached_path)
+            _, is_temp = self.download(url, md5sum, cached_path, shared)
 
         return cached_path, is_temp
 
-    def download(self, url, md5sum=None, path=None):
+    def download(self, url, md5sum=None, path=None, shared=False):
         """Download a file from a URL to a given or temporary path.
 
         An online resource is always downloaded to a temporary file and moved
         to the specified path only after the download is complete and the
         checksum (if given) matches. If path is None, the temporary file is
-        returned and the client code is responsible for cleaning it up.
+        returned and the client code is responsible for cleaning it up. If the
+        resource comes from the file system, an optimisation may be attempted
+        to share the existing file instead of copying it.
 
         """
         # Make sure the drive letter in windows-style file paths isn't
@@ -165,7 +172,7 @@ class Download(object):
                 raise ChecksumError(
                     'MD5 checksum mismatch for local resource at %r.' %
                     url_path)
-            return locate_at(url_path, path), False
+            return locate_at(url_path, path, shared), False
 
         if self.offline:
             raise zc.buildout.UserError(
@@ -246,15 +253,20 @@ def remove(path):
         os.remove(path)
 
 
-def locate_at(source, dest):
+def locate_at(source, dest, shared):
     if dest is None or realpath(dest) == realpath(source):
         return source
 
     if os.path.isdir(source):
         shutil.copytree(source, dest)
-    else:
+    elif shared:
         try:
+            if os.path.exists(dest):
+                os.unlink(dest)
             os.link(source, dest)
         except (AttributeError, OSError):
             shutil.copyfile(source, dest)
+    else:
+        shutil.copyfile(source, dest)
+
     return dest

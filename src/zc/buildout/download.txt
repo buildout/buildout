@@ -445,6 +445,53 @@ ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
 >>> cat(cache, 'foo.txt')
 The wrong text.
 
+Clean up:
+
+>>> remove(cache, 'foo.txt')
+
+
+Using shared copies of a downloaded resource
+--------------------------------------------
+
+When downloading large files and using both the cache and a download target,
+it may be desirable to avoid creating multiple copies of the same resource in
+the file system and rather save disk space by employing hard links. The same
+is true for "downloading" file-system resources, either to the cache or a
+download target. It should be noted that the download utility can only attempt
+to employ hard links; if it isn't possible for some reason such as missing
+support for hard links by the OS or paths to be hard-linked resolving to
+different storage devices, plain copies of the resource will be made instead.
+
+As using hard links results in the same files on disk being shared by more
+than one buildout, the download utility copies files by default and leaves it
+up to client code to suggest that it is safe to attempt the hard-link
+optimisation. If the client code (e.g., a recipe) is going to modify the
+downloaded file, the default behaviour (no optimisation) is appropriate to
+avoid trashing the cached copy of the resource:
+
+>>> download = Download(cache=cache)
+>>> path = join(target_dir, 'downloaded.txt')
+>>> cat(download(server_url+'foo.txt', path=path)[0])
+This is a foo text.
+
+>>> write(path, 'garbage')
+>>> cat(cache, 'foo.txt')
+This is a foo text.
+
+If, on the other hand, the client code knows for sure that the copy of the
+resource it is downloading will only ever be read, the optimisation may be
+attempted. Modifying the downloaded file for demonstration purposes will
+clobber the cached (and thereby shared) copy:
+
+>>> cat(download(server_url+'foo.txt', path=path, shared=True)[0])
+This is a foo text.
+
+# XXX make this test pass on all OS buildout cares about
+
+>>> write(path, 'garbage')
+>>> cat(cache, 'foo.txt')
+garbage
+
 
 Configuring the download utility from buildout options
 ------------------------------------------------------

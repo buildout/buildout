@@ -15,6 +15,12 @@ Change History
 - Made sure to download extended configuration files only once per buildout
   run even if they are referenced multiple times (patch by Rafael Monnerat).
 
+- Added a new keyword argument, ``shared``, to calling the download utility.
+  This makes the optimisation of hard-linking the downloaded resource between
+  the cache and the download target more explicit and changes the default
+  behaviour to creating copies of files which is safer as it isolates
+  buildouts better from the cache and from each other.
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed
