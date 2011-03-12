@@ -915,7 +915,12 @@ def scripts(reqs, working_set, executable, dest,
 
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    path = map(realpath, path)
+    # order preserving unique
+    unique_path = []
+    for p in path:
+        if p not in unique_path:
+            unique_path.append(p)
+    path = map(realpath, unique_path)
 
     generated = []
 

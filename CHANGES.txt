@@ -4,6 +4,8 @@ Change History
 1.4.5 (unreleased)
 ==================
 
+- Remove duplicate path from script's sys.path setup.
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed
