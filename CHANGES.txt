@@ -4,6 +4,8 @@ Change History
 1.4.5 (unreleased)
 ==================
 
+- Introduce a cache for the expensive `buildout._dir_hash` function.
+
 - Remove duplicate path from script's sys.path setup.
 
 Bugs fixed:
