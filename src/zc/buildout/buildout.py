@@ -1467,7 +1467,11 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 
 
 ignore_directories = '.svn', 'CVS'
+_dir_hashes = {}
 def _dir_hash(dir):
+    dir_hash = _dir_hashes.get(dir, None)
+    if dir_hash is not None:
+        return dir_hash
     hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
         dirnames[:] = [n for n in dirnames if n not in ignore_directories]
@@ -1479,7 +1483,8 @@ def _dir_hash(dir):
         hash.update(' '.join(filenames))
         for name in filenames:
             hash.update(open(os.path.join(dirpath, name)).read())
-    return hash.digest().encode('base64').strip()
+    _dir_hashes[dir] = dir_hash = hash.digest().encode('base64').strip()
+    return dir_hash
 
 def _dists_sig(dists):
     result = []
