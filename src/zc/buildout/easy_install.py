@@ -1301,7 +1301,12 @@ def _get_path(working_set, extra_paths=()):
     """Given working set and extra paths, return a normalized path list."""
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
-    return map(realpath, path)
+    # order preserving unique
+    unique_path = []
+    for p in path:
+        if p not in unique_path:
+            unique_path.append(p)
+    return map(realpath, unique_path)
 
 def _generate_scripts(reqs, working_set, dest, path, scripts, relative_paths,
                       initialization, executable, arguments,

@@ -4,6 +4,8 @@ Change History
 1.5.3 (unreleased)
 ==================
 
+- Remove duplicate path from script's sys.path setup.
+
 - changed broken dash S check to pass the configuration options
   -S -c separately, to make zc.buildout more compatible with the PyPy
   interpreter, which has less flexible argument parsing than CPython.
