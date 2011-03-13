@@ -1,0 +1,267 @@
+=========================================
+zc.buildout, an application assembly tool
+=========================================
+
+Introduction
+============
+
+zc.buildout (Buildout) was designed to help developers assemble and deploy
+applications, from simple scripts, to complex systems consisting of
+many applications, processes, and so on, working together.
+
+Buildout is similar to build tools, like, make, but it's typically
+courser grained and puts more emphasis on assembly than on building. It
+also directly supports automated disassembly as well as assembly.
+Rather than shell scripts, buildout uses Python "recipes" to define
+how things should be assembled.  Python recipes often use lower level
+build tools, such a Python's distutils framework, or even make.
+
+Buildout was also designed to make it easier to work with Python
+distributions, often refereed to as eggs.
+
+Why should you care?
+--------------------
+
+- You have complex system to assemble and deploy.
+
+  Your system might have multiple application processes, sharing
+  databases and various tools that need to be configurted to work
+  together.
+
+- You want to create a Python application that uses packages not
+  included in the Python standard library.
+
+- You want to make sure that you can check your project out of a
+  version control system and get a predictable outcome when you
+  build it.
+
+- Your application needs to clean up after itself when it is
+  uninstalled. It's not enough just to install things, you need to
+  uninstall them too.
+
+Why not install what you need in Python's ``site-packages``?
+------------------------------------------------------------
+
+Python's packaging system is geared toward getting projects installed
+into Python's ``site-packages`` directory.  Tools like `easy_install
+<http://packages.python.org/distribute/easy_install.html>`_
+make this even easier.  The problem with installing projects this way
+is that the ``site-packages`` directory is shared by all applications
+that use a Python installation.  Different applications may only work
+with or be tested with specific versions of projects. Upgrading a
+project used by one application may break others.
+
+`Virtualenv <http://pypi.python.org/pypi/virtualenv>`_ can help a lot
+by creating lightweight isolated Python environments to work in.
+
+Another reason to use Buildout is it's emphasis on repeatability
+through explicit configuration. When you install packages manually,
+even with ``easy_install``, what you end up with depends on version
+available at the time of installation.  Buildout gives you a lot mnore
+control.
+
+Buildout isn't limited to Python
+--------------------------------
+
+While buildout is written in and extended with Python, it can assemble
+applifcations that have nothing to do with Python.  This is useful for
+Python projects that need to leverage non-python-based tools, but
+buildout is used by projects that don't otherwise use Python.
+
+Getting Started
+===============
+
+Installation
+------------
+
+There are three basic approaches to installing buildout:
+
+Using the bootstrap script
+   A bootstrap script is a script that you can download:
+
+   http://svn.zope.org/*checkout*/zc.buildout/trunk/bootstrap/bootstrap.py
+
+   And then run to install zc.buildout in the local directory::
+
+      python bootstrap.py
+
+   The bootstrap script requires that there be a buildout
+   configuration file in the same directroy.  Buildout configuration
+   files are described below.
+
+   Running the bootstrap script sets up the buildout and installs a
+   buildout script in ``bin/buildout``, which you can then run to
+   perform the buildout::
+
+      bin/buildout
+
+   Installing buildout this way doesn't affect a Python installation
+   and gives you a local buildout script. When the buildout script is
+   local, it will automatically update itself when new versions of
+   buildout are available.
+
+Using an installed buildout script
+   You can install buildout into your Python installation or
+   `virtualenv <http://pypi.python.org/pypi/virtualenv>`_ just like
+   any other project. You can then use the installed buildout script.
+
+   When buildout is installed this way, gives you a shared buildout
+   script that isn't updated automatically. To update buildout, you
+   need to install a newer version.
+
+Using a shared buildout
+   You can use any buildout script in your buildout, including one
+   installed as part of another buildout.  See `How to bootstrap
+   faster`_ and `How to avoid bootstraping`_.
+
+Buildout uses a buildout configuration file to define a database of
+configuration information defining what is to be assembled.  This
+database consists of a set of named dictionaries, called "sections",
+containing configuration options.  One of these, the ``buildout``
+section as it defines what is to be assembled.  Let's look at an
+example::
+
+  [buildout]
+  parts = zodb
+
+  [zodb]
+  recipe = zc.recipe.egg
+  eggs = ZODB3 == 3.10.2
+  interpreter = py
+
+The ``parts`` option in the ``buildout`` section defines what is to be
+assembled.  In this example, we list a single part, but we could list
+as many as we want.  A "part" is something we want to build as a part
+of our application. A part is defined by a section and has a "recipe"
+that defines how it is to be built and some configuration data.  In
+the example above, we have a ``zodb`` part that uses the
+``zc.recipe.egg`` recipe.  The recipe uses the ``eggs`` and
+``interpreter`` options.
+
+We often talk about options in sections, so for brevity, henceforth
+we'll refer to an some option in some section with the notation
+``section:option``, so, for example, we might refer to the
+``buildout:parts`` option above.
+
+The ``zc.recipe.egg`` recipe assembles given projects and their
+dependencies, builds any scripts that specify and optionally defines
+an "interpreter", which is a Python script that behaves somewhat like
+a intepreter, but which has specified projects installed.
+
+Learning more
+-------------
+
+We give some more overview information below, but overview information
+can be boring when you just want to figure out how to di
+something. You might want to skip ahead to the how-tos or consult the
+reference section.
+
+
+Terminology
+-----------
+
+project
+   A unit of functionality that is managed and distributed under a
+   name, like "django" or "dicutils".  A project distritributed using
+   "distributions".
+
+distribution
+   A distribution is a packaged version of a project that is
+   distrubuted and installed locally. A project typically generates
+   many distributions for different versions and formats.  The most
+   common distribution format is a "source" distribution.
+
+source distribution
+   A distribution in source form.
+
+binary distribution
+   A distribution other than a source distribution
+
+platform-dependent distribution
+   A distribution that was built in a platform-dependent way,
+   typically because it includes extension modules.
+   Platform-dependent distributions are commonly used for platforms,
+   such as Windows for which compilers typically aren't installed by
+   default. Platform-dependent distributions should generally be
+   avoided for other platforms.
+
+eggs
+   A distribution in a format, inspired by Java Jar files, which
+   requires minimal processing for installation.
+
+   In many cases, an egg can be used directly by simply incliding it's
+   path in the Python search path.  Eggs may be platform dependent or
+   platform indepenent.
+
+   The term "egg" is often used sloppily to refer to any distribution
+   format.  Buildout, unfortunately, often uses the term this way.
+
+   An egg may be a single file in zip format, or a directory.
+
+   Eggs are also an installation format, and Buildout alway installs
+   projects in egg format.
+
+Buildout directories
+--------------------
+
+Buildout uses a number of directories to orginize it's products. The
+names and locations of these directories can be overridden, if
+desired.
+
++-------------------------------------+--------------+-------------------------+
+| Option                              | Default      | Descriotion             |
++=====================================+==============+=========================+
+| ``buildout:directory``              | .            | The root of a working   |
+|                                     |              | directory in which      |
+|                                     |              | Buildout is used. Other |
+|                                     |              | are relative to this    |
+|                                     |              | directory by default.   |
++-------------------------------------+--------------+-------------------------+
+| ``buildout:parts-directory``        | parts        | A standard default      |
+|                                     |              | place for recipes to    |
+|                                     |              | place files they        |
+|                                     |              | create.                 |
++-------------------------------------+--------------+-------------------------+
+| ``buildout:bin-directory``          | bin          | Location for generated  |
+|                                     |              | scripts.                |
++-------------------------------------+--------------+-------------------------+
+| ``buildout:eggs-directory``         | eggs         | Shared eggs             |
++-------------------------------------+--------------+-------------------------+
+| ``buildout:develop-eggs-directory`` | develop-eggs | Non-shared eggs         |
+|                                     |              |                         |
++-------------------------------------+--------------+-------------------------+
+
+The buildout directory defaults to the directory containing the
+buildout configuration file, which is usually a working directory for
+a software project.  We often refer informally to a buildout directory
+as "a buildout".
+
+When buildout installs a Python project distribution, it normally
+creates a directory in the eggs directory.  Multiple buildouts often
+use the same eggs, so the eggs directory is often shared.  (See `How
+to share eggs between buildouts`_.)
+
+Sometimes, eggs can't be shared, because they're created using
+information from a particular buildout. These eggs are installed in
+the develop-eggs directory.
+
+If a part causes scripts to be installed, they're typically installed
+in the bin directory.
+
+If a part causes files to be generated, they're normally put into a
+sub-directory of the parts directory.  This directory has the same
+name as the part.  If a part generates a single file, it can put this
+file directly in the parts directory.
+
+XXX write more overview here.
+
+Configuration Syntax
+====================
+
+Option reuse
+------------
+
+Macros
+------
+
+

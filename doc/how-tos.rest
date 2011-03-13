@@ -1,0 +1,30 @@
+=======
+How-tos
+=======
+
+.. toctree::
+   :maxdepth: 2
+
+   how-to-write-a-recipe-to-automate-a-task-with-python
+   how-to-play-with-some-cool-python-package
+   how-to-create-script
+   how-to-bootstrap-faster
+   how-to-avoid-bootstrapping
+   how-to-debug-the-buildout-options-database-with-annotations
+   how-to-reuse-configuration
+   how-to-use-the-same-same-options-in-all-your-buildouts
+   how-to-override-options-on-the-command-line
+   how-to-control-directory-and-file-names
+   how-to-avoid-doing-the-same-work-over-and-over
+   how-to-avoid-downloading-new-distributions
+   how-to-avoid-getting-experimental-versions-of-software
+   how-to-control-where-buildout-looks-for-distributions
+   how-to-control-where-or-if-buildut-remembers-what-in-installed
+   how-to-avoid-zipped-eggs
+   how-to-make-your-buildout-repeatable
+   how-to-write-recipes-that-download-files
+   how-to-run-setup-scripts
+   how-to-test-your-recipes
+   how-to-control-buildout-updates
+   how-to-debug-buildout-problems
+   how-to-write-recipes-that-install-distributions

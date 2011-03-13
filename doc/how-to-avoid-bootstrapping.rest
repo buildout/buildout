@@ -1,0 +1,6 @@
+==========================
+How to avoid bootstrapping
+==========================
+
+Goal
+   Use buildout withou having to bother bootstrapping

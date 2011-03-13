@@ -1,0 +1,8 @@
+=======================
+How to bootstrap faster
+=======================
+
+Goal
+   Create a local buildout script so you don't have to install
+   buildout somewhere else or so you get automatic updates.
+
