@@ -160,11 +160,13 @@ def sys_install(setup, dest):
               '--single-version-externally-managed')
 
 def find_python(version):
-    e = os.environ.get('PYTHON%s' % version)
+    env_friendly_version = ''.join(version.split('.'))
+    
+    e = os.environ.get('PYTHON%s' % env_friendly_version)
     if e is not None:
         return e
     if is_win32:
-        e = '\Python%s%s\python.exe' % tuple(version.split('.'))
+        e = '\Python%s\python.exe' % env_friendly_version
         if os.path.exists(e):
             return e
     else:
