@@ -261,3 +261,36 @@ The buildout script shows the change.
            'bootstrap without --accept-buildout-test-releases (-t) to return to '
            'default behavior.')
     ...
+
+If the update process for buildout or setuptools fails the error should be
+caught (displaying a warning) and the rest of the buildout update process
+should continue.
+
+    >>> version = sys.version_info[0:2]
+    >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg ' % version
+    >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg ' % version
+    >>> system('cp ' + egg  + copy_egg)
+    ''
+
+Create a broken egg
+
+    >>> mkdir(sample_buildout, 'broken')
+    >>> write(sample_buildout, 'broken', 'setup.py', "import broken_egg\n")
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop =
+    ...   broken
+    ...
+    ... [broken]
+    ... recipe = zc.recipe.egg
+    ... eggs = broken
+    ... """ % dict(new_releases=new_releases))
+    >>> import subprocess
+    >>> subprocess.check_call([buildout])
+    Traceback (most recent call last):
+        ...
+    CalledProcessError: Command '['/sample-buildout/bin/buildout']' returned non-zero exit status 1

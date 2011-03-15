@@ -35,6 +35,7 @@ import sys
 import tempfile
 import UserDict
 import warnings
+import subprocess
 import zc.buildout
 import zc.buildout.download
 import zc.buildout.easy_install
@@ -48,9 +49,6 @@ pkg_resources_loc = pkg_resources.working_set.find(
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
 is_jython = sys.platform.startswith('java')
-
-if is_jython:
-    import subprocess
 
 _sys_executable_has_broken_dash_S = (
     zc.buildout.easy_install._has_broken_dash_S(sys.executable))
@@ -952,12 +950,7 @@ class Buildout(UserDict.DictMixin):
         # library) then that should be fine.
         env = os.environ.copy()
         env['PYTHONPATH'] = partsdir
-        if is_jython:
-            sys.exit(
-                subprocess.Popen(
-                    [sys.executable] + list(args), env=env).wait())
-        else:
-            sys.exit(os.spawnve(os.P_WAIT, sys.executable, args, env))
+        sys.exit(subprocess.Popen(args, env=env).wait())
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -1802,14 +1795,12 @@ def main(args=None):
             _error('invalid command:', command)
     else:
         command = 'install'
-
+    
     try:
         try:
             buildout = Buildout(config_file, options,
                                 user_defaults, windows_restart, command)
             getattr(buildout, command)(args)
-        except SystemExit:
-            pass
         except Exception, v:
             _doing()
             exc_info = sys.exc_info()

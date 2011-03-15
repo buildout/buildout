@@ -211,9 +211,10 @@ def find_python(version):
 
     raise ValueError(
         "Couldn't figure out the executable for Python %(version)s.\n"
-        "Set the environment variable PYTHON%(version)s to the location\n"
+        "Set the environment variable PYTHON%(envversion)s to the location\n"
         "of the Python %(version)s executable before running the tests."
-        % {'version': version})
+        % {'version': version,
+           'envversion': env_friendly_version})
 
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:

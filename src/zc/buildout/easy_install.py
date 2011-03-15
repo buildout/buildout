@@ -1181,13 +1181,12 @@ def develop(setup, dest,
                 args[1] == '-v'
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
-
-        if is_jython:
-            assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
-        else:
-            assert os.spawnl(os.P_WAIT, executable, _safe_arg(executable),
-                             *args) == 0
-
+        
+        try:
+            subprocess.check_call([_safe_arg(executable)] + args)
+        except subprocess.CalledProcessError:
+            raise zc.buildout.UserError("Installing develop egg failed")
+            
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
