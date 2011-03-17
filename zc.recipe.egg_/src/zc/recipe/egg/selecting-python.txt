@@ -131,7 +131,7 @@ And the generated scripts invoke Python 2.5:
             sys.argv[:] = _args
             __file__ = _args[0]
             del _options, _args
-            execfile(__file__)
+            exec(compile(open(__file__).read(), __file__, "exec"))
     <BLANKLINE>
     if _interactive:
         del _interactive

@@ -62,7 +62,7 @@ class Custom(Base):
             self.environment = buildout[environment_section]
         else:
             self.environment = {}
-        environment_data = self.environment.items()
+        environment_data = list(self.environment.items())
         environment_data.sort()
         options['_environment-data'] = repr(environment_data)
 
@@ -101,7 +101,7 @@ class Custom(Base):
 
     def _set_environment(self):
         self._saved_environment = {}
-        for key, value in self.environment.items():
+        for key, value in list(self.environment.items()):
             if key in os.environ:
                 self._saved_environment[key] = os.environ[key]
             # Interpolate value with variables from environment. Maybe there

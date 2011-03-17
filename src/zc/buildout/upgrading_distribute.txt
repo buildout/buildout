@@ -50,7 +50,5 @@ test: we only want to test that ``_get_dist()`` isn't getting called:
     ...     executable=sys.executable,
     ...     always_unzip=True)
     >>> installer._get_dist = mock_get_dist
-    >>> installer._call_easy_install('setuptools', None, dest, dist)
-    Traceback (most recent call last):
-    ...
-    UserError: Couldn't install: nonexisting.tgz
+    >>> print(raises('UserError', installer._call_easy_install, 'setuptools', None, dest, dist))
+    Couldn't install: nonexisting.tgz

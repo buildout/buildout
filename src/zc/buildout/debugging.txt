@@ -56,7 +56,7 @@ And create a buildout that uses it:
 
 If we run the buildout, we'll get an error:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     While:
@@ -67,11 +67,11 @@ If we run the buildout, we'll get an error:
 If we want to debug the error, we can add the -D option. Here's we'll
 supply some input:
 
-    >>> print system(buildout+" -D", """\
+    >>> run(buildout+" -D", """\
     ... up
     ... p self.options.keys()
     ... q
-    ... """),
+    ... """)
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     > /zc/buildout/buildout.py(925)__getitem__()

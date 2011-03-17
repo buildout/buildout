@@ -54,7 +54,7 @@ def rmtree (path):
     0
     """
     def retry_writeable (func, path, exc):
-        os.chmod (path, 0600)
+        os.chmod (path, 0o600)
         func (path)
 
     shutil.rmtree (path, onerror = retry_writeable)

@@ -289,7 +289,7 @@ buildout:
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory mystuff
@@ -338,7 +338,7 @@ we'll see that the directory gets removed and recreated:
     ... path = mydata
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling data-dir.
     Installing data-dir.
@@ -358,7 +358,7 @@ If any of the files or directories created by a recipe are removed,
 the part will be reinstalled:
 
     >>> rmdir(sample_buildout, 'mydata')
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling data-dir.
     Installing data-dir.
@@ -389,7 +389,7 @@ non-existent directory to create the directory in:
 
 We'll get a user error, not a traceback.
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
     While:
@@ -454,7 +454,7 @@ leave previously created paths in place:
     ... path = foo bin
     ... """)
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
+    >>> run(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Uninstalling data-dir.
     Installing data-dir.
@@ -488,7 +488,7 @@ If we fix the typo:
     ... path = foo bins
     ... """)
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
+    >>> run(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -564,7 +564,7 @@ And put back the typo:
 
 When we rerun the buildout:
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
+    >>> run(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -636,7 +636,8 @@ recipe:
 
 ..
 
-    >>> remove(sample_buildout, 'recipes', 'mkdir.pyc')
+    >>> for (d, _, f) in os.walk(join(sample_buildout, 'recipes')):
+    ...     if f == 'mkdir.pyc': rermove(join(d, f))
 
 We returned by calling created, taking advantage of the fact that it
 returns the registered paths.  We did this for illustrative purposes.
@@ -645,7 +646,7 @@ It would be simpler just to return the paths as before.
 If we rerun the buildout, again, we'll get the error and no
 directories will be created:
 
-    >>> print system(buildout), # doctest: +ELLIPSIS
+    >>> run(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -675,7 +676,7 @@ Now, we'll fix the typo again and we'll get the directories we expect:
     ... path = foo bins
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory foo
@@ -722,7 +723,7 @@ all key-value pairs are displayed, sorted alphabetically, along with
 the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE,
 COMMAND_LINE_VALUE).
 
-    >>> print system(buildout+ ' annotate'),
+    >>> run(buildout+ ' annotate')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -808,10 +809,10 @@ allow us to see interactions with the buildout:
     ...         self.options = options
     ...
     ...     def install(self):
-    ...         items = self.options.items()
+    ...         items = list(self.options.items())
     ...         items.sort()
     ...         for option, value in items:
-    ...             print option, value
+    ...             print(option, value)
     ...         return ()
     ...
     ...     update = install
@@ -867,7 +868,7 @@ and option name joined by a colon.
 Now, if we run the buildout, we'll see the options with the values
 substituted.
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling data-dir.
     Installing data-dir.
@@ -886,7 +887,7 @@ The buildout system didn't know if this module could effect the mkdir
 recipe, so it assumed it could and reinstalled mydata.  If we rerun
 the buildout:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Updating data-dir.
     Updating debug.
@@ -925,7 +926,7 @@ _buildout_section_name_ to get the current section name.
     ... path = mydata
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Updating data-dir.
@@ -963,7 +964,7 @@ example, we can leave data-dir out of the parts list:
 
 It will still be treated as a part:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Updating data-dir.
@@ -1002,7 +1003,7 @@ the data-dir part after the debug part, it will be included before:
 
 It will still be treated as a part:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Updating data-dir.
     Updating debug.
@@ -1051,7 +1052,7 @@ of the current section allows sections to be used as macros.
     ... path = mydata
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Uninstalling data-dir.
@@ -1143,8 +1144,8 @@ extension that prints out the options.
     >>> write(sample_buildout, 'demo', 'demo.py',
     ... """
     ... def ext(buildout):
-    ...     print [part['option'] for name, part in buildout.items() \
-    ...           if name.startswith('part')]
+    ...     print([part['option'] for name, part in buildout.items() \
+    ...           if name.startswith('part')])
     ... """)
 
     >>> write(sample_buildout, 'demo', 'setup.py',
@@ -1167,7 +1168,7 @@ Set up a buildout configuration for this extension.
     ... """)
 
     >>> os.chdir(sample_buildout)
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> run(os.path.join(sample_buildout, 'bin', 'buildout'))
     Develop: '/sample-buildout/demo'
     Uninstalling myfiles.
     Getting distribution for 'recipes'.
@@ -1185,14 +1186,14 @@ Verify option values.
     ... extends = extension2.cfg
     ... """)
 
-    >>> print system(os.path.join('bin', 'buildout')),
+    >>> run(os.path.join('bin', 'buildout'))
     ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'h1 h2']
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
 operations.
 
-    >>> print system(os.path.join('bin', 'buildout') + ' annotate'),
+    >>> run(os.path.join('bin', 'buildout') + ' annotate')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -1268,7 +1269,7 @@ To see how this works, we use an example:
     ... op = base
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Installing debug.
     op buildout
@@ -1338,7 +1339,7 @@ Here is a more elaborate example.
     ... name = base
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1400,7 +1401,7 @@ we'll set up a web server with some configuration files.
     ... """ % dict(url=server_url))
 
 
-    >>> print system(buildout+ ' -c client.cfg'),
+    >>> run(buildout+ ' -c client.cfg')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1431,7 +1432,7 @@ buildout.
     ... name = remote
     ... """)
 
-    >>> print system(buildout + ' -c ' + server_url + '/remote.cfg'),
+    >>> run(buildout + ' -c ' + server_url + '/remote.cfg')
     While:
       Initializing.
     Error: Missing option: buildout:directory
@@ -1441,10 +1442,9 @@ containing a configuration file.  This won't work for configuration
 files loaded from URLs.  In this case, the buildout directory would
 normally be defined on the command line:
 
-    >>> print system(buildout
-    ...              + ' -c ' + server_url + '/remote.cfg'
+    >>> run(buildout + ' -c ' + server_url + '/remote.cfg'
     ...              + ' buildout:directory=' + sample_buildout
-    ...              ),
+    ...              )
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1473,7 +1473,7 @@ delimiter.)
     ... """)
 
     >>> os.environ['HOME'] = home
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1490,7 +1490,7 @@ delimiter.)
 A buildout command-line argument, -U, can be used to suppress reading
 user defaults:
 
-    >>> print system(buildout + ' -U'),
+    >>> run(buildout + ' -U')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1519,7 +1519,7 @@ set the logging level to WARNING
     ... extends = b1.cfg b2.cfg
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     name base
     op1 b1 1
     op2 b2 2
@@ -1562,7 +1562,7 @@ with an uninstall recipe that simulates removing the service.
     ...         self.options = options
     ...
     ...     def install(self):
-    ...         print "chkconfig --add %s" % self.options['script']
+    ...         print("chkconfig --add %s" % self.options['script'])
     ...         return ()
     ...
     ...     def update(self):
@@ -1570,7 +1570,7 @@ with an uninstall recipe that simulates removing the service.
     ...
     ...
     ... def uninstall_service(name, options):
-    ...     print "chkconfig --del %s" % options['script']
+    ...     print("chkconfig --del %s" % options['script'])
     ... """)
 
 To use these recipes we must register them using entry points. Make
@@ -1609,20 +1609,18 @@ Here's how these recipes could be used in a buildout:
 
 When the buildout is run the service will be installed
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing service.
     chkconfig --add /path/to/script
-    <BLANKLINE>
 
 The service has been installed. If the buildout is run again with no
 changes, the service shouldn't be changed.
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Updating service.
-    <BLANKLINE>
 
 Now we change the service part to trigger uninstallation and
 re-installation.
@@ -1638,14 +1636,13 @@ re-installation.
     ... script = /path/to/a/different/script
     ... """)
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling service.
     Running uninstall recipe.
     chkconfig --del /path/to/script
     Installing service.
     chkconfig --add /path/to/a/different/script
-    <BLANKLINE>
 
 Now we remove the service part, and add another part.
 
@@ -1659,14 +1656,13 @@ Now we remove the service part, and add another part.
     ... recipe = recipes:debug
     ... """)
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling service.
     Running uninstall recipe.
     chkconfig --del /path/to/a/different/script
     Installing debug.
     recipe recipes:debug
-    <BLANKLINE>
 
 Uninstall recipes don't have to take care of removing all the files
 and directories created by the part. This is still done automatically,
@@ -1684,7 +1680,7 @@ mkdir recipe introduced earlier.
     ... def backup_directory(name, options):
     ...     path = options['path']
     ...     size = len(os.listdir(path))
-    ...     print "backing up directory %s of size %s" % (path, size)
+    ...     print("backing up directory %s of size %s" % (path, size))
     ... """)
 
 It must be registered with the zc.buildout.uninstall entry
@@ -1726,14 +1722,13 @@ Now we can use it with a mkdir part.
 
 Run the buildout to install the part.
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing dir.
     dir: Creating directory my_directory
     Installing debug.
     recipe recipes:debug
-    <BLANKLINE>
 
 Now we remove the part from the configuration file.
 
@@ -1750,14 +1745,13 @@ Now we remove the part from the configuration file.
 When the buildout is run the part is removed, and the uninstall recipe
 is run before the directory is deleted.
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling dir.
     Running uninstall recipe.
     backing up directory /sample-buildout/my_directory of size 0
     Updating debug.
     recipe recipes:debug
-    <BLANKLINE>
 
 Now we will return the registration to normal for the benefit of the
 rest of the examples.
@@ -1855,7 +1849,7 @@ Here's an example:
 Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts.
 
-    >>> print system(buildout+' -c other.cfg debug:op1=foo -v'),
+    >>> run(buildout+' -c other.cfg debug:op1=foo -v')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     name other
@@ -1868,7 +1862,7 @@ WARNING.
 
 Options can also be combined in the usual Unix way, as in:
 
-    >>> print system(buildout+' -vcother.cfg debug:op1=foo'),
+    >>> run(buildout+' -vcother.cfg debug:op1=foo')
     Develop: '/sample-buildout/recipes'
     Updating debug.
     name other
@@ -1909,7 +1903,7 @@ the buildout in the usual way:
     ... recipe = recipes:debug
     ... """)
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1993,7 +1987,7 @@ Now we'll update our configuration file:
 
 and run the buildout specifying just d3 and d4:
 
-    >>> print system(buildout+' install d3 d4'),
+    >>> run(buildout+' install d3 d4')
     Develop: '/sample-buildout/recipes'
     Uninstalling d3.
     Installing d3.
@@ -2064,7 +2058,7 @@ directories are still there.
 
 Now, if we run the buildout without the install command:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling d2.
     Uninstalling d1.
@@ -2121,7 +2115,7 @@ provide alternate locations, and even names for these directories.
     ...    work = os.path.join(alt, 'work'),
     ... ))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Creating directory '/sample-alt/scripts'.
     Creating directory '/sample-alt/work'.
     Creating directory '/sample-alt/basket'.
@@ -2157,7 +2151,7 @@ You can also specify an alternate buildout directory:
     ...    recipes=os.path.join(sample_buildout, 'recipes'),
     ...    ))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Creating directory '/sample-alt/bin'.
     Creating directory '/sample-alt/parts'.
     Creating directory '/sample-alt/eggs'.
@@ -2209,7 +2203,7 @@ can be a numeric value and that the verbosity can be specified in the
 configuration file.  Because the verbosity is subtracted from the log
 level, we get a final log level of 20, which is the INFO level.
 
-    >>> print system(buildout),
+    >>> run(buildout)
     INFO Develop: '/sample-buildout/recipes'
 
 Predefined buildout options
@@ -2227,7 +2221,7 @@ database is shown.
     ... parts =
     ... """)
 
-    >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
+    >>> run(buildout+' -vv') # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
@@ -2410,9 +2404,8 @@ local buildout scripts.
 
     >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
-    >>> print system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-    ...              +' init'),
+    >>> run(buildout +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' init')
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/bin'.
     Creating directory '/sample-bootstrapped/parts'.
@@ -2451,16 +2444,15 @@ If relative-paths is ``true``, the buildout script uses relative paths.
     ... parts =
     ... ''')
 
-    >>> print system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-    ...              +' bootstrap'),
+    >>> run(buildout +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' bootstrap')
     Generated script '/sample-bootstrapped/bin/buildout'.
 
     >>> buildout_script = join(sample_bootstrapped, 'bin', 'buildout')
     >>> import sys
     >>> if sys.platform.startswith('win'):
     ...     buildout_script += '-script.py'
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #!... -S
     <BLANKLINE>
     import os
@@ -2500,9 +2492,8 @@ if there isn't a configuration file:
 
     >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
 
-    >>> print system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-    ...              +' bootstrap'),
+    >>> run(buildout +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+    ...              +' bootstrap')
     While:
       Initializing.
     Error: Couldn't open /sample-bootstrapped2/setup.cfg
@@ -2513,9 +2504,8 @@ if there isn't a configuration file:
     ... parts =
     ... """)
 
-    >>> print system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-    ...              +' bootstrap'),
+    >>> run(buildout +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
+    ...              +' bootstrap')
     Creating directory '/sample-bootstrapped2/bin'.
     Creating directory '/sample-bootstrapped2/parts'.
     Creating directory '/sample-bootstrapped2/eggs'.
@@ -2653,7 +2643,7 @@ or on the command line:
     ... recipe = recipes:debug
     ... """)
 
-    >>> print system(buildout+' buildout:installed=inst.cfg'),
+    >>> run(buildout+' buildout:installed=inst.cfg')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     recipe recipes:debug
@@ -2675,7 +2665,7 @@ The installation database can be disabled by supplying an empty
 buildout installed option:
 
     >>> os.remove('inst.cfg')
-    >>> print system(buildout+' buildout:installed='),
+    >>> run(buildout+' buildout:installed=')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     recipe recipes:debug
@@ -2701,7 +2691,7 @@ Note that there will be no installation database if there are no parts:
     ... parts =
     ... """)
 
-    >>> print system(buildout+' buildout:installed=inst.cfg'),
+    >>> run(buildout+' buildout:installed=inst.cfg')
 
     >>> ls(sample_buildout)
     -  b1.cfg
@@ -2738,9 +2728,9 @@ previous section:
     >>> write(sample_bootstrapped, 'demo', 'demo.py',
     ... """
     ... def ext(buildout):
-    ...     print 'ext', list(buildout)
+    ...     print('ext', list(buildout))
     ... def unload(buildout):
-    ...     print 'unload', list(buildout)
+    ...     print('unload', list(buildout))
     ... """)
 
     >>> write(sample_bootstrapped, 'demo', 'setup.py',
@@ -2770,7 +2760,7 @@ egg to be built:
     ... """)
 
     >>> os.chdir(sample_bootstrapped)
-    >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
+    >>> run(os.path.join(sample_bootstrapped, 'bin', 'buildout'))
     Develop: '/sample-bootstrapped/demo'
 
 Now we can add the extensions option.  We were a bit tricky and ran
@@ -2790,7 +2780,7 @@ the network, we wouldn't need to do anything special.
 
 We see that our extension is loaded and executed:
 
-    >>> print system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
+    >>> run(os.path.join(sample_bootstrapped, 'bin', 'buildout'))
     ext ['buildout']
     Develop: '/sample-bootstrapped/demo'
     unload ['buildout']

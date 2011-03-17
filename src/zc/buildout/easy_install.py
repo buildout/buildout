@@ -26,6 +26,7 @@ import os
 import pkg_resources
 import py_compile
 import re
+import setuptools
 import setuptools.archive_util
 import setuptools.command.setopt
 import setuptools.package_index
@@ -52,6 +53,7 @@ url_match = re.compile('[a-z0-9+.-]+://').match
 
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
+setuptools_key = pkg_resources.Requirement.parse('setuptools').key
 is_distribute = (
     pkg_resources.Requirement.parse('setuptools').key=='distribute')
 
@@ -72,7 +74,7 @@ if is_jython:
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
 setuptools_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')
+    pkg_resources.Requirement.parse(setuptools_key)
     ).location
 
 # Include buildout and setuptools eggs in paths.  We prevent dupes just to
@@ -94,11 +96,11 @@ def _has_broken_dash_S(executable):
     stdout, stderr = subprocess.Popen(
         [executable, '-S', '-c',
          'try:\n'
-         '    import ConfigParser\n'
+         '    import pickle\n'
          'except ImportError:\n'
-         '    print 1\n'
+         '    print(1)\n'
          'else:\n'
-         '    print 0\n'],
+         '    print(0)\n'],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     return bool(int(stdout.strip()))
 
@@ -129,7 +131,7 @@ def _get_system_paths(executable):
         cmd.extend(args)
         cmd.extend([
             "-c", "import sys, os;"
-            "print repr([os.path.normpath(p) for p in sys.path if p])"])
+            "print(repr([os.path.normpath(p) for p in sys.path if p]))"])
         # Windows needs some (as yet to be determined) part of the real env.
         env = os.environ.copy()
         # We need to make sure that PYTHONPATH, which will often be set
@@ -184,10 +186,10 @@ def _get_version(executable):
                              close_fds=not is_win32)
         i, o = (p.stdin, p.stdout)
         i.close()
-        version = o.read().strip()
+        version = o.read().strip().decode()
         o.close()
         pystring, version = version.split()
-        assert pystring == 'Python'
+        assert pystring == 'Python', pystring
         version = re.match('(\d[.]\d)([.].*\d)?$', version).group(1)
         _versions[executable] = version
         return version
@@ -716,6 +718,13 @@ class Installer:
 
     def _get_dist(self, requirement, ws, always_unzip):
 
+        if (requirement.project_name == 'setuptools' and
+            (ws.find(pkg_resources.Requirement.parse('distribute'))
+             or sys.version_info[0] >= 3
+             )
+            ):
+            requirement = pkg_resources.Requirement.parse('distribute')
+
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
@@ -849,7 +858,7 @@ class Installer:
                         "does not require setuptools.",
                         dist)
                 requirement = self._constrain(
-                    pkg_resources.Requirement.parse('setuptools')
+                    pkg_resources.Requirement.parse(setuptools_key)
                     )
                 if ws.find(requirement) is None:
                     for dist in self._get_dist(requirement, ws, False):
@@ -857,8 +866,6 @@ class Installer:
 
 
     def _constrain(self, requirement):
-        if is_distribute and requirement.key == 'setuptools':
-            requirement = pkg_resources.Requirement.parse('distribute')
         version = self._versions.get(requirement.project_name)
         if version:
             if version not in requirement:
@@ -914,9 +921,21 @@ class Installer:
         while requirements:
             # Process dependencies breadth-first.
             req = self._constrain(requirements.pop(0))
+
             if req in processed:
                 # Ignore cyclic or redundant dependencies.
                 continue
+
+            if (req.project_name == 'setuptools' and
+                (ws.find(pkg_resources.Requirement.parse('distribute'))
+                 or sys.version_info[0] >= 3
+                 )
+                ):
+                processed[req] = True
+                req = pkg_resources.Requirement.parse('distribute')
+                if req in processed:
+                    continue
+
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map.
@@ -924,7 +943,7 @@ class Installer:
                 if dist is None:
                     try:
                         dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict, err:
+                    except pkg_resources.VersionConflict as err:
                         raise VersionConflict(err, ws)
                     if dist is None or (
                         dist.location in self._site_packages and not
@@ -1157,12 +1176,12 @@ def develop(setup, dest,
         undo.append(lambda: os.remove(tsetup))
         undo.append(lambda: os.close(fd))
 
-        os.write(fd, runsetup_template % dict(
+        os.write(fd, (runsetup_template % dict(
             setuptools=setuptools_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
-            ))
+            )).encode())
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
@@ -1305,7 +1324,7 @@ def _get_path(working_set, extra_paths=()):
     for p in path:
         if p not in unique_path:
             unique_path.append(p)
-    return map(realpath, unique_path)
+    return list(map(realpath, unique_path))
 
 def _generate_scripts(reqs, working_set, dest, path, scripts, relative_paths,
                       initialization, executable, arguments,
@@ -1463,7 +1482,7 @@ def _write_script(full_name, contents, logged_type):
     if changed:
         open(script_name, 'w').write(contents)
         try:
-            os.chmod(script_name, 0755)
+            os.chmod(script_name, 0o755)
         except (AttributeError, os.error):
             pass
         logger.info("Generated %s %r.", logged_type, full_name)
@@ -1548,7 +1567,7 @@ if len(sys.argv) > 1:
         if _opt == '-i':
             _interactive = True
         elif _opt == '-c':
-            exec _val
+            exec(_val)
         elif _opt == '-m':
             sys.argv[1:] = _args
             _args = []
@@ -1559,7 +1578,7 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        execfile(__file__)
+        exec(compile(open(__file__).read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
@@ -1578,7 +1597,7 @@ def _get_module_file(executable, name, silent=False):
            "import imp; "
            "fp, path, desc = imp.find_module(%r); "
            "fp.close(); "
-           "print path" % (name,)]
+           "print(path)" % (name,)]
     env = os.environ.copy()
     # We need to make sure that PYTHONPATH, which will often be set to
     # include a custom buildout-generated site.py, is not set, or else
@@ -1595,7 +1614,7 @@ def _get_module_file(executable, name, silent=False):
         return None
     # else: ...
     res = stdout.strip()
-    if res.endswith('.pyc') or res.endswith('.pyo'):
+    if res.endswith('.pyc'.encode()) or res.endswith('.pyo'.encode()):
         raise RuntimeError('Cannot find uncompiled version of %s' % (name,))
     if not os.path.exists(res):
         raise RuntimeError(
@@ -1816,7 +1835,8 @@ __file__ = %(__file__)r
 
 os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
-execfile(%(setup)r)
+
+exec(compile(open(%(setup)r).read(), %(setup)r, "exec"))
 """
 
 

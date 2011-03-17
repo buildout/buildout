@@ -18,7 +18,9 @@ The script accepts buildout command-line options, so you can
 use the -c option to specify an alternate configuration file.
 """
 
-import os, shutil, sys, tempfile, textwrap, urllib, urllib2, subprocess
+import os, shutil, sys, tempfile, textwrap
+import urllib.request, urllib.parse, urllib.error, urllib.request
+import urllib.error, urllib.parse, subprocess
 from optparse import OptionParser
 
 if sys.platform == 'win32':
@@ -32,13 +34,13 @@ else:
 
 # See zc.buildout.easy_install._has_broken_dash_S for motivation and comments.
 stdout, stderr = subprocess.Popen(
-    [sys.executable, '-Sc',
+    [sys.executable, '-S', '-c',
      'try:\n'
-     '    import ConfigParser\n'
+     '    import pickle\n'
      'except ImportError:\n'
-     '    print 1\n'
+     '    print(1)\n'
      'else:\n'
-     '    print 0\n'],
+     '    print(0)\n'],
     stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 has_broken_dash_S = bool(int(stdout.strip()))
 
@@ -50,8 +52,9 @@ if not has_broken_dash_S and 'site' in sys.modules:
     # We will restart with python -S.
     args = sys.argv[:]
     args[0:0] = [sys.executable, '-S']
-    args = map(quote, args)
+    args = list(map(quote, args))
     os.execv(sys.executable, args)
+
 # Now we are running with -S.  We'll get the clean sys.path, import site
 # because distutils will do it later, and then reset the path and clean
 # out any namespace packages from site-packages that might have been
@@ -59,7 +62,7 @@ if not has_broken_dash_S and 'site' in sys.modules:
 clean_path = sys.path[:]
 import site
 sys.path[:] = clean_path
-for k, v in sys.modules.items():
+for k, v in list(sys.modules.items()):
     if k in ('setuptools', 'pkg_resources') or (
         hasattr(v, '__path__') and
         len(v.__path__)==1 and
@@ -77,7 +80,7 @@ def normalize_to_url(option, opt_str, value, parser):
     if value:
         if '://' not in value: # It doesn't smell like a URL.
             value = 'file://%s' % (
-                urllib.pathname2url(
+                urllib.request.pathname2url(
                     os.path.abspath(os.path.expanduser(value))),)
         if opt_str == '--download-base' and not value.endswith('/'):
             # Download base needs a trailing slash to make the world happy.
@@ -103,7 +106,8 @@ parser = OptionParser(usage=usage)
 parser.add_option("-v", "--version", dest="version",
                           help="use a specific zc.buildout version")
 parser.add_option("-d", "--distribute",
-                   action="store_true", dest="use_distribute", default=False,
+                   action="store_true", dest="use_distribute",
+                   default= sys.version_info[0] >= 3,
                    help="Use Distribute rather than Setuptools.")
 parser.add_option("--setup-source", action="callback", dest="setup_source",
                   callback=normalize_to_url, nargs=1, type="string",
@@ -160,10 +164,10 @@ try:
     if not hasattr(pkg_resources, '_distribute'):
         raise ImportError
 except ImportError:
-    ez_code = urllib2.urlopen(
+    ez_code = urllib.request.urlopen(
         options.setup_source).read().replace('\r\n', '\n')
     ez = {}
-    exec ez_code in ez
+    exec(ez_code, ez)
     setup_args = dict(to_dir=eggs_dir, download_delay=0)
     if options.download_base:
         setup_args['download_base'] = options.download_base
@@ -247,9 +251,9 @@ else: # Windows prefers this, apparently; otherwise we would prefer subprocess
 if exitcode != 0:
     sys.stdout.flush()
     sys.stderr.flush()
-    print ("An error occurred when trying to install zc.buildout. "
-           "Look above this message for any errors that "
-           "were output by easy_install.")
+    print("An error occurred when trying to install zc.buildout. "
+          "Look above this message for any errors that "
+          "were output by easy_install.")
     sys.exit(exitcode)
 
 ws.add_entry(eggs_dir)

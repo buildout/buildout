@@ -7,10 +7,10 @@ class Debug:
         self.options = options
 
     def install(self):
-        items = self.options.items()
+        items = list(self.options.items())
         items.sort()
         for option, value in items:
-            print "  %s=%r" % (option, value)
+            print("  %s=%r" % (option, value))
         return ()
 
     update = install

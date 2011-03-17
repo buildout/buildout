@@ -54,14 +54,13 @@ Now let's configure the buildout to use the develop egg.
 
 Now we can run the buildout.
 
-    >>> print system(buildout)
+    >>> run(buildout)
     GET 200 /
     GET 200 /demoneeded-1.2c1.zip
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.2c1.
-    <BLANKLINE>
 
 Notice that the egg was retrieved from the logging server.
 
@@ -83,7 +82,7 @@ buildout to see where the egg comes from this time.
     ...     for egg in glob(join(sample_buildout, 'eggs', 'demoneeded*.egg')):
     ...         remove(sample_buildout, 'eggs', egg)
     >>> remove_demoneeded_egg()
-    >>> print system(buildout) # doctest: +ELLIPSIS
+    >>> run(buildout) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/depdemo'
     ...
     Getting distribution for 'demoneeded'.
@@ -91,7 +90,6 @@ buildout to see where the egg comes from this time.
       Updating eggs.
       Getting distribution for 'demoneeded'.
     Error: Couldn't find a distribution for 'demoneeded'.
-    <BLANKLINE>
 
 Now it can't find the dependency since neither the buildout
 configuration nor setup specifies where to look.
@@ -111,12 +109,11 @@ to look for eggs.
     ... eggs = depdemo
     ... ''' % link_server)
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.2c1.
-    <BLANKLINE>
 
 This time the dependency egg was found on the server without logging
 configured.
@@ -133,13 +130,12 @@ specify different places to look for the dependency egg.
     ... '''  % link_server2)
 
     >>> remove_demoneeded_egg()
-    >>> print system(buildout) #doctest: +ELLIPSIS
+    >>> run(buildout) #doctest: +ELLIPSIS
     GET 200 /...
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.2c1.
-    <BLANKLINE>
 
 So when both setuptools and buildout specify places to search for
 eggs, the dependency_links takes precedence over find-links.
@@ -165,12 +161,11 @@ Here is an example of using this option to disable dependency_links.
     ... ''' % link_server)
 
     >>> remove_demoneeded_egg()
-    >>> print system(buildout)
+    >>> run(buildout)
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.2c1.
-    <BLANKLINE>
 
 Notice that this time the egg isn't downloaded from the logging server.
 
@@ -190,10 +185,9 @@ before. The dependency's are looked for first in the logging server.
     ... eggs = depdemo
     ... ''' % link_server)
     >>> remove_demoneeded_egg()
-    >>> print system(buildout) #doctest: +ELLIPSIS
+    >>> run(buildout) #doctest: +ELLIPSIS
     GET 200 /...
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.2c1.
-    <BLANKLINE>

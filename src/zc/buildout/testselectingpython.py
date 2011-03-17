@@ -11,8 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import os, re, subprocess, sys, textwrap, unittest, doctest
 from zope.testing import renormalizing
+from zc.buildout.easy_install import setuptools_key
+
+import os, re, subprocess, sys, textwrap, unittest, doctest
 import zc.buildout.tests
 import zc.buildout.testing
 
@@ -60,12 +62,12 @@ def multi_python(test):
         executable_parts = os.path.join(executable_dir, 'parts')
         test.globs['mkdir'](executable_parts)
         ws = zc.buildout.easy_install.install(
-            ['setuptools'], executable_dir,
+            [setuptools_key], executable_dir,
             index='http://www.python.org/pypi/',
             always_unzip=True, executable=other_executable)
         zc.buildout.easy_install.sitepackage_safe_scripts(
             executable_dir, ws, other_executable, executable_parts,
-            reqs=['setuptools'], interpreter='py')
+            reqs=[setuptools_key], interpreter='py')
         original_executable = other_executable
         other_executable = os.path.join(executable_dir, 'py')
         assert not subprocess.call(

@@ -24,7 +24,7 @@ To see how this works, we'll create two versions of a recipe egg:
     ... class Recipe:
     ...     def __init__(*a): pass
     ...     def install(self):
-    ...         print 'recipe v1'
+    ...         print('recipe v1')
     ...         return ()
     ...     update = install
     ... ''')
@@ -39,7 +39,7 @@ To see how this works, we'll create two versions of a recipe egg:
 
     >>> write('recipe', 'README', '')
 
-    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    >>> run(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
     Running setup script 'recipe/setup.py'.
     ...
 
@@ -50,7 +50,7 @@ To see how this works, we'll create two versions of a recipe egg:
     ... class Recipe:
     ...     def __init__(*a): pass
     ...     def install(self):
-    ...         print 'recipe v2'
+    ...         print('recipe v2')
     ...         return ()
     ...     update = install
     ... ''')
@@ -64,7 +64,7 @@ To see how this works, we'll create two versions of a recipe egg:
     ... ''')
 
 
-    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    >>> run(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
     Running setup script 'recipe/setup.py'.
     ...
 
@@ -82,7 +82,7 @@ and we'll configure a buildout to use it:
 
 If we run the buildout, it will use version 2:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Getting distribution for 'spam'.
     Got spam 2.
     Installing foo.
@@ -112,7 +112,7 @@ as in the versions option.
 
 Now, if we run the buildout, we'll use version 1 of the spam recipe:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Getting distribution for 'spam==1'.
     Got spam 1.
     Uninstalling foo.
@@ -123,7 +123,7 @@ Running the buildout in verbose mode will help us get information
 about versions used. If we run the buildout in verbose mode without
 specifying a versions section:
 
-    >>> print system(buildout+' buildout:versions= -v'), # doctest: +ELLIPSIS
+    >>> run(buildout+' buildout:versions= -v') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
@@ -145,7 +145,7 @@ that we can fix them in a versions section.
 
 If we run the buildout with the versions section:
 
-    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    >>> run(buildout+' -v') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.

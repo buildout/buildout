@@ -23,14 +23,15 @@ import os
 import os.path
 import re
 import shutil
+import sys
 import tempfile
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import zc.buildout
 
 
-class URLOpener(urllib.FancyURLopener):
-    http_error_default = urllib.URLopener.http_error_default
+class URLOpener(urllib.request.FancyURLopener):
+    http_error_default = urllib.request.URLopener.http_error_default
 
 
 class ChecksumError(zc.buildout.UserError):
@@ -157,7 +158,7 @@ class Download(object):
         if re.match(r"^[A-Za-z]:\\", url):
             url = 'file:' + url
 
-        parsed_url = urlparse.urlparse(url, 'file')
+        parsed_url = urllib.parse.urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
             self.logger.debug('Using local resource %s' % url)
@@ -172,18 +173,19 @@ class Download(object):
                 "Couldn't download %r in offline mode." % url)
 
         self.logger.info('Downloading %s' % url)
-        urllib._urlopener = url_opener
+        urllib.request._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
-            tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+            tmp_path, headers = urllib.request.urlretrieve(url, tmp_path)
             if not check_md5sum(tmp_path, md5sum):
                 raise ChecksumError(
                     'MD5 checksum mismatch downloading %r' % url)
-        except IOError, e:
+        except IOError:
+            e = sys.exc_info()[1]
             os.remove(tmp_path)
             raise zc.buildout.UserError("Error downloading extends for URL "
-                              "%s: %r" % (url, e[1:3]))
-        except Exception, e:
+                              "%s:\n%s" % (url, e))
+        except Exception:
             os.remove(tmp_path)
             raise
         finally:
@@ -200,11 +202,11 @@ class Download(object):
 
         """
         if self.hash_name:
-            return md5(url).hexdigest()
+            return md5(url.encode('utf8')).hexdigest()
         else:
             if re.match(r"^[A-Za-z]:\\", url):
                 url = 'file:' + url
-            parsed = urlparse.urlparse(url, 'file')
+            parsed = urllib.parse.urlparse(url, 'file')
             url_path = parsed[2]
 
             if parsed[0] == 'file':

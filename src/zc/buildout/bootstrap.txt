@@ -20,9 +20,9 @@ Make sure the bootstrap script actually works::
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print 'X'; print system(
+    >>> print('X'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py'); print('X') # doctest: +ELLIPSIS
     X...
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
@@ -43,7 +43,7 @@ Make sure the bootstrap script actually works::
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
-    >>> print 'X'; ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
+    >>> print('X'); ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
     X...
     d  zc.buildout-...egg
 
@@ -53,7 +53,7 @@ customized site.py.
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
     >>> if sys.platform.startswith('win'):
     ...     buildout_script += '-script.py'
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys
@@ -82,7 +82,7 @@ selected the (generated-locally) 99.99 egg rather than the also-available
 
     >>> buildout_site_py = join(
     ...     sample_buildout, 'parts', 'buildout', 'site.py')
-    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_site_py).read()) # doctest: +ELLIPSIS
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
@@ -102,7 +102,7 @@ Here's an example.
     >>> ignored = system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --accept-buildout-test-releases')
-    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_site_py).read()) # doctest: +ELLIPSIS
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
@@ -115,7 +115,7 @@ Notice we are now using zc.buildout 100.0b1, a non-final release.
 The buildout script remembers the decision to accept early releases, and
 alerts the user.
 
-    >>> print system(join('bin', 'buildout')),
+    >>> run(join('bin', 'buildout'))
     ... # doctest: +NORMALIZE_WHITESPACE
     NOTE: Accepting early releases of build system packages.  Rerun bootstrap
           without --accept-buildout-test-releases (-t) to return to default
@@ -123,11 +123,11 @@ alerts the user.
 
 This is accomplished within the script itself.
 
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
-    print ('NOTE: Accepting early releases of build system packages.  Rerun '
-           'bootstrap without --accept-buildout-test-releases (-t) to return to '
+    print('NOTE: Accepting early releases of build system packages.  Rerun '
+          'bootstrap without --accept-buildout-test-releases (-t) to return to '
            'default behavior.')
     ...
 
@@ -137,7 +137,7 @@ As the note says, to undo, you just need to re-run bootstrap without
     >>> ignored = system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py')
-    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_site_py).read()) # doctest: +ELLIPSIS
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
@@ -153,9 +153,9 @@ Now we will try the `--version` option, which lets you define a version for
 
 Let's try with an unknown version::
 
-    >>> print 'XX'; print system(
+    >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py --version UNKNOWN'); print('X') # doctest: +ELLIPSIS
     ...
     X...
     No local packages or download links found for zc.buildout==UNKNOWN...
@@ -163,9 +163,9 @@ Let's try with an unknown version::
 
 Now let's try with `1.1.2`, which happens to exist::
 
-    >>> print 'X'; print system(
+    >>> print('X'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.1.2'); print 'X'
+    ...     'bootstrap.py --version 1.1.2'); print('X')
     ...
     X
     Generated script '/sample/bin/buildout'.
@@ -175,7 +175,7 @@ Now let's try with `1.1.2`, which happens to exist::
 Versions older than 1.5.0 put their egg dependencies in the ``buildout`` script.
 Let's make sure it was generated as we expect::
 
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys
@@ -192,9 +192,9 @@ Let's make sure it was generated as we expect::
 
 Let's try with `1.2.1`::
 
-    >>> print 'X'; print system(
+    >>> print('X'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.2.1'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py --version 1.2.1'); print('X') # doctest: +ELLIPSIS
     ...
     X
     Generated script '/sample/bin/buildout'.
@@ -203,7 +203,7 @@ Let's try with `1.2.1`::
 
 Let's make sure the generated ``buildout`` script uses it::
 
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys
@@ -221,14 +221,14 @@ Let's make sure the generated ``buildout`` script uses it::
 ``zc.buildout`` now can also run with `Distribute` with the `--distribute`
 option::
 
-    >>> print 'XX'; print system(
+    >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --distribute') # doctest: +ELLIPSIS
     ...
     X...Generated script '/sample/bin/buildout'...
 
 Let's make sure the generated ``site.py`` uses it::
-    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_site_py).read()) # doctest: +ELLIPSIS
     "...
         buildout_paths = [
             '/sample/eggs/distribute-...egg',
@@ -238,7 +238,7 @@ Let's make sure the generated ``site.py`` uses it::
 
 Make sure both options can be used together::
 
-    >>> print 'XX'; print system(
+    >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --distribute --version 1.2.1')
     ... # doctest: +ELLIPSIS
@@ -247,7 +247,7 @@ Make sure both options can be used together::
 Let's make sure the old-style generated ``buildout`` script uses
 ``Distribute`` *and* ``zc.buildout-1.2.1``::
 
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys
@@ -268,7 +268,7 @@ Last, the -c option needs to work on bootstrap.py::
     >>> f = open(conf_file, 'w')
     >>> f.write('[buildout]\nparts=\n\n')
     >>> f.close()
-    >>> print 'XX'; print system(
+    >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py -c %s --distribute' % conf_file) # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...
@@ -283,32 +283,27 @@ that we will also use to test some other bootstrap options.
     ...     pprint.pprint(kwargs, width=40)
     ...     sys.exit()
     ... ''')
-    >>> print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    >>> run(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --setup-source=./ez_setup.py')
     ... # doctest: +ELLIPSIS
     {'download_delay': 0,
      'to_dir': '...'}
-    <BLANKLINE>
 
 You can also pass a download-cache, and a place in which eggs should be stored
 (they are normally stored in a temporary directory).
 
-    >>> print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    >>> run(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --setup-source=./ez_setup.py '+
     ...     '--download-base=./download-cache --eggs=eggs')
     ... # doctest: +ELLIPSIS
     {'download_base': '/sample/download-cache/',
      'download_delay': 0,
      'to_dir': '/sample/eggs'}
-    <BLANKLINE>
 
 Here's the entire help text.
 
-    >>> print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --help'),
+    >>> run(zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --help')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
     <BLANKLINE>

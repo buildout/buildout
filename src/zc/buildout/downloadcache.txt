@@ -31,7 +31,7 @@ And set up a buildout that downloads some eggs:
 We specified a link server that has some distributions available for
 download:
 
-    >>> print get(link_server),
+    >>> print_(get(link_server))
     <html><body>
     <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
@@ -45,7 +45,7 @@ download:
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
-    
+
 
 We'll enable logging on the link server so we can see what's going on:
 
@@ -58,7 +58,7 @@ We also specified a download cache.
 If we run the buildout, we'll see the eggs installed from the link
 server as usual:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     GET 200 /
     GET 200 /demo-0.2-py2.4.egg
     GET 200 /demoneeded-1.2c1.zip
@@ -87,8 +87,8 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
     >>> for  f in os.listdir('eggs'):
     ...     if f.startswith('demo'):
     ...         remove('eggs', f)
-   
-    >>> print system(buildout),
+
+    >>> run(buildout)
     GET 200 /
     Updating eggs.
     Getting distribution for 'demo==0.2'.
@@ -131,7 +131,7 @@ install-from-cache option set to true:
     ... eggs = demo
     ... ''' % globals())
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Uninstalling eggs.
     Installing eggs.
     Getting distribution for 'demo'.

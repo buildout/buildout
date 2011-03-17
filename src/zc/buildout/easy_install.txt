@@ -107,7 +107,7 @@ needed to meet the given requirements.
 
 We have a link server that has a number of eggs:
 
-    >>> print get(link_server),
+    >>> print_(get(link_server))
     <html><body>
     <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
@@ -138,7 +138,7 @@ index directory as a package index.
 The working set contains the distributions we retrieved.
 
     >>> for dist in ws:
-    ...     print dist
+    ...     print(dist)
     demo 0.2
     demoneeded 1.1
 
@@ -182,7 +182,7 @@ The old setting is returned.
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
     >>> for dist in ws:
-    ...     print dist
+    ...     print(dist)
     demo 0.4c1
     demoneeded 1.2c1
 
@@ -207,7 +207,7 @@ dependencies.  We might do this to specify a specific version.
     ...     links=[link_server], index=link_server+'index/')
 
     >>> for dist in ws:
-    ...     print dist
+    ...     print(dist)
     demo 0.3
     other 1.0
     demoneeded 1.0
@@ -313,15 +313,13 @@ we'll get an error:
     >>> import logging
     >>> logging.getLogger('zc.buildout.easy_install').propagate = False
 
-    >>> ws = zc.buildout.easy_install.install(
+    >>> _ = raises('IncompatibleVersionError',
+    ...     zc.buildout.easy_install.install,
     ...     ['demo >0.2'], dest, links=[link_server],
     ...     index=link_server+'index/',
     ...     versions = dict(demo='0.2', demoneeded='1.0'))
-    Traceback (most recent call last):
-    ...
-    IncompatibleVersionError: Bad version 0.2
 
-    >>> print handler
+    >>> print(handler)
     zc.buildout.easy_install DEBUG
       Installing 'demo >0.2'.
     zc.buildout.easy_install ERROR
@@ -336,7 +334,7 @@ reporting that a version was picked automatically:
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     )
 
-    >>> print handler
+    >>> print(handler)
     zc.buildout.easy_install DEBUG
       Installing 'demo'.
     zc.buildout.easy_install DEBUG
@@ -362,12 +360,10 @@ We can request that we get an error if versions are picked:
 
 (The old setting is returned.)
 
-    >>> ws = zc.buildout.easy_install.install(
+    >>> print(raises('UserError', zc.buildout.easy_install.install,
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     )
-    Traceback (most recent call last):
-    ...
-    UserError: Picked: demo = 0.3
+    ...     ))
+    Picked: demo = 0.3
 
     >>> zc.buildout.easy_install.allow_picked_versions(True)
     False
@@ -455,12 +451,11 @@ changing the default value returns the previous value.
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> rmdir(example_dest)
     >>> example_dest = tmpdir('site-packages-example-install')
-    >>> workingset = zc.buildout.easy_install.install(
+    >>> print(raises('MissingDistribution', zc.buildout.easy_install.install,
     ...     ['demoneeded'], example_dest, links=[], executable=py_path,
-    ...     index=None)
-    Traceback (most recent call last):
-        ...
-    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+    ...     index=None))
+    Couldn't find a distribution for 'demoneeded'.
+
     >>> zc.buildout.easy_install.clear_index_cache()
 
 Now we'll reset the default.
@@ -764,7 +759,7 @@ the path set:
             if _opt == '-i':
                 _interactive = True
             elif _opt == '-c':
-                exec _val
+                exec(_val)
             elif _opt == '-m':
                 sys.argv[1:] = _args
                 _args = []
@@ -775,7 +770,7 @@ the path set:
             sys.argv[:] = _args
             __file__ = _args[0]
             del _options, _args
-            execfile(__file__)
+            exec(compile(open(__file__).read(), __file__, "exec"))
     <BLANKLINE>
     if _interactive:
         del _interactive
@@ -785,20 +780,20 @@ If invoked with a script name and arguments, it will run that script, instead.
 
     >>> write('ascript', '''
     ... "demo doc"
-    ... print sys.argv
-    ... print (__name__, __file__, __doc__)
+    ... print(sys.argv)
+    ... print((__name__, __file__, __doc__))
     ... ''')
-    >>> print system(join(bin, 'py')+' ascript a b c'),
+    >>> run(join(bin, 'py')+' ascript a b c')
     ['ascript', 'a', 'b', 'c']
     ('__main__', 'ascript', 'demo doc')
 
 For Python 2.5 and higher, you can also use the -m option to run a
 module:
 
-    >>> print system(join(bin, 'py')+' -m pdb'),
-    usage: pdb.py scriptfile [arg] ...
+    >>> run(join(bin, 'py')+' -m pdb') # doctest: +ELLIPSIS
+    usage: pdb.py ...
 
-    >>> print system(join(bin, 'py')+' -m pdb what'),
+    >>> run(join(bin, 'py')+' -m pdb what')
     Error: what does not exist
 
 An additional argument can be passed to define which scripts to install
@@ -818,7 +813,7 @@ original script names to new script names.
     >>> ls(bin)
     -  run
 
-    >>> print system(os.path.join(bin, 'run')),
+    >>> run(os.path.join(bin, 'run'))
     3 1
 
 The ``scripts`` function: Including extra paths in scripts
@@ -948,7 +943,7 @@ passed as relative_paths wasn't converted to a relative path.
 
 Of course, running the script works:
 
-    >>> print system(join(bo, 'bin', 'run')),
+    >>> run(join(bo, 'bin', 'run'))
     3 1
 
 We specified an interpreter and its paths are adjusted too:
@@ -979,7 +974,7 @@ We specified an interpreter and its paths are adjusted too:
             if _opt == '-i':
                 _interactive = True
             elif _opt == '-c':
-                exec _val
+                exec(_val)
             elif _opt == '-m':
                 sys.argv[1:] = _args
                 _args = []
@@ -990,7 +985,7 @@ We specified an interpreter and its paths are adjusted too:
             sys.argv[:] = _args
             __file__ = _args[0]
             del _options, _args
-            execfile(__file__)
+            exec(compile(open(__file__).read(), __file__, "exec"))
     <BLANKLINE>
     if _interactive:
         del _interactive
@@ -1088,7 +1083,7 @@ addsitepackages function.  It sets up the Python path, similarly to the
 behavior of the function it replaces.  The following shows the part that
 buildout inserts, in the simplest case.
 
-    >>> sys.stdout.write('#\n'); cat(site_path)
+    >>> print_('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
@@ -1110,11 +1105,13 @@ buildout inserts, in the simplest case.
 
 Here are some examples of the interpreter in use.
 
-    >>> print call_py(interpreter_path, "print 16+26")
+    >>> print_(call_py(interpreter_path, "print(16+26)"))
     42
-    <BLANKLINE>
-    >>> res = call_py(interpreter_path, "import sys; print sys.path")
-    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+
+    >>> res = call_py(
+    ...    interpreter_path,
+    ...    "import sys; print([s for s in sys.path])")
+    >>> print(res) # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/parts/interpreter',
      ...,
@@ -1144,7 +1141,8 @@ If you provide initialization, it goes in sitecustomize.py.
     >>> cat(sitecustomize_path)
     import os
     os.environ['FOO'] = 'bar baz bing shazam'
-    >>> print call_py(interpreter_path, "import os; print os.environ['FOO']")
+    >>> print(call_py(interpreter_path,
+    ...      "import os; print(os.environ['FOO'])"))
     bar baz bing shazam
     <BLANKLINE>
 
@@ -1177,7 +1175,7 @@ For site.py, we again show only the pertinent parts.  Notice that the egg
 paths join a base to a path, as with the use of this argument in the
 ``scripts`` function.
 
-    >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
+    >>> print_('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
         """Add site packages, as determined by zc.buildout.
@@ -1194,8 +1192,8 @@ paths join a base to a path, as with the use of this argument in the
 
 The paths resolve in practice as you would expect.
 
-    >>> print call_py(interpreter_path,
-    ...               "import sys, pprint; pprint.pprint(sys.path)")
+    >>> print(call_py(interpreter_path,
+    ...   "import sys, pprint; pprint.pprint([s for s in sys.path])"))
     ... # doctest: +ELLIPSIS
     ['',
      '/interpreter/parts/interpreter',
@@ -1212,7 +1210,7 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', extra_paths=[join(interpreter_dir, 'other')])
-    >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
+    >>> print_('#\n'); cat(site_path) # doctest: +ELLIPSIS
     #...
     def addsitepackages(known_paths):
         """Add site packages, as determined by zc.buildout.
@@ -1224,8 +1222,8 @@ The ``extra_paths`` argument affects the path in site.py.  Notice that
             '/interpreter/other'
             ]...
 
-    >>> print call_py(interpreter_path,
-    ...               "import sys, pprint; pprint.pprint(sys.path)")
+    >>> print(call_py(interpreter_path,
+    ...               "import sys, pprint; pprint.pprint(sys.path)"))
     ... # doctest: +ELLIPSIS
     ['',
      '/interpreter/parts/interpreter',
@@ -1270,7 +1268,7 @@ this is very straightforward.
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', include_site_packages=True)
-    >>> sys.stdout.write('#\n'); cat(site_path)
+    >>> print_('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
@@ -1305,8 +1303,8 @@ Here's an example of the new script in use.  Other documents and tests in
 this package give the feature a more thorough workout, but this should
 give you an idea of the feature.
 
-    >>> res = call_py(interpreter_path, "import sys; print sys.path")
-    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    >>> res = call_py(interpreter_path, "import sys; print(sys.path)")
+    >>> print(res) # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/parts/interpreter',
      ...,
@@ -1342,7 +1340,7 @@ call to another text fixture to create.
     >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', include_site_packages=True)
-    >>> sys.stdout.write('#\n'); cat(site_path)
+    >>> print_('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
@@ -1376,7 +1374,7 @@ call to another text fixture to create.
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
 
-    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    >>> print(call_py(interpreter_path, "import sys; print(sys.path)"))
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/parts/interpreter',
@@ -1403,7 +1401,7 @@ at that result.
     ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
     ...     interpreter='py', include_site_packages=True,
     ...     relative_paths=interpreter_dir)
-    >>> sys.stdout.write('#\n'); cat(site_path)
+    >>> print_('#\n'); cat(site_path)
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     #...
     def addsitepackages(known_paths):
@@ -1441,7 +1439,7 @@ at that result.
     <BLANKLINE>
     def original_addsitepackages(known_paths):...
 
-    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    >>> print(call_py(interpreter_path, "import sys; print(sys.path)"))
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     ['',
      '/interpreter/parts/interpreter',
@@ -1523,9 +1521,8 @@ The demo script runs the entry point defined in the demo egg:
     >>> demo_call = join(interpreter_bin_dir, 'demo')
     >>> if sys.platform == 'win32':
     ...     demo_call = '"%s"' % demo_call
-    >>> print system(demo_call)
+    >>> run(demo_call)
     3 1
-    <BLANKLINE>
 
 There are a few differences from the ``scripts`` function.  First, the
 ``reqs`` argument (an iterable of string requirements or entry point
@@ -1680,7 +1677,7 @@ Now if we look in our destination directory, we see we have an extdemo egg:
 Let's update our link server with a new version of extdemo:
 
     >>> update_extdemo()
-    >>> print get(link_server),
+    >>> print_(get(link_server))
     <html><body>
     <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>

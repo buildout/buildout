@@ -12,11 +12,9 @@
 #
 ##############################################################################
 """Various test-support utility functions
-
-$Id$
 """
 
-import BaseHTTPServer
+import http.server
 import errno
 import logging
 import os
@@ -31,10 +29,11 @@ import tempfile
 import textwrap
 import threading
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import zc.buildout.buildout
 import zc.buildout.easy_install
+from zc.buildout.easy_install import setuptools_key
 from zc.buildout.rmtree import rmtree
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
@@ -62,7 +61,7 @@ def cat(dir, *names):
         and os.path.exists(path+'-script.py')
         ):
         path = path+'-script.py'
-    print open(path).read(),
+    sys.stdout.write(open(path).read())
 
 def ls(dir, *subs):
     if subs:
@@ -70,13 +69,15 @@ def ls(dir, *subs):
     names = os.listdir(dir)
     names.sort()
     for name in names:
+        if name == '__pycache__':
+            continue
         if os.path.isdir(os.path.join(dir, name)):
-            print 'd ',
+            print('d ', end=' ')
         elif os.path.islink(os.path.join(dir, name)):
-            print 'l ',
+            print('l ', end=' ')
         else:
-            print '- ',
-        print name
+            print('- ', end=' ')
+        print(name)
 
 def mkdir(*path):
     os.mkdir(os.path.join(*path))
@@ -115,12 +116,18 @@ def system(command, input=''):
                          )
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
-        i.write(input)
+        i.write(input.encode())
     i.close()
     result = o.read() + e.read()
     o.close()
     e.close()
-    return result
+    return result.decode()
+
+def print_(*args):
+    sys.stdout.write(' '.join(map(str, args)))
+
+def run(command, input=''):
+    sys.stdout.write(system(command, input))
 
 def call_py(interpreter, cmd, flags=None):
     if sys.platform == 'win32':
@@ -133,7 +140,7 @@ def call_py(interpreter, cmd, flags=None):
             ' '.join(arg for arg in (interpreter, flags, '-c', cmd) if arg))
 
 def get(url):
-    return urllib2.urlopen(url).read()
+    return urllib.request.urlopen(url).read().decode()
 
 def _runsetup(setup, executable, *args):
     if os.path.isdir(setup):
@@ -173,7 +180,7 @@ def sys_install(setup, dest):
 
 def find_python(version):
     env_friendly_version = ''.join(version.split('.'))
-    
+
     e = os.environ.get('PYTHON%s' % env_friendly_version)
     if e is not None:
         return e
@@ -182,7 +189,7 @@ def find_python(version):
         if os.path.exists(e):
             return e
     else:
-        cmd = 'python%s -c "import sys; print sys.executable"' % version
+        cmd = 'python%s -c "import sys; print(sys.executable)"' % version
         p = subprocess.Popen(cmd,
                              shell=True,
                              stdin=subprocess.PIPE,
@@ -195,7 +202,7 @@ def find_python(version):
         o.close()
         if os.path.exists(e):
             return e
-        cmd = 'python -c "import sys; print \'%s.%s\' % sys.version_info[:2]"'
+        cmd = 'python -c "import sys; print(\'%s.%s\' % sys.version_info[:2])"'
         p = subprocess.Popen(cmd,
                              shell=True,
                              stdin=subprocess.PIPE,
@@ -207,7 +214,7 @@ def find_python(version):
         e = o.read().strip()
         o.close()
         if e == version:
-            cmd = 'python -c "import sys; print sys.executable"'
+            cmd = 'python -c "import sys; print(sys.executable)"'
             p = subprocess.Popen(cmd,
                                 shell=True,
                                 stdin=subprocess.PIPE,
@@ -241,6 +248,26 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+def raises(exc_type, callable, *args, **kw):
+    if isinstance(exc_type, str):
+        E = Exception
+    else:
+        E = exc_type
+
+    try:
+        callable(*args, **kw)
+    except E:
+        v = sys.exc_info()[1]
+        if E is exc_type:
+            return v
+
+        if exc_type == v.__class__.__name__:
+            return v
+        else:
+            raise
+
+    raise AssertionError("Expected %r" % exc_type)
+
 def get_installer_values():
     """Get the current values for the easy_install module.
 
@@ -260,7 +287,7 @@ def get_installer_values():
 
 def set_installer_values(values):
     """Set the given values on the installer."""
-    for name, value in values.items():
+    for name, value in list(values.items()):
         getattr(zc.buildout.easy_install, name)(value)
 
 def make_buildout(executable=None):
@@ -378,7 +405,7 @@ def buildoutSetUp(test):
             'zc.recipe.egg', os.path.join(buildout, 'develop-eggs'))
         install_develop(
             'z3c.recipe.scripts', os.path.join(buildout, 'develop-eggs'))
-        write('buildout.cfg', textwrap.dedent('''\
+        write('buildout.cfg', textwrap.dedent('''
             [buildout]
             parts = py
             include-site-packages = false
@@ -389,11 +416,14 @@ def buildoutSetUp(test):
             interpreter = py
             initialization =
             %(initialization)s
-            extra-paths = %(site-packages)s
-            eggs = setuptools
-            ''') % {
-                'initialization': initialization,
-                'site-packages': site_packages_dir})
+            extra-paths = %(site_packages)s
+            eggs = %(setuptools_key)s
+            ''') % dict(
+                  initialization = initialization,
+                  site_packages = site_packages_dir,
+                  setuptools_key = setuptools_key,
+                  ),
+              )
         system(os.path.join(buildout, 'bin', 'buildout'))
         os.chdir(old_wd)
         return (
@@ -409,6 +439,9 @@ def buildoutSetUp(test):
         tmpdir = tmpdir,
         write = write,
         system = system,
+        run = run,
+        raises = raises,
+        print_ = print_,
         call_py = call_py,
         get = get,
         cd = (lambda *path: os.chdir(os.path.join(*path))),
@@ -425,10 +458,10 @@ def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
         f()
 
-class Server(BaseHTTPServer.HTTPServer):
+class Server(http.server.HTTPServer):
 
     def __init__(self, tree, *args):
-        BaseHTTPServer.HTTPServer.__init__(self, *args)
+        http.server.HTTPServer.__init__(self, *args)
         self.tree = os.path.abspath(tree)
 
     __run = True
@@ -439,14 +472,14 @@ class Server(BaseHTTPServer.HTTPServer):
     def handle_error(self, *_):
         self.__run = False
 
-class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Handler(http.server.BaseHTTPRequestHandler):
 
     Server.__log = False
 
     def __init__(self, request, address, server):
         self.__server = server
         self.tree = server.tree
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(
+        http.server.BaseHTTPRequestHandler.__init__(
             self, request, address, server)
 
     def do_GET(self):
@@ -470,9 +503,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             os.path.exists(path)
             ):
             self.send_response(404, 'Not Found')
-            #self.send_response(200)
-            out = '<html><body>Not Found</body></html>'
-            #out = '\n'.join(self.tree, self.path, path)
+            out = '<html><body>Not Found</body></html>'.encode()
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
             self.end_headers()
@@ -489,7 +520,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                     name += '/'
                 out.append('<a href="%s">%s</a><br>\n' % (name, name))
             out.append('</body></html>\n')
-            out = ''.join(out)
+            out = ''.join(out).encode()
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
         else:
@@ -509,7 +540,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def log_request(self, code):
         if self.__server.__log:
-            print '%s %s %s' % (self.command, code, self.path)
+            print('%s %s %s' % (self.command, code, self.path))
 
 def _run(tree, port):
     server_address = ('localhost', port)
@@ -527,7 +558,7 @@ def get_port():
                 return port
         finally:
             s.close()
-    raise RuntimeError, "Can't find port"
+    raise RuntimeError("Can't find port")
 
 def _start_server(tree, name=''):
     port = get_port()
@@ -542,7 +573,7 @@ def start_server(tree):
 
 def stop_server(url, thread=None):
     try:
-        urllib2.urlopen(url+'__stop__')
+        urllib.request.urlopen(url+'__stop__')
     except Exception:
         pass
     if thread is not None:
@@ -558,7 +589,7 @@ def wait(port, up):
             s.close()
             if up:
                 break
-        except socket.error, e:
+        except socket.error as e:
             if e[0] not in (errno.ECONNREFUSED, errno.ECONNRESET):
                 raise
             s.close()
@@ -571,7 +602,7 @@ def wait(port, up):
             raise SystemError("Couln't stop server")
 
 def install(project, destination):
-    if not isinstance(destination, basestring):
+    if not isinstance(destination, str):
         destination = os.path.join(destination.globs['sample_buildout'],
                                    'eggs')
 
@@ -591,7 +622,7 @@ def install(project, destination):
              ).write(dist.location)
 
 def install_develop(project, destination):
-    if not isinstance(destination, basestring):
+    if not isinstance(destination, str):
         destination = os.path.join(destination.globs['sample_buildout'],
                                    'develop-eggs')
 

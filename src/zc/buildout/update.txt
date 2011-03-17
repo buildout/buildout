@@ -44,7 +44,7 @@ zc.buildout used:
     ...     def install(self):
     ...         for project in 'zc.buildout', 'setuptools':
     ...             req = pkg_resources.Requirement.parse(project)
-    ...             print project, pkg_resources.working_set.find(req).version
+    ...             print(project, pkg_resources.working_set.find(req).version)
     ...         return ()
     ...     update = install
     ... """)
@@ -64,7 +64,7 @@ zc.buildout used:
 Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Getting distribution for 'zc.buildout'.
     Got zc.buildout 99.99.
     Getting distribution for 'setuptools'.
@@ -140,7 +140,7 @@ running the buildout will install earlier versions of these packages:
 
 Now we can see that we actually "upgrade" to an earlier version.
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Upgraded:
       zc.buildout version 1.0.0,
       setuptools version 0.6;
@@ -167,7 +167,7 @@ We won't upgrade in offline mode:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print system(buildout+' -o'),
+    >>> run(buildout+' -o')
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -175,7 +175,7 @@ We won't upgrade in offline mode:
 
 Or in non-newest mode:
 
-    >>> print system(buildout+' -N'),
+    >>> run(buildout+' -N')
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -195,7 +195,7 @@ directory:
     ... """ % dict(new_releases=new_releases))
 
     >>> cd(sample_buildout2)
-    >>> print system(buildout),
+    >>> run(buildout)
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.
@@ -230,8 +230,7 @@ We'll mimic this by passing the argument actually in the command line.
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print system(buildout +
-    ...              ' buildout:accept-buildout-test-releases=true'),
+    >>> run(buildout + ' buildout:accept-buildout-test-releases=true')
     ... # doctest: +NORMALIZE_WHITESPACE
     Getting distribution for 'zc.buildout'.
     Got zc.buildout 100.0b1.
@@ -254,12 +253,12 @@ The buildout script shows the change.
     >>> import sys
     >>> if sys.platform.startswith('win'):
     ...     buildout_script += '-script.py'
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
-    print ('NOTE: Accepting early releases of build system packages.  Rerun '
-           'bootstrap without --accept-buildout-test-releases (-t) to return to '
-           'default behavior.')
+    print('NOTE: Accepting early releases of build system packages.  Rerun '
+          'bootstrap without --accept-buildout-test-releases (-t) to return to '
+          'default behavior.')
     ...
 
 If the update process for buildout or setuptools fails the error should be
@@ -269,8 +268,7 @@ should continue.
     >>> version = sys.version_info[0:2]
     >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg ' % version
     >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg ' % version
-    >>> system('cp ' + egg  + copy_egg)
-    ''
+    >>> run('cp ' + egg  + copy_egg)
 
 Create a broken egg
 

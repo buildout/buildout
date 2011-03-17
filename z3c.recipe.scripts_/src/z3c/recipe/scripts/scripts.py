@@ -23,7 +23,7 @@ class Base(ScriptBase):
 
     def __init__(self, buildout, name, options):
         if 'extends' in options:
-            for key, value in buildout[options['extends']].items():
+            for key, value in list(buildout[options['extends']].items()):
                 options.setdefault(key, value)
         super(Base, self).__init__(buildout, name, options)
         self.default_eggs = '' # Disables feature from zc.recipe.egg.

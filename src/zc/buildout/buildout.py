@@ -14,14 +14,18 @@
 """Buildout main script
 """
 
-from rmtree import rmtree
+from .rmtree import rmtree
 try:
     from hashlib import md5
 except ImportError:
     # Python 2.4 and older
     from md5 import md5
 
-import ConfigParser
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from collections import MutableMapping as DictMixin
+
 import copy
 import distutils.errors
 import glob
@@ -33,7 +37,6 @@ import re
 import shutil
 import sys
 import tempfile
-import UserDict
 import warnings
 import subprocess
 import zc.buildout
@@ -43,8 +46,10 @@ import zc.buildout.easy_install
 
 realpath = zc.buildout.easy_install.realpath
 
+setuptools_key = zc.buildout.easy_install.setuptools_key
+
 pkg_resources_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')).location
+    pkg_resources.Requirement.parse(setuptools_key)).location
 
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
@@ -57,12 +62,15 @@ class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing.
     """
 
+    def __str__(self):
+        return zc.buildout.UserError.__str__(self)
+
 class MissingSection(zc.buildout.UserError, KeyError):
     """A required section is missing.
     """
 
     def __str__(self):
-        return "The referenced section, %r, was not defined." % self[0]
+        return "The referenced section, %r, was not defined." % self.args[0]
 
 
 def _annotate_section(section, note):
@@ -76,20 +84,20 @@ def _annotate(data, note):
     return data
 
 def _print_annotate(data):
-    sections = data.keys()
+    sections = list(data.keys())
     sections.sort()
-    print
-    print "Annotated sections"
-    print "="*len("Annotated sections")
+    print()
+    print("Annotated sections")
+    print("="*len("Annotated sections"))
     for section in sections:
-        print
-        print '[%s]' % section
-        keys = data[section].keys()
+        print()
+        print('[%s]' % section)
+        keys = list(data[section].keys())
         keys.sort()
         for key in keys:
             value, notes = data[section][key]
             keyvalue = "%s= %s" % (key, value)
-            print keyvalue
+            print(keyvalue)
             line = '   '
             for note in notes.split():
                 if note == '[+]':
@@ -97,9 +105,9 @@ def _print_annotate(data):
                 elif note == '[-]':
                     line = '-= '
                 else:
-                    print line, note
+                    print(line, note)
                     line = '   '
-    print
+    print()
 
 
 def _unannotate_section(section):
@@ -141,7 +149,7 @@ _buildout_default_options = _annotate_section({
     }, 'DEFAULT_VALUE')
 
 
-class Buildout(UserDict.DictMixin):
+class Buildout(DictMixin):
 
     def __init__(self, config_file, cloptions,
                  user_defaults=True, windows_restart=False, command=None):
@@ -159,7 +167,7 @@ class Buildout(UserDict.DictMixin):
             base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
                 if command == 'init':
-                    print 'Creating %r.' % config_file
+                    print('Creating %r.' % config_file)
                     open(config_file, 'w').write('[buildout]\nparts = \n')
                 elif command == 'setup':
                     # Sigh. This model of a buildout instance
@@ -191,7 +199,8 @@ class Buildout(UserDict.DictMixin):
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
-                                    [], data['buildout'].copy(), override, set()))
+                                    [], data['buildout'].copy(), override,
+                                    set()))
 
         # load configuration files
         if config_file:
@@ -344,7 +353,7 @@ class Buildout(UserDict.DictMixin):
 
         # Get a base working set for our distributions that corresponds to the
         # stated desires in the configuration.
-        distributions = ['setuptools', 'zc.buildout']
+        distributions = [setuptools_key, 'zc.buildout']
         if options.get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
@@ -366,7 +375,7 @@ class Buildout(UserDict.DictMixin):
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
-        for name in 'setuptools', 'zc.buildout':
+        for name in setuptools_key, 'zc.buildout':
             r = pkg_resources.Requirement.parse(name)
             dist = ws.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
@@ -470,12 +479,11 @@ class Buildout(UserDict.DictMixin):
         if self._log_level < logging.DEBUG:
             sections = list(self)
             sections.sort()
-            print
-            print 'Configuration data:'
+            print()
+            print('Configuration data:')
             for section in self._data:
                 _save_options(section, self[section], sys.stdout)
-            print
-
+            print()
 
         # compute new part recipe signatures
         self._compute_part_signatures(install_parts)
@@ -621,7 +629,7 @@ class Buildout(UserDict.DictMixin):
         installed = self['buildout']['installed']
         f = open(installed, 'a')
         f.write('\n[buildout]\n')
-        for option, value in buildout_options.items():
+        for option, value in list(buildout_options.items()):
             _save_option(option, value, f)
         f.close()
 
@@ -637,7 +645,7 @@ class Buildout(UserDict.DictMixin):
                 recipe, 'zc.buildout.uninstall', entry, self)
             self._logger.info('Running uninstall recipe.')
             uninstaller(part, installed_part_options[part])
-        except (ImportError, pkg_resources.DistributionNotFound), v:
+        except (ImportError, pkg_resources.DistributionNotFound) as v:
             pass
 
         # remove created files and directories
@@ -727,17 +735,16 @@ class Buildout(UserDict.DictMixin):
     def _read_installed_part_options(self):
         old = self['buildout']['installed']
         if old and os.path.isfile(old):
-            parser = ConfigParser.RawConfigParser()
-            parser.optionxform = lambda s: s
-            parser.read(old)
+            fp = open(old)
+            sections = _read(fp, old)
+            fp.close()
             result = {}
-            for section in parser.sections():
-                options = {}
-                for option, value in parser.items(section):
+            for section, options in sections.items():
+                for option, value in options.items():
                     if '%(' in value:
                         for k, v in _spacey_defaults:
                             value = value.replace(k, v)
-                    options[option] = value
+                        options[option] = value
                 result[section] = Options(self, section, options)
 
             return result, True
@@ -777,7 +784,7 @@ class Buildout(UserDict.DictMixin):
         installed = recipe_class(self, part, options).install()
         if installed is None:
             installed = []
-        elif isinstance(installed, basestring):
+        elif isinstance(installed, str):
             installed = [installed]
         base = self._buildout_path('')
         installed = [d.startswith(base) and d[len(base):] or d
@@ -792,7 +799,7 @@ class Buildout(UserDict.DictMixin):
         f = open(installed, 'w')
         _save_options('buildout', installed_options['buildout'], f)
         for part in installed_options['buildout']['parts'].split():
-            print >>f
+            print(file=f)
             _save_options(part, installed_options[part], f)
         f.close()
 
@@ -845,10 +852,7 @@ class Buildout(UserDict.DictMixin):
         options = self['buildout']
 
         specs = ['zc.buildout']
-        if zc.buildout.easy_install.is_distribute:
-            specs.append('distribute')
-        else:
-            specs.append('setuptools')
+        specs.append(setuptools_key)
         ws = zc.buildout.easy_install.install(
             [
             (spec + ' ' + options.get(spec+'-version', '')).strip()
@@ -863,7 +867,7 @@ class Buildout(UserDict.DictMixin):
             )
 
         upgraded = []
-        for project in 'zc.buildout', 'setuptools':
+        for project in 'zc.buildout', setuptools_key:
             req = pkg_resources.Requirement.parse(project)
             project_location = pkg_resources.working_set.find(req).location
             if ws.find(req).location != project_location:
@@ -889,7 +893,7 @@ class Buildout(UserDict.DictMixin):
             return
 
         if sys.platform == 'win32' and not self.__windows_restart:
-            args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+            args = list(map(zc.buildout.easy_install._safe_arg, sys.argv))
             args.insert(1, '-W')
             if not __debug__:
                 args.insert(0, '-O')
@@ -939,7 +943,7 @@ class Buildout(UserDict.DictMixin):
             )
 
         # Restart
-        args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+        args = list(map(zc.buildout.easy_install._safe_arg, sys.argv))
         if not __debug__:
             args.insert(0, '-O')
         args.insert(0, zc.buildout.easy_install._safe_arg(sys.executable))
@@ -1005,12 +1009,12 @@ class Buildout(UserDict.DictMixin):
         fd, tsetup = tempfile.mkstemp()
         exe = zc.buildout.easy_install._safe_arg(sys.executable)
         try:
-            os.write(fd, zc.buildout.easy_install.runsetup_template % dict(
+            os.write(fd, (zc.buildout.easy_install.runsetup_template % dict(
                 setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
-                ))
+                )).encode())
             if is_jython:
                 arg_list = list()
 
@@ -1056,11 +1060,13 @@ class Buildout(UserDict.DictMixin):
         raise NotImplementedError('__delitem__')
 
     def keys(self):
-        return self._raw.keys()
+        return list(self._raw.keys())
 
     def __iter__(self):
         return iter(self._raw)
 
+    def __len__(self):
+        return len(self._raw)
 
 def _install_and_load(spec, group, entry, buildout):
     __doing__ = 'Loading recipe %r.', spec
@@ -1093,7 +1099,7 @@ def _install_and_load(spec, group, entry, buildout):
         return pkg_resources.load_entry_point(
             req.project_name, group, entry)
 
-    except Exception, v:
+    except Exception as v:
         buildout._logger.log(
             1,
             "Could't load %s entry point %s\nfrom %s:\n%s.",
@@ -1101,7 +1107,7 @@ def _install_and_load(spec, group, entry, buildout):
         raise
 
 
-class Options(UserDict.DictMixin):
+class Options(DictMixin):
 
     def __init__(self, buildout, section, data):
         self.buildout = buildout
@@ -1118,7 +1124,7 @@ class Options(UserDict.DictMixin):
             self._raw = self._do_extend_raw(name, self._raw, [])
 
         # force substitutions
-        for k, v in self._raw.items():
+        for k, v in list(self._raw.items()):
             if '${' in v:
                 self._dosub(k, v)
 
@@ -1269,11 +1275,16 @@ class Options(UserDict.DictMixin):
         elif key in self._data:
             del self._data[key]
         else:
-            raise KeyError, key
+            raise KeyError(key)
 
     def keys(self):
         raw = self._raw
         return list(self._raw) + [k for k in self._data if k not in raw]
+
+    def __iter__(self):
+        return iter(self.keys())
+    def __len__(self):
+        return len(self.keys())
 
     def copy(self):
         result = self._raw.copy()
@@ -1371,11 +1382,11 @@ def _save_option(option, value, f):
         value = '%(__buildout_space_n__)s' + value[2:]
     if value.endswith('\n\t'):
         value = value[:-2] + '%(__buildout_space_n__)s'
-    print >>f, option, '=', value
+    print(option, '=', value, file=f)
 
 def _save_options(section, options, f):
-    print >>f, '[%s]' % section
-    items = options.items()
+    print('[%s]' % section, file=f)
+    items = list(options.items())
     items.sort()
     for option, value in items:
         _save_option(option, value, f)
@@ -1421,25 +1432,17 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     root_config_file = not seen
     seen.append(filename)
 
-    result = {}
-
-    parser = ConfigParser.RawConfigParser()
-    parser.optionxform = lambda s: s
-    parser.readfp(fp)
+    result = _read(fp, filename)
+    fp.close()
     if is_temp:
-        fp.close()
         os.remove(path)
 
-    extends = None
-    for section in parser.sections():
-        options = dict(parser.items(section))
-        if section == 'buildout':
-            extends = options.pop('extends', extends)
-            if 'extended-by' in options:
-                raise zc.buildout.UserError(
-                    'No-longer supported "extended-by" option found in %s.' %
-                    filename)
-        result[section] = options
+    options = result.get('buildout', {})
+    extends = options.pop('extends', None)
+    if 'extended-by' in options:
+        raise zc.buildout.UserError(
+            'No-longer supported "extended-by" option found in %s.' %
+            filename)
 
     result = _annotate(result, filename)
 
@@ -1472,11 +1475,11 @@ def _dir_hash(dir):
                         if (not (f.endswith('pyc') or f.endswith('pyo'))
                             and os.path.exists(os.path.join(dirpath, f)))
                         ]
-        hash.update(' '.join(dirnames))
-        hash.update(' '.join(filenames))
+        hash.update(' '.join(dirnames).encode())
+        hash.update(' '.join(filenames).encode())
         for name in filenames:
-            hash.update(open(os.path.join(dirpath, name)).read())
-    _dir_hashes[dir] = dir_hash = hash.digest().encode('base64').strip()
+            hash.update(open(os.path.join(dirpath, name)).read().encode())
+    _dir_hashes[dir] = dir_hash = hash.hexdigest()
     return dir_hash
 
 def _dists_sig(dists):
@@ -1491,7 +1494,7 @@ def _dists_sig(dists):
 
 def _update_section(s1, s2):
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
-    for k, v in s2.items():
+    for k, v in list(s2.items()):
         v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
@@ -1565,9 +1568,9 @@ def _check_for_unused_options_in_section(buildout, section):
 
 _early_release_initialization_code = """\
 sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
-print ('NOTE: Accepting early releases of build system packages.  Rerun '
-       'bootstrap without --accept-buildout-test-releases (-t) to return to '
-       'default behavior.')
+print('NOTE: Accepting early releases of build system packages.  Rerun '
+      'bootstrap without --accept-buildout-test-releases (-t) to return to '
+      'default behavior.')
 """
 
 _usage = """\
@@ -1690,7 +1693,7 @@ Commands:
 
 """
 def _help():
-    print _usage
+    print(_usage)
     sys.exit(0)
 
 def main(args=None):
@@ -1754,7 +1757,7 @@ def main(args=None):
                         _error("No timeout value must be numeric", orig_op)
 
                     import socket
-                    print 'Setting socket time out to %d seconds' % timeout
+                    print('Setting socket time out to %d seconds' % timeout)
                     socket.setdefaulttimeout(timeout)
 
             elif op:
@@ -1795,15 +1798,16 @@ def main(args=None):
             _error('invalid command:', command)
     else:
         command = 'install'
-    
+
     try:
         try:
             buildout = Buildout(config_file, options,
                                 user_defaults, windows_restart, command)
             getattr(buildout, command)(args)
-        except Exception, v:
+        except Exception:
             _doing()
             exc_info = sys.exc_info()
+            v = exc_info[1]
             import pdb, traceback
             if debug:
                 traceback.print_exception(*exc_info)
@@ -1811,7 +1815,7 @@ def main(args=None):
                 pdb.post_mortem(exc_info[2])
             else:
                 if isinstance(v, (zc.buildout.UserError,
-                                  distutils.errors.DistutilsError,
+                                  distutils.errors.DistutilsError
                                   )
                               ):
                     _error(str(v))
@@ -1829,3 +1833,153 @@ if sys.version_info[:2] < (2, 4):
         result = list(iterable);
         result.reverse()
         return result
+
+# The following copied from Python 2 config parser because:
+# - The py3 configparser isn't backward compatible
+# - Both strip option values in undesireable ways
+# - dict of dicts is a much simpler api
+
+
+class Error(Exception):
+    """Base class for ConfigParser exceptions."""
+
+    def _get_message(self):
+        """Getter for 'message'; needed only to override deprecation in
+        BaseException."""
+        return self.__message
+
+    def _set_message(self, value):
+        """Setter for 'message'; needed only to override deprecation in
+        BaseException."""
+        self.__message = value
+
+    # BaseException.message has been deprecated since Python 2.6.  To prevent
+    # DeprecationWarning from popping up over this pre-existing attribute, use
+    # a new property that takes lookup precedence.
+    message = property(_get_message, _set_message)
+
+    def __init__(self, msg=''):
+        self.message = msg
+        Exception.__init__(self, msg)
+
+    def __repr__(self):
+        return self.message
+
+class ParsingError(Error):
+    """Raised when a configuration file does not follow legal syntax."""
+
+    def __init__(self, filename):
+        Error.__init__(self, 'File contains parsing errors: %s' % filename)
+        self.filename = filename
+        self.errors = []
+
+    def append(self, lineno, line):
+        self.errors.append((lineno, line))
+        self.message += '\n\t[line %2d]: %s' % (lineno, line)
+
+class MissingSectionHeaderError(ParsingError):
+    """Raised when a key-value pair is found before any section header."""
+
+    def __init__(self, filename, lineno, line):
+        Error.__init__(
+            self,
+            'File contains no section headers.\nfile: %s, line: %d\n%r' %
+            (filename, lineno, line))
+        self.filename = filename
+        self.lineno = lineno
+        self.line = line
+
+SECTCRE = re.compile(
+    r'\['                                 # [
+    r'(?P<header>[^]]+)'                  # very permissive!
+    r'\]'                                 # ]
+    )
+OPTCRE = re.compile(
+    r'(?P<option>[^:=\s][^:=]*)'          # very permissive!
+    r'\s*(?P<vi>[:=])\s*'                 # any number of space/tab,
+                                          # followed by separator
+                                          # (either : or =), followed
+                                          # by any # space/tab
+    r'(?P<value>.*)$'                     # everything up to eol
+    )
+
+def _read(fp, fpname):
+    """Parse a sectioned setup file.
+
+    The sections in setup file contains a title line at the top,
+    indicated by a name in square brackets (`[]'), plus key/value
+    options lines, indicated by `name: value' format lines.
+    Continuations are represented by an embedded newline then
+    leading whitespace.  Blank lines, lines beginning with a '#',
+    and just about everything else are ignored.
+    """
+    _sections = {}
+    cursect = None                            # None, or a dictionary
+    optname = None
+    lineno = 0
+    e = None                                  # None, or an exception
+    while True:
+        line = fp.readline()
+        if not line:
+            break
+        lineno = lineno + 1
+        # comment or blank line?
+        if line.strip() == '' or line[0] in '#;':
+            continue
+        if line.split(None, 1)[0].lower() == 'rem' and line[0] in "rR":
+            # no leading whitespace
+            continue
+        # continuation line?
+        if line[0].isspace() and cursect is not None and optname:
+            value = line.strip()
+            if value:
+                cursect[optname] = "%s\n%s" % (cursect[optname], value)
+        # a section header or option header?
+        else:
+            # is it a section header?
+            mo = SECTCRE.match(line)
+            if mo:
+                sectname = mo.group('header')
+                if sectname in _sections:
+                    cursect = _sections[sectname]
+                else:
+                    cursect = {}
+                    _sections[sectname] = cursect
+                # So sections can't start with a continuation line
+                optname = None
+            # no section header in the file?
+            elif cursect is None:
+                raise MissingSectionHeaderError(fpname, lineno, line)
+            # an option line?
+            else:
+                mo = OPTCRE.match(line)
+                if mo:
+                    optname, vi, optval = mo.group('option', 'vi', 'value')
+                    # This check is fine because the OPTCRE cannot
+                    # match if it would set optval to None
+                    if optval is not None:
+                        if vi in ('=', ':') and ';' in optval:
+                            # ';' is a comment delimiter only if it follows
+                            # a spacing character
+                            pos = optval.find(';')
+                            if pos != -1 and optval[pos-1].isspace():
+                                optval = optval[:pos]
+                        optval = optval.strip()
+                    # allow empty values
+                    if optval == '""':
+                        optval = ''
+                    optname = optname.rstrip()
+                    cursect[optname] = optval
+                else:
+                    # a non-fatal parsing error occurred.  set up the
+                    # exception but keep going. the exception will be
+                    # raised at the end of the file and will contain a
+                    # list of all bogus lines
+                    if not e:
+                        e = ParsingError(fpname)
+                    e.append(lineno, repr(line))
+    # if any parsing errors occurred, raise an exception
+    if e:
+        raise e
+
+    return _sections

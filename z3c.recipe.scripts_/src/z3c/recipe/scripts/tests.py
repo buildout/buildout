@@ -230,7 +230,7 @@ paths into sys.path.
 Let's look at the site.py that was generated:
 
     >>> import sys
-    >>> sys.stdout.write('#'); cat(sample_buildout, 'parts', 'py', 'site.py')
+    >>> print_('#'); cat(sample_buildout, 'parts', 'py', 'site.py')
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     #...
     def addsitepackages(known_paths):

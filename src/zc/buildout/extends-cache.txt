@@ -41,20 +41,20 @@ buildout:
 When trying to run this buildout offline, we'll find that we cannot read all
 of the required configuration:
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 
 Trying the same online, we can:
 
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'foo'.
 
 As long as we haven't said anything about caching downloaded configuration,
 nothing gets cached. Offline mode will still cause the buildout to fail:
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
@@ -73,7 +73,7 @@ being a hash of the complete URL):
 ... extends-cache = cache
 ... """ % server_url)
 
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'foo'.
 
 >>> cache = join(sample_buildout, 'cache')
@@ -88,7 +88,7 @@ foo = bar
 
 We can now run buildout offline as it will read base.cfg from the cache:
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 Unused options for buildout: 'foo'.
 
 The cache is being used purely as a fall-back in case we are offline or don't
@@ -104,18 +104,18 @@ base.cfg from the cache:
 ... bar = baz
 ... """)
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 Unused options for buildout: 'foo'.
 
 In online mode, buildout will download and use the modified version:
 
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'bar'.
 
 Trying offline mode again, the new version will be used as it has been put in
 the cache now:
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 Unused options for buildout: 'bar'.
 
 Clean up:
@@ -203,7 +203,7 @@ bases, using different caches:
 Buildout will now assemble its configuration from all of these 6 files,
 defaults first. The online resources end up in the respective extends caches:
 
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'foo'.
 
 >>> ls('user-cache')
@@ -249,7 +249,7 @@ Let's rewrite the config files, clean out the caches and re-run buildout:
 >>> remove('user-cache', os.listdir('user-cache')[0])
 >>> remove('cache', os.listdir('cache')[0])
 
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'foo'.
 
 >>> ls('user-cache')
@@ -272,7 +272,7 @@ Offline mode and installation from cache
 If we run buildout in offline mode now, it will fail because it cannot get at
 the remote configuration file needed by the user's defaults:
 
->>> print system(buildout + ' -o')
+>>> run(buildout + ' -o')
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
@@ -285,7 +285,7 @@ configuration and see when buildout applies this setting in each case:
 ... extends = fancy_default.cfg
 ... offline = true
 ... """)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
@@ -299,7 +299,7 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 ... extends = %sbase_default.cfg
 ... offline = true
 ... """ % server_url)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
@@ -313,7 +313,7 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 ... extends = fancy.cfg
 ... offline = true
 ... """)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
@@ -327,7 +327,7 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 ... extends = %sbase.cfg
 ... offline = true
 ... """ % server_url)
->>> print system(buildout)
+>>> run(buildout)
 Unused options for buildout: 'foo'.
 
 The ``install-from-cache`` option is treated accordingly:
@@ -337,7 +337,7 @@ The ``install-from-cache`` option is treated accordingly:
 ... extends = fancy_default.cfg
 ... install-from-cache = true
 ... """)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
@@ -351,7 +351,7 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 ... extends = %sbase_default.cfg
 ... install-from-cache = true
 ... """ % server_url)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
@@ -365,7 +365,7 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 ... extends = fancy.cfg
 ... install-from-cache = true
 ... """)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
@@ -379,7 +379,7 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 ... extends = %sbase.cfg
 ... install-from-cache = true
 ... """ % server_url)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Installing.
   Checking for upgrades.
@@ -406,7 +406,7 @@ is already present locally. If we run buildout in newest mode
 ... extends-cache = cache
 ... extends = %sbase.cfg
 ... """ % server_url)
->>> print system(buildout)
+>>> run(buildout)
 >>> ls('cache')
 -  5aedc98d7e769290a29d654a591a3a45
 >>> cat('cache', os.listdir(cache)[0])
@@ -420,7 +420,7 @@ A change to ``base.cfg`` is picked up on the next buildout run:
 ... parts =
 ... foo = bar
 ... """)
->>> print system(buildout + " -n")
+>>> run(buildout + " -n")
 Unused options for buildout: 'foo'.
 >>> cat('cache', os.listdir(cache)[0])
 [buildout]
@@ -434,7 +434,7 @@ already present in the extends cache will not be updated:
 ... [buildout]
 ... parts =
 ... """)
->>> print system(buildout + " -N")
+>>> run(buildout + " -N")
 Unused options for buildout: 'foo'.
 >>> cat('cache', os.listdir(cache)[0])
 [buildout]
@@ -463,7 +463,7 @@ used:
 ... newest = true
 ... extends = %sbaseA.cfg %sbaseB.cfg
 ... """ % (server_url, server_url))
->>> print system(buildout + " -n")
+>>> run(buildout + " -n")
 Unused options for buildout: 'bar' 'foo'.
 
 (XXX We patch download utility's API to produce readable output for the test;
@@ -472,7 +472,7 @@ a better solution would utilise the logging already done by the utility.)
 >>> import zc.buildout
 >>> old_download = zc.buildout.download.Download.download
 >>> def wrapper_download(self, url, md5sum=None, path=None):
-...   print "The URL %s was downloaded." % url
+...   print("The URL %s was downloaded." % url)
 ...   return old_download(url, md5sum, path)
 >>> zc.buildout.download.Download.download = wrapper_download
 
@@ -498,7 +498,7 @@ UserError is raised if that option is encountered now:
 ... parts =
 ... extended-by = foo.cfg
 ... """)
->>> print system(buildout)
+>>> run(buildout)
 While:
   Initializing.
 Error: No-longer supported "extended-by" option found in http://localhost/base.cfg.

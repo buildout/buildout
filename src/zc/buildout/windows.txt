@@ -21,7 +21,7 @@ can't delete.
     ...              name)
     ...
     ...     def install(self):
-    ...         print "can't remove read only files"
+    ...         print("can't remove read only files")
     ...         if not os.path.exists (self.location):
     ...             os.makedirs (self.location)
     ...
@@ -43,7 +43,7 @@ can't delete.
 
     >>> write('recipe', 'README', '')
 
-    >>> print system(buildout+' setup recipe bdist_egg'), # doctest: +ELLIPSIS
+    >>> run(buildout+' setup recipe bdist_egg') # doctest: +ELLIPSIS
     Running setup script 'recipe/setup.py'.
     ...
 
@@ -59,7 +59,7 @@ and we'll configure a buildout to use it:
     ... recipe = spam
     ... ''' % join('recipe', 'dist'))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Getting distribution for 'spam'.
     Got spam 1.
     Installing foo.
