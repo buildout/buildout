@@ -221,14 +221,11 @@ Let's make sure the generated ``buildout`` script uses it::
 ``zc.buildout`` now can also run with `Distribute` with the `--distribute`
 option::
 
-    >>> print 'X'; print system(
+    >>> print 'XX'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --distribute'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py --distribute') # doctest: +ELLIPSIS
     ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'...
-    X
+    X...Generated script '/sample/bin/buildout'...
 
 Let's make sure the generated ``site.py`` uses it::
     >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
@@ -241,15 +238,11 @@ Let's make sure the generated ``site.py`` uses it::
 
 Make sure both options can be used together::
 
-    >>> print 'X'; print system(
+    >>> print 'XX'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --distribute --version 1.2.1'); print 'X'
+    ...     'bootstrap.py --distribute --version 1.2.1')
     ... # doctest: +ELLIPSIS
-    ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'...
-    X
+    X...Generated script '/sample/bin/buildout'...
 
 Let's make sure the old-style generated ``buildout`` script uses
 ``Distribute`` *and* ``zc.buildout-1.2.1``::
@@ -275,14 +268,10 @@ Last, the -c option needs to work on bootstrap.py::
     >>> f = open(conf_file, 'w')
     >>> f.write('[buildout]\nparts=\n\n')
     >>> f.close()
-    >>> print 'X'; print system(
+    >>> print 'XX'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py -c %s --distribute' % conf_file); print 'X' # doctest: +ELLIPSIS
-    ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'...
-    X
+    ...     'bootstrap.py -c %s --distribute' % conf_file) # doctest: +ELLIPSIS
+    X...Generated script '/sample/bin/buildout'...
 
 You can specify a location of ez_setup.py or distribute_setup, so you
 can rely on a local or remote location.  We'll write our own ez_setup.py
