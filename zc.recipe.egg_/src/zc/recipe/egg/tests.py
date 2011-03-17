@@ -138,9 +138,7 @@ def test_suite():
             ),
         ))
 
-    if sys.version_info[:2] != (2, 4):
-        # Only run selecting python tests if not 2.4, since
-        # 2.4 is the alternate python used in the tests.
+    if zc.buildout.testing.script_in_shebang:
         suite.addTest(
             doctest.DocFileSuite(
                 'selecting-python.txt',

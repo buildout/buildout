@@ -69,6 +69,9 @@ some initialization that we can look for.
     foo bar baz shazam
 """
 
+if not zc.buildout.testing.script_in_shebang:
+    del supports_python_option
+
 def interpreter_recipe_supports_extra_paths_option():
     """
 This shows that specifying extra-paths will affect sys.path.
@@ -194,6 +197,10 @@ custom Python.
     foo bar baz shazam
 
 """
+
+if not zc.buildout.testing.script_in_shebang:
+    del interpreter_recipe_supports_initialization_option
+
 
 def interpreter_recipe_supports_relative_paths_option():
     """
@@ -418,31 +425,6 @@ def setUpSelecting(test):
 
 def test_suite():
     suite = unittest.TestSuite((
-        doctest.DocFileSuite(
-            'README.txt',
-            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
-            checker=renormalizing.RENormalizing([
-                zc.buildout.testing.normalize_path,
-                zc.buildout.testing.normalize_endings,
-                zc.buildout.testing.normalize_script,
-                zc.buildout.testing.normalize_egg_py,
-                zc.buildout.tests.normalize_bang,
-                zc.buildout.tests.hide_distribute_additions,
-                zc.buildout.tests.hide_first_index_page_message,
-                (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
-                 'zc.buildout.egg'),
-                (re.compile('[-d]  (setuptools|distribute)-[^-]+-'), 'setuptools-X-'),
-                (re.compile(r'(setuptools|distribute)-[\w.]+-py'), 'setuptools-X-py'),
-                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
-                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
-                (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
-                # Normalize generate_script's Windows interpreter to UNIX:
-                (re.compile(r'\nimport subprocess\n'), '\n'),
-                (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
-                 'os.execve(sys.executable, argv, environ)'),
-                (re.compile('distribute'), 'setuptools'),
-                ])
-            ),
         doctest.DocTestSuite(
             setUp=setUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
@@ -455,8 +437,37 @@ def test_suite():
                 (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                 ]),
             ),
-
         ))
+
+    if zc.buildout.testing.script_in_shebang:
+        suite.addTest(
+            doctest.DocFileSuite(
+                'README.txt',
+                setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+                checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.normalize_path,
+                    zc.buildout.testing.normalize_endings,
+                    zc.buildout.testing.normalize_script,
+                    zc.buildout.testing.normalize_egg_py,
+                    zc.buildout.tests.normalize_bang,
+                    zc.buildout.tests.hide_distribute_additions,
+                    zc.buildout.tests.hide_first_index_page_message,
+                    (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
+                     'zc.buildout.egg'),
+                    (re.compile('[-d]  (setuptools|distribute)-[^-]+-'),
+                     'setuptools-X-'),
+                    (re.compile(r'(setuptools|distribute)-[\w.]+-py'),
+                     'setuptools-X-py'),
+                    (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
+                    (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
+                    (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
+                    # Normalize generate_script's Windows interpreter to UNIX:
+                    (re.compile(r'\nimport subprocess\n'), '\n'),
+                    (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
+                     'os.execve(sys.executable, argv, environ)'),
+                    (re.compile('distribute'), 'setuptools'),
+                    ])
+                ))
 
     return suite
 
