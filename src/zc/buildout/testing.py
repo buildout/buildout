@@ -40,6 +40,18 @@ from zc.buildout.rmtree import rmtree
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
+# Only some unixes allow scripts in shebang lines:
+script_in_shebang = is_win32
+if sys.platform == 'linux2':
+    f = subprocess.Popen('uname -r', shell=True, stdout=subprocess.PIPE).stdout
+    r = f.read().strip()
+    f.close()
+    r = tuple(map(int, re.match(r'\d+(\.\d+)*', r).group(0).split('.')))
+    if r >= (2, 6, 27, 9):
+        # http://www.in-ulm.de/~mascheck/various/shebang/
+        script_in_shebang = True
+
+
 setuptools_location = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
 
