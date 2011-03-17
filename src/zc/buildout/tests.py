@@ -126,7 +126,7 @@ It is an error to create a variable-reference cycle:
     ... z = ${buildout:x}
     ... ''')
 
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> run(os.path.join(sample_buildout, 'bin', 'buildout'))
     ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     While:
       Initializing.
