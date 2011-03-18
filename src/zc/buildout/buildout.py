@@ -1478,7 +1478,7 @@ def _dir_hash(dir):
         hash.update(' '.join(dirnames).encode())
         hash.update(' '.join(filenames).encode())
         for name in filenames:
-            hash.update(open(os.path.join(dirpath, name)).read().encode())
+            hash.update(open(os.path.join(dirpath, name), 'rb').read())
     _dir_hashes[dir] = dir_hash = hash.hexdigest()
     return dir_hash
 
