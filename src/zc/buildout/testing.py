@@ -121,6 +121,7 @@ def system(command, input=''):
     result = o.read() + e.read()
     o.close()
     e.close()
+    p.wait()
     return result.decode()
 
 def print_(*args):
