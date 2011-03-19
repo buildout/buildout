@@ -175,6 +175,9 @@ except ImportError:
         setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
     if 'pkg_resources' in sys.modules:
+        if sys.version_info[0] > 3:
+            from imp import reload
+
         reload(sys.modules['pkg_resources'])
     import pkg_resources
     # This does not (always?) update the default working set.  We will

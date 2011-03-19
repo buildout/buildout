@@ -115,15 +115,15 @@ first.
 
     >>> print_(call_py(
     ...     _safe_arg(py_path),
-    ...     "import ConfigParser"))
+    ...     "import pickle"))
 
     >>> print('X'); print(call_py(
     ...     _safe_arg(py_path),
-    ...     "import ConfigParser",
+    ...     "import pickle",
     ...     '-S')) # doctest: +ELLIPSIS
     X...Traceback (most recent call last):
       ...
-    ImportError: No module named ConfigParser
+    ImportError: No module named pickle
     <BLANKLINE>
     >>> from zc.buildout.easy_install import _has_broken_dash_S
     >>> _has_broken_dash_S(py_path)

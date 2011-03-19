@@ -27,7 +27,7 @@ can't delete.
     ...
     ...         name = os.path.join (self.location, 'readonly.txt')
     ...         open (name, 'w').write ('this is a read only file')
-    ...         os.chmod (name, 0400)
+    ...         os.chmod (name, int('0400', 8))
     ...         return ()
     ...
     ...     update = install

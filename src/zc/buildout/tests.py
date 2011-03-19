@@ -2089,12 +2089,10 @@ reversing the default).
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> rmdir(example_dest)
     >>> example_dest = tmpdir('site-packages-example-install')
-    >>> workingset = zc.buildout.easy_install.install(
+    >>> print(raises('MissingDistribution', zc.buildout.easy_install.install,
     ...     ['demoneeded'], example_dest, links=[], executable=py_path,
-    ...     index=None, include_site_packages=False)
-    Traceback (most recent call last):
-        ...
-    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+    ...     index=None, include_site_packages=False))
+    Couldn't find a distribution for 'demoneeded'.
 
 That's a failure, as expected.
 
@@ -2130,14 +2128,12 @@ the special care we have taken to exclude it.
     >>> mkdir(example_dest, 'develop-eggs')
     >>> write(example_dest, 'develop-eggs', 'demoneeded.egg-link',
     ...       site_packages_path)
-    >>> workingset = zc.buildout.easy_install.install(
+    >>> print(raises('MissingDistribution', zc.buildout.easy_install.install,
     ...     ['demoneeded'], example_dest, links=[],
     ...     path=[join(example_dest, 'develop-eggs')],
     ...     executable=py_path,
-    ...     index=None, include_site_packages=False)
-    Traceback (most recent call last):
-        ...
-    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+    ...     index=None, include_site_packages=False))
+    Couldn't find a distribution for 'demoneeded'.
 
 The MissingDistribution error shows that buildout correctly excluded the
 "site-packages" source even though it was indirectly included in the path
@@ -2584,7 +2580,7 @@ def test_exit_codes():
     ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
     ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     ...     p.stdin.close()
-    ...     print(p.stdout.read())
+    ...     print(p.stdout.read().decode())
     ...     print('Exit: %s' % bool(p.wait()))
 
     >>> call(buildout)
@@ -2832,8 +2828,13 @@ We'll create a wacky buildout extension that just says how wackit it is:
     >>> src = tmpdir('src')
     >>> write(src, 'wacky_handler.py',
     ... '''
+    ... try: from urllib2 import HTTPHandler, install_opener
+    ... except ImportError:
+    ...    from urllib.request import HTTPHandler, install_opener
+    ... class Wacky(HTTPHandler):
+    ...     wacky_open = urllib2.HTTPHandler.http_open
     ... def install(buildout=None):
-    ...     print("I'm so wacky,")
+    ...     install_opener(urllib2.build_opener(Wacky))
     ... ''')
     >>> write(src, 'setup.py',
     ... '''
@@ -4118,7 +4119,7 @@ def test_suite():
                 (re.compile('distribute'), 'setuptools'),
                 # Distribute unzips eggs by default.
                 (re.compile('\-  demoneeded'), 'd  demoneeded'),
-                (re.compile(r'^.*\.py[co]\n'), ''),
+                (re.compile(r'\n.*\.py[co]'), ''),
                 ]),
             ),
         zc.buildout.rmtree.test_suite(),
