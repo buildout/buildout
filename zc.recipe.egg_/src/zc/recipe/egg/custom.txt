@@ -165,7 +165,7 @@ Let's define a script that uses out ext demo:
     ... """
     ... import extdemo
     ... def main():
-    ...     print extdemo.val
+    ...     print(extdemo.val)
     ... """)
 
     >>> write('demo', 'setup.py',
@@ -202,7 +202,7 @@ Let's define a script that uses out ext demo:
 
 When we run the script, we'll 42 printed:
 
-    >>> print system(join('bin', 'demo')),
+    >>> run(join('bin', 'demo'))
     42
 
 Updating
@@ -217,12 +217,12 @@ distribution for extdemo:
 
 If we run the buildout in non-newest or offline modes:
 
-    >>> print system(buildout+' -N'),
+    >>> run(buildout+' -N')
     Develop: '/sample-buildout/demo'
     Updating extdemo.
     Updating demo.
 
-    >>> print system(buildout+' -o'),
+    >>> run(buildout+' -o')
     Develop: '/sample-buildout/demo'
     Updating extdemo.
     Updating demo.
@@ -239,7 +239,7 @@ But if we run the buildout in the default on-line and newest modes, we
 will. This time we also get the test-variable message again, because the new
 version is imported:
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/demo'
     Updating extdemo.
     zip_safe flag not set; analyzing archive contents...
@@ -278,7 +278,7 @@ We can specify a specific version using the egg option:
     ... entry-points = demo=demo:main
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout+' -D'),
+    >>> run(buildout+' -D')
     Develop: '/sample-buildout/demo'
     Uninstalling demo.
     Uninstalling extdemo.
@@ -355,7 +355,7 @@ Create our buildout:
     ... recipe = recipes:environ
     ...
     ... """ % dict(server=link_server))
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling demo.
     Uninstalling extdemo.
@@ -375,7 +375,7 @@ the original value will be restored:
 
     >>> import os
     >>> os.environ['test-variable'] = 'bar'
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Updating extdemo.
     Updating checkenv.
@@ -409,7 +409,7 @@ are interpolated with os.environ before the're set:
     ... recipe = recipes:environ
     ...
     ... """ % dict(server=link_server))
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling extdemo.
     Installing extdemo.
@@ -438,7 +438,7 @@ Create a clean buildout.cfg w/o the checkenv recipe, and delete the recipe:
     ... include-dirs = include
     ...
     ... """ % dict(server=link_server))
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/recipes'
     Uninstalling checkenv.
     Uninstalling extdemo.
@@ -545,7 +545,7 @@ Note that we added a define option to cause the preprocessor variable
 TWO to be defined.  This will cause the module-variable, 'val', to be
 set with a value of 2.
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/demo'
     Uninstalling extdemo.
     Installing extdemo.
@@ -575,5 +575,5 @@ and the extdemo now has a built extension:
 Because develop eggs take precedence over non-develop eggs, the demo
 script will use the new develop egg:
 
-    >>> print system(join('bin', 'demo')),
+    >>> run(join('bin', 'demo'))
     2

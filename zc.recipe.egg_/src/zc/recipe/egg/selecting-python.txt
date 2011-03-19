@@ -9,7 +9,7 @@ defined by the python buildout option.
 
 We have a link server:
 
-    >>> print get(link_server),
+    >>> print_(get(link_server))
     <html><body>
     <a href="bigdemo-0.1-py2.5.egg">bigdemo-0.1-py2.5.egg</a><br>
     <a href="demo-0.1-py2.5.egg">demo-0.1-py2.5.egg</a><br>
@@ -50,7 +50,7 @@ Now, if we run the buildout:
    >>> import os
    >>> os.chdir(sample_buildout)
    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-   >>> print system(buildout),
+   >>> run(buildout)
    Installing demo.
    Getting distribution for 'demo<0.3'.
    Got demo 0.2.
@@ -80,7 +80,7 @@ And the generated scripts invoke Python 2.5:
     ...     shebang = '#!'+shebang[3:-1]
     >>> shebang == '#!' + other_executable
     True
-    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
+    >>> print_(f.read()) # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -103,7 +103,7 @@ And the generated scripts invoke Python 2.5:
     ...     shebang = '#!'+shebang[3:-1]
     >>> shebang == '#!' + other_executable
     True
-    >>> print f.read(), # doctest: +NORMALIZE_WHITESPACE
+    >>> print_(f.read()) # doctest: +NORMALIZE_WHITESPACE
     <BLANKLINE>
     import sys
     <BLANKLINE>

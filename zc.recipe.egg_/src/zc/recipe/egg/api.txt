@@ -30,14 +30,14 @@ around the egg recipe:
     ...     def install(self):
     ...         extras = self.options['extras'].split()
     ...         requirements, ws = self.egg.working_set(extras)
-    ...         print 'Part:', self.name
-    ...         print 'Egg requirements:'
+    ...         print('Part:' + self.name)
+    ...         print('Egg requirements:')
     ...         for r in requirements:
-    ...             print r
-    ...         print 'Working set:'
+    ...             print(r)
+    ...         print('Working set:')
     ...         for d in ws:
-    ...             print d
-    ...         print 'extra paths:', self.egg.extra_paths
+    ...             print(d)
+    ...         print('extra paths: %s' % self.egg.extra_paths)
     ...         return ()
     ...
     ...     update = install

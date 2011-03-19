@@ -710,11 +710,11 @@ Feature Changes
   the buildout script in the sample buildout.  This allows tests to
   use
 
-    >>> print system(buildout),
+    >>> run(buildout)
 
   rather than:
 
-    >>> print system(join('bin', 'buildout')),
+    >>> run(join('bin', 'buildout'))
 
 
 Bugs Fixed

@@ -31,7 +31,7 @@ python
 
 We have a link server that has a number of distributions:
 
-    >>> print get(link_server),
+    >>> print_(get(link_server))
     <html><body>
     <a href="bigdemo-0.1-py2.3.egg">bigdemo-0.1-py2.3.egg</a><br>
     <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
@@ -223,7 +223,7 @@ the bits if the path added to reflect the eggs:
     ... """import os, sys
     ... for p in sys.path:
     ...     if 'demo' in p:
-    ...         print os.path.basename(p)
+    ...         print(os.path.basename(p))
     ...
     ... """).replace('>>> ', '').replace('... ', ''),
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE

@@ -56,7 +56,7 @@ some initialization that we can look for.
     ... python = custom_python
     ... ''' % dict(server=link_server, py_path=py_path))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing py.
     Getting distribution for 'demo<0.3'.
     Got demo 0.2.
@@ -64,8 +64,8 @@ some initialization that we can look for.
     Got demoneeded 1.2c1.
     Generated interpreter '/sample-buildout/bin/py'.
 
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import os; print os.environ['zc.buildout']"'''),
+    >>> run(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import os; print(os.environ['zc.buildout'])"''')
     foo bar baz shazam
 """
 
@@ -96,11 +96,11 @@ This recipe will not add paths that do not exist, so we create them.
     ...    ${buildout:directory}/spam
     ... ''' % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import sys;print 'path' + ' '.join(sys.path)"''')
+    >>> run(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import sys;print('path' + ' '.join(sys.path))"''')
     ... # doctest:+ELLIPSIS
     path.../foo/bar /sample-buildout/spam...
 
@@ -126,7 +126,7 @@ run on initialization.
     ... index = %(server)s/index
     ... ''' % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing py.
     Getting distribution for 'demo<0.3'.
     Got demo 0.2.
@@ -139,8 +139,8 @@ run on initialization.
     <BLANKLINE>
     import os
     os.environ['zc.buildout'] = 'foo bar baz shazam'
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import os; print os.environ['zc.buildout']"'''),
+    >>> run(join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import os; print(os.environ['zc.buildout'])"''')
     foo bar baz shazam
 
 This also works with the exec-sitecustomize option, processing local
@@ -172,7 +172,7 @@ custom Python.
     ... python = custom_python
     ... ''' % dict(server=link_server, py_path=py_path))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Uninstalling py.
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
@@ -189,11 +189,11 @@ custom Python.
     import os
     os.environ['zc.buildout'] = 'foo bar baz shazam'
 
-    >>> print system(join(sample_buildout, 'bin', 'py') + ' -c ' +
-    ...              '''"import os; print os.environ['zc.recipe.egg']"'''),
+    >>> run(join(sample_buildout, 'bin', 'py') + ' -c ' +
+    ...              '''"import os; print(os.environ['zc.recipe.egg'])"''')
     baLOOba
-    >>> print system(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import os; print os.environ['zc.buildout']"'''),
+    >>> (join(sample_buildout, 'bin', 'py') +
+    ...              ''' -c "import os; print(os.environ['zc.buildout'])"''')
     foo bar baz shazam
 
 """
@@ -223,7 +223,7 @@ paths into sys.path.
     ...    ${buildout:directory}/spam
     ... ''' % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing py.
     Generated interpreter '/sample-buildout/bin/py'.
 
@@ -281,7 +281,7 @@ they are in the executable's path.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing eggs.
 
 You can set the value false explicitly.  This makes it possible to
@@ -303,7 +303,7 @@ eggs are not found, even though the system Python provides them.
     ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
-    >>> print system(buildout)
+    >>> run(buildout)
     Uninstalling eggs.
     Installing eggs.
     Couldn't find index page for 'demoneeded' (maybe misspelled?)
@@ -312,7 +312,6 @@ eggs are not found, even though the system Python provides them.
       Installing eggs.
       Getting distribution for 'demoneeded'.
     Error: Couldn't find a distribution for 'demoneeded'.
-    <BLANKLINE>
 
 We get an error if we specify anything but true or false:
 
@@ -328,14 +327,12 @@ We get an error if we specify anything but true or false:
     ... eggs = other
     ... ''' % globals())
 
-    >>> print system(buildout)
+    >>> run(buildout)
     While:
       Installing.
       Getting section eggs.
       Initializing part eggs.
     Error: Invalid value for include-site-packages option: no
-    <BLANKLINE>
-
     """
 
 def allowed_eggs_from_site_packages_option():
