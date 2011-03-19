@@ -38,11 +38,11 @@ def rmtree (path):
     Now create a file ...
 
     >>> foo = os.path.join (d, 'foo')
-    >>> open (foo, 'w').write ('huhu')
+    >>> write(foo, 'hulu')
 
     and make it unwriteable
 
-    >>> os.chmod (foo, 0400)
+    >>> os.chmod (foo, int('0400', 8))
 
     rmtree should be able to remove it:
 
@@ -54,7 +54,7 @@ def rmtree (path):
     0
     """
     def retry_writeable (func, path, exc):
-        os.chmod (path, 0o600)
+        os.chmod (path, int('0600', 8))
         func (path)
 
     shutil.rmtree (path, onerror = retry_writeable)

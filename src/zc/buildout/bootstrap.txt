@@ -20,7 +20,7 @@ Make sure the bootstrap script actually works::
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print('X'); run(
+    >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py'); print('X') # doctest: +ELLIPSIS
     X...
@@ -265,9 +265,7 @@ Let's make sure the old-style generated ``buildout`` script uses
 Last, the -c option needs to work on bootstrap.py::
 
     >>> conf_file = os.path.join(sample_buildout, 'other.cfg')
-    >>> f = open(conf_file, 'w')
-    >>> f.write('[buildout]\nparts=\n\n')
-    >>> f.close()
+    >>> write(conf_file, '[buildout]\nparts=\n\n')
     >>> print('XX'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py -c %s --distribute' % conf_file) # doctest: +ELLIPSIS

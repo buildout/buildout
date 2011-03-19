@@ -81,7 +81,7 @@ of extra requirements to be included in the working set.
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(buildout + ' -q'),
+    >>> run(buildout + ' -q')
     Part: sample-part
     Egg requirements:
     demo<0.3
@@ -141,7 +141,7 @@ If we use the extra-paths option:
 Then we'll see that reflected in the extra_paths attribute in the egg
 recipe instance:
 
-    >>> print system(buildout + ' -q'),
+    >>> run(buildout + ' -q')
     Part: sample-part
     Egg requirements:
     demo<0.3

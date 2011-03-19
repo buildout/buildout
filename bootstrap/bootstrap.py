@@ -165,7 +165,7 @@ try:
         raise ImportError
 except ImportError:
     ez_code = urllib.request.urlopen(
-        options.setup_source).read().replace('\r\n', '\n')
+        options.setup_source).read().replace('\r\n'.encode(), '\n'.encode())
     ez = {}
     exec(ez_code, ez)
     setup_args = dict(to_dir=eggs_dir, download_delay=0)

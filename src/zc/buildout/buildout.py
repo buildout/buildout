@@ -84,7 +84,7 @@ def _annotate(data, note):
     return data
 
 def _print_annotate(data):
-    sections = list(data.keys())
+    sections = list(data)
     sections.sort()
     print()
     print("Annotated sections")
@@ -92,7 +92,7 @@ def _print_annotate(data):
     for section in sections:
         print()
         print('[%s]' % section)
-        keys = list(data[section].keys())
+        keys = list(data[section])
         keys.sort()
         for key in keys:
             value, notes = data[section][key]
@@ -629,7 +629,7 @@ class Buildout(DictMixin):
         installed = self['buildout']['installed']
         f = open(installed, 'a')
         f.write('\n[buildout]\n')
-        for option, value in list(buildout_options.items()):
+        for option, value in buildout_options.items():
             _save_option(option, value, f)
         f.close()
 
@@ -1060,7 +1060,7 @@ class Buildout(DictMixin):
         raise NotImplementedError('__delitem__')
 
     def keys(self):
-        return list(self._raw.keys())
+        return list(self._raw)
 
     def __iter__(self):
         return iter(self._raw)
@@ -1124,7 +1124,7 @@ class Options(DictMixin):
             self._raw = self._do_extend_raw(name, self._raw, [])
 
         # force substitutions
-        for k, v in list(self._raw.items()):
+        for k, v in self._raw.items():
             if '${' in v:
                 self._dosub(k, v)
 

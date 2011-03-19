@@ -73,17 +73,16 @@ first.
     ... argv = new_argv
     ... '''
     >>> for line in py_lines:
-    ...     py_file.write(line)
+    ...     _ = py_file.write(line)
     ...     if line.startswith('environ = os.environ.copy()'):
-    ...         py_file.write(extra)
+    ...         _ = py_file.write(extra)
     ...         print('Rewritten.')
     ...
     Rewritten.
     >>> py_file.close()
     >>> sitecustomize_path = join(os.path.dirname(site_packages_path),
     ...                           'parts', 'py', 'sitecustomize.py')
-    >>> sitecustomize_file = open(sitecustomize_path, 'a')
-    >>> sitecustomize_file.write('''
+    >>> write(sitecustomize_path, '''
     ... import os, sys
     ... sys.executable = %r
     ... if 'BROKEN_DASH_S' in os.environ:
@@ -113,11 +112,10 @@ first.
     ...
     ...     sys.meta_path.append(ImportHook)
     ... ''' % (py_path,))
-    >>> sitecustomize_file.close()
-    >>> print(call_py(
+
+    >>> print_(call_py(
     ...     _safe_arg(py_path),
     ...     "import ConfigParser"))
-    <BLANKLINE>
 
     >>> print('X'); print(call_py(
     ...     _safe_arg(py_path),

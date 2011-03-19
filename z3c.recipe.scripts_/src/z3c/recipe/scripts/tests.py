@@ -370,9 +370,8 @@ correctly parse a single-line value.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Installing eggs.
-    <BLANKLINE>
 
 Specifying the egg exactly will work as well.  This shows we correctly
 parse a multi-line value.
@@ -396,10 +395,9 @@ parse a multi-line value.
     ... eggs = demoneeded
     ... ''' % globals())
 
-    >>> print system(buildout)
+    >>> run(buildout)
     Uninstalling eggs.
     Installing eggs.
-    <BLANKLINE>
 
 It will also work if we use a glob ("*" or "?").  (We won't show that here
 because we already tested it in

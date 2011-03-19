@@ -1164,7 +1164,6 @@ because of the missing target file.
     >>> ls('recipe')
     l  another-file
     -  foo.py
-    -  foo.pyc
     d  recipe.egg-info
     -  setup.py
     -  some-file
@@ -2585,8 +2584,8 @@ def test_exit_codes():
     ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
     ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     ...     p.stdin.close()
-    ...     print p.stdout.read()
-    ...     print 'Exit:', bool(p.wait())
+    ...     print(p.stdout.read())
+    ...     print('Exit: %s' % bool(p.wait()))
 
     >>> call(buildout)
     <BLANKLINE>
@@ -2828,16 +2827,13 @@ def dealing_with_extremely_insane_dependencies():
 
 def read_find_links_to_load_extensions():
     """
-We'll create a wacky buildout extension that is just another name for http:
+We'll create a wacky buildout extension that just says how wackit it is:
 
     >>> src = tmpdir('src')
     >>> write(src, 'wacky_handler.py',
     ... '''
-    ... import urllib2
-    ... class Wacky(urllib2.HTTPHandler):
-    ...     wacky_open = urllib2.HTTPHandler.http_open
     ... def install(buildout=None):
-    ...     urllib2.install_opener(urllib2.build_opener(Wacky))
+    ...     print("I'm so wacky,")
     ... ''')
     >>> write(src, 'setup.py',
     ... '''
@@ -2871,7 +2867,7 @@ Now we'll create a buildout that uses this extension to load other packages:
     ... ''' % globals())
 
 When we run the buildout. it will load the extension from the dist
-directory and then use the wacky extension to load the demo package
+directory:
 
     >>> run(buildout)
     Getting distribution for 'wackyextension'.
@@ -3350,8 +3346,8 @@ def pyc_and_pyo_files_have_correct_paths():
     >>> write('t.py',
     ... '''
     ... import eggrecipedemo, eggrecipedemoneeded
-    ... print(eggrecipedemo.main.func_code.co_filename)
-    ... print(eggrecipedemoneeded.f.func_code.co_filename)
+    ... print(eggrecipedemo.__file__)
+    ... print(eggrecipedemoneeded.__file__)
     ... ''')
 
     >>> run(join('bin', 'py')+ ' t.py')
@@ -3451,12 +3447,14 @@ def make_sure_versions_dont_cancel_extras():
     """
     There was a bug that caused extras in requirements to be lost.
 
-    >>> open('setup.py', 'w').write('''
+    >>> f = open('setup.py', 'w')
+    >>> _ = f.write('''
     ... from setuptools import setup
     ... setup(name='extraversiondemo', version='1.0',
     ...       url='x', author='x', author_email='x',
     ...       extras_require=dict(foo=['demo']), py_modules=['t'])
     ... ''')
+    >>> f.close()
     >>> open('README', 'w').close()
     >>> open('t.py', 'w').close()
 
@@ -4120,6 +4118,7 @@ def test_suite():
                 (re.compile('distribute'), 'setuptools'),
                 # Distribute unzips eggs by default.
                 (re.compile('\-  demoneeded'), 'd  demoneeded'),
+                (re.compile(r'^.*\.py[co]\n'), ''),
                 ]),
             ),
         zc.buildout.rmtree.test_suite(),

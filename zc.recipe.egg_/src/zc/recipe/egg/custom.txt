@@ -137,7 +137,7 @@ the egg:
     ...
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Installing extdemo.
     zip_safe flag not set; analyzing archive contents...
 
@@ -194,7 +194,7 @@ Let's define a script that uses out ext demo:
     ... entry-points = demo=demo:main
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> run(buildout)
     Develop: '/sample-buildout/demo'
     Updating extdemo.
     Installing demo.
