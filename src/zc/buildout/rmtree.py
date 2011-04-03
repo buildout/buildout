@@ -38,7 +38,7 @@ def rmtree (path):
     Now create a file ...
 
     >>> foo = os.path.join (d, 'foo')
-    >>> f = open(foo); _ = f.write('hulu'); f.close()
+    >>> f = open(foo, 'w'); _ = f.write('hulu'); f.close()
 
     and make it unwriteable
 

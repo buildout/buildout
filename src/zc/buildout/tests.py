@@ -2828,13 +2828,13 @@ We'll create a wacky buildout extension that just says how wackit it is:
     >>> src = tmpdir('src')
     >>> write(src, 'wacky_handler.py',
     ... '''
-    ... try: from urllib2 import HTTPHandler, install_opener
+    ... try: from urllib2 import HTTPHandler, install_opener, build_opener
     ... except ImportError:
-    ...    from urllib.request import HTTPHandler, install_opener
+    ...    from urllib.request import HTTPHandler, install_opener, build_opener
     ... class Wacky(HTTPHandler):
-    ...     wacky_open = urllib2.HTTPHandler.http_open
+    ...     wacky_open = HTTPHandler.http_open
     ... def install(buildout=None):
-    ...     install_opener(urllib2.build_opener(Wacky))
+    ...     install_opener(build_opener(Wacky))
     ... ''')
     >>> write(src, 'setup.py',
     ... '''
@@ -3932,8 +3932,10 @@ def bootstrapSetup(test):
     easy_install_SetUp(test)
     sample_eggs = test.globs['sample_eggs']
     ws = getWorkingSetWithBuildoutEgg(test)
+    makeNewRelease('distribute', ws, sample_eggs)
     makeNewRelease('zc.buildout', ws, sample_eggs)
     makeNewRelease('zc.buildout', ws, sample_eggs, '100.0b1')
+    makeNewRelease('zc.buildout', ws, sample_eggs, '98.0')
     os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
 
 normalize_bang = (
@@ -4196,6 +4198,7 @@ def test_suite():
                 (re.compile('Downloading.*setuptools.*egg\n'), ''),
                 (re.compile('options:'), 'Options:'),
                 (re.compile('usage:'), 'Usage:'),
+                (re.compile('setuptools'), 'distribute'),
                 ]),
             ))
         test_suite.append(doctest.DocFileSuite(

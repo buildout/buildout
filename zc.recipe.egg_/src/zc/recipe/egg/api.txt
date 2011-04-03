@@ -30,7 +30,7 @@ around the egg recipe:
     ...     def install(self):
     ...         extras = self.options['extras'].split()
     ...         requirements, ws = self.egg.working_set(extras)
-    ...         print('Part:' + self.name)
+    ...         print('Part: ' + self.name)
     ...         print('Egg requirements:')
     ...         for r in requirements:
     ...             print(r)

@@ -219,13 +219,13 @@ modules installed.
 We can also run the py-demo script.  Here we'll just print out
 the bits if the path added to reflect the eggs:
 
-    >>> run(join(sample_buildout, 'bin', 'py-demo')
+    >>> print_(system(join(sample_buildout, 'bin', 'py-demo'),
     ... """import os, sys
     ... for p in sys.path:
     ...     if 'demo' in p:
     ...         print(os.path.basename(p))
     ...
-    ... """).replace('>>> ', '').replace('... ', ''),
+    ... """).replace('>>> ', '').replace('... ', ''))
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     demo-0.2-py2.4.egg
     demoneeded-1.2c1-py2.4.egg

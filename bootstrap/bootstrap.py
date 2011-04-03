@@ -105,6 +105,8 @@ local resources, you can keep this script from going over the network.
 parser = OptionParser(usage=usage)
 parser.add_option("-v", "--version", dest="version",
                           help="use a specific zc.buildout version")
+parser.add_option("--setup-version", dest="setup_version",
+                  help="The version of setuptools or distribute to use.")
 parser.add_option("-d", "--distribute",
                    action="store_true", dest="use_distribute",
                    default= sys.version_info[0] >= 3,
@@ -171,14 +173,19 @@ except ImportError:
     setup_args = dict(to_dir=eggs_dir, download_delay=0)
     if options.download_base:
         setup_args['download_base'] = options.download_base
+    if options.setup_version:
+        setup_args['version'] = options.setup_version
     if options.use_distribute:
         setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
     if 'pkg_resources' in sys.modules:
-        if sys.version_info[0] > 3:
-            from imp import reload
+        if sys.version_info[0] >= 3:
+            import imp
+            reload_ = imp.reload
+        else:
+            reload_ = reload
 
-        reload(sys.modules['pkg_resources'])
+        reload_(sys.modules['pkg_resources'])
     import pkg_resources
     # This does not (always?) update the default working set.  We will
     # do it.

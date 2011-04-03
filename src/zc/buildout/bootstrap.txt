@@ -20,9 +20,11 @@ Make sure the bootstrap script actually works::
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
+
     >>> print('XX'); run(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py'); print('X') # doctest: +ELLIPSIS
+    ...     zc.buildout.easy_install._safe_arg(sys.executable) +
+    ...     ' bootstrap.py'
+    ...     ); print('X') # doctest: +ELLIPSIS
     X...
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
@@ -161,62 +163,24 @@ Let's try with an unknown version::
     No local packages or download links found for zc.buildout==UNKNOWN...
     ...
 
-Now let's try with `1.1.2`, which happens to exist::
+Now let's try with `98.0`, which happens to exist::
 
     >>> print('X'); run(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.1.2'); print('X')
-    ...
-    X
+    ...     'bootstrap.py --version 98.0'); print('X')
+    ...     # doctest: +ELLIPSIS
+    X...
     Generated script '/sample/bin/buildout'.
     <BLANKLINE>
     X
 
-Versions older than 1.5.0 put their egg dependencies in the ``buildout`` script.
-Let's make sure it was generated as we expect::
-
-    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
-      '/sample/eggs/zc.buildout-1.1.2...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
-
-Let's try with `1.2.1`::
-
-    >>> print('X'); run(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.2.1'); print('X') # doctest: +ELLIPSIS
+    >>> print(open(buildout_site_py).read()) # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample/eggs/setuptools-...egg',
+            '/sample/eggs/zc.buildout-98.0-pyN.N.egg'
+            ]
     ...
-    X
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
-    X
-
-Let's make sure the generated ``buildout`` script uses it::
-
-    >>> print(open(buildout_script).read()) # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
-      '/sample/eggs/zc.buildout-1.2.1...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
 
 ``zc.buildout`` now can also run with `Distribute` with the `--distribute`
 option::
