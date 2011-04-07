@@ -26,18 +26,14 @@ import shutil
 import sys
 import tempfile
 try:
-    from urllib.request import FancyURLopener, URLopener
-    from urllib.request import urlretrieve
+    from urllib.request import FancyURLopener, URLopener, urlretrieve
     import urllib.request
     import urllib.parse as urlparse
-    import urllib.request as urllib2
     def set_urlopener(opener):
         urllib.request._urlopener = opener
 except ImportError:
-    from urllib import FancyURLopener, URLopener
-    from urllib2 import urlretrieve
+    from urllib import FancyURLopener, URLopener, urlretrieve
     import urllib
-    import urllib2
     import urlparse
     def set_urlopener(opener):
         urllib._urlopener = opener
