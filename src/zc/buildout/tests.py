@@ -1039,7 +1039,7 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     >>> write('demo', 'demo.py',
     ... """
     ... def ext(buildout):
-    ...     print('ext', list(buildout))
+    ...     print('ext %s' % list(buildout))
     ... """)
 
     >>> write('demo', 'setup.py',
@@ -2953,9 +2953,9 @@ def prefer_final_permutation(existing, available):
         )
 
     if dist.extras:
-        print('downloaded', dist.version)
+        print('downloaded %s' % dist.version)
     else:
-        print('had', dist.version)
+        print('had %s' % dist.version)
     sys.path_importer_cache.clear()
 
 def prefer_final():
@@ -3697,7 +3697,7 @@ def _write_eggrecipedemo(tmp, minor_version, suffix=''):
         tmp, 'eggrecipedemo.py',
         'import eggrecipedemoneeded\n'
         'x=%s\n'
-        'def main(): print(x, eggrecipedemoneeded.y)\n'
+        'def main(): print("%%s %%s" %% (x, eggrecipedemoneeded.y))\n'
         % minor_version)
     write(
         tmp, 'setup.py',
@@ -3815,7 +3815,7 @@ import os
 from distutils.core import setup, Extension
 
 if os.environ.get('test-variable'):
-    print("Have environment test-variable:", os.environ['test-variable'])
+    print("Have environment test-variable: %s" % os.environ['test-variable'])
 
 setup(name = "extdemo", version = "%s", url="http://www.zope.org",
       author="Demo", author_email="demo@demo.com",

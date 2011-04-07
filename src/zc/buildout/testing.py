@@ -81,12 +81,12 @@ def ls(dir, *subs):
 
     for name in sorted(names):
         if os.path.isdir(os.path.join(dir, name)):
-            print('d ', end=' ')
+            code = 'd '
         elif os.path.islink(os.path.join(dir, name)):
-            print('l ', end=' ')
+            code = 'l '
         else:
-            print('- ', end=' ')
-        print(name)
+            code = '- '
+        print('%s %s' % (code, name))
 
 def mkdir(*path):
     os.mkdir(os.path.join(*path))
