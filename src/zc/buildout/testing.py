@@ -41,6 +41,7 @@ import zc.buildout.buildout
 import zc.buildout.easy_install
 from zc.buildout.easy_install import setuptools_key
 from zc.buildout.rmtree import rmtree
+from zc.buildout.compat23 import call_external_python
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
@@ -189,65 +190,38 @@ def sys_install(setup, dest):
               '--single-version-externally-managed')
 
 def find_python(version):
+    """Return the path to a Python executable for a given version of Python.
+
+    The version is given as a 2-component string: '2.4', '3.2', ...
+
+    """
     env_friendly_version = ''.join(version.split('.'))
 
-    e = os.environ.get('PYTHON%s' % env_friendly_version)
-    if e is not None:
-        return e
+    candidates = []
+    candidates.append(os.environ.get('PYTHON%s' % env_friendly_version))
+
     if is_win32:
-        e = '\Python%s\python.exe' % env_friendly_version
-        if os.path.exists(e):
-            return e
+        candidates.append('\Python%s\python.exe' % env_friendly_version)
     else:
-        if version.startswith('2.'):
-            cmd = ('python%s -c "import sys; print(sys.executable.decode('
-                   'sys.getfilesystemencoding()).encode(\'utf-8\'))"' %
-                   version)
-        else:
-            cmd = ('python%s -c "import sys; print('
-                   'sys.executable.encode(\'utf-8\'))"' % version)
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=MUST_CLOSE_FDS)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        e = o.read().decode('utf-8').strip()
-        o.close()
-        if os.path.exists(e):
-            return e
-        cmd = 'python -c "import sys; print(\'%s.%s\' % sys.version_info[:2])"'
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=MUST_CLOSE_FDS)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        e = o.read().decode('ascii').strip()
-        o.close()
-        if e == version:
-            if version.startswith('2.'):
-                cmd = ('python -c "import sys; print(sys.executable.decode('
-                       'sys.getfilesystemencoding()).encode(\'utf-8\'))"')
-            else:
-                cmd = ('python -c "import sys; print('
-                       'sys.executable.encode(\'utf-8\'))"')
-            p = subprocess.Popen(cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                close_fds=MUST_CLOSE_FDS)
-            i, o = (p.stdin, p.stdout)
-            i.close()
-            e = o.read().decode('utf-8').strip()
-            o.close()
-            if os.path.exists(e):
-                return e
+        GET_EXECUTABLE_PATH = 'import sys; result = sys.executable'
+        # Try Python executable with version encoded in filename
+        r = call_external_python(
+            'python%s' % version, GET_EXECUTABLE_PATH)
+        candidates.append(r.out)
+
+        # Try Python executable without version encoded in filename
+        r = call_external_python(
+            'python', 'import sys; result = "%s.%s\" % sys.version_info[:2]')
+
+        if r.out == version:
+            r = call_external_python('python', GET_EXECUTABLE_PATH)
+            candidates.append(r.out)
+
+    for candidate in candidates:
+        if not candidate:
+            continue
+        if os.path.exists(candidate):
+            return candidate
 
     raise ValueError(
         "Couldn't figure out the executable for Python %(version)s.\n"

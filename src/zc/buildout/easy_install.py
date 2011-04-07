@@ -37,6 +37,7 @@ import tempfile
 import warnings
 import zc.buildout
 import zipimport
+from zc.buildout.compat23 import call_external_python
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
 def realpath(path):
@@ -1593,33 +1594,32 @@ def _get_module_file(executable, name, silent=False):
     - executable is a path to the desired Python executable.
     - name is the name of the (pure, not C) Python module.
     """
-    cmd = [executable, "-Sc",
-           "import imp; "
-           "fp, path, desc = imp.find_module(%r); "
-           "fp.close(); "
-           "print(path)" % (name,)]
     env = os.environ.copy()
     # We need to make sure that PYTHONPATH, which will often be set to
     # include a custom buildout-generated site.py, is not set, or else
     # we will not get an accurate value for the "real" site.py and
     # sitecustomize.py.
     env.pop('PYTHONPATH', None)
-    _proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-    stdout, stderr = _proc.communicate();
-    if _proc.returncode:
+    r = call_external_python([executable, "-S"],
+                         """\
+import imp
+fp, path, desc = imp.find_module(%r)
+fp.close()
+result = path""" % (name,),
+                         env)
+    if r.returncode:
         if not silent:
             logger.info(
-                'Could not find file for module %s:\n%s', name, stderr)
+                'Could not find file for module %s:\n%s', name, r.err)
         return None
     # else: ...
-    res = stdout.strip()
-    if res.endswith('.pyc'.encode()) or res.endswith('.pyo'.encode()):
+    candidate = r.out
+    if candidate.endswith('.pyc') or candidate.endswith('.pyo'):
         raise RuntimeError('Cannot find uncompiled version of %s' % (name,))
-    if not os.path.exists(res):
+    if not os.path.exists(candidate):
         raise RuntimeError(
-            'File does not exist for module %s:\n%s' % (name, res))
-    return res
+            'File does not exist for module %s:\n%s' % (name, candidate))
+    return candidate
 
 def _generate_sitecustomize(dest, executable, initialization='',
                             exec_sitecustomize=False):
