@@ -66,11 +66,14 @@ def cat(dir, *names):
 def ls(dir, *subs):
     if subs:
         dir = os.path.join(dir, *subs)
-    names = os.listdir(dir)
-    names.sort()
-    for name in names:
+    names = []
+    for name in os.listdir(dir):
         if name == '__pycache__':
             continue
+        name = name.replace('.cpython-32m.so', '.so')
+        names.append(name)
+
+    for name in sorted(names):
         if os.path.isdir(os.path.join(dir, name)):
             print('d ', end=' ')
         elif os.path.islink(os.path.join(dir, name)):
