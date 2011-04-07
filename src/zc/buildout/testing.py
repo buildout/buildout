@@ -43,7 +43,7 @@ is_win32 = sys.platform == 'win32'
 script_in_shebang = is_win32
 if sys.platform == 'linux2':
     f = subprocess.Popen('uname -r', shell=True, stdout=subprocess.PIPE).stdout
-    r = f.read().strip()
+    r = f.read().decode('ascii').strip()
     f.close()
     r = tuple(map(int, re.match(r'\d+(\.\d+)*', r).group(0).split('.')))
     if r >= (2, 6, 27, 9):
