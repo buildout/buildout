@@ -26,13 +26,21 @@ import shutil
 import sys
 import tempfile
 try:
-    import urllib.request as urllib2
-    import urllib.parse as urlparse
     from urllib.request import FancyURLopener, URLopener
+    from urllib.request import urlretrieve
+    import urllib.request
+    import urllib.parse as urlparse
+    import urllib.request as urllib2
+    def set_urlopener(opener):
+        urllib.request._urlopener = opener
 except ImportError:
-    import urllib2
     from urllib import FancyURLopener, URLopener
+    from urllib2 import urlretrieve
+    import urllib
+    import urllib2
     import urlparse
+    def set_urlopener(opener):
+        urllib._urlopener = opener
 
 import zc.buildout
 
@@ -165,7 +173,7 @@ class Download(object):
         if re.match(r"^[A-Za-z]:\\", url):
             url = 'file:' + url
 
-        parsed_url = urllib.parse.urlparse(url, 'file')
+        parsed_url = urlparse.urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
             self.logger.debug('Using local resource %s' % url)
@@ -180,11 +188,11 @@ class Download(object):
                 "Couldn't download %r in offline mode." % url)
 
         self.logger.info('Downloading %s' % url)
-        urllib.request._urlopener = url_opener
+        set_urlopener(url_opener)
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
             try:
-                tmp_path, headers = urllib.request.urlretrieve(url, tmp_path)
+                tmp_path, headers = urlretrieve(url, tmp_path)
                 if not check_md5sum(tmp_path, md5sum):
                     raise ChecksumError(
                         'MD5 checksum mismatch downloading %r' % url)
@@ -214,7 +222,7 @@ class Download(object):
         else:
             if re.match(r"^[A-Za-z]:\\", url):
                 url = 'file:' + url
-            parsed = urllib.parse.urlparse(url, 'file')
+            parsed = urlparse.urlparse(url, 'file')
             url_path = parsed[2]
 
             if parsed[0] == 'file':
