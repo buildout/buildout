@@ -193,7 +193,13 @@ def find_python(version):
         if os.path.exists(e):
             return e
     else:
-        cmd = 'python%s -c "import sys; print(sys.executable)"' % version
+        if version.startswith('2.'):
+            cmd = ('python%s -c "import sys; print(sys.executable.decode('
+                   'sys.getfilesystemencoding()).encode(\'utf-8\'))"' %
+                   version)
+        else:
+            cmd = ('python%s -c "import sys; print('
+                   'sys.executable.encode(\'utf-8\'))"' % version)
         p = subprocess.Popen(cmd,
                              shell=True,
                              stdin=subprocess.PIPE,
@@ -202,7 +208,7 @@ def find_python(version):
                              close_fds=MUST_CLOSE_FDS)
         i, o = (p.stdin, p.stdout)
         i.close()
-        e = o.read().strip()
+        e = o.read().decode('utf-8').strip()
         o.close()
         if os.path.exists(e):
             return e
@@ -215,10 +221,15 @@ def find_python(version):
                              close_fds=MUST_CLOSE_FDS)
         i, o = (p.stdin, p.stdout)
         i.close()
-        e = o.read().strip()
+        e = o.read().decode('ascii').strip()
         o.close()
         if e == version:
-            cmd = 'python -c "import sys; print(sys.executable)"'
+            if version.startswith('2.'):
+                cmd = ('python -c "import sys; print(sys.executable.decode('
+                       'sys.getfilesystemencoding()).encode(\'utf-8\'))"')
+            else:
+                cmd = ('python -c "import sys; print('
+                       'sys.executable.encode(\'utf-8\'))"')
             p = subprocess.Popen(cmd,
                                 shell=True,
                                 stdin=subprocess.PIPE,
@@ -227,7 +238,7 @@ def find_python(version):
                                 close_fds=MUST_CLOSE_FDS)
             i, o = (p.stdin, p.stdout)
             i.close()
-            e = o.read().strip()
+            e = o.read().decode('utf-8').strip()
             o.close()
             if os.path.exists(e):
                 return e
