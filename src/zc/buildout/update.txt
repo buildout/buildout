@@ -44,7 +44,7 @@ zc.buildout used:
     ...     def install(self):
     ...         for project in 'zc.buildout', 'setuptools':
     ...             req = pkg_resources.Requirement.parse(project)
-    ...             print(project, pkg_resources.working_set.find(req).version)
+    ...             print('%s %s' % (project, pkg_resources.working_set.find(req).version))
     ...         return ()
     ...     update = install
     ... """)

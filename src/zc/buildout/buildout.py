@@ -85,11 +85,11 @@ def _annotate(data, note):
 def _print_annotate(data):
     sections = list(data)
     sections.sort()
-    print()
+    print('')
     print("Annotated sections")
     print("="*len("Annotated sections"))
     for section in sections:
-        print()
+        print('')
         print('[%s]' % section)
         keys = list(data[section])
         keys.sort()
@@ -104,9 +104,9 @@ def _print_annotate(data):
                 elif note == '[-]':
                     line = '-= '
                 else:
-                    print(line, note)
+                    print('%s %s' % (line, note))
                     line = '   '
-    print()
+    print('')
 
 
 def _unannotate_section(section):
@@ -478,11 +478,11 @@ class Buildout(DictMixin):
         if self._log_level < logging.DEBUG:
             sections = list(self)
             sections.sort()
-            print()
+            print('')
             print('Configuration data:')
             for section in self._data:
                 _save_options(section, self[section], sys.stdout)
-            print()
+            print('')
 
         # compute new part recipe signatures
         self._compute_part_signatures(install_parts)

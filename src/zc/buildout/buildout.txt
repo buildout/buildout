@@ -812,7 +812,7 @@ allow us to see interactions with the buildout:
     ...         items = list(self.options.items())
     ...         items.sort()
     ...         for option, value in items:
-    ...             print(option, value)
+    ...             print('%s %s' % (option, value))
     ...         return ()
     ...
     ...     update = install
@@ -2728,9 +2728,9 @@ previous section:
     >>> write(sample_bootstrapped, 'demo', 'demo.py',
     ... """
     ... def ext(buildout):
-    ...     print('ext', list(buildout))
+    ...     print('ext %s' % list(buildout))
     ... def unload(buildout):
-    ...     print('unload', list(buildout))
+    ...     print('unload %s' % list(buildout))
     ... """)
 
     >>> write(sample_bootstrapped, 'demo', 'setup.py',
