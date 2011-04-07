@@ -14,7 +14,10 @@
 """Various test-support utility functions
 """
 
-import http.server
+try:
+    import http.server as BaseHTTPServer
+except ImportError:
+    import BaseHTTPServer
 import errno
 import logging
 import os
@@ -29,7 +32,10 @@ import tempfile
 import textwrap
 import threading
 import time
-import urllib.request, urllib.error, urllib.parse
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 import zc.buildout.buildout
 import zc.buildout.easy_install
@@ -144,7 +150,7 @@ def call_py(interpreter, cmd, flags=None):
             ' '.join(arg for arg in (interpreter, flags, '-c', cmd) if arg))
 
 def get(url):
-    return urllib.request.urlopen(url).read().decode()
+    return urlopen(url).read().decode()
 
 def _runsetup(setup, executable, *args):
     if os.path.isdir(setup):
@@ -473,10 +479,10 @@ def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
         f()
 
-class Server(http.server.HTTPServer):
+class Server(BaseHTTPServer.HTTPServer):
 
     def __init__(self, tree, *args):
-        http.server.HTTPServer.__init__(self, *args)
+        BaseHTTPServer.HTTPServer.__init__(self, *args)
         self.tree = os.path.abspath(tree)
 
     __run = True
@@ -487,14 +493,14 @@ class Server(http.server.HTTPServer):
     def handle_error(self, *_):
         self.__run = False
 
-class Handler(http.server.BaseHTTPRequestHandler):
+class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     Server.__log = False
 
     def __init__(self, request, address, server):
         self.__server = server
         self.tree = server.tree
-        http.server.BaseHTTPRequestHandler.__init__(
+        BaseHTTPServer.BaseHTTPRequestHandler.__init__(
             self, request, address, server)
 
     def do_GET(self):
@@ -588,7 +594,7 @@ def start_server(tree):
 
 def stop_server(url, thread=None):
     try:
-        urllib.request.urlopen(url+'__stop__')
+        urlopen(url+'__stop__')
     except Exception:
         pass
     if thread is not None:
@@ -604,7 +610,8 @@ def wait(port, up):
             s.close()
             if up:
                 break
-        except socket.error as e:
+        except socket.error:
+            e = sys.exc_info()[1]
             if e[0] not in (errno.ECONNREFUSED, errno.ECONNRESET):
                 raise
             s.close()
