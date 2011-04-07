@@ -21,9 +21,8 @@ testing repository.
 Turn on logging on this server so that we can see when eggs are pulled
 from it.
 
-    >>> get(link_server2 + 'enable_server_logging')
+    >>> _ = get(link_server2 + 'enable_server_logging')
     GET 200 /enable_server_logging
-    ''
 
 Let's create a develop egg in our buildout that specifies
 dependency_links which point to the new server.

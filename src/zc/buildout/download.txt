@@ -424,8 +424,8 @@ Similarly, if the file is served but we're in offline mode, we'll fall back to
 using the cache:
 
 >>> write(server_data, 'foo.txt', 'The wrong text.')
->>> get(server_url+'foo.txt')
-'The wrong text.'
+>>> print(get(server_url+'foo.txt'))
+The wrong text.
 
 >>> offline_download = Download(cache=cache, offline=True, fallback=True)
 >>> path, is_temp = offline_download(server_url+'foo.txt')

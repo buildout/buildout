@@ -599,8 +599,8 @@ We'll start by creating a faux 'python' that executable that prints a
 
 Now, finally, let's test _get_version:
 
-    >>> zc.buildout.easy_install._get_version(join('bin', 'demo'))
-    '2.5'
+    >>> print(zc.buildout.easy_install._get_version(join('bin', 'demo')))
+    2.5
 
     """
 

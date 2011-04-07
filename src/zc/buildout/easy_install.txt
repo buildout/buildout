@@ -487,9 +487,8 @@ newer version of the 'demoneeded' egg than the sample repository does.
 Turn on logging on this server so that we can see when eggs are pulled
 from it.
 
-    >>> get(link_server2 + 'enable_server_logging')
+    >>> _ = get(link_server2 + 'enable_server_logging')
     GET 200 /enable_server_logging
-    ''
 
 Now we can create an egg that specifies that its dependencies are
 found on this server.
@@ -1844,9 +1843,8 @@ We'll recreate our destination directory:
 We'd like to see what is being fetched from the server, so we'll
 enable server logging:
 
-    >>> get(link_server+'enable_server_logging')
+    >>> _ = get(link_server+'enable_server_logging')
     GET 200 /enable_server_logging
-    ''
 
 Now, if we install demo, and extdemo:
 
