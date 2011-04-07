@@ -14,7 +14,7 @@
 """Buildout main script
 """
 
-from .rmtree import rmtree
+from zc.buildout.rmtree import rmtree
 try:
     from hashlib import md5
 except ImportError:
@@ -42,7 +42,6 @@ import subprocess
 import zc.buildout
 import zc.buildout.download
 import zc.buildout.easy_install
-
 
 realpath = zc.buildout.easy_install.realpath
 
@@ -645,7 +644,7 @@ class Buildout(DictMixin):
                 recipe, 'zc.buildout.uninstall', entry, self)
             self._logger.info('Running uninstall recipe.')
             uninstaller(part, installed_part_options[part])
-        except (ImportError, pkg_resources.DistributionNotFound) as v:
+        except (ImportError, pkg_resources.DistributionNotFound):
             pass
 
         # remove created files and directories
@@ -799,7 +798,7 @@ class Buildout(DictMixin):
         f = open(installed, 'w')
         _save_options('buildout', installed_options['buildout'], f)
         for part in installed_options['buildout']['parts'].split():
-            print(file=f)
+            f.write('\n')
             _save_options(part, installed_options[part], f)
         f.close()
 
@@ -1099,7 +1098,8 @@ def _install_and_load(spec, group, entry, buildout):
         return pkg_resources.load_entry_point(
             req.project_name, group, entry)
 
-    except Exception as v:
+    except Exception:
+        v = sys.exc_info()[1]
         buildout._logger.log(
             1,
             "Could't load %s entry point %s\nfrom %s:\n%s.",
@@ -1382,10 +1382,10 @@ def _save_option(option, value, f):
         value = '%(__buildout_space_n__)s' + value[2:]
     if value.endswith('\n\t'):
         value = value[:-2] + '%(__buildout_space_n__)s'
-    print(option, '=', value, file=f)
+    f.write('%s = %s\n' % (option, value))
 
 def _save_options(section, options, f):
-    print('[%s]' % section, file=f)
+    f.write('[%s]\n' % section)
     items = list(options.items())
     items.sort()
     for option, value in items:

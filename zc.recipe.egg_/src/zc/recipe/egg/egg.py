@@ -16,6 +16,10 @@
 $Id$
 """
 
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import UserDict
 import collections, logging, os, re, zipfile
 import zc.buildout
 import zc.buildout.easy_install
@@ -198,7 +202,7 @@ class Scripts(ScriptBase):
 Egg = Scripts
 
 
-class _BackwardsSupportOption(collections.UserDict):
+class _BackwardsSupportOption(UserDict):
 
     def __init__(self, data):
         self.data = data # We want to show mutations to the underlying dict.

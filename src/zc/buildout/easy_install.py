@@ -943,7 +943,8 @@ class Installer:
                 if dist is None:
                     try:
                         dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict as err:
+                    except pkg_resources.VersionConflict:
+                        err = sys.exc_info()[1]
                         raise VersionConflict(err, ws)
                     if dist is None or (
                         dist.location in self._site_packages and not
@@ -1200,12 +1201,11 @@ def develop(setup, dest,
                 args[1] == '-v'
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
-        
-        try:
-            subprocess.check_call([_safe_arg(executable)] + args)
-        except subprocess.CalledProcessError:
+
+        retcode = subprocess.call([_safe_arg(executable)] + args)
+        if retcode != 0:
             raise zc.buildout.UserError("Installing develop egg failed")
-            
+
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
@@ -1482,7 +1482,7 @@ def _write_script(full_name, contents, logged_type):
     if changed:
         open(script_name, 'w').write(contents)
         try:
-            os.chmod(script_name, 0o755)
+            os.chmod(script_name, int('755', 8))
         except (AttributeError, os.error):
             pass
         logger.info("Generated %s %r.", logged_type, full_name)

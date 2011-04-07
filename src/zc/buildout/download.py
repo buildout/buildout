@@ -25,13 +25,20 @@ import re
 import shutil
 import sys
 import tempfile
-import urllib.request, urllib.parse, urllib.error
-import urllib.parse
+try:
+    import urllib.request as urllib2
+    import urllib.parse as urlparse
+    from urllib.request import FancyURLopener, URLopener
+except ImportError:
+    import urllib2
+    from urllib import FancyURLopener, URLopener
+    import urlparse
+
 import zc.buildout
 
 
-class URLOpener(urllib.request.FancyURLopener):
-    http_error_default = urllib.request.URLopener.http_error_default
+class URLOpener(FancyURLopener):
+    http_error_default = URLopener.http_error_default
 
 
 class ChecksumError(zc.buildout.UserError):
@@ -176,18 +183,19 @@ class Download(object):
         urllib.request._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
-            tmp_path, headers = urllib.request.urlretrieve(url, tmp_path)
-            if not check_md5sum(tmp_path, md5sum):
-                raise ChecksumError(
-                    'MD5 checksum mismatch downloading %r' % url)
-        except IOError:
-            e = sys.exc_info()[1]
-            os.remove(tmp_path)
-            raise zc.buildout.UserError("Error downloading extends for URL "
-                              "%s:\n%s" % (url, e))
-        except Exception:
-            os.remove(tmp_path)
-            raise
+            try:
+                tmp_path, headers = urllib.request.urlretrieve(url, tmp_path)
+                if not check_md5sum(tmp_path, md5sum):
+                    raise ChecksumError(
+                        'MD5 checksum mismatch downloading %r' % url)
+            except IOError:
+                e = sys.exc_info()[1]
+                os.remove(tmp_path)
+                raise zc.buildout.UserError("Error downloading extends for URL "
+                                  "%s:\n%s" % (url, e))
+            except Exception:
+                os.remove(tmp_path)
+                raise
         finally:
             os.close(handle)
 

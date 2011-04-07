@@ -18,7 +18,11 @@ buildout egg itself is installed as a develop egg.
 """
 
 import os, shutil, sys, subprocess
-import urllib.request, urllib.error, urllib.parse
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+
 from optparse import OptionParser
 
 if sys.platform == 'win32':
@@ -101,7 +105,7 @@ try:
         raise ImportError
     import setuptools # A flag.  Sometimes pkg_resources is installed alone.
 except ImportError:
-    ez_code = urllib.request.urlopen(setup_source).read().replace(
+    ez_code = urllib2.urlopen(setup_source).read().replace(
         '\r\n'.encode(), '\n'.encode())
     ez = {}
     exec(ez_code, ez)
