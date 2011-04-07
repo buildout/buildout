@@ -3815,7 +3815,7 @@ import os
 from distutils.core import setup, Extension
 
 if os.environ.get('test-variable'):
-    print("Have environment test-variable: %s" % os.environ['test-variable'])
+    print("Have environment test-variable: %%s" %% os.environ['test-variable'])
 
 setup(name = "extdemo", version = "%s", url="http://www.zope.org",
       author="Demo", author_email="demo@demo.com",
