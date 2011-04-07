@@ -288,7 +288,5 @@ Create a broken egg
     ... eggs = broken
     ... """ % dict(new_releases=new_releases))
     >>> import subprocess
-    >>> subprocess.check_call([buildout])
-    Traceback (most recent call last):
-        ...
-    CalledProcessError: Command '['/sample-buildout/bin/buildout']' returned non-zero exit status 1
+    >>> subprocess.call([buildout])
+    1
