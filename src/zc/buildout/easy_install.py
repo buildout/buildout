@@ -18,6 +18,9 @@ It doesn't install scripts.  It uses setuptools and requires it to be
 installed.
 """
 
+import time
+import Queue
+import threading
 import distutils.errors
 import fnmatch
 import glob
@@ -715,7 +718,6 @@ class Installer:
         return dist.clone(location=new_location)
 
     def _get_dist(self, requirement, ws, always_unzip):
-
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
@@ -910,38 +912,69 @@ class Installer:
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
+        get_queue = Queue.Queue()
+        response_queue = Queue.Queue()
+
+        worker_state = {'busy': 0}
+        seen = set()
+
+        def worker():
+            while True:
+                req, ws, unzip = get_queue.get()
+                worker_state['busy'] += 1
+                response_queue.put((req, self._get_dist(req, ws, unzip)))
+                worker_state['busy'] -= 1
+                get_queue.task_done()
+
+        for i in range(4):
+             t = threading.Thread(target=worker)
+             t.daemon = True
+             t.start()
+
         env = pkg_resources.Environment(ws.entries)
-        while requirements:
-            # Process dependencies breadth-first.
-            req = self._constrain(requirements.pop(0))
-            if req in processed:
-                # Ignore cyclic or redundant dependencies.
-                continue
-            dist = best.get(req.key)
-            if dist is None:
-                # Find the best distribution and add it to the map.
-                dist = ws.by_key.get(req.key)
+        last = time.time()
+        while (requirements or get_queue.unfinished_tasks or
+            response_queue.unfinished_tasks):
+            if time.time()-last > 1:
+                print "Workers:", worker_state['busy'], "Queue:", get_queue.qsize()
+                last = time.time()
+            if requirements:
+                req = self._constrain(requirements.pop(0))
+                if req in processed:
+                    # Ignore cyclic or redundant dependencies.
+                    continue
+                dist = best.get(req.key)
                 if dist is None:
-                    try:
-                        dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict, err:
-                        raise VersionConflict(err, ws)
-                    if dist is None or (
-                        dist.location in self._site_packages and not
-                        self.allow_site_package_egg(dist.project_name)):
-                        # If we didn't find a distribution in the
-                        # environment, or what we found is from site
-                        # packages and not allowed to be there, try
-                        # again.
-                        if destination:
-                            logger.debug('Getting required %r', str(req))
-                        else:
-                            logger.debug('Adding required %r', str(req))
-                        _log_requirement(ws, req)
-                        for dist in self._get_dist(req,
-                                                   ws, self._always_unzip):
-                            ws.add(dist)
-                            self._maybe_add_setuptools(ws, dist)
+                    # Find the best distribution and add it to the map.
+                    dist = ws.by_key.get(req.key)
+                    if dist is None:
+                        try:
+                            dist = best[req.key] = env.best_match(req, ws)
+                        except pkg_resources.VersionConflict, err:
+                            raise VersionConflict(err, ws)
+                        if dist is None or (
+                            dist.location in self._site_packages and not
+                            self.allow_site_package_egg(dist.project_name)):
+                            # If we didn't find a distribution in the
+                            # environment, or what we found is from site
+                            # packages and not allowed to be there, try
+                            # again.
+                            if destination:
+                                logger.debug('Getting required %r', str(req))
+                            else:
+                                logger.debug('Adding required %r', str(req))
+                            _log_requirement(ws, req)
+                            if req not in seen:
+                                seen.add(req)
+                                get_queue.put((req, ws, self._always_unzip))
+                            continue
+            else:
+                req, dists = response_queue.get()
+                for dist in dists:
+                    ws.add(dist)
+                    self._maybe_add_setuptools(ws, dist)
+                response_queue.task_done()
+
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
                 raise VersionConflict(

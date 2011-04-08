@@ -15,7 +15,7 @@ import os, re, subprocess, sys, textwrap, unittest, doctest
 from zope.testing import renormalizing
 import zc.buildout.tests
 import zc.buildout.testing
-
+import pkg_resources
 
 if sys.version_info[:2] == (2, 5):
     other_version = "2.6"
@@ -59,13 +59,36 @@ def multi_python(test):
         executable_dir = test.globs['tmpdir']('executable_dir')
         executable_parts = os.path.join(executable_dir, 'parts')
         test.globs['mkdir'](executable_parts)
-        ws = zc.buildout.easy_install.install(
-            ['setuptools'], executable_dir,
-            index='http://www.python.org/pypi/',
-            always_unzip=True, executable=other_executable)
-        zc.buildout.easy_install.sitepackage_safe_scripts(
-            executable_dir, ws, other_executable, executable_parts,
-            reqs=['setuptools'], interpreter='py')
+
+        current_buildout_ws = [
+            x for x in pkg_resources.WorkingSet()
+            if x.project_name == 'zc.buildout'][0].location
+        ez_setup_other_path = os.path.join(test.globs['tmpdir']('ez_setup'), 'ez_setup_other.py')
+        ez_setup_other = open(ez_setup_other_path, 'w')
+        ez_setup_other.write(textwrap.dedent('''\
+import urllib2
+ez_code = urllib2.urlopen(
+    'http://python-distribute.org/distribute_setup.py').read().replace('\\r\\n', '\\n')
+ez = {}
+exec ez_code in ez
+ez['use_setuptools'](to_dir='%(executable_dir)s', download_delay=0, no_fake=True)
+import pkg_resources
+print list(pkg_resources.WorkingSet())[0].__dict__
+import sys
+#ws = pkg_resources.WorkingSet()
+sys.path.insert(0, '%(buildout_location)s')
+print '%(buildout_location)s'
+import pdb; pdb.set_trace()
+import zc.buildout.easy_install
+zc.buildout.easy_install.sitepackage_safe_scripts(
+    '%(executable_dir)s', ws, sys.executable, '%(parts)s',
+    reqs=['setuptools'], interpreter='py')
+            ''' % dict(executable_dir=executable_dir,
+                       buildout_location=current_buildout_ws,
+                       parts=executable_parts)))
+        ez_setup_other.close()
+        assert not subprocess.call([other_executable, ez_setup_other_path])
+        import pdb; pdb.set_trace() 
         original_executable = other_executable
         other_executable = os.path.join(executable_dir, 'py')
         assert not subprocess.call(
