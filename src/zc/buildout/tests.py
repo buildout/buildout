@@ -3347,8 +3347,8 @@ def pyc_and_pyo_files_have_correct_paths():
     >>> write('t.py',
     ... '''
     ... import eggrecipedemo, eggrecipedemoneeded
-    ... print(eggrecipedemo.__file__)
-    ... print(eggrecipedemoneeded.__file__)
+    ... print (eggrecipedemo.__file__.replace('.pyc', '.py'))
+    ... print (eggrecipedemoneeded.__file__.replace('.pyc', '.py'))
     ... ''')
 
     >>> run(join('bin', 'py')+ ' t.py')
@@ -3957,6 +3957,11 @@ hide_first_index_page_message = (
     re.compile(
         "Couldn't find index page for '[^']+' \(maybe misspelled\?\)\n"),
     '')
+
+hide_pyc_po = []
+if sys.version_info[0] == 3:
+    hide_pyc_po.append((re.compile(r'\n.*\.py[co]'), ''))
+
 def test_suite():
     test_suite = [
         doctest.DocFileSuite(
@@ -4121,8 +4126,7 @@ def test_suite():
                 (re.compile('distribute'), 'setuptools'),
                 # Distribute unzips eggs by default.
                 (re.compile('\-  demoneeded'), 'd  demoneeded'),
-                (re.compile(r'\n.*\.py[co]'), ''),
-                ]),
+                ] + hide_pyc_po),
             ),
         zc.buildout.rmtree.test_suite(),
         doctest.DocFileSuite(
