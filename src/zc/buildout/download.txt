@@ -257,7 +257,7 @@ If the file is completely missing it should notify the user of the error:
 
 >>> print(raises('UserError', download, server_url+'bar.txt'))
 Error downloading extends for URL http://localhost/bar.txt:
-HTTP Error 404: Not Found
+...404...Not Found...
 
 >>> ls(cache)
 
