@@ -195,8 +195,8 @@ class Download(object):
             except IOError:
                 e = sys.exc_info()[1]
                 os.remove(tmp_path)
-                raise zc.buildout.UserError("Error downloading extends for URL "
-                                  "%s:\n%s" % (url, e))
+                raise zc.buildout.UserError(
+                    "Error downloading extends for URL %s:\n%s" % (url, e))
             except Exception:
                 os.remove(tmp_path)
                 raise
