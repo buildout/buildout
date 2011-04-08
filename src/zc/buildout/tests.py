@@ -3932,7 +3932,7 @@ def bootstrapSetup(test):
     easy_install_SetUp(test)
     sample_eggs = test.globs['sample_eggs']
     ws = getWorkingSetWithBuildoutEgg(test)
-    makeNewRelease('distribute', ws, sample_eggs)
+    makeNewRelease(setuptools_key, ws, sample_eggs)
     makeNewRelease('zc.buildout', ws, sample_eggs)
     makeNewRelease('zc.buildout', ws, sample_eggs, '100.0b1')
     makeNewRelease('zc.buildout', ws, sample_eggs, '98.0')

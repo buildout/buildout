@@ -19,8 +19,11 @@ use the -c option to specify an alternate configuration file.
 """
 
 import os, shutil, sys, tempfile, textwrap
-import urllib.request, urllib.parse, urllib.error, urllib.request
-import urllib.error, urllib.parse, subprocess
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
+import subprocess
 from optparse import OptionParser
 
 if sys.platform == 'win32':
@@ -80,7 +83,7 @@ def normalize_to_url(option, opt_str, value, parser):
     if value:
         if '://' not in value: # It doesn't smell like a URL.
             value = 'file://%s' % (
-                urllib.request.pathname2url(
+                urllib2.pathname2url(
                     os.path.abspath(os.path.expanduser(value))),)
         if opt_str == '--download-base' and not value.endswith('/'):
             # Download base needs a trailing slash to make the world happy.
@@ -166,7 +169,7 @@ try:
     if not hasattr(pkg_resources, '_distribute'):
         raise ImportError
 except ImportError:
-    ez_code = urllib.request.urlopen(
+    ez_code = urllib2.urlopen(
         options.setup_source).read().replace('\r\n'.encode(), '\n'.encode())
     ez = {}
     exec(ez_code, ez)
