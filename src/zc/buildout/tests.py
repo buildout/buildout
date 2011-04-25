@@ -3494,10 +3494,13 @@ def increment_buildout_options():
     ... x = 1
     ... y = a
     ...     b
+    ... z = A
+    ...     B
+    ...     C
     ...
     ... [p1]
     ... recipe = zc.buildout:debug
-    ... foo = ${buildout:x} ${buildout:y}
+    ... foo = ${buildout:x} ${buildout:y} ${buildout:z}
     ... ''')
 
     >>> write('buildout.cfg', '''
@@ -3506,6 +3509,8 @@ def increment_buildout_options():
     ... parts += p2
     ... x += 2
     ... y -= a
+    ... z -= A
+    ... z += D
     ...
     ... [p2]
     ... <= p1
@@ -3513,10 +3518,10 @@ def increment_buildout_options():
 
     >>> print system(buildout),
     Installing p1.
-      foo='1\n2 b'
+      foo='1\n2 b B\nC\nD'
       recipe='zc.buildout:debug'
     Installing p2.
-      foo='1\n2 b'
+      foo='1\n2 b B\nC\nD'
       recipe='zc.buildout:debug'
     """
 

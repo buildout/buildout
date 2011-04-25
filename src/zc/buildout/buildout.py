@@ -1495,14 +1495,14 @@ def _update_section(s1, s2):
         v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
-            v1, note1 = s1.get(key, ("", ""))
+            v1, note1 = s2.get(key, s1.get(key, ("", "")))
             newnote = ' [+] '.join((note1, note2)).strip()
             s2[key] = "\n".join((v1).split('\n') +
                 v2.split('\n')), newnote
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
-            v1, note1 = s1.get(key, ("", ""))
+            v1, note1 = s2.get(key, s1.get(key, ("", "")))
             newnote = ' [-] '.join((note1, note2)).strip()
             s2[key] = ("\n".join(
                 [v for v in v1.split('\n')
