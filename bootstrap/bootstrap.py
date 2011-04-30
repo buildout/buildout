@@ -131,7 +131,8 @@ parser.add_option("--eggs",
                         "bootstrap script completes."))
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
-                  action="store_true", default=False,
+                  action="store_true",
+                  default=sys.version_info[0] > 2,
                   help=("Normally, if you do not specify a --version, the "
                         "bootstrap script and buildout gets the newest "
                         "*final* versions of zc.buildout and its recipes and "
