@@ -16,3 +16,11 @@ or::
 
   wget http://svn.zope.org/*checkout*/zc.buildout/branches/2/bootstrap/bootstrap.py
 
+Please discuss this release on the distutils-sig mailing list,
+http://mail.python.org/mailman/listinfo/distutils-sig
+
+Report bugs on launchpad:
+
+  https://bugs.launchpad.net/zc.buildout/+bugs
+
+Please take care to note the version os zc.buildout used.
