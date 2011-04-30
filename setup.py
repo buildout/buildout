@@ -20,43 +20,7 @@ from setuptools import setup
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-long_description=(
-        read('README.txt')
-        + '\n' +
-        read('SYSTEM_PYTHON_HELP.txt')
-        + '\n' +
-        'Detailed Documentation\n'
-        '**********************\n'
-        + '\n' +
-        read('src', 'zc', 'buildout', 'buildout.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'unzip.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'repeatable.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'download.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'downloadcache.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'extends-cache.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'setup.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'update.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'debugging.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'testing.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'easy_install.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'distribute.txt')
-        + '\n' +
-        read('CHANGES.txt')
-        + '\n' +
-        'Download\n'
-        '**********************\n'
-        )
+long_description=read('READMEFIRST.txt')
 
 entry_points = """
 [console_scripts]
