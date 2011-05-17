@@ -1164,6 +1164,7 @@ because of the missing target file.
     >>> ls('recipe')
     l  another-file
     -  foo.py
+    -  foo.pyc
     d  recipe.egg-info
     -  setup.py
     -  some-file
