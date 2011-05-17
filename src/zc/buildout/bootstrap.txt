@@ -130,7 +130,7 @@ This is accomplished within the script itself.
     sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
     print('NOTE: Accepting early releases of build system packages.  Rerun '
           'bootstrap without --accept-buildout-test-releases (-t) to return to '
-           'default behavior.')
+          'default behavior.')
     ...
 
 As the note says, to undo, you just need to re-run bootstrap without
