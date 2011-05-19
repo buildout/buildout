@@ -76,12 +76,6 @@ index
    we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
-python
-   The name of a section to get the Python executable from.
-   If not specified, then the buildout python option is used.  The
-   Python executable is found in the executable option of the named
-   section.
-
 environment
    The name of a section with additional environment variables. The
    environment variables are set before the egg is built.
@@ -505,12 +499,6 @@ swig-cpp
 
 swig-opts
    List of SWIG command line options
-
-python
-   The name of a section to get the Python executable from.
-   If not specified, then the buildout python option is used.  The
-   Python executable is found in the executable option of the named
-   section.
 
 To illustrate this, we'll use a directory containing the extdemo
 example from the earlier section:

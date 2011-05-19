@@ -14,7 +14,6 @@
 
 import os, re, shutil, sys
 import zc.buildout.tests
-import zc.buildout.testselectingpython
 import zc.buildout.testing
 
 import unittest, doctest
@@ -23,54 +22,10 @@ from zope.testing import renormalizing
 # We do not explicitly test the recipe support for the ``eggs``,
 # ``find-links``, and ``index`` options because they are used for most or
 # all of the examples.  The README tests ``extends``,
-# ``include-site-customization`` and ``name``.  That leaves ``python``,
+# ``include-site-customization`` and ``name``.  That leaves
 # ``extra-paths``, ``initialization``, ``relative-paths``, and
 # ``include-site-packages``.
 
-def supports_python_option():
-    """
-This simply shows that the ``python`` option can specify another section to
-find the ``executable``.  (The ``python`` option defaults to looking in the
-``buildout`` section.)  We do this by creating a custom Python that will have
-some initialization that we can look for.
-
-    >>> py_path, site_packages_path = make_py(initialization='''
-    ... import os
-    ... os.environ['zc.buildout'] = 'foo bar baz shazam'
-    ... ''')
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts = py
-    ...
-    ... [custom_python]
-    ... executable = %(py_path)s
-    ...
-    ... [py]
-    ... recipe = z3c.recipe.scripts:interpreter
-    ... exec-sitecustomize = true
-    ... eggs = demo<0.3
-    ... find-links = %(server)s
-    ... index = %(server)s/index
-    ... python = custom_python
-    ... ''' % dict(server=link_server, py_path=py_path))
-
-    >>> run(buildout)
-    Installing py.
-    Getting distribution for 'demo<0.3'.
-    Got demo 0.2.
-    Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
-    Generated interpreter '/sample-buildout/bin/py'.
-
-    >>> run(join(sample_buildout, 'bin', 'py') +
-    ...              ''' -c "import os; print(os.environ['zc.buildout'])"''')
-    foo bar baz shazam
-"""
-
-if not zc.buildout.testing.script_in_shebang:
-    del supports_python_option
 
 def interpreter_recipe_supports_extra_paths_option():
     """
@@ -156,8 +111,6 @@ custom Python.
     ... '''
     ... [buildout]
     ... parts = py
-    ...
-    ... [custom_python]
     ... executable = %(py_path)s
     ...
     ... [py]
@@ -169,7 +122,6 @@ custom Python.
     ... eggs = demo<0.3
     ... find-links = %(server)s
     ... index = %(server)s/index
-    ... python = custom_python
     ... ''' % dict(server=link_server, py_path=py_path))
 
     >>> run(buildout)
@@ -269,14 +221,11 @@ they are in the executable's path.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... include-site-packages = true
     ... eggs = demoneeded
     ... ''' % globals())
@@ -292,15 +241,12 @@ eggs are not found, even though the system Python provides them.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
     ... include-site-packages = false
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
     >>> run(buildout)
@@ -354,16 +300,13 @@ correctly parse a single-line value.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
     ... include-site-packages = true
     ... allowed-eggs-from-site-packages = *
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
 
@@ -378,17 +321,14 @@ parse a multi-line value.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
     ... include-site-packages = true
     ... allowed-eggs-from-site-packages = other
     ...                                   demoneeded
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
 
@@ -410,11 +350,6 @@ because we already tested it in the same test mentioned above.)
 
 def setUp(test):
     zc.buildout.tests.easy_install_SetUp(test)
-    zc.buildout.testing.install_develop('zc.recipe.egg', test)
-    zc.buildout.testing.install_develop('z3c.recipe.scripts', test)
-
-def setUpSelecting(test):
-    zc.buildout.testselectingpython.setup(test)
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
     zc.buildout.testing.install_develop('z3c.recipe.scripts', test)
 

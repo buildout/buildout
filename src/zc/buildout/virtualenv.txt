@@ -194,15 +194,12 @@ use local dev versions of zc.buildout and z3c.recipe.scripts.
     ... '''
     ... [buildout]
     ... parts = eggs
+    ... executable = %(py_path)s
     ... find-links = %(link_server)s
     ... include-site-packages = false
     ...
-    ... [primed_python]
-    ... executable = %(py_path)s
-    ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... interpreter = py
     ... eggs = demo
     ... ''' % globals())

@@ -20,7 +20,6 @@ this, we'll list the new options and describe them.
 * eggs
 * find-links
 * index
-* python
 * extra-paths
 * entry-points
 * scripts
@@ -345,14 +344,11 @@ document do not affect this example.)
     ... [buildout]
     ... parts = eggs
     ... eggs-directory = tmpeggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
 
@@ -373,14 +369,11 @@ is not allowed to come from site-packages, and the buildout fails.
     ... [buildout]
     ... parts = eggs
     ... eggs-directory = tmpeggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... allowed-eggs-from-site-packages =
     ... eggs = demoneeded
     ... ''' % globals())
@@ -412,14 +405,11 @@ can be obtained from the buildout section if they are not set locally.
     ... [buildout]
     ... parts = eggs
     ... eggs-directory = tmpeggs
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
 
@@ -436,14 +426,11 @@ can be obtained from the buildout section if they are not set locally.
     ... parts = eggs
     ... eggs-directory = tmpeggs
     ... allowed-eggs-from-site-packages =
-    ... find-links =
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links =
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... eggs = demoneeded
     ... ''' % globals())
     >>> run(buildout)

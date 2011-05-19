@@ -14,7 +14,6 @@
 
 import os, re, shutil, sys
 import zc.buildout.tests
-import zc.buildout.testselectingpython
 import zc.buildout.testing
 
 import unittest, doctest
@@ -66,9 +65,6 @@ def setUp(test):
     zc.buildout.tests.easy_install_SetUp(test)
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
 
-def setUpSelecting(test):
-    zc.buildout.testselectingpython.setup(test)
-    zc.buildout.testing.install_develop('zc.recipe.egg', test)
 
 def test_suite():
     suite = unittest.TestSuite((
@@ -137,32 +133,6 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             ),
         ))
-
-    if zc.buildout.testing.script_in_shebang:
-        suite.addTest(
-            doctest.DocFileSuite(
-                'selecting-python.txt',
-                setUp=setUpSelecting,
-                tearDown=zc.buildout.testing.buildoutTearDown,
-                checker=renormalizing.RENormalizing([
-                    zc.buildout.testing.normalize_path,
-                    zc.buildout.testing.normalize_endings,
-                    zc.buildout.testing.normalize_script,
-                    zc.buildout.tests.hide_distribute_additions,
-                    (re.compile('Got (setuptools|distribute) \S+'),
-                     'Got setuptools V'),
-                    (re.compile('([d-]  )?(setuptools|distribute)-\S+-py'),
-                     'setuptools-V-py'),
-                    (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
-                    (re.compile('zc.buildout-\S+[.]egg'),
-                     'zc.buildout.egg'),
-                    (re.compile('zc.buildout[.]egg-link'),
-                     'zc.buildout.egg'),
-                    # Distribute unzips eggs by default.
-                    (re.compile('\-  demoneeded'), 'd  demoneeded'),
-                    ]),
-                ),
-            )
 
     return suite
 

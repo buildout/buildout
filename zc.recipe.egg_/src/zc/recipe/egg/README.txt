@@ -23,12 +23,6 @@ index
    we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
-python
-   The name of a section to get the Python executable from.
-   If not specified, then the buildout python option is used.  The
-   Python executable is found in the executable option of the named
-   section.
-
 We have a link server that has a number of distributions:
 
     >>> print_(get(link_server))

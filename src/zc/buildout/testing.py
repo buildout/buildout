@@ -162,9 +162,7 @@ def _runsetup(setup, executable, *args):
             for arg in args]
     args.insert(0, '-q')
     env = dict(os.environ)
-    if executable == sys.executable:
-        env['PYTHONPATH'] = setuptools_location
-    # else pass an executable that has setuptools! See testselectingpython.py.
+    env['PYTHONPATH'] = setuptools_location
     args.append(env)
 
     here = os.getcwd()

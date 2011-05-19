@@ -29,8 +29,7 @@ class Base:
 
         options['_d'] = buildout['buildout']['develop-eggs-directory']
 
-        python = options.get('python', buildout['buildout']['python'])
-        options['executable'] = buildout[python]['executable']
+        options['executable'] = buildout['buildout']['executable']
 
         self.build_ext = build_ext(buildout, options)
 

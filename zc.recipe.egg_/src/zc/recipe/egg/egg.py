@@ -62,8 +62,7 @@ class Eggs(object):
         options['develop-eggs-directory'] = b_options['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
 
-        python = options.setdefault('python', b_options['python'])
-        options['executable'] = buildout[python]['executable']
+        options['executable'] = buildout['buildout']['executable']
 
     def working_set(self, extra=()):
         """Separate method to just get the working set

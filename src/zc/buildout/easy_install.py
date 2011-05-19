@@ -157,43 +157,11 @@ def _get_system_paths(executable):
     site_paths = [p for p in no_user_paths if p not in stdlib]
     return (stdlib, site_paths)
 
-def _get_version_info(executable):
-    cmd = [executable, '-Sc',
-           'import sys; print(repr(tuple(x for x in sys.version_info)))']
-    _proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = _proc.communicate();
-    if _proc.returncode:
-        raise RuntimeError(
-            'error trying to get system packages:\n%s' % (stderr,))
-    return eval(stdout.strip())
-
 
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
     """
 
-_versions = {sys.executable: '%d.%d' % sys.version_info[:2]}
-def _get_version(executable):
-    try:
-        return _versions[executable]
-    except KeyError:
-        cmd = _safe_arg(executable) + ' -V'
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=not is_win32)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        version = o.read().strip().decode()
-        o.close()
-        pystring, version = version.split()
-        assert pystring == 'Python', pystring
-        version = re.match('(\d[.]\d)([.].*\d)?$', version).group(1)
-        _versions[executable] = version
-        return version
 
 FILE_SCHEME = re.compile('file://', re.I).match
 
@@ -224,9 +192,7 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',),
     if index_url is None:
         index_url = default_index_url
     index = AllowHostsPackageIndex(
-        index_url, hosts=allow_hosts, search_path=path,
-        python=_get_version(executable)
-        )
+        index_url, hosts=allow_hosts, search_path=path)
 
     if find_links:
         index.add_find_links(find_links)
@@ -380,16 +346,13 @@ class Installer:
             self._easy_install_cmd = _easy_install_preface + _easy_install_cmd
         self._easy_install_cmd = _safe_arg(self._easy_install_cmd)
         stdlib, self._site_packages = _get_system_paths(executable)
-        version_info = _get_version_info(executable)
-        if version_info == sys.version_info:
-            # Maybe we can add the buildout and setuptools path.  If we
-            # are including site_packages, we only have to include the extra
-            # bits here, so we don't duplicate.  On the other hand, if we
-            # are not including site_packages, we only want to include the
-            # parts that are not in site_packages, so the code is the same.
-            path.extend(
-                set(buildout_and_setuptools_path).difference(
-                    self._site_packages))
+        # Maybe we can add the buildout and setuptools path.  If we
+        # are including site_packages, we only have to include the extra
+        # bits here, so we don't duplicate.  On the other hand, if we
+        # are not including site_packages, we only want to include the
+        # parts that are not in site_packages, so the code is the same.
+        path.extend(
+            set(buildout_and_setuptools_path).difference(self._site_packages))
         if self._include_site_packages:
             path.extend(self._site_packages)
         if dest is not None and dest not in path:
@@ -398,8 +361,7 @@ class Installer:
         if self._dest is None:
             newest = False
         self._newest = newest
-        self._env = pkg_resources.Environment(path,
-                                              python=_get_version(executable))
+        self._env = pkg_resources.Environment(path)
         self._index = _get_index(executable, index, links, self._allow_hosts,
                                  self._path)
 
@@ -529,10 +491,7 @@ class Installer:
         return best_we_have, None
 
     def _load_dist(self, dist):
-        dists = pkg_resources.Environment(
-            dist.location,
-            python=_get_version(self._executable),
-            )[dist.project_name]
+        dists = pkg_resources.Environment(dist.location)[dist.project_name]
         assert len(dists) == 1
         return dists[0]
 
@@ -576,10 +535,7 @@ class Installer:
                     *args)
 
             dists = []
-            env = pkg_resources.Environment(
-                [tmp],
-                python=_get_version(self._executable),
-                )
+            env = pkg_resources.Environment([tmp])
             for project in env:
                 dists.extend(env[project])
 
@@ -623,10 +579,7 @@ class Installer:
                         os.remove(newloc)
                 os.rename(d.location, newloc)
 
-                [d] = pkg_resources.Environment(
-                    [newloc],
-                    python=_get_version(self._executable),
-                    )[d.project_name]
+                [d] = pkg_resources.Environment([newloc])[d.project_name]
 
                 result.append(d)
 
@@ -791,9 +744,7 @@ class Installer:
                     # distribution meta data to be read.  Cloning isn't
                     # good enough.
                     dists = pkg_resources.Environment(
-                        [newloc],
-                        python=_get_version(self._executable),
-                        )[dist.project_name]
+                        [newloc])[dist.project_name]
                 else:
                     # It's some other kind of dist.  We'll let easy_install
                     # deal with it:

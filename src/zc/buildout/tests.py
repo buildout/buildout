@@ -24,7 +24,6 @@ import tempfile
 import unittest
 import zc.buildout.easy_install
 import zc.buildout.testing
-import zc.buildout.testselectingpython
 import zipfile
 
 os_path_sep = os.path.sep
@@ -402,14 +401,11 @@ Here's our set up.
     ... [buildout]
     ... parts = eggs
     ... prefer-final = true
-    ... find-links = %(link_server)s
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links = %(link_server)s
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs
-    ... python = primed_python
     ... eggs = bigdemo
     ... ''' % globals())
 
@@ -552,55 +548,6 @@ Then try to install it again:
 
     >>> ls(d2)
     d  demo-1.0-py2.4.egg
-
-    """
-
-def make_sure__get_version_works_with_2_digit_python_versions():
-    """
-
-This is a test of an internal function used by higher-level machinery.
-
-We'll start by creating a faux 'python' that executable that prints a
-2-digit version. This is a bit of a pain to do portably. :(
-
-    >>> mkdir('demo')
-    >>> write('demo', 'setup.py',
-    ... '''
-    ... from setuptools import setup
-    ... setup(name='demo',
-    ...       entry_points = {'console_scripts': ['demo = demo:main']},
-    ...       )
-    ... ''')
-    >>> write('demo', 'demo.py',
-    ... '''
-    ... def main():
-    ...     print('Python 2.5')
-    ... ''')
-
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... develop = demo
-    ... parts =
-    ... ''')
-
-    >>> run(join('bin', 'buildout'))
-    Develop: '/sample-buildout/demo'
-
-    >>> import zc.buildout.easy_install
-    >>> ws = zc.buildout.easy_install.working_set(
-    ...    ['demo'], sys.executable, ['develop-eggs'])
-    >>> bool(zc.buildout.easy_install.scripts(
-    ...      ['demo'], ws, sys.executable, 'bin'))
-    True
-
-    >>> run(join('bin', 'demo'))
-    Python 2.5
-
-Now, finally, let's test _get_version:
-
-    >>> print(zc.buildout.easy_install._get_version(join('bin', 'demo')))
-    2.5
 
     """
 
@@ -1898,14 +1845,11 @@ tellmy.version and tellmy.fortune.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links = %(link_server)s
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links = %(link_server)s
     ...
     ... [eggs]
     ... recipe = z3c.recipe.scripts
-    ... python = primed_python
     ... interpreter = py
     ... include-site-packages = true
     ... eggs = tellmy.version == 1.0
@@ -2022,14 +1966,11 @@ these unpleasant tricks, and a Python that has an older version installed.
     ... '''
     ... [buildout]
     ... parts = eggs
-    ... find-links = %(sample_eggs)s
-    ...
-    ... [primed_python]
     ... executable = %(py_path)s
+    ... find-links = %(sample_eggs)s
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs
-    ... python = primed_python
     ... eggs = tellmy.version == 1.1
     ... ''' % globals())
 
@@ -4172,10 +4113,6 @@ def test_suite():
                 ])
             ),
     ]
-
-
-    if zc.buildout.testing.script_in_shebang:
-        test_suite.append(zc.buildout.testselectingpython.test_suite())
 
     # adding bootstrap.txt doctest to the suite
     # only if bootstrap.py is present
