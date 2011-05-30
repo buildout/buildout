@@ -39,8 +39,6 @@ setup(
         + '\n' +
         read('src', 'zc', 'recipe', 'egg', 'README.txt')
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'selecting-python.txt')
-        + '\n' +
         read('src', 'zc', 'recipe', 'egg', 'custom.txt')
         + '\n' +
         read('src', 'zc', 'recipe', 'egg', 'api.txt')
