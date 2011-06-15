@@ -63,7 +63,7 @@ setup(
     namespace_packages = ['zc', 'zc.recipe'],
     install_requires = [
         'zc.buildout >=1.5.0',
-        'setuptools'],
+        'distribute'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
     entry_points = {'zc.buildout': ['default = %s:Scripts' % name,

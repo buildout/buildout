@@ -104,7 +104,7 @@ computed by the egg recipe by looking at .installed.cfg:
     __buildout_installed__ =
     __buildout_signature__ = sample-6aWMvV2EJ9Ijq+bR8ugArQ==
             zc.recipe.egg-cAsnudgkduAa/Fd+WJIM6Q==
-            setuptools-0.6-py2.4.egg
+            distribute-0.6.19-py2.4.egg
             zc.buildout-+rYeCcmFuD1K/aB77XTj5A==
     _b = /sample-buildout/bin
     _d = /sample-buildout/develop-eggs

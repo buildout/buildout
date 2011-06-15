@@ -167,11 +167,11 @@ class ScriptBase(Eggs):
 
             if options.query_bool('dependent-scripts', 'false'):
                 # Generate scripts for all packages in the working set,
-                # except setuptools.
+                # except distribute.
                 reqs = list(reqs)
                 for dist in ws:
                     name = dist.project_name
-                    if name != 'setuptools' and name not in reqs:
+                    if name != 'distribute' and name not in reqs:
                         reqs.append(name)
             return self._install(reqs, ws, scripts)
         return ()
