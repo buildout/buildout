@@ -277,7 +277,7 @@ Now executable_buildout/site-packages is included in sys.path.
      ...,
      '/sample-buildout/eggs/demo-0.2-pyN.N.egg',
      '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
-     '/executable_buildout/eggs/setuptools-X-pyN.N.egg',
+     '/executable_buildout/eggs/distribute-X-pyN.N.egg',
      '/executable_buildout/site-packages']
 
 If you set it to false, they are excluded.

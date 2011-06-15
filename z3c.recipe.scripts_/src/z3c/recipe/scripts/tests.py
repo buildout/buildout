@@ -384,10 +384,10 @@ def test_suite():
                     zc.buildout.tests.hide_first_index_page_message,
                     (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
                      'zc.buildout.egg'),
-                    (re.compile('[-d]  (setuptools|distribute)-[^-]+-'),
-                     'setuptools-X-'),
-                    (re.compile(r'(setuptools|distribute)-[\w.]+-py'),
-                     'setuptools-X-py'),
+                    (re.compile('[-d]  distribute-[^-]+-'),
+                     'distribute-X-'),
+                    (re.compile(r'distribute-[\w.]+-py'),
+                     'distribute-X-py'),
                     (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                     (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                     (re.compile(r'\#!\S+\bpython\S*'), '#!/usr/bin/python'),
@@ -395,7 +395,6 @@ def test_suite():
                     (re.compile(r'\nimport subprocess\n'), '\n'),
                     (re.compile('subprocess\\.call\\(argv, env=environ\\)'),
                      'os.execve(sys.executable, argv, environ)'),
-                    (re.compile('distribute'), 'setuptools'),
                     ])
                 ))
 
