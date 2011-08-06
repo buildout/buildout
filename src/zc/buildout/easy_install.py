@@ -1515,7 +1515,7 @@ def _write_script(full_name, contents, logged_type):
         script_name += '-script.py'
         # Generate exe file and give the script a magic name.
         exe = full_name + '.exe'
-        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = pkg_resources.resource_string('setuptools', 'cli-64.exe' if sys.maxsize > 2**32 else 'cli-32.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
