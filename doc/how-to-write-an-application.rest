@@ -26,19 +26,19 @@ tweepy and sets up the python path::
 
 The file has a ``buildout`` section that names the :term:`parts
 <part>` you want.  The part is defined by the ``py`` section.  The
-options in the ``py`` section are::
+options in the ``py`` section are:
 
   ``recipe = zc.recipe.egg``
       The ``zc.recipe.egg`` assembles a list of eggs and extra paths
       to create scripts or custom interpreters.
 
-  eggs = tweepy
+  ``eggs = tweepy``
       You're going to use the tweepy egg.
 
-  interpreter = py
+  ``interpreter = py``
       Create a custom interpreter named ``py``
 
-  extra-paths = src
+  ``extra-paths = src``
       Include the ``src`` directory in the interpreter's python path.
 
 To build this configuration, you need to bootstrap buildout by
