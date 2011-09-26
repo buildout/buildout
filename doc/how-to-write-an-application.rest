@@ -83,7 +83,7 @@ This wil create ``bin/py``, which will let you experiment with the
     amanh\xe3 \xe0s 23:59:59! #pythonbrasil!'
     >>>
 
-Great, you have access to the twitter search API. Note that our source
+Great, you have access to the twitter search API. Note that your source
 directory is in the system path:
 
     >>> import sys
