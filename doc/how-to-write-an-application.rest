@@ -24,9 +24,9 @@ tweepy and sets up the python path::
   interpreter = py
   extra-paths = src
 
-The file has a ``buildout`` section that names the :term:`part` you want.  The
-part is defined by the ``py`` section.  The options in the ``py``
-section are::
+The file has a ``buildout`` section that names the :term:`parts
+<part>` you want.  The part is defined by the ``py`` section.  The
+options in the ``py`` section are::
 
   ``recipe = zc.recipe.egg``
       The ``zc.recipe.egg`` assembles a list of eggs and extra paths
