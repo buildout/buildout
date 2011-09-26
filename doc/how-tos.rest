@@ -6,6 +6,7 @@ How-tos
    :maxdepth: 2
 
    how-to-play-with-some-cool-python-package
+   how-to-write-an-application
    how-to-write-a-recipe-to-automate-a-task-with-python
    how-to-create-script
    how-to-bootstrap-faster
