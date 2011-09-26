@@ -1,0 +1,135 @@
+===========================
+How to write an application
+===========================
+
+Let's use buildout to build an application to search twitter.
+
+You'll use the tweepy library.
+
+Start by creating a project directory with source directory::
+
+  mkdir search_twiter
+  cd search_twiter
+  mkdir src
+
+Create a buildout configuration file, ``buildout.cfg`` that gets
+tweepy and sets up the python path::
+
+  [buildout]
+  parts = py
+
+  [py]
+  recipe = zc.recipe.egg
+  eggs = tweepy
+  interpreter = py
+  extra-paths = src
+
+The file has a ``buildout`` section that names the :term:`part` you want.  The
+part is defined by the ``py`` section.  The options in the ``py``
+section are::
+
+  ``recipe = zc.recipe.egg``
+      The ``zc.recipe.egg`` assembles a list of eggs and extra paths
+      to create scripts or custom interpreters.
+
+  eggs = tweepy
+      You're going to use the tweepy egg.
+
+  interpreter = py
+      Create a custom interpreter named ``py``
+
+  extra-paths = src
+      Include the ``src`` directory in the interpreter's python path.
+
+To build this configuration, you need to bootstrap buildout by
+downloading and running the buildout bootstrap script::
+
+  wget http://buildout.org/bootstrap.py
+  python bootstrap.py
+
+Bootstrapping sets up the :ref:`basic buildout structure
+<basic-buildout-structure>`.
+
+Run the generated buildout script::
+
+  bin/buildout
+
+This wil create ``bin/py``, which will let you experiment with the
+``tweepy`` api::
+
+    bin/py
+
+    >>> import tweepy
+    >>> api = tweepy.API()
+    >>> api.search('#pythonbrasil')
+    [<tweepy.models.SearchResult object at 0x55ad50>,
+    <tweepy.models.SearchResult object at 0x55f7d0>,
+    <tweepy.models.SearchResult object at 0x584bd0>,
+    <tweepy.models.SearchResult object at 0x584ab0>,
+    <tweepy.models.SearchResult object at 0x584bf0>,
+    <tweepy.models.SearchResult object at 0x584c10>,
+    <tweepy.models.SearchResult object at 0x584c30>,
+    <tweepy.models.SearchResult object at 0x584c50>,
+    <tweepy.models.SearchResult object at 0x584b30>,
+    <tweepy.models.SearchResult object at 0x584c70>,
+    <tweepy.models.SearchResult object at 0x584b50>,
+    <tweepy.models.SearchResult object at 0x584c90>,
+    <tweepy.models.SearchResult object at 0x584cb0>,
+    <tweepy.models.SearchResult object at 0x584b70>,
+    <tweepy.models.SearchResult object at 0x584d10>]
+    >>> result = _
+    >>> result[0].text
+    u'RT @pythonbrasil: As inscri\xe7\xf5es pelo site se encerram
+    amanh\xe3 \xe0s 23:59:59! #pythonbrasil!'
+    >>>
+
+Great, you have access to the twitter search API. Note that our source
+directory is in the system path:
+
+    >>> import sys
+    >>> sys.path
+    ['/Users/jim/.buildout/eggs/tweepy-1.7.1-py2.6.egg',
+    '/Users/jim/tmp/0926/src', ...
+
+Now, you can create your application by creating ``src/twitter.py``::
+
+  import sys
+  import tweepy
+  def main():
+      api = tweepy.API()
+      result = api.search(sys.argv[1])
+      for item in result:
+          print item.from_user, item.text, item.created_at
+
+This is pretty simple. You can make it more sophisticated later.
+
+You want to be able to use this directly from your bin directory.  To
+enable this, you'll tell buildout to create a script from this module's
+main :term:`entry point`::
+
+  [buildout]
+  parts = py
+
+  [py]
+  recipe = zc.recipe.egg
+  eggs = tweepy
+  interpreter = py
+  extra-paths = src
+  entry-points = search-twitter=twitter:main
+
+The entry-points option takes a series of entry-point definitons of he
+form::
+
+  NAME=MODULE:CALLABLE
+
+which defines a script named NAME, that calls the CALLABLE inside
+MODULE.
+
+Now, when you run the buildout::
+
+  bin/buildout
+
+You'll get a search-twitter script that you can run like::
+
+  bin/search-twitter '#pythonbrasil'
+
