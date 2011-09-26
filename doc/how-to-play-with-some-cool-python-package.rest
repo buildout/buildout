@@ -12,7 +12,7 @@ cons.  For the discussion below, we'll assume you want to play with
 Using easy_install or pip
 =========================
 
-*Assuming* you have easy_install or pip installed in your Python::
+*Assuming* you have easy_install [#install-easy] or pip installed in your Python::
 
    easy_install zope.event
 
