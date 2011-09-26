@@ -1,0 +1,38 @@
+=========================================
+how-to-play-with-some-cool-python-package
+=========================================
+
+Goal
+   Experiment with a package available from PyPI
+
+There are really three basic approaches.  Each has there pros and
+cons.  For the discussion below, we'll assume you want to play with
+``zope.event``, but any package will do.
+
+Using easy_install or pip
+=========================
+
+*Assuming* you have easy_install or pip installed in your Python::
+
+   easy_install zope.event
+
+or::
+
+   pip install zope.event
+
+This may fail if you don't have write access to your Python
+installation.
+
+This approach has some disadvantages:
+
+- It requires write access to your Python installation.
+
+- The package you download will be seen by all applications you use
+  with the Python installation and may affect their behavior.
+
+Using virtualenv and easy_install or pip
+========================================
+
+Using buildout
+==============
+
