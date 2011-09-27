@@ -73,7 +73,7 @@ customized site.py.
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        sys.exit(zc.buildout.buildout.main())
     <BLANKLINE>
 
 The bootstrap process prefers final versions of zc.buildout, so it has
