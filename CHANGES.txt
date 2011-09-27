@@ -41,7 +41,7 @@ Bugs fixed:
 
   - Buildout defaults to including site packages.
 
-  - Buildout loads recipes andhttps://bugs.launchpad.net/bugs/697913 extensions with the same constraints to
+  - Buildout loads recipes and extensions with the same constraints to
     site-packages that it builds eggs, instead of never allowing access
     to site-packages.
 
