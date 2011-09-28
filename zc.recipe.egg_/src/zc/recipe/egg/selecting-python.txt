@@ -91,7 +91,7 @@ And the generated scripts invoke Python 2.5:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
     >>> if sys.platform == 'win32':
     ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo-script.py'))
