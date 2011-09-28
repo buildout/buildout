@@ -3837,6 +3837,29 @@ def easy_install_SetUp(test):
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
     zc.buildout.testing.install_develop('z3c.recipe.scripts', test)
 
+def buildout_txt_setup(test):
+    zc.buildout.testing.buildoutSetUp(test)
+    mkdir = test.globs['mkdir']
+    eggs = os.environ['buildout-testing-index-url'][7:]
+    test.globs['sample_eggs'] = eggs
+    create_sample_eggs(test)
+
+    for name in os.listdir(eggs):
+        if '-' in name:
+            pname = name.split('-')[0]
+            if not os.path.exists(os.path.join(eggs, pname)):
+                mkdir(eggs, pname)
+            shutil.move(os.path.join(eggs, name),
+                        os.path.join(eggs, pname, name))
+
+    dist = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('zc.recipe.egg'))
+    mkdir(eggs, 'zc.recipe.egg')
+    zc.buildout.testing.sdist(
+        os.path.dirname(dist.location),
+        os.path.join(eggs, 'zc.recipe.egg'),
+        )
+
 egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
 def makeNewRelease(project, ws, dest, version='99.99'):
@@ -3943,7 +3966,42 @@ hide_first_index_page_message = (
 def test_suite():
     test_suite = [
         doctest.DocFileSuite(
-            'buildout.txt', 'runsetup.txt', 'repeatable.txt', 'setup.txt',
+            'buildout.txt',
+            setUp=buildout_txt_setup,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=renormalizing.RENormalizing([
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.tests.hide_distribute_additions,
+                hide_zip_safe_message,
+                (re.compile('__buildout_signature__ = recipes-\S+'),
+                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+                (re.compile('executable = [\S ]+python\S*', re.I),
+                 'executable = python'),
+                (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                 'setuptools.egg'),
+                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                 'zc.buildout.egg'),
+                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
+                (re.compile('Picked: (\S+) = \S+'),
+                 'Picked: \\1 = V.V'),
+                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
+                 'We have a develop egg: zc.buildout X.X.'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile('WindowsError'), 'OSError'),
+                (re.compile(r'\[Error \d+\] Cannot create a file '
+                            r'when that file already exists: '),
+                 '[Errno 17] File exists: '
+                 ),
+                (re.compile('distribute'), 'setuptools'),
+                (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
+                ])
+            ),
+        doctest.DocFileSuite(
+            'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([

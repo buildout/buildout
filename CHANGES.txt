@@ -1,8 +1,14 @@
 Change History
 **************
 
-1.5.3 (unreleased)
+1.6.0 (unreleased)
 ==================
+
+- The buildout init command now accepts distribution requirements and
+  paths to set up a custom interpreter part that has the distributions
+  or parts in the path. For example::
+
+     python bootstrap.py init BeautifulSoup
 
 - Introduce a cache for the expensive `buildout._dir_hash` function.
 
