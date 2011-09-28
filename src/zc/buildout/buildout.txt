@@ -2420,7 +2420,15 @@ local buildout scripts.
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Generated script '/sample-bootstrapped/bin/buildout'.
 
-Note that a basic setup.cfg was created for us.
+Note that a basic setup.cfg was created for us.  This is because we
+provided an 'init' argument.  By default, the generated
+``setup.cfg`` is as minimal as it could be:
+
+    >>> cat(sample_bootstrapped, 'setup.cfg')
+    [buildout]
+    parts =
+
+We also get other buildout artifacts:
 
     >>> ls(sample_bootstrapped)
     d  bin
@@ -2522,6 +2530,93 @@ if there isn't a configuration file:
     Creating directory '/sample-bootstrapped2/develop-eggs'.
     Generated script '/sample-bootstrapped2/bin/buildout'.
 
+Similarly, if there is a configuration file and we use the init
+command, we'll get an error that the configuration file already
+exists:
+
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' init'),
+    While:
+      Initializing.
+    Error: '/sample-bootstrapped/setup.cfg' already exists.
+
+Initial eggs
+------------
+
+When using the ``init`` command, you can specify distribution requirements
+or paths to use:
+
+    >>> cd(sample_bootstrapped)
+    >>> remove('setup.cfg')
+    >>> print system(buildout + ' -csetup.cfg init demo other ./src'),
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Generated script '/sample-bootstrapped/bin/buildout'.
+    Getting distribution for 'zc.recipe.egg'.
+    Got zc.recipe.egg 1.3.3dev.
+    Installing py.
+    Getting distribution for 'demo'.
+    Got demo 0.4c1.
+    Getting distribution for 'other'.
+    Got other 1.0.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+This causes a ``py`` part to be included that sets up a custom python
+interpreter with the given requirements or paths:
+
+    >>> cat('setup.cfg')
+    [buildout]
+    parts = py
+    <BLANKLINE>
+    [py]
+    recipe = zc.recipe.egg
+    interpreter = py
+    eggs =
+      demo
+      other
+    extra-paths =
+      ./src
+
+Passing requirements or paths causes the the builout to be run as part
+of initialization.  In the example above, we got a number of
+distributions installed and 2 scripts generated.  The first, ``demo``,
+was defined by the ``demo`` project. The second, ``py`` was defined by
+the generated configuration.  It's a "custom interpreter" that behaves
+like a standard Python interpeter, except that includes the specified
+eggs and extra paths in it's Python path.
+
+We specified a source directory that didn't exist. Buildout created it
+for us:
+
+    >>> ls('.')
+    -  .installed.cfg
+    d  bin
+    d  develop-eggs
+    d  eggs
+    d  parts
+    -  setup.cfg
+    d  src
+
+    >>> uncd()
+
+.. Make sure it works if the dir is already there:
+
+    >>> cd(sample_bootstrapped)
+    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> remove('setup.cfg')
+    >>> print system(buildout + ' -csetup.cfg init demo other ./src'),
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Installing py.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+.. cleanup
+
+    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> uncd()
 
 Newest and Offline Modes
 ------------------------

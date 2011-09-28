@@ -144,7 +144,8 @@ _buildout_default_options = _annotate_section({
 class Buildout(UserDict.DictMixin):
 
     def __init__(self, config_file, cloptions,
-                 user_defaults=True, windows_restart=False, command=None):
+                 user_defaults=True, windows_restart=False,
+                 command=None, args=()):
 
         __doing__ = 'Initializing.'
 
@@ -159,8 +160,7 @@ class Buildout(UserDict.DictMixin):
             base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
                 if command == 'init':
-                    print 'Creating %r.' % config_file
-                    open(config_file, 'w').write('[buildout]\nparts = \n')
+                    self._init_config(config_file, args)
                 elif command == 'setup':
                     # Sigh. This model of a buildout instance
                     # with methods is breaking down. :(
@@ -169,6 +169,9 @@ class Buildout(UserDict.DictMixin):
                 else:
                     raise zc.buildout.UserError(
                         "Couldn't open %s" % config_file)
+            elif command == 'init':
+                raise zc.buildout.UserError(
+                    "%r already exists." % config_file)
 
             if config_file:
                 data['buildout']['directory'] = (os.path.dirname(config_file),
@@ -191,7 +194,8 @@ class Buildout(UserDict.DictMixin):
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
-                                    [], data['buildout'].copy(), override, set()))
+                                    [], data['buildout'].copy(), override,
+                                    set()))
 
         # load configuration files
         if config_file:
@@ -415,7 +419,38 @@ class Buildout(UserDict.DictMixin):
             exec_sitecustomize=self.exec_sitecustomize,
             )
 
-    init = bootstrap
+    def _init_config(self, config_file, args):
+        print 'Creating %r.' % config_file
+        f = open(config_file, 'w')
+        sep = re.compile(r'[\\/]')
+        if args:
+            eggs = '\n  '.join(a for a in args if not sep.search(a))
+            paths = '\n  '.join(
+                sep.sub(os.path.sep, a) for a in args if sep.search(a))
+            f.write('[buildout]\n'
+                    'parts = py\n'
+                    '\n'
+                    '[py]\n'
+                    'recipe = zc.recipe.egg\n'
+                    'interpreter = py\n'
+                    'eggs =\n'
+                    )
+            if eggs:
+                f.write('  %s\n' % eggs)
+            if paths:
+                f.write('extra-paths =\n  %s\n' % paths)
+                for p in [a for a in args if sep.search(a)]:
+                    if not os.path.exists(p):
+                        os.mkdir(p)
+
+        else:
+            f.write('[buildout]\nparts =\n')
+        f.close()
+
+    def init(self, args):
+        self.bootstrap(())
+        if args:
+            self.install(())
 
     def install(self, install_args):
         __doing__ = 'Installing.'
@@ -1795,11 +1830,12 @@ def main(args=None):
             _error('invalid command:', command)
     else:
         command = 'install'
-    
+
     try:
         try:
             buildout = Buildout(config_file, options,
-                                user_defaults, windows_restart, command)
+                                user_defaults, windows_restart,
+                                command, args)
             getattr(buildout, command)(args)
         except Exception, v:
             _doing()
