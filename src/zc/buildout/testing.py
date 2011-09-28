@@ -147,14 +147,18 @@ def _runsetup(setup, executable, *args):
     if executable == sys.executable:
         env['PYTHONPATH'] = setuptools_location
     # else pass an executable that has setuptools! See testselectingpython.py.
-    args.append(env)
 
     here = os.getcwd()
     try:
         os.chdir(d)
-        os.spawnle(os.P_WAIT, executable,
-                   zc.buildout.easy_install._safe_arg(executable),
-                   setup, *args)
+        p = subprocess.Popen(
+            [zc.buildout.easy_install._safe_arg(executable), setup] + args,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            close_fds=True, env=env)
+        out = p.stdout.read()
+        if p.wait():
+            print out
+
         if os.path.exists('build'):
             rmtree('build')
     finally:
@@ -399,6 +403,15 @@ def buildoutSetUp(test):
         return (
             os.path.join(buildout, 'bin', 'py'), site_packages_dir)
 
+    cdpaths = []
+    def cd(*path):
+        path = os.path.join(*path)
+        cdpaths.append(os.path.abspath(os.getcwd()))
+        os.chdir(path)
+
+    def uncd():
+        os.chdir(cdpaths.pop())
+
     test.globs.update(dict(
         sample_buildout = sample,
         ls = ls,
@@ -411,7 +424,7 @@ def buildoutSetUp(test):
         system = system,
         call_py = call_py,
         get = get,
-        cd = (lambda *path: os.chdir(os.path.join(*path))),
+        cd = cd, uncd = uncd,
         join = os.path.join,
         sdist = sdist,
         bdist_egg = bdist_egg,
