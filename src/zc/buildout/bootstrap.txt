@@ -223,7 +223,7 @@ Let's make sure the old-style generated ``buildout`` script uses
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        sys.exit(zc.buildout.buildout.main())
     <BLANKLINE>
 
 Last, the -c option needs to work on bootstrap.py::

@@ -2464,7 +2464,7 @@ If relative-paths is ``true``, the buildout script uses relative paths.
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        sys.exit(zc.buildout.buildout.main())
     <BLANKLINE>
 
 

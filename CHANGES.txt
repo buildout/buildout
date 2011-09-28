@@ -27,6 +27,9 @@ Bugs fixed:
 - Removed any traces of the implementation of ``extended-by``. Raise a
   UserError if the option is encountered instead of ignoring it, though.
 
+- https://bugs.launchpad.net/bugs/697913 : Buildout doesn't honor exit code
+  from scripts. Fixed.
+
 1.5.2 (2010-10-11)
 ==================
 

@@ -671,7 +671,7 @@ The demo script run the entry point defined in the demo egg:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Some things to note:
 
@@ -708,7 +708,7 @@ rather than passing a requirement:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Passing entry-point information directly is handy when using eggs (or
 distributions) that don't declare their entry points, such as
@@ -839,7 +839,7 @@ to be included in the a generated script:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 The ``scripts`` function: Providing script arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -863,7 +863,7 @@ parentheses in the call:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(1, 2)
+        sys.exit(eggrecipedemo.main(1, 2))
 
 The ``scripts`` function: Passing initialization code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -889,7 +889,7 @@ You can also pass script initialization code:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(1, 2)
+        sys.exit(eggrecipedemo.main(1, 2))
 
 The ``scripts`` function: Relative paths
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -935,7 +935,7 @@ to pass a common base directory of the scripts and eggs:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Note that the extra path we specified that was outside the directory
 passed as relative_paths wasn't converted to a relative path.
@@ -1515,7 +1515,7 @@ The demo script runs the entry point defined in the demo egg:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
     >>> demo_call = join(interpreter_bin_dir, 'demo')
     >>> if sys.platform == 'win32':
@@ -1561,7 +1561,7 @@ Let's see ``script_arguments`` and ``script_initialization`` in action.
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(1, 2)
+        sys.exit(eggrecipedemo.main(1, 2))
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
