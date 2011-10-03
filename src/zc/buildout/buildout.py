@@ -400,9 +400,10 @@ class Buildout(UserDict.DictMixin):
         relative_paths = options.get('relative-paths', 'false')
         if relative_paths == 'true':
             relative_paths = options['directory']
-        else:
-            assert relative_paths == 'false'
+        elif relative_paths == 'false':
             relative_paths = ''
+        else:
+            raise zc.buildout.UserError("relative_paths must be true or false")
         if (self.accept_buildout_test_releases and
             self._annotated['buildout']['accept-buildout-test-releases'][1] ==
             'COMMAND_LINE_VALUE'):
@@ -641,7 +642,7 @@ class Buildout(UserDict.DictMixin):
                 self._save_installed_options(installed_part_options)
                 installed_exists = True
             else:
-                assert installed_exists
+                assert installed_exists  # nothing to tell the user here
                 self._update_installed(parts=' '.join(installed_parts))
 
         if installed_develop_eggs:
@@ -962,9 +963,10 @@ class Buildout(UserDict.DictMixin):
         relative_paths = options.get('relative-paths', 'false')
         if relative_paths == 'true':
             relative_paths = options['directory']
-        else:
-            assert relative_paths == 'false'
+        elif relative_paths == 'false':
             relative_paths = ''
+        else:
+            raise zc.buildout.UserError("relative_paths must be true or false")
         zc.buildout.easy_install.sitepackage_safe_scripts(
             options['bin-directory'], ws, options['executable'], partsdir,
             reqs=['zc.buildout'], relative_paths=relative_paths,
