@@ -1200,6 +1200,15 @@ class MissingDistribution(zc.buildout.UserError):
         return "Couldn't find a distribution for %r." % str(req)
 
 def _log_requirement(ws, req):
+    if not logger.isEnabledFor(logging.DEBUG):
+        # Sorting the working set and iterating over it's requirements
+        # is expensive, so short cirtuit the work if it won't even be
+        # logged.  When profiling a simple buildout with 10 parts with
+        # identical and large working sets, this resulted in a
+        # decrease of run time from 93.411 to 15.068 seconds, about a
+        # 6 fold improvement.
+        return
+    
     ws = list(ws)
     ws.sort()
     for dist in ws:
