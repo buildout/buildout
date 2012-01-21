@@ -246,12 +246,12 @@ def _get_env(executable, path=None):
     return env_copy
 
 
-def _update_envs(executable, dest=None):
+def _update_envs(executable, dest):
     python = _get_version(executable)
     for key in _envs.keys():
         cached_python, cached_path = key
         if cached_python == python and dest in cached_path:
-            _envs[key].scan([dest])
+            del _envs[key]
             
 
 def clear_index_cache():
