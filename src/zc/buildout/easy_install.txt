@@ -567,6 +567,7 @@ function.
 The function returns its previous setting.
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
@@ -576,11 +577,13 @@ It can be overridden by passing a keyword argument to the install
 function.
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
     ...     links=[link_server, link_server3],
     ...	    use_dependency_links=True)
+    GET 200 /
     GET 200 /demoneeded-1.2-pyN.N.egg
 
 To return the dependency_links behavior to normal call the function again.
@@ -588,10 +591,12 @@ To return the dependency_links behavior to normal call the function again.
     >>> zc.buildout.easy_install.use_dependency_links(True)
     False
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
     ...     links=[link_server, link_server3])
+    GET 200 /
     GET 200 /demoneeded-1.2-pyN.N.egg
 
 
