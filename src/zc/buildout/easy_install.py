@@ -231,7 +231,22 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',),
     _indexes[key] = index
     return index
 
-clear_index_cache = _indexes.clear
+
+_envs = {}
+def _get_env(executable, path=None):
+    key = executable, tuple(path)
+    env = _envs.get(key)
+    python = _get_version(executable)
+    if env is None:
+        _envs[key] = env = pkg_resources.Environment(
+            search_path=path, python=python)
+    return env
+
+
+def clear_index_cache():
+    _indexes.clear()
+    _envs.clear()
+
 
 if is_win32:
     # work around spawn lamosity on windows
@@ -395,8 +410,7 @@ class Installer:
         if self._dest is None:
             newest = False
         self._newest = newest
-        self._env = pkg_resources.Environment(path,
-                                              python=_get_version(executable))
+        self._env = _get_env(executable, path)
         self._index = _get_index(executable, index, links, self._allow_hosts,
                                  self._path)
 
@@ -526,10 +540,7 @@ class Installer:
         return best_we_have, None
 
     def _load_dist(self, dist):
-        dists = pkg_resources.Environment(
-            dist.location,
-            python=_get_version(self._executable),
-            )[dist.project_name]
+        dists = _get_env(self._executable, dist.location,)[dist.project_name]
         assert len(dists) == 1
         return dists[0]
 
@@ -573,10 +584,7 @@ class Installer:
                     *args)
 
             dists = []
-            env = pkg_resources.Environment(
-                [tmp],
-                python=_get_version(self._executable),
-                )
+            env = _get_env(self._executable, [tmp])
             for project in env:
                 dists.extend(env[project])
 
@@ -619,12 +627,7 @@ class Installer:
                     else:
                         os.remove(newloc)
                 os.rename(d.location, newloc)
-
-                [d] = pkg_resources.Environment(
-                    [newloc],
-                    python=_get_version(self._executable),
-                    )[d.project_name]
-
+                [d] = _get_env(self._executable, [newloc])[d.project_name]
                 result.append(d)
 
             return result
@@ -780,10 +783,8 @@ class Installer:
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
                     # good enough.
-                    dists = pkg_resources.Environment(
-                        [newloc],
-                        python=_get_version(self._executable),
-                        )[dist.project_name]
+                    dists = _get_env(self._executable, [newloc]
+                                     )[dist.project_name]
                 else:
                     # It's some other kind of dist.  We'll let easy_install
                     # deal with it:
@@ -910,7 +911,7 @@ class Installer:
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
-        env = pkg_resources.Environment(ws.entries)
+        env = _get_env(self._executable, ws.entries)
         while requirements:
             # Process dependencies breadth-first.
             req = self._constrain(requirements.pop(0))
