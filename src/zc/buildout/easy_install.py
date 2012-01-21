@@ -246,6 +246,14 @@ def _get_env(executable, path=None):
     return env_copy
 
 
+def _update_envs(executable, dest=None):
+    python = _get_version(executable)
+    for key in _envs.keys():
+        cached_python, cached_path = key
+        if cached_python == python and dest in cached_path:
+            _envs[key].scan([dest])
+            
+
 def clear_index_cache():
     _indexes.clear()
     _envs.clear()
@@ -632,6 +640,7 @@ class Installer:
                 os.rename(d.location, newloc)
                 [d] = _get_env(self._executable, [newloc])[d.project_name]
                 result.append(d)
+                _update_envs(self._executable, self._dest)
 
             return result
 
@@ -1192,11 +1201,7 @@ def develop(setup, dest,
             raise zc.buildout.UserError("Installing develop egg failed")
             
         result = _copyeggs(tmp3, dest, '.egg-link', undo)
-        python = _get_version(executable)
-        for key in _envs.keys():
-            cached_python, cached_path = key
-            if cached_python == python and dest in cached_path:
-                _envs[key].scan([dest])
+        _update_envs(executable, dest)
         return result
 
     finally:
