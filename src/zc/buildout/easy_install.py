@@ -234,9 +234,9 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',),
 
 _envs = {}
 def _get_env(executable, path=None):
-    key = executable, tuple(path)
-    env = _envs.get(key)
     python = _get_version(executable)
+    key = python, tuple(path)
+    env = _envs.get(key)
     if env is None:
         _envs[key] = env = pkg_resources.Environment(
             search_path=path, python=python)
