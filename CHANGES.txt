@@ -4,12 +4,12 @@ Change History
 1.6.0 (unreleased)
 ==================
 
+- Cache the pkg_resources.Environment instances for performance
+  optimizations.  (rossp)
+
 - Avoid sorting the working set and requirements when it won't be
-  logged.  When profiling a simple buildout with 10 parts with
-  identical and large working sets, this resulted in a decrease of run
-  time from 93.411 to 15.068 seconds, about a 6 fold improvement.  To
-  see the benefit be sure to run without any increase in verbosity
-  ("-v" option).  (rossp)
+  logged.  To see the benefit be sure to run without any increase in
+  verbosity ("-v" option).  (rossp)
 
 - The buildout init command now accepts distribution requirements and
   paths to set up a custom interpreter part that has the distributions
