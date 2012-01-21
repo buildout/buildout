@@ -869,6 +869,7 @@ On the other hand, if we have a regular egg, rather than a develop egg:
 
 We do not get a warning, but we do get setuptools included in the working set:
 
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> [dist.project_name
     ...  for dist in zc.buildout.easy_install.working_set(
     ...    ['foox'], sys.executable,
@@ -902,6 +903,7 @@ namespace package.
     Develop: '/sample-buildout/foo'
     Develop: '/sample-buildout/bar'
 
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> [dist.project_name
     ...  for dist in zc.buildout.easy_install.working_set(
     ...    ['bar'], sys.executable,

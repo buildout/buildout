@@ -227,6 +227,7 @@ default, so if you are using Distribute, most or all eggs will already be
 unzipped without this flag.)
 
     >>> rmdir(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
@@ -237,6 +238,7 @@ unzipped without this flag.)
     d  demoneeded-1.1-py2.4.egg
 
     >>> rmdir(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
@@ -254,6 +256,7 @@ We can also set a default by calling the always_unzip function:
 The old default is returned:
 
     >>> rmdir(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
@@ -267,6 +270,7 @@ The old default is returned:
     True
 
     >>> rmdir(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
@@ -276,6 +280,7 @@ The old default is returned:
     -  demoneeded-1.1-py2.4.egg
 
     >>> rmdir(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
@@ -1743,6 +1748,7 @@ first:
     >>> import os
     >>> for name in os.listdir(dest):
     ...     remove(dest, name)
+    >>> zc.buildout.easy_install.clear_index_cache()
 
     >>> zc.buildout.easy_install.build(
     ...   'extdemo', dest,
@@ -1842,6 +1848,7 @@ directory:
 We'll recreate our destination directory:
 
     >>> remove(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
 
 We'd like to see what is being fetched from the server, so we'll
@@ -1892,6 +1899,7 @@ eggs or source distributions.
 Let's recreate our destination directory and clear the index cache:
 
     >>> remove(dest)
+    >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> zc.buildout.easy_install.clear_index_cache()
 
