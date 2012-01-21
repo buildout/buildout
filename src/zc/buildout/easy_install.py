@@ -240,7 +240,10 @@ def _get_env(executable, path=None):
     if env is None:
         _envs[key] = env = pkg_resources.Environment(
             search_path=path, python=python)
-    return env
+
+    env_copy = pkg_resources.Environment(search_path=[], python=python)
+    env_copy += env
+    return env_copy
 
 
 def clear_index_cache():
