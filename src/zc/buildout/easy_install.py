@@ -1196,7 +1196,7 @@ def develop(setup, dest,
         for key in _envs.keys():
             cached_python, cached_path = key
             if cached_python == python and dest in cached_path:
-                del _envs[key]
+                _envs[key].scan([dest])
         return result
 
     finally:
