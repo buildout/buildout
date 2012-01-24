@@ -232,31 +232,32 @@ def _get_index(executable, index_url, find_links, allow_hosts=('*',),
     return index
 
 
-_envs = {}
 def _get_env(executable, path=None):
     python = _get_version(executable)
-    key = python, tuple(path)
-    env = _envs.get(key)
-    if env is None:
-        _envs[key] = env = pkg_resources.Environment(
-            search_path=path, python=python)
-
-    env_copy = pkg_resources.Environment(search_path=[], python=python)
-    env_copy += env
-    return env_copy
+    return pkg_resources.Environment(search_path=path, python=python)
 
 
-def _update_envs(executable, dest):
-    python = _get_version(executable)
-    for key in _envs.keys():
-        cached_python, cached_path = key
-        if cached_python == python and dest in cached_path:
-            del _envs[key]
-            
+_dists = {}
+_orig_find_distributions = pkg_resources.find_distributions
+def find_distributions(path_item, only=False):
+    """Cache distributions on a per-path basis."""
+    key = (path_item, only)
+    if key in _dists:
+        return _dists[key]
+    dists = _dists[key] = set(
+        _orig_find_distributions(path_item, only=only))
+    return dists
+pkg_resources.find_distributions = find_distributions    
 
-def clear_index_cache():
-    _indexes.clear()
-    _envs.clear()
+
+def update_dist(path_item, dist):
+    for only in (True, False):
+        key = (path_item, only)
+        if key in _dists:
+            _dists[key].add(dist)
+
+
+clear_index_cache = _indexes.clear
 
 
 if is_win32:
@@ -640,7 +641,7 @@ class Installer:
                 os.rename(d.location, newloc)
                 [d] = _get_env(self._executable, [newloc])[d.project_name]
                 result.append(d)
-                _update_envs(self._executable, self._dest)
+                update_dist(path_item=self._dest, dist=d)
 
             return result
 
@@ -1201,7 +1202,11 @@ def develop(setup, dest,
             raise zc.buildout.UserError("Installing develop egg failed")
             
         result = _copyeggs(tmp3, dest, '.egg-link', undo)
-        _update_envs(executable, dest)
+        # From pkg_resources.find_on_path egg-link support
+        for line in open(result):
+            if not line.strip(): continue
+            for dist in find_distributions(os.path.join(dest ,line.rstrip())):
+                update_dist(dest, dist)
         return result
 
     finally:
