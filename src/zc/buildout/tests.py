@@ -3911,6 +3911,7 @@ def getWorkingSetWithBuildoutEgg(test):
             ) == 0
         os.chdir(here)
         os.remove(os.path.join(eggs, 'zc.buildout.egg-link'))
+        zc.buildout.easy_install.clear_index_cache()
 
         # Rebuild the buildout script
         ws = pkg_resources.WorkingSet([eggs])
