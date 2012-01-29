@@ -529,6 +529,7 @@ Now let's see what happens if we provide two different ways to retrieve
 the dependencies.
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_dists(example_dest)
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
@@ -546,6 +547,7 @@ dependency_links setup metadata use the 'use_dependency_links' option
 to zc.buildout.easy_install.install().
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_dists(example_dest)
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
@@ -567,6 +569,7 @@ function.
 The function returns its previous setting.
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_dists(example_dest)
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
@@ -577,6 +580,7 @@ It can be overridden by passing a keyword argument to the install
 function.
 
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_dists(example_dest)
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
@@ -591,6 +595,7 @@ To return the dependency_links behavior to normal call the function again.
     >>> zc.buildout.easy_install.use_dependency_links(True)
     False
     >>> rmdir(example_dest)
+    >>> zc.buildout.easy_install.clear_dists(example_dest)
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> example_dest = tmpdir('example-install')
     >>> workingset = zc.buildout.easy_install.install(
@@ -1346,6 +1351,7 @@ call to another text fixture to create.
     >>> create_sample_namespace_eggs(namespace_eggs)
 
     >>> reset_interpreter()
+    >>> ws = zc.buildout.easy_install.clear_index_cache()
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo', 'tellmy.fortune'], join(interpreter_dir, 'eggs'),
     ...     links=[link_server, namespace_eggs], index=link_server+'index/')
@@ -1853,6 +1859,7 @@ directory:
 We'll recreate our destination directory:
 
     >>> remove(dest)
+    >>> zc.buildout.easy_install.clear_dists(dest)
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
 
@@ -1904,6 +1911,7 @@ eggs or source distributions.
 Let's recreate our destination directory and clear the index cache:
 
     >>> remove(dest)
+    >>> zc.buildout.easy_install.clear_dists(dest)
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> dest = tmpdir('sample-install')
     >>> zc.buildout.easy_install.clear_index_cache()
@@ -1976,6 +1984,7 @@ recreate the destination directory, and reinstall demo:
 
     >>> zc.buildout.easy_install.clear_index_cache()
     >>> remove(dest)
+    >>> zc.buildout.easy_install.clear_dists(dest)
     >>> dest = tmpdir('sample-install')
 
     >>> ws = zc.buildout.easy_install.install(
