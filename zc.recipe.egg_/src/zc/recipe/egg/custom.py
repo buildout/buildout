@@ -89,6 +89,7 @@ class Custom(Base):
         distribution = options.get('egg', options.get('eggs', self.name)
                                    ).strip()
         self._set_environment()
+        zc.buildout.easy_install.clear_dists(options['_d'])
         try:
             return zc.buildout.easy_install.build(
                 distribution, options['_d'], self.build_ext,
