@@ -646,7 +646,6 @@ class Installer:
                 os.rename(d.location, newloc)
                 [d] = _get_env(self._executable, [newloc])[d.project_name]
                 result.append(d)
-                update_dist(path_item=self._dest, dist=d)
 
             return result
 
@@ -797,6 +796,7 @@ class Installer:
                             shutil.copyfile(dist.location, newloc)
 
                     redo_pyc(newloc)
+                    update_dist(path_item=self._dest, dist=dist)
 
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
@@ -810,6 +810,7 @@ class Installer:
                         dist.location, ws, self._dest, dist)
                     for dist in dists:
                         redo_pyc(dist.location)
+                        update_dist(path_item=self._dest, dist=dist)
 
             finally:
                 if tmp != self._download_cache:
