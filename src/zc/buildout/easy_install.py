@@ -886,6 +886,7 @@ class Installer:
             if version not in requirement:
                 logger.error("The version, %s, is not consistent with the "
                              "requirement, %r.", version, str(requirement))
+                clear_dists(self._dest)
                 raise IncompatibleVersionError("Bad version", version)
 
             requirement = pkg_resources.Requirement.parse(
