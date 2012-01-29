@@ -262,7 +262,9 @@ def clear_dists(path_item):
         _dists.pop(key, None)
 
 
-clear_index_cache = _indexes.clear
+def clear_index_cache():
+    _indexes.clear()
+    _dists.clear()
 
 
 if is_win32:
