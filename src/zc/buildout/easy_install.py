@@ -256,6 +256,11 @@ def update_dist(path_item, dist):
         if key in _dists:
             _dists[key].add(dist)
 
+def clear_dists(path_item):
+    for only in (True, False):
+        key = (path_item, only)
+        _dists.pop(key, None)
+
 
 clear_index_cache = _indexes.clear
 
@@ -1202,11 +1207,7 @@ def develop(setup, dest,
             raise zc.buildout.UserError("Installing develop egg failed")
             
         result = _copyeggs(tmp3, dest, '.egg-link', undo)
-        # From pkg_resources.find_on_path egg-link support
-        for line in open(result):
-            if not line.strip(): continue
-            for dist in find_distributions(os.path.join(dest ,line.rstrip())):
-                update_dist(dest, dist)
+        clear_dists(dest)
         return result
 
     finally:
