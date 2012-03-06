@@ -3,13 +3,14 @@ Automatic Buildout Updates
 
 When a buildout is run, one of the first steps performed is to check
 for updates to either zc.buildout or setuptools.  To demonstrate this,
-we've creates some "new releases" of buildout and setuptools in a
+we've created some "new releases" of buildout and setuptools in a
 new_releases folder:
 
     >>> ls(new_releases)
     d  setuptools
     -  setuptools-99.99-py2.4.egg
     d  zc.buildout
+    -  zc.buildout-100.0b1-pyN.N.egg
     -  zc.buildout-99.99-py2.4.egg
 
 Let's update the sample buildout.cfg to look in this area:
@@ -78,25 +79,49 @@ new versions found in new releases:
     zc.buildout 99.99
     setuptools 99.99
 
-Our buildout script has been updated to use the new eggs:
+Notice that, even though we have a newer beta version of zc.buildout
+available, the final "99.99" was selected.  If you want to get non-final
+versions, specify a specific version in your buildout's versions
+section, you typically want to use the --accept-buildout-test-releases
+option to the bootstrap script, which internally uses the
+``accept-buildout-test-releases = true`` discussed below.
 
-    >>> cat(sample_buildout, 'bin', 'buildout')
-    #!/usr/local/bin/python2.4
+Our buildout script's site.py has been updated to use the new eggs:
+
+    >>> cat(sample_buildout, 'parts', 'buildout', 'site.py')
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    "...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
-      '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        See original_addsitepackages, below, for the original version."""
+        setuptools_path = '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+        sys.path.append(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
+        import pkg_resources
+        buildout_paths = [
+            '/sample-buildout/eggs/zc.buildout-99.99-pyN.N.egg',
+            '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+                pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support setuptools.
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            if path == setuptools_path or path not in known_paths:
+                addsitedir(path, known_paths)
+        return known_paths
+    ...
 
 Now, let's recreate the sample buildout. If we specify constraints on
-the versions of zc.buildout and setuptools to use, running the
-buildout will install earlier versions of these packages:
+the versions of zc.buildout and setuptools (or distribute) to use,
+running the buildout will install earlier versions of these packages:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -107,6 +132,7 @@ buildout will install earlier versions of these packages:
     ... develop = showversions
     ... zc.buildout-version = < 99
     ... setuptools-version = < 99
+    ... distribute-version = < 99
     ...
     ... [show-versions]
     ... recipe = showversions
@@ -119,7 +145,6 @@ Now we can see that we actually "upgrade" to an earlier version.
       zc.buildout version 1.0.0,
       setuptools version 0.6;
     restarting.
-    Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -157,7 +182,7 @@ Or in non-newest mode:
     setuptools 0.6
 
 We also won't upgrade if the buildout script being run isn't in the
-buildouts bin directory.  To see this we'll create a new buildout
+buildout's bin directory.  To see this we'll create a new buildout
 directory:
 
     >>> sample_buildout2 = tmpdir('sample_buildout2')
@@ -182,3 +207,90 @@ directory:
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
+
+As mentioned above, the ``accept-buildout-test-releases = true`` means that
+newer non-final versions of these dependencies are preferred.  Typically
+users are not expected to actually manipulate this value.  Instead, the
+bootstrap script creates a buildout buildout script that passes in the
+value as a command line override. This then results in the buildout
+script being rewritten to remember the decision.
+
+We'll mimic this by passing the argument actually in the command line.
+
+    >>> cd(sample_buildout)
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ...
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+    >>> print system(buildout +
+    ...              ' buildout:accept-buildout-test-releases=true'),
+    ... # doctest: +NORMALIZE_WHITESPACE
+    Getting distribution for 'zc.buildout'.
+    Got zc.buildout 100.0b1.
+    Upgraded:
+      zc.buildout version 100.0b1,
+      setuptools version 99.99;
+    restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    NOTE: Accepting early releases of build system packages.  Rerun bootstrap
+          without --accept-buildout-test-releases (-t) to return to default
+          behavior.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout 100.0b1
+    setuptools 99.99
+
+The buildout script shows the change.
+
+    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> import sys
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #...
+    sys.argv.insert(1, 'buildout:accept-buildout-test-releases=true')
+    print ('NOTE: Accepting early releases of build system packages.  Rerun '
+           'bootstrap without --accept-buildout-test-releases (-t) to return to '
+           'default behavior.')
+    ...
+
+If the update process for buildout or setuptools fails the error should be
+caught (displaying a warning) and the rest of the buildout update process
+should continue.
+
+    >>> version = sys.version_info[0:2]
+    >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg ' % version
+    >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg ' % version
+    >>> system('cp ' + egg  + copy_egg)
+    ''
+
+Create a broken egg
+
+    >>> mkdir(sample_buildout, 'broken')
+    >>> write(sample_buildout, 'broken', 'setup.py', "import broken_egg\n")
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop =
+    ...   broken
+    ...
+    ... [broken]
+    ... recipe = zc.recipe.egg
+    ... eggs = broken
+    ... """ % dict(new_releases=new_releases))
+    >>> import subprocess
+    >>> subprocess.check_call([buildout])
+    Traceback (most recent call last):
+        ...
+    CalledProcessError: Command '['/sample-buildout/bin/buildout']' returned non-zero exit status 1

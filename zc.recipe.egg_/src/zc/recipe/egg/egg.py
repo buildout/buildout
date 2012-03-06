@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2006 Zope Corporation and Contributors.
+# Copyright (c) 2006 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -16,17 +16,26 @@
 $Id$
 """
 
-import logging, os, re, zipfile
+import UserDict, logging, os, re, zipfile
+import zc.buildout
 import zc.buildout.easy_install
+
 
 class Eggs(object):
 
+    include_site_packages = allowed_eggs = None
+
     def __init__(self, buildout, name, options):
         self.buildout = buildout
-        self.name = name
+        self.name = self.default_eggs = name
+        if getattr(options, 'query_bool', None) is None:
+            # Someone is not passing us a zc.buildout.buildout.Options
+            # object.  Maybe we should have a deprecation warning.
+            # Whatever.
+            options = _BackwardsSupportOption(options)
         self.options = options
-        links = options.get('find-links',
-                            buildout['buildout'].get('find-links'))
+        b_options = buildout['buildout']
+        links = options.get('find-links', b_options['find-links'])
         if links:
             links = links.split()
             options['find-links'] = '\n'.join(links)
@@ -34,25 +43,22 @@ class Eggs(object):
             links = ()
         self.links = links
 
-        index = options.get('index', buildout['buildout'].get('index'))
+        index = options.get('index', b_options.get('index'))
         if index is not None:
             options['index'] = index
         self.index = index
 
-        allow_hosts = buildout['buildout'].get('allow-hosts', '*')
+        allow_hosts = b_options['allow-hosts']
         allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
                                if host.strip()!=''])
         self.allow_hosts = allow_hosts
 
-        options['eggs-directory'] = buildout['buildout']['eggs-directory']
+        options['eggs-directory'] = b_options['eggs-directory']
         options['_e'] = options['eggs-directory'] # backward compat.
-        options['develop-eggs-directory'
-                ] = buildout['buildout']['develop-eggs-directory']
+        options['develop-eggs-directory'] = b_options['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
 
-        assert options.get('unzip') in ('true', 'false', None)
-
-        python = options.get('python', buildout['buildout']['python'])
+        python = options.setdefault('python', b_options['python'])
         options['executable'] = buildout[python]['executable']
 
     def working_set(self, extra=()):
@@ -61,31 +67,36 @@ class Eggs(object):
         This is intended for reuse by similar recipes.
         """
         options = self.options
+        b_options = self.buildout['buildout']
 
         distributions = [
             r.strip()
-            for r in options.get('eggs', self.name).split('\n')
+            for r in options.get('eggs', self.default_eggs).split('\n')
             if r.strip()]
         orig_distributions = distributions[:]
         distributions.extend(extra)
 
-        if self.buildout['buildout'].get('offline') == 'true':
+        if b_options.get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],
-                [options['develop-eggs-directory'], options['eggs-directory']]
+                [options['develop-eggs-directory'],
+                 options['eggs-directory']],
+                include_site_packages=self.include_site_packages,
+                allowed_eggs_from_site_packages=self.allowed_eggs,
                 )
         else:
             kw = {}
-            if options.get('unzip'):
-                kw['always_unzip'] = get_bool(options, 'unzip')
-
+            if 'unzip' in options:
+                kw['always_unzip'] = options.query_bool('unzip', None)
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
                 links=self.links,
                 index=self.index,
                 executable=options['executable'],
                 path=[options['develop-eggs-directory']],
-                newest=self.buildout['buildout'].get('newest') == 'true',
+                newest=b_options.get('newest') == 'true',
+                include_site_packages=self.include_site_packages,
+                allowed_eggs_from_site_packages=self.allowed_eggs,
                 allow_hosts=self.allow_hosts,
                 **kw)
 
@@ -97,16 +108,19 @@ class Eggs(object):
 
     update = install
 
-class Scripts(Eggs):
+
+class ScriptBase(Eggs):
 
     def __init__(self, buildout, name, options):
-        super(Scripts, self).__init__(buildout, name, options)
+        super(ScriptBase, self).__init__(buildout, name, options)
 
-        options['bin-directory'] = buildout['buildout']['bin-directory']
+        b_options = buildout['buildout']
+
+        options['bin-directory'] = b_options['bin-directory']
         options['_b'] = options['bin-directory'] # backward compat.
 
         self.extra_paths = [
-            os.path.join(buildout['buildout']['directory'], p.strip())
+            os.path.join(b_options['directory'], p.strip())
             for p in options.get('extra-paths', '').split('\n')
             if p.strip()
             ]
@@ -115,11 +129,9 @@ class Scripts(Eggs):
 
 
         relative_paths = options.get(
-            'relative-paths',
-            buildout['buildout'].get('relative-paths', 'false')
-            )
+            'relative-paths', b_options.get('relative-paths', 'false'))
         if relative_paths == 'true':
-            options['buildout-directory'] = buildout['buildout']['directory']
+            options['buildout-directory'] = b_options['directory']
             self._relative_paths = options['buildout-directory']
         else:
             self._relative_paths = ''
@@ -128,12 +140,13 @@ class Scripts(Eggs):
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
+
     def install(self):
         reqs, ws = self.working_set()
         options = self.options
 
         scripts = options.get('scripts')
-        if scripts or scripts is None:
+        if scripts or scripts is None or options.get('interpreter'):
             if scripts is not None:
                 scripts = scripts.split()
                 scripts = dict([
@@ -149,7 +162,7 @@ class Scripts(Eggs):
                     raise zc.buildout.UserError("Invalid entry point")
                 reqs.append(parsed.groups())
 
-            if get_bool(options, 'dependent-scripts'):
+            if options.query_bool('dependent-scripts', 'false'):
                 # Generate scripts for all packages in the working set,
                 # except setuptools.
                 reqs = list(reqs)
@@ -157,32 +170,61 @@ class Scripts(Eggs):
                     name = dist.project_name
                     if name != 'setuptools' and name not in reqs:
                         reqs.append(name)
-
-            return zc.buildout.easy_install.scripts(
-                reqs, ws, options['executable'],
-                options['bin-directory'],
-                scripts=scripts,
-                extra_paths=self.extra_paths,
-                interpreter=options.get('interpreter'),
-                initialization=options.get('initialization', ''),
-                arguments=options.get('arguments', ''),
-                relative_paths=self._relative_paths,
-                )
-
+            return self._install(reqs, ws, scripts)
         return ()
 
     update = install
 
-def get_bool(options, name, default=False):
-    value = options.get(name)
-    if not value:
-        return default
-    if value == 'true':
-        return True
-    elif value == 'false':
-        return False
-    else:
-        raise zc.buildout.UserError(
-            "Invalid value for %s option: %s" % (name, value))
+    def _install(self, reqs, ws, scripts):
+        # Subclasses implement this.
+        raise NotImplementedError()
+
+
+class Scripts(ScriptBase):
+
+    def _install(self, reqs, ws, scripts):
+        options = self.options
+        return zc.buildout.easy_install.scripts(
+            reqs, ws, options['executable'],
+            options['bin-directory'],
+            scripts=scripts,
+            extra_paths=self.extra_paths,
+            interpreter=options.get('interpreter'),
+            initialization=options.get('initialization', ''),
+            arguments=options.get('arguments', ''),
+            relative_paths=self._relative_paths
+            )
 
 Egg = Scripts
+
+
+class _BackwardsSupportOption(UserDict.UserDict):
+
+    def __init__(self, data):
+        self.data = data # We want to show mutations to the underlying dict.
+
+    def query_bool(self, name, default=None):
+        """Given a name, return a boolean value for that name.
+
+        ``default``, if given, should be 'true', 'false', or None.
+        """
+        if default is not None:
+            value = self.setdefault(name, default)
+        else:
+            value = self.get(name)
+            if value is None:
+                return value
+        return _convert_bool(name, value)
+
+    def get_bool(self, name):
+        """Given a name, return a boolean value for that name.
+        """
+        return _convert_bool(name, self[name])
+
+
+def _convert_bool(name, value):
+    if value not in ('true', 'false'):
+        raise zc.buildout.UserError(
+            'Invalid value for %s option: %s' % (name, value))
+    else:
+        return value == 'true'

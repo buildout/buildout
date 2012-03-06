@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Zope Corporation and Contributors.
+# Copyright (c) 2009 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -45,11 +45,14 @@ class Download(object):
 
     Handles the download cache and offline mode.
 
-    Download(options=None, cache=None, namespace=None, hash_name=False)
+    Download(options=None, cache=None, namespace=None,
+             offline=False, fallback=False, hash_name=False, logger=None)
 
     options: mapping of buildout options (e.g. a ``buildout`` config section)
     cache: path to the download cache (excluding namespaces)
     namespace: namespace directory to use inside the cache
+    offline: whether to operate in offline mode
+    fallback: whether to use the cache as a fallback (try downloading first)
     hash_name: whether to use a hash of the URL as cache file name
     logger: an optional logger to receive download-related log messages
 
@@ -118,7 +121,7 @@ class Download(object):
         cached_path = os.path.join(cache_dir, cache_key)
 
         self.logger.debug('Searching cache at %s' % cache_dir)
-        if os.path.isfile(cached_path):
+        if os.path.exists(cached_path):
             is_temp = False
             if self.fallback:
                 try:
@@ -149,8 +152,11 @@ class Download(object):
         returned and the client code is responsible for cleaning it up.
 
         """
+        # Make sure the drive letter in windows-style file paths isn't
+        # interpreted as a URL scheme.
         if re.match(r"^[A-Za-z]:\\", url):
             url = 'file:' + url
+
         parsed_url = urlparse.urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
@@ -169,16 +175,19 @@ class Download(object):
         urllib._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
-            try:
-                tmp_path, headers = urllib.urlretrieve(url, tmp_path)
-                if not check_md5sum(tmp_path, md5sum):
-                    raise ChecksumError(
-                        'MD5 checksum mismatch downloading %r' % url)
-            finally:
-                os.close(handle)
-        except:
+            tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+            if not check_md5sum(tmp_path, md5sum):
+                raise ChecksumError(
+                    'MD5 checksum mismatch downloading %r' % url)
+        except IOError, e:
+            os.remove(tmp_path)
+            raise zc.buildout.UserError("Error downloading extends for URL "
+                              "%s: %r" % (url, e[1:3]))
+        except Exception, e:
             os.remove(tmp_path)
             raise
+        finally:
+            os.close(handle)
 
         if path:
             shutil.move(tmp_path, path)
@@ -244,8 +253,11 @@ def locate_at(source, dest):
     if dest is None or realpath(dest) == realpath(source):
         return source
 
-    try:
-        os.link(source, dest)
-    except (AttributeError, OSError):
-        shutil.copyfile(source, dest)
+    if os.path.isdir(source):
+        shutil.copytree(source, dest)
+    else:
+        try:
+            os.link(source, dest)
+        except (AttributeError, OSError):
+            shutil.copyfile(source, dest)
     return dest

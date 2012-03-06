@@ -254,6 +254,13 @@ ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
 
 >>> remove(path)
 
+If the file is completely missing it should notify the user of the error:
+
+>>> download(server_url+'bar.txt')
+Traceback (most recent call last):
+UserError: Error downloading extends for URL http://localhost/bar.txt: (404, 'Not Found')
+>>> ls(cache)
+
 Finally, let's see what happens if the download cache to be used doesn't exist
 as a directory in the file system yet:
 
@@ -536,6 +543,25 @@ conversions:
 >>> f.close()
 >>> path, is_temp = Download()(server_url+'foo.txt', md5(text).hexdigest())
 >>> remove(path)
+
+When "downloading" a directory given by file-system path or ``file:`` URL and
+using a download cache at the same time, the cached directory wasn't handled
+correctly. Consequently, the cache was defeated and an attempt to cache the
+directory a second time broke. This is how it should work:
+
+>>> download = Download(cache=cache)
+>>> dirpath = join(server_data, 'some_directory')
+>>> mkdir(dirpath)
+>>> dest, _ = download(dirpath)
+
+If we now modify the source tree, the second download will produce the
+original one from the cache:
+
+>>> mkdir(join(dirpath, 'foo'))
+>>> ls(dirpath)
+d foo
+>>> dest, _ = download(dirpath)
+>>> ls(dest)
 
 
 Clean up

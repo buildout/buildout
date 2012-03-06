@@ -56,10 +56,9 @@ The bin directory contains scripts.
     -  setuptools-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
-The develop-eggs and parts directories are initially empty:
+The develop-eggs directory is initially empty:
 
     >>> ls(sample_buildout, 'develop-eggs')
-    >>> ls(sample_buildout, 'parts')
 
 The develop-eggs directory holds egg links for software being
 developed in the buildout.  We separate develop-eggs and other eggs to
@@ -68,6 +67,12 @@ example, a common developer technique is to define a common eggs
 directory in their home that all non-develop eggs are stored in.  This
 allows larger buildouts to be set up much more quickly and saves disk
 space.
+
+The parts directory just contains some helpers for the buildout script
+itself.
+
+    >>> ls(sample_buildout, 'parts')
+    d  buildout
 
 The parts directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would
@@ -458,7 +463,7 @@ leave previously created paths in place:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
       ...
@@ -490,7 +495,7 @@ If we fix the typo:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -567,7 +572,7 @@ When we rerun the buildout:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -576,7 +581,7 @@ When we rerun the buildout:
 .. Wait for the file to really disappear. My linux is weird.
 
     >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
-    ...            timeout=100)
+    ...            timeout=200)
 
 we get the same error, but we don't get the directory left behind:
 
@@ -648,7 +653,7 @@ directories will be created:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -724,6 +729,14 @@ COMMAND_LINE_VALUE).
     ==================
     <BLANKLINE>
     [buildout]
+    accept-buildout-test-releases= false
+        DEFAULT_VALUE
+    allow-hosts= *
+        DEFAULT_VALUE
+    allow-picked-versions= true
+        DEFAULT_VALUE
+    allowed-eggs-from-site-packages= *
+        DEFAULT_VALUE
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
@@ -734,7 +747,15 @@ COMMAND_LINE_VALUE).
         COMPUTED_VALUE
     eggs-directory= eggs
         DEFAULT_VALUE
+    exec-sitecustomize= true
+        DEFAULT_VALUE
     executable= ...
+        DEFAULT_VALUE
+    find-links=
+        DEFAULT_VALUE
+    include-site-packages= true
+        DEFAULT_VALUE
+    install-from-cache= false
         DEFAULT_VALUE
     installed= .installed.cfg
         DEFAULT_VALUE
@@ -742,11 +763,25 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     log-level= INFO
         DEFAULT_VALUE
+    newest= true
+        DEFAULT_VALUE
+    offline= false
+        DEFAULT_VALUE
     parts= data-dir
         /sample-buildout/buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
+    prefer-final= false
+        DEFAULT_VALUE
     python= buildout
+        DEFAULT_VALUE
+    relative-paths= false
+        DEFAULT_VALUE
+    socket-timeout=
+        DEFAULT_VALUE
+    unzip= false
+        DEFAULT_VALUE
+    use-dependency-links= true
         DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
@@ -985,7 +1020,7 @@ Extending sections (macros)
 ---------------------------
 
 A section (other than the buildout section) can extend one or more
-other sections using the ``<`` option.  Options from the referenced
+other sections using the ``<=`` option.  Options from the referenced
 sections are copied to the refering section *before* variable
 substitution.  This, together with the ability to refer to variables
 of the current section allows sections to be used as macros.
@@ -2194,17 +2229,25 @@ database is shown.
 
     >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools'.
-    We have a develop egg: zc.buildout 1.0.0.
+    We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    Picked: setuptools = V.V
     <BLANKLINE>
     Configuration data:
     [buildout]
+    accept-buildout-test-releases = false
+    allow-hosts = *
+    allow-picked-versions = true
+    allowed-eggs-from-site-packages = *
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
-    executable = /usr/local/bin/python2.3
+    exec-sitecustomize = true
+    executable = python
+    find-links =
+    include-site-packages = true
+    install-from-cache = false
     installed = /sample-buildout/.installed.cfg
     log-format =
     log-level = INFO
@@ -2212,13 +2255,49 @@ database is shown.
     offline = false
     parts =
     parts-directory = /sample-buildout/parts
+    prefer-final = false
     python = buildout
+    relative-paths = false
+    socket-timeout =
+    unzip = false
+    use-dependency-links = true
     verbosity = 20
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
+
+allowed-eggs-from-site-packages
+    Sometimes you need or want to control what eggs from site-packages are
+    used. The allowed-eggs-from-site-packages option allows you to specify a
+    whitelist of project names that may be included from site-packages.  You
+    can use globs to specify the value.  It defaults to a single value of '*',
+    indicating that any package may come from site-packages.
+
+    Here's a usage example::
+
+        [buildout]
+        ...
+
+        allowed-eggs-from-site-packages =
+            demo
+            bigdemo
+            zope.*
+
+    This option interacts with the ``include-site-packages`` option in the
+    following ways.
+
+    If ``include-site-packages`` is true, then
+    ``allowed-eggs-from-site-packages`` filters what eggs from site-packages
+    may be chosen.  Therefore, if ``allowed-eggs-from-site-packages`` is an
+    empty list, then no eggs from site-packages are chosen, but site-packages
+    will still be included at the end of path lists.
+
+    If ``include-site-packages`` is false, the value of
+    ``allowed-eggs-from-site-packages`` is irrelevant.
+
+    See the ``include-site-packages`` description for more information.
 
 bin-directory
    The directory path where scripts are written.  This can be a
@@ -2240,9 +2319,26 @@ eggs-directory
    *never* be modified.  This can be a relative path, which is
    interpreted relative to the directory option.
 
+exec-sitecustomize
+    Normally the Python's real sitecustomize module is processed.
+    If you do not want it to be processed in order to increase the
+    repeatability of your buildout, set this value to 'false'.  This will
+    be honored irrespective of the setting for include-site-packages.
+    This option will be honored by some recipes and not others.
+    z3c.recipe.scripts honors this and zc.recipe.egg does not, for
+    instance.
+
 executable
    The Python executable used to run the buildout.  See the python
    option below.
+
+include-site-packages
+    You can choose not to have the site-packages of the underlying Python
+    available to your script or interpreter, in addition to the packages
+    from your eggs.  This can increase repeatability for your buildout.
+    This option will be better used by some recipes than others.
+    z3c.recipe.scripts honors this fully and zc.recipe.egg only
+    partially, for instance.
 
 installed
    The file path where information about the results of the previous
@@ -2273,6 +2369,33 @@ python
    Python executable.  By default, the buildout section defines the
    default Python as the Python used to run the buildout.
 
+relative-paths
+    The paths generated by zc.buildout are absolute by default, and this
+    option is ``false``.  However, if you set this value to be ``true``,
+    bin/buildout will be generated with code that makes the paths relative.
+    Some recipes, such as zc.recipe.egg and z3c.recipe.scripts, honor this
+    value as well.
+
+unzip
+    By default, zc.buildout doesn't unzip zip-safe eggs ("unzip = false").
+    This follows the policy followed by setuptools itself.  Experience shows
+    this policy to to be inconvenient.  Zipped eggs make debugging more
+    difficult and often import more slowly.  You can include an unzip option in
+    the buildout section to change the default unzipping policy ("unzip =
+    true").
+
+use-dependency-links
+    By default buildout will obey the setuptools dependency_links metadata
+    when it looks for dependencies. This behavior can be controlled with
+    the use-dependency-links buildout option::
+
+      [buildout]
+      ...
+      use-dependency-links = false
+
+    The option defaults to true. If you set it to false, then dependency
+    links are only looked for in the locations specified by find-links.
+
 verbosity
    A log-level adjustment.  Typically, this is set via the -q and -v
    command-line options.
@@ -2297,7 +2420,15 @@ local buildout scripts.
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Generated script '/sample-bootstrapped/bin/buildout'.
 
-Note that a basic setup.cfg was created for us.
+Note that a basic setup.cfg was created for us.  This is because we
+provided an 'init' argument.  By default, the generated
+``setup.cfg`` is as minimal as it could be:
+
+    >>> cat(sample_bootstrapped, 'setup.cfg')
+    [buildout]
+    parts =
+
+We also get other buildout artifacts:
 
     >>> ls(sample_bootstrapped)
     d  bin
@@ -2319,8 +2450,57 @@ buildout or setuptools egg could be installed in the develop-eggs
 directory if the original buildout had develop eggs for either
 buildout or setuptools.)
 
-Note that the buildout script was installed but not run.  To run
-the buildout, we'd have to run the installed buildout script.
+If relative-paths is ``true``, the buildout script uses relative paths.
+
+    >>> write(sample_bootstrapped, 'setup.cfg',
+    ... '''
+    ... [buildout]
+    ... relative-paths = true
+    ... parts =
+    ... ''')
+
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' bootstrap'),
+    Generated script '/sample-bootstrapped/bin/buildout'.
+
+    >>> buildout_script = join(sample_bootstrapped, 'bin', 'buildout')
+    >>> import sys
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
+    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    #!... -S
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+        join(base, 'parts/buildout'),
+        ]
+    <BLANKLINE>
+    <BLANKLINE>
+    import os
+    path = sys.path[0]
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(zc.buildout.buildout.main())
+    <BLANKLINE>
+
+
+Note that, in the above two examples, the buildout script was installed
+but not run.  To run the buildout, we'd have to run the installed
+buildout script.
 
 If we have an existing buildout that already has a buildout.cfg, we'll
 normally use the bootstrap command instead of init.  It will complain
@@ -2350,6 +2530,93 @@ if there isn't a configuration file:
     Creating directory '/sample-bootstrapped2/develop-eggs'.
     Generated script '/sample-bootstrapped2/bin/buildout'.
 
+Similarly, if there is a configuration file and we use the init
+command, we'll get an error that the configuration file already
+exists:
+
+    >>> print system(buildout
+    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
+    ...              +' init'),
+    While:
+      Initializing.
+    Error: '/sample-bootstrapped/setup.cfg' already exists.
+
+Initial eggs
+------------
+
+When using the ``init`` command, you can specify distribution requirements
+or paths to use:
+
+    >>> cd(sample_bootstrapped)
+    >>> remove('setup.cfg')
+    >>> print system(buildout + ' -csetup.cfg init demo other ./src'),
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Generated script '/sample-bootstrapped/bin/buildout'.
+    Getting distribution for 'zc.recipe.egg'.
+    Got zc.recipe.egg 1.3.3dev.
+    Installing py.
+    Getting distribution for 'demo'.
+    Got demo 0.4c1.
+    Getting distribution for 'other'.
+    Got other 1.0.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+This causes a ``py`` part to be included that sets up a custom python
+interpreter with the given requirements or paths:
+
+    >>> cat('setup.cfg')
+    [buildout]
+    parts = py
+    <BLANKLINE>
+    [py]
+    recipe = zc.recipe.egg
+    interpreter = py
+    eggs =
+      demo
+      other
+    extra-paths =
+      ./src
+
+Passing requirements or paths causes the the builout to be run as part
+of initialization.  In the example above, we got a number of
+distributions installed and 2 scripts generated.  The first, ``demo``,
+was defined by the ``demo`` project. The second, ``py`` was defined by
+the generated configuration.  It's a "custom interpreter" that behaves
+like a standard Python interpeter, except that includes the specified
+eggs and extra paths in it's Python path.
+
+We specified a source directory that didn't exist. Buildout created it
+for us:
+
+    >>> ls('.')
+    -  .installed.cfg
+    d  bin
+    d  develop-eggs
+    d  eggs
+    d  parts
+    -  setup.cfg
+    d  src
+
+    >>> uncd()
+
+.. Make sure it works if the dir is already there:
+
+    >>> cd(sample_bootstrapped)
+    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> remove('setup.cfg')
+    >>> print system(buildout + ' -csetup.cfg init demo other ./src'),
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Installing py.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+.. cleanup
+
+    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> uncd()
 
 Newest and Offline Modes
 ------------------------
@@ -2373,25 +2640,33 @@ the buildout -o option.
 Preferring Final Releases
 -------------------------
 
-Currently, when searching for new releases, the newest available
-release is used.  This isn't usually ideal, as you may get a
-development release or alpha releases not ready to be widely used.
-You can request that final releases be preferred using the prefer
-final option in the buildout section::
+Currently, when searching for new releases of your project's
+dependencies, the newest available release is used.  This isn't usually
+ideal, as you may get a development release or alpha releases not ready
+to be widely used. You can request that final releases be preferred
+using the ``prefer-final`` option in the buildout section::
 
   [buildout]
   ...
   prefer-final = true
 
-When the prefer-final option is set to true, then when searching for
+When the ``prefer-final`` option is set to true, then when searching for
 new releases, final releases are preferred.  If there are final
 releases that satisfy distribution requirements, then those releases
-are used even if newer non-final releases are available.  The buildout
-prefer-final option can be used to override this behavior.
+are used even if newer non-final releases are available.
 
-In buildout version 2, final releases will be preferred by default.
-You will then need to use a false value for prefer-final to get the
-newest releases.
+In buildout version 2, all final releases will be preferred by
+default--that is ``prefer-final`` will also default to 'true'. You will
+then need to use a 'false' value for ``prefer-final`` to get the newest
+releases.
+
+A separate option controls the behavior of the build system itself.
+When buildout looks for recipes, extensions, and for updates to itself,
+it does prefer final releases by default, as of the 1.5.0 release.  The
+``accept-buildout-test-releases`` option will let you override this behavior.
+However, it is typically changed by the --accept-buildout-test-releases
+option to the bootstrap script, since bootstrapping is the first step to
+selecting a buildout.
 
 Finding distributions
 ---------------------

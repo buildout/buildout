@@ -1,10 +1,10 @@
 #############################################################################
 #
-# Copyright (c) 2004-2009 Zope Corporation and Contributors.
+# Copyright (c) 2004-2009 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
-# Version 2.0 (ZPL).  A copy of the ZPL should accompany this distribution.
+# Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
 # THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
 # WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
@@ -28,6 +28,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import textwrap
 import threading
 import time
 import urllib2
@@ -38,6 +39,18 @@ from zc.buildout.rmtree import rmtree
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
+
+# Only some unixes allow scripts in shebang lines:
+script_in_shebang = is_win32
+if sys.platform == 'linux2':
+    f = subprocess.Popen('uname -r', shell=True, stdout=subprocess.PIPE).stdout
+    r = f.read().strip()
+    f.close()
+    r = tuple(map(int, re.match(r'\d+(\.\d+)*', r).group(0).split('.')))
+    if r >= (2, 6, 27, 9):
+        # http://www.in-ulm.de/~mascheck/various/shebang/
+        script_in_shebang = True
+
 
 setuptools_location = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
@@ -90,12 +103,16 @@ def write(dir, *args):
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
 def system(command, input=''):
+    env = dict(os.environ)
+    env['COLUMNS'] = '80'
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         close_fds=MUST_CLOSE_FDS)
+                         close_fds=MUST_CLOSE_FDS,
+                         env=env,
+                         )
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input)
@@ -104,6 +121,16 @@ def system(command, input=''):
     o.close()
     e.close()
     return result
+
+def call_py(interpreter, cmd, flags=None):
+    if sys.platform == 'win32':
+        args = ['"%s"' % arg for arg in (interpreter, flags, cmd) if arg]
+        args.insert(-1, '"-c"')
+        return system('"%s"' % ' '.join(args))
+    else:
+        cmd = repr(cmd)
+        return system(
+            ' '.join(arg for arg in (interpreter, flags, '-c', cmd) if arg))
 
 def get(url):
     return urllib2.urlopen(url).read()
@@ -116,14 +143,22 @@ def _runsetup(setup, executable, *args):
     args = [zc.buildout.easy_install._safe_arg(arg)
             for arg in args]
     args.insert(0, '-q')
-    args.append(dict(os.environ, PYTHONPATH=setuptools_location))
+    env = dict(os.environ)
+    if executable == sys.executable:
+        env['PYTHONPATH'] = setuptools_location
+    # else pass an executable that has setuptools! See testselectingpython.py.
 
     here = os.getcwd()
     try:
         os.chdir(d)
-        os.spawnle(os.P_WAIT, executable,
-                   zc.buildout.easy_install._safe_arg(executable),
-                   setup, *args)
+        p = subprocess.Popen(
+            [zc.buildout.easy_install._safe_arg(executable), setup] + args,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            close_fds=True, env=env)
+        out = p.stdout.read()
+        if p.wait():
+            print out
+
         if os.path.exists('build'):
             rmtree('build')
     finally:
@@ -135,12 +170,19 @@ def sdist(setup, dest):
 def bdist_egg(setup, executable, dest):
     _runsetup(setup, executable, 'bdist_egg', '-d', dest)
 
+def sys_install(setup, dest):
+    _runsetup(setup, sys.executable, 'install', '--install-purelib', dest,
+              '--record', os.path.join(dest, '__added_files__'),
+              '--single-version-externally-managed')
+
 def find_python(version):
-    e = os.environ.get('PYTHON%s' % version)
+    env_friendly_version = ''.join(version.split('.'))
+    
+    e = os.environ.get('PYTHON%s' % env_friendly_version)
     if e is not None:
         return e
     if is_win32:
-        e = '\Python%s%s\python.exe' % tuple(version.split('.'))
+        e = '\Python%s\python.exe' % env_friendly_version
         if os.path.exists(e):
             return e
     else:
@@ -185,9 +227,10 @@ def find_python(version):
 
     raise ValueError(
         "Couldn't figure out the executable for Python %(version)s.\n"
-        "Set the environment variable PYTHON%(version)s to the location\n"
+        "Set the environment variable PYTHON%(envversion)s to the location\n"
         "of the Python %(version)s executable before running the tests."
-        % {'version': version})
+        % {'version': version,
+           'envversion': env_friendly_version})
 
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:
@@ -202,14 +245,64 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+def get_installer_values():
+    """Get the current values for the easy_install module.
+
+    This is necessary because instantiating a Buildout will force the
+    Buildout's values on the installer.
+
+    Returns a dict of names-values suitable for set_installer_values."""
+    names = ('default_versions', 'download_cache', 'install_from_cache',
+             'prefer_final', 'include_site_packages',
+             'allowed_eggs_from_site_packages', 'use_dependency_links',
+             'allow_picked_versions', 'always_unzip'
+            )
+    values = {}
+    for name in names:
+        values[name] = getattr(zc.buildout.easy_install, name)()
+    return values
+
+def set_installer_values(values):
+    """Set the given values on the installer."""
+    for name, value in values.items():
+        getattr(zc.buildout.easy_install, name)(value)
+
+def make_buildout(executable=None):
+    """Make a buildout that uses this version of zc.buildout."""
+    # Create a basic buildout.cfg to avoid a warning from buildout.
+    open('buildout.cfg', 'w').write(
+        "[buildout]\nparts =\n"
+        )
+    # Get state of installer defaults so we can reinstate them (instantiating
+    # a Buildout will force the Buildout's defaults on the installer).
+    installer_values = get_installer_values()
+    # Use the buildout bootstrap command to create a buildout
+    config = [
+        ('buildout', 'log-level', 'WARNING'),
+        # trick bootstrap into putting the buildout develop egg
+        # in the eggs dir.
+        ('buildout', 'develop-eggs-directory', 'eggs'),
+        ]
+    if executable is not None:
+        config.append(('buildout', 'executable', executable))
+    zc.buildout.buildout.Buildout(
+        'buildout.cfg', config,
+        user_defaults=False,
+        ).bootstrap([])
+    # Create the develop-eggs dir, which didn't get created the usual
+    # way due to the trick above:
+    os.mkdir('develop-eggs')
+    # Reinstate the default values of the installer.
+    set_installer_values(installer_values)
+
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []
     test.globs['register_teardown'] = register_teardown = __tear_downs.append
 
-    prefer_final = zc.buildout.easy_install.prefer_final()
+    installer_values = get_installer_values()
     register_teardown(
-        lambda: zc.buildout.easy_install.prefer_final(prefer_final)
+        lambda: set_installer_values(installer_values)
         )
 
     here = os.getcwd()
@@ -246,6 +339,7 @@ def buildoutSetUp(test):
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
     os.environ['buildout-testing-index-url'] = (
         zc.buildout.easy_install.default_index_url)
+    os.environ.pop('PYTHONPATH', None)
 
     def tmpdir(name):
         path = os.path.join(base, name)
@@ -255,33 +349,68 @@ def buildoutSetUp(test):
     sample = tmpdir('sample-buildout')
 
     os.chdir(sample)
-
-    # Create a basic buildout.cfg to avoid a warning from buildout:
-    open('buildout.cfg', 'w').write(
-        "[buildout]\nparts =\n"
-        )
-
-    # Use the buildout bootstrap command to create a buildout
-    zc.buildout.buildout.Buildout(
-        'buildout.cfg',
-        [('buildout', 'log-level', 'WARNING'),
-         # trick bootstrap into putting the buildout develop egg
-         # in the eggs dir.
-         ('buildout', 'develop-eggs-directory', 'eggs'),
-         ]
-        ).bootstrap([])
-
-
-
-    # Create the develop-eggs dir, which didn't get created the usual
-    # way due to the trick above:
-    os.mkdir('develop-eggs')
+    make_buildout()
 
     def start_server(path):
         port, thread = _start_server(path, name=path)
         url = 'http://localhost:%s/' % port
         register_teardown(lambda: stop_server(url, thread))
         return url
+
+    def make_py(initialization=''):
+        """Returns paths to new executable and to its site-packages.
+        """
+        buildout = tmpdir('executable_buildout')
+        site_packages_dir = os.path.join(buildout, 'site-packages')
+        mkdir(site_packages_dir)
+        old_wd = os.getcwd()
+        os.chdir(buildout)
+        make_buildout()
+        # Normally we don't process .pth files in extra-paths.  We want to
+        # in this case so that we can test with setuptools system installs
+        # (--single-version-externally-managed), which use .pth files.
+        initialization = (
+            ('import sys\n'
+             'import site\n'
+             'known_paths = set(sys.path)\n'
+             'site_packages_dir = %r\n'
+             'site.addsitedir(site_packages_dir, known_paths)\n'
+            ) % (site_packages_dir,)) + initialization
+        initialization = '\n'.join(
+            '  ' + line for line in initialization.split('\n'))
+        install_develop(
+            'zc.recipe.egg', os.path.join(buildout, 'develop-eggs'))
+        install_develop(
+            'z3c.recipe.scripts', os.path.join(buildout, 'develop-eggs'))
+        write('buildout.cfg', textwrap.dedent('''\
+            [buildout]
+            parts = py
+            include-site-packages = false
+            exec-sitecustomize = false
+
+            [py]
+            recipe = z3c.recipe.scripts
+            interpreter = py
+            initialization =
+            %(initialization)s
+            extra-paths = %(site-packages)s
+            eggs = setuptools
+            ''') % {
+                'initialization': initialization,
+                'site-packages': site_packages_dir})
+        system(os.path.join(buildout, 'bin', 'buildout'))
+        os.chdir(old_wd)
+        return (
+            os.path.join(buildout, 'bin', 'py'), site_packages_dir)
+
+    cdpaths = []
+    def cd(*path):
+        path = os.path.join(*path)
+        cdpaths.append(os.path.abspath(os.getcwd()))
+        os.chdir(path)
+
+    def uncd():
+        os.chdir(cdpaths.pop())
 
     test.globs.update(dict(
         sample_buildout = sample,
@@ -293,17 +422,17 @@ def buildoutSetUp(test):
         tmpdir = tmpdir,
         write = write,
         system = system,
+        call_py = call_py,
         get = get,
-        cd = (lambda *path: os.chdir(os.path.join(*path))),
+        cd = cd, uncd = uncd,
         join = os.path.join,
         sdist = sdist,
         bdist_egg = bdist_egg,
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
+        make_py = make_py
         ))
-
-    zc.buildout.easy_install.prefer_final(prefer_final)
 
 def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
@@ -492,10 +621,14 @@ def _normalize_path(match):
             path = path[1:]
     return '/' + path.replace(os.path.sep, '/')
 
+if sys.platform == 'win32':
+    sep = r'[\\/]' # Windows uses both sometimes.
+else:
+    sep = re.escape(os.path.sep)
 normalize_path = (
     re.compile(
-        r'''[^'" \t\n\r]+\%(sep)s_[Tt][Ee][Ss][Tt]_\%(sep)s([^"' \t\n\r]+)'''
-        % dict(sep=os.path.sep)),
+        r'''[^'" \t\n\r!]+%(sep)s_[Tt][Ee][Ss][Tt]_%(sep)s([^"' \t\n\r]+)'''
+        % dict(sep=sep)),
     _normalize_path,
     )
 

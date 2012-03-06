@@ -1,0 +1,234 @@
+System Python and zc.buildout 1.5
+*********************************
+
+The 1.5 line of zc.buildout introduced a number of changes.
+
+Problems
+========
+
+As usual, please send questions and comments to the `distutils SIG
+mailing list <mailto://distutils-sig@python.org>`_. Report bugs using
+the `zc.buildout Launchpad Bug Tracker
+<https://launchpad.net/zc.buildout/+bugs>`_.
+
+If problems are keeping you from your work, here's an easy way to
+revert to the old code temporarily: switch to a custom "emergency"
+bootstrap script, available from
+http://svn.zope.org/repos/main/zc.buildout/branches/1.4/bootstrap/bootstrap.py .
+
+This customized script will select zc.buildout 1.4.4 by default.
+zc.buildout 1.4.4 will not upgrade itself unless you explicitly specify
+a new version.  It will also prefer older versions of zc.recipe.egg and
+some other common recipes.  If you have trouble with other recipes,
+consider using a standard buildout "versions" section to specify older
+versions of these, as described in the Buildout documentation
+(http://pypi.python.org/pypi/zc.buildout#repeatable-buildouts-controlling-eggs-used).
+
+Working with a System Python
+============================
+
+While there are a number of new features available in zc.buildout 1.5,
+the biggest is that Buildout itself supports usage with a system Python.
+This can work if you follow a couple of simple rules.
+
+1. Use the new bootstrap.py (available from
+   svn://svn.zope.org/repos/main/zc.buildout/trunk/bootstrap/bootstrap.py).
+
+2. Use buildout recipes that have been upgraded to work with zc.buildout 1.5
+   and higher.  Specifically, they should use
+   ``zc.buildout.easy_install.sitepackage_safe_scripts`` to generate
+   their scripts, if any, rather than ``zc.buildout.easy_install.scripts``.
+   See the `Recipes That Support a System Python`_ section below for more
+   details on recipes that are available as of this writing, and
+   `Updating Recipes to Support a System Python`_ for instructions on
+   how to update a recipe.  Note that you should generally only need to
+   update recipes that generate scripts.
+
+You can then use ``include-site-packages = false`` and
+``exec-sitecustomize = false`` buildout options to eliminate access to
+your Python's site packages and not execute its sitecustomize file, if
+it exists, respectively.
+
+Alternately, you can use the ``allowed-eggs-from-site-packages`` buildout
+option as a glob-aware whitelist of eggs that may come from site-packages.
+This value defaults to "*", accepting all eggs.
+
+It's important to note that recipes not upgraded for zc.buildout 1.5.0
+should continue to work--just without internal support for a system Python.
+
+Using a system Python is inherently fragile.  Using a clean,
+freshly-installed Python without customization in site-packages is more
+robust and repeatable.  See some of the regression tests added to the
+1.5.0 line for the kinds of issues that you can encounter with a system
+Python, and see
+http://pypi.python.org/pypi/z3c.recipe.scripts#including-site-packages-and-sitecustomize
+for more discussion.
+
+However, using a system Python can be very convenient, and the
+zc.buildout code for this feature has been tested by many users already.
+Moreover, it has automated tests to exercise the problems that have been
+encountered and fixed.  Many people rely on it.
+
+Recipes That Support a System Python
+====================================
+
+zc.recipe.egg continues to generate old-style scripts that are not safe
+for use with a system Python.  This was done for backwards
+compatibility, because it is integral to so many buildouts and used as a
+dependency of so many other recipes.
+
+If you want to generate new-style scripts that do support system Python
+usage, use z3c.recipe.scripts instead
+(http://pypi.python.org/pypi/z3c.recipe.scripts). z3c.recipe.scripts has
+the same script and interpreter generation options as zc.recipe.egg,
+plus a few more for the new features mentioned above.  In the simplest
+case, you should be able to simply change ``recipe = zc.recipe.egg`` to
+``recipe = z3c.recipe.scripts`` in the pertinent sections of your
+buildout configuration and your generated scripts will work with a system
+Python.
+
+Other updated recipes include zc.recipe.testrunner 1.4.0 and
+z3c.recipe.tag 0.4.0.  Others should be updated soon: see their change
+documents for details, or see `Updating Recipes to Support a System
+Python`_ for instructions on how to update recipes yourself.
+
+Templates for creating Python scripts with the z3c.recipe.filetemplate
+recipe can be easily changed to support a system Python.
+
+- If you don't care about supporting relative paths, simply using a
+  generated interpreter with the eggs you want should be sufficient, as
+  it was before. For instance, if the interpreter is named "py", use
+  ``#!${buildout:bin-directory/py}`` or ``#!/usr/bin/env
+  ${buildout:bin-directory/py}``).
+
+- If you do care about relative paths,  (``relative-paths = true`` in
+  your buildout configuration), then z3c.recipe.scripts does require a
+  bit more changes, as is usual for the relative path support in that
+  package.  First, use z3c.recipe.scripts to generate a script or
+  interpreter with the dependencies you want.  This will create a
+  directory in ``parts`` that has a site.py and sitecustomize.py.  Then,
+  begin your script as in the snippet below.  The example assumes that
+  the z3c.recipe.scripts generated were from a Buildout configuration
+  section labeled "scripts": adjust accordingly.
+
+  ::
+
+    #!${buildout:executable} -S
+    ${python-relative-path-setup}
+    import sys
+    sys.path.insert(0, ${scripts:parts-directory|path-repr})
+    import site
+
+Updating Recipes to Support a System Python
+===========================================
+
+You should generally only need to update recipes that generate scripts.
+These recipes need to change from using ``zc.buildout.easy_install.scripts``
+to be using ``zc.buildout.easy_install.sitepackage_safe_scripts``.
+The signatures of the two functions are different.  Please compare::
+
+    def scripts(
+        reqs, working_set, executable, dest,
+        scripts=None,
+        extra_paths=(),
+        arguments='',
+        interpreter=None,
+        initialization='',
+        relative_paths=False,
+        ):
+
+    def sitepackage_safe_scripts(
+        dest, working_set, executable, site_py_dest,
+        reqs=(),
+        scripts=None,
+        interpreter=None,
+        extra_paths=(),
+        initialization='',
+        include_site_packages=False,
+        exec_sitecustomize=False,
+        relative_paths=False,
+        script_arguments='',
+        script_initialization='',
+        ):
+
+In most cases, the arguments are merely reordered.  The ``reqs``
+argument is no longer required in order to make it easier to generate an
+interpreter alone.  The ``arguments`` argument was renamed to
+``script_arguments`` to clarify that it did not affect interpreter
+generation.
+
+The only new required argument is ``site_py_dest``.  It must be the path
+to a directory in which the customized site.py and sitecustomize.py
+files will be written.  A typical generation in a recipe will look like
+this.
+
+(In the recipe's __init__ method...)
+
+::
+
+        self.options = options
+        b_options = buildout['buildout']
+        options['parts-directory'] = os.path.join(
+            b_options['parts-directory'], self.name)
+
+(In the recipe's install method...)
+
+::
+
+        options = self.options
+        generated = []
+        if not os.path.exists(options['parts-directory']):
+            os.mkdir(options['parts-directory'])
+            generated.append(options['parts-directory'])
+
+Then ``options['parts-directory']`` can be used for the ``site_py_dest``
+value.
+
+If you want to support the other arguments (``include_site_packages``,
+``exec_sitecustomize``, ``script_initialization``, as well as the
+``allowed-eggs-from-site-packages`` option),  you might want to look at
+some of the code in
+svn://svn.zope.org/repos/main/zc.buildout/trunk/z3c.recipe.scripts\_/src/z3c/recipe/scripts/scripts.py .
+You might even be able to adopt some of it by subclassing or delegating.
+The Scripts class in that file is the closest to what you might be used
+to from zc.recipe.egg.
+
+Important note for recipe authors: As of buildout 1.5.2, the code in
+recipes is *always run with the access to the site-packages as
+configured in the buildout section*.
+
+virtualenv
+==========
+
+Using virtualenv (http://pypi.python.org/pypi/virtualenv) with the
+--no-site-packages option already provided a simple way of using a
+system Python.  This is intended to continue to work, and some automated
+tests exist to demonstrate this.
+
+However, it is only supported to the degree that people have found it to
+work in the past.  The existing Buildout tests for virtualenv are only
+for problems encountered previously.  They are very far from
+comprehensive.
+
+Using Buildout with a system python has at least three advantages over
+using Buildout in conjunction with virtualenv.  They may or may not be
+pertinent to your desired usage.
+
+- Unlike ``virtualenv --no-site-packages``, Buildout's support allows you
+  to choose to let packages from your system Python be available to your
+  software (see ``include-site-packages`` in
+  http://pypi.python.org/pypi/z3c.recipe.scripts).
+
+  You can even specify which eggs installed in your system Python can be
+  allowed to fulfill some of your packages' dependencies (see
+  ``allowed-eggs-from-site-packages`` in
+  http://pypi.python.org/pypi/z3c.recipe.scripts).
+
+  At the expense of some repeatability and platform dependency, this
+  flexibility means that, for instance, you can rely on
+  difficult-to-build eggs like lxml coming from your system Python.
+
+- Buildout's implementation has a full set of automated tests.
+
+- An integral Buildout implementation means fewer steps and fewer dependencies
+  to work with a system Python.

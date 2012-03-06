@@ -89,6 +89,14 @@ use_dependency_links
    for using dependency_links in preference to other
    locations. Defaults to true.
 
+include_site_packages
+    A flag indicating whether Python's non-standard-library packages should
+    be available for finding dependencies.  Defaults to true.
+
+    Paths outside of Python's standard library--or more precisely, those that
+    are not included when Python is started with the -S argument--are loosely
+    referred to as "site-packages" here.
+
 relative_paths
    Adjust egg paths so they are relative to the script path.  This
    allows scripts to work when scripts and eggs are moved, as long as
@@ -214,7 +222,9 @@ dependencies.  We might do this to specify a specific version.
     d  other-1.0-py2.4.egg
 
 We can request that eggs be unzipped even if they are zip safe.  This
-can be useful when debugging.
+can be useful when debugging.  (Note that Distribute will unzip eggs by
+default, so if you are using Distribute, most or all eggs will already be
+unzipped without this flag.)
 
     >>> rmdir(dest)
     >>> dest = tmpdir('sample-install')
@@ -399,6 +409,68 @@ dictionary:
     >>> [d.version for d in ws]
     ['0.3', '1.1']
 
+Dependencies in Site Packages
+-----------------------------
+
+Paths outside of Python's standard library--or more precisely, those that are
+not included when Python is started with the -S argument--are loosely referred
+to as "site-packages" here.  These site-packages are searched by default for
+distributions.  This can be disabled, so that, for instance, a system Python
+can be used with buildout, cleaned of any packages installed by a user or
+system package manager.
+
+The default behavior can be controlled and introspected using
+zc.buildout.easy_install.include_site_packages.
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    True
+
+Here's an example of using a Python executable that includes our dependencies.
+
+Our "py_path" will have the "demoneeded," and "demo" packages available.
+ We'll simply be asking for "demoneeded" here, but without any external
+ index or links.
+
+    >>> from zc.buildout.tests import create_sample_sys_install
+    >>> py_path, site_packages_path = make_py()
+    >>> create_sample_sys_install(site_packages_path)
+
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None)
+    >>> [dist.project_name for dist in workingset]
+    ['demoneeded']
+
+That worked fine.  Let's try again with site packages not allowed.  We'll
+change the policy by changing the default.  Notice that the function for
+changing the default value returns the previous value.
+
+    >>> zc.buildout.easy_install.include_site_packages(False)
+    True
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    False
+
+    >>> zc.buildout.easy_install.clear_index_cache()
+    >>> rmdir(example_dest)
+    >>> example_dest = tmpdir('site-packages-example-install')
+    >>> workingset = zc.buildout.easy_install.install(
+    ...     ['demoneeded'], example_dest, links=[], executable=py_path,
+    ...     index=None)
+    Traceback (most recent call last):
+        ...
+    MissingDistribution: Couldn't find a distribution for 'demoneeded'.
+    >>> zc.buildout.easy_install.clear_index_cache()
+
+Now we'll reset the default.
+
+    >>> zc.buildout.easy_install.include_site_packages(True)
+    False
+
+    >>> zc.buildout.easy_install.include_site_packages()
+    True
+
 Dependency links
 ----------------
 
@@ -521,25 +593,38 @@ To return the dependency_links behavior to normal call the function again.
 Script generation
 -----------------
 
-The easy_install module provides support for creating scripts from
-eggs.  It provides a function similar to setuptools except that it
-provides facilities for baking a script's path into the script.  This
-has two advantages:
+The easy_install module provides support for creating scripts from eggs.
+It provides two competing functions.  One, ``scripts``, is a
+well-established approach to generating reliable scripts with a "clean"
+Python--e.g., one that does not have any packages in its site-packages.
+The other, ``sitepackage_safe_scripts``, is newer, a bit trickier, and is
+designed to work with a Python that has code in its site-packages, such
+as a system Python.
+
+Both are similar to setuptools except that they provides facilities for
+baking a script's path into the script.  This has two advantages:
 
 - The eggs to be used by a script are not chosen at run time, making
   startup faster and, more importantly, deterministic.
 
-- The script doesn't have to import pkg_resources because the logic
-  that pkg_resources would execute at run time is executed at
-  script-creation time.
+- The script doesn't have to import pkg_resources because the logic that
+  pkg_resources would execute at run time is executed at script-creation
+  time.  (There is an exception in ``sitepackage_safe_scripts`` if you
+  want to have your Python's site packages available, as discussed
+  below, but even in that case pkg_resources is only partially
+  activated, which can be a significant time savings.)
 
-The scripts method can be used to generate scripts. Let's create a
-destination directory for it to place them in:
 
-    >>> import tempfile
+The ``scripts`` function
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``scripts`` function is the first way to generate scripts that we'll
+examine. It is the earlier approach that the package offered.  Let's
+create a destination directory for it to place them in:
+
     >>> bin = tmpdir('bin')
 
-Now, we'll use the scripts method to generate scripts in this directory
+Now, we'll use the scripts function to generate scripts in this directory
 from the demo egg:
 
     >>> import sys
@@ -592,7 +677,7 @@ The demo script run the entry point defined in the demo egg:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Some things to note:
 
@@ -629,7 +714,7 @@ rather than passing a requirement:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Passing entry-point information directly is handy when using eggs (or
 distributions) that don't declare their entry points, such as
@@ -736,8 +821,8 @@ original script names to new script names.
     >>> print system(os.path.join(bin, 'run')),
     3 1
 
-Including extra paths in scripts
---------------------------------
+The ``scripts`` function: Including extra paths in scripts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We can pass a keyword argument, extra paths, to cause additional paths
 to be included in the a generated script:
@@ -760,10 +845,10 @@ to be included in the a generated script:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
-Providing script arguments
---------------------------
+The ``scripts`` function: Providing script arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An "argument" keyword argument can be used to pass arguments to an
 entry point.  The value passed is a source string to be placed between the
@@ -784,10 +869,10 @@ parentheses in the call:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(1, 2)
+        sys.exit(eggrecipedemo.main(1, 2))
 
-Passing initialization code
----------------------------
+The ``scripts`` function: Passing initialization code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also pass script initialization code:
 
@@ -810,10 +895,10 @@ You can also pass script initialization code:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(1, 2)
+        sys.exit(eggrecipedemo.main(1, 2))
 
-Relative paths
---------------
+The ``scripts`` function: Relative paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sometimes, you want to be able to move a buildout directory around and
 have scripts still work without having to rebuild them.  We can
@@ -836,7 +921,7 @@ to pass a common base directory of the scripts and eggs:
     ...    interpreter='py',
     ...    relative_paths=bo)
 
-    >>> cat(bo, 'bin', 'run')
+    >>> cat(bo, 'bin', 'run') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     <BLANKLINE>
     import os
@@ -856,7 +941,7 @@ to pass a common base directory of the scripts and eggs:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Note that the extra path we specified that was outside the directory
 passed as relative_paths wasn't converted to a relative path.
@@ -868,7 +953,7 @@ Of course, running the script works:
 
 We specified an interpreter and its paths are adjusted too:
 
-    >>> cat(bo, 'bin', 'py')
+    >>> cat(bo, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.4
     <BLANKLINE>
     import os
@@ -911,6 +996,576 @@ We specified an interpreter and its paths are adjusted too:
         del _interactive
         __import__("code").interact(banner="", local=globals())
 
+The ``sitepackage_safe_scripts`` function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The newer function for creating scripts is ``sitepackage_safe_scripts``.
+It has the same basic functionality as the ``scripts`` function: it can
+create scripts to run arbitrary entry points, and to run a Python
+interpreter.  The following are the differences from a user's
+perspective.
+
+- It can be used safely with a Python that has packages installed itself,
+  such as a system-installed Python.
+
+- In contrast to the interpreter generated by the ``scripts`` method, which
+  supports only a small subset of the usual Python executable's options,
+  the interpreter generated by ``sitepackage_safe_scripts`` supports all
+  of them. This makes it possible to use as full Python replacement for
+  scripts that need the distributions specified in your buildout.
+
+- Both the interpreter and the entry point scripts allow you to include the
+  site packages, and/or the sitecustomize, of the Python executable, if
+  desired.
+
+It works by creating site.py and sitecustomize.py files that set up the
+desired paths and initialization.  These must be placed within an otherwise
+empty directory.  Typically this is in a recipe's parts directory.
+
+Here's the simplest example, building an interpreter script.
+
+    >>> interpreter_dir = tmpdir('interpreter')
+    >>> interpreter_parts_dir = os.path.join(
+    ...     interpreter_dir, 'parts', 'interpreter')
+    >>> interpreter_bin_dir = os.path.join(interpreter_dir, 'bin')
+    >>> mkdir(interpreter_bin_dir)
+    >>> mkdir(interpreter_dir, 'eggs')
+    >>> mkdir(interpreter_dir, 'parts')
+    >>> mkdir(interpreter_parts_dir)
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], join(interpreter_dir, 'eggs'), links=[link_server],
+    ...     index=link_server+'index/')
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py')
+
+Depending on whether the machine being used is running Windows or not, this
+produces either three or four files.  In both cases, we have site.py and
+sitecustomize.py generated in the parts/interpreter directory.  For Windows,
+we have py.exe and py-script.py; for other operating systems, we have py.
+
+    >>> sitecustomize_path = os.path.join(
+    ...     interpreter_parts_dir, 'sitecustomize.py')
+    >>> site_path = os.path.join(interpreter_parts_dir, 'site.py')
+    >>> interpreter_path = os.path.join(interpreter_bin_dir, 'py')
+    >>> if sys.platform == 'win32':
+    ...     py_path = os.path.join(interpreter_bin_dir, 'py-script.py')
+    ...     expected = [sitecustomize_path,
+    ...                 site_path,
+    ...                 os.path.join(interpreter_bin_dir, 'py.exe'),
+    ...                 py_path]
+    ... else:
+    ...     py_path = interpreter_path
+    ...     expected = [sitecustomize_path, site_path, py_path]
+    ...
+    >>> assert generated == expected, repr((generated, expected))
+
+We didn't ask for any initialization, and we didn't ask to use the underlying
+sitecustomization, so sitecustomize.py is empty.
+
+    >>> cat(sitecustomize_path)
+
+The interpreter script is simple.  It puts the directory with the
+site.py and sitecustomize.py on the PYTHONPATH and (re)starts Python.
+
+    >>> cat(py_path)
+    #!/usr/bin/python -S
+    import os
+    import sys
+    <BLANKLINE>
+    argv = [sys.executable] + sys.argv[1:]
+    environ = os.environ.copy()
+    path = '/interpreter/parts/interpreter'
+    if environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, environ['PYTHONPATH']])
+    environ['PYTHONPATH'] = path
+    os.execve(sys.executable, argv, environ)
+
+The site.py file is a modified version of the underlying Python's site.py.
+The most important modification is that it has a different version of the
+addsitepackages function.  It sets up the Python path, similarly to the
+behavior of the function it replaces.  The following shows the part that
+buildout inserts, in the simplest case.
+
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
+            '/interpreter/eggs/demo-0.3-pyN.N.egg',
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+Here are some examples of the interpreter in use.
+
+    >>> print call_py(interpreter_path, "print 16+26")
+    42
+    <BLANKLINE>
+    >>> res = call_py(interpreter_path, "import sys; print sys.path")
+    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
+    <BLANKLINE>
+    >>> clean_paths = eval(res.strip()) # This is used later for comparison.
+
+If you provide initialization, it goes in sitecustomize.py.
+
+    >>> def reset_interpreter():
+    ...     # This is necessary because, in our tests, the timestamps of the
+    ...     # .pyc files are not outdated when we want them to be.
+    ...     rmdir(interpreter_bin_dir)
+    ...     mkdir(interpreter_bin_dir)
+    ...     rmdir(interpreter_parts_dir)
+    ...     mkdir(interpreter_parts_dir)
+    ...
+    >>> reset_interpreter()
+
+    >>> initialization_string = """\
+    ... import os
+    ... os.environ['FOO'] = 'bar baz bing shazam'"""
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', initialization=initialization_string)
+    >>> cat(sitecustomize_path)
+    import os
+    os.environ['FOO'] = 'bar baz bing shazam'
+    >>> print call_py(interpreter_path, "import os; print os.environ['FOO']")
+    bar baz bing shazam
+    <BLANKLINE>
+
+If you use relative paths, this affects the interpreter and site.py.  (This is
+again the UNIX version; the Windows version uses subprocess instead of
+os.execve.)
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', relative_paths=interpreter_dir)
+    >>> cat(py_path)
+    #!/usr/bin/python -S
+    import os
+    import sys
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    <BLANKLINE>
+    argv = [sys.executable] + sys.argv[1:]
+    environ = os.environ.copy()
+    path = join(base, 'parts/interpreter')
+    if environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, environ['PYTHONPATH']])
+    environ['PYTHONPATH'] = path
+    os.execve(sys.executable, argv, environ)
+
+For site.py, we again show only the pertinent parts.  Notice that the egg
+paths join a base to a path, as with the use of this argument in the
+``scripts`` function.
+
+    >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        join = os.path.join
+        base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+        base = os.path.dirname(base)
+        base = os.path.dirname(base)
+        buildout_paths = [
+            join(base, 'eggs/demo-0.3-pyN.N.egg'),
+            join(base, 'eggs/demoneeded-1.1-pyN.N.egg')
+            ]...
+
+The paths resolve in practice as you would expect.
+
+    >>> print call_py(interpreter_path,
+    ...               "import sys, pprint; pprint.pprint(sys.path)")
+    ... # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg']
+    <BLANKLINE>
+
+The ``extra_paths`` argument affects the path in site.py.  Notice that
+/interpreter/other is added after the eggs.
+
+    >>> reset_interpreter()
+    >>> mkdir(interpreter_dir, 'other')
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', extra_paths=[join(interpreter_dir, 'other')])
+    >>> sys.stdout.write('#\n'); cat(site_path) # doctest: +ELLIPSIS
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        buildout_paths = [
+            '/interpreter/eggs/demo-0.3-pyN.N.egg',
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+            '/interpreter/other'
+            ]...
+
+    >>> print call_py(interpreter_path,
+    ...               "import sys, pprint; pprint.pprint(sys.path)")
+    ... # doctest: +ELLIPSIS
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+     '/interpreter/other']
+    <BLANKLINE>
+
+The ``sitepackage_safe_scripts`` function: using site-packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``sitepackage_safe_scripts`` function supports including site
+packages.  This has some advantages and some serious dangers.
+
+A typical reason to include site-packages is that it is easier to
+install one or more dependencies in your Python than it is with
+buildout.  Some packages, such as lxml or Python PostgreSQL integration,
+have dependencies that can be much easier to build and/or install using
+other mechanisms, such as your operating system's package manager.  By
+installing some core packages into your Python's site-packages, this can
+significantly simplify some application installations.
+
+However, doing this has a significant danger.  One of the primary goals
+of buildout is to provide repeatability.  Some packages (one of the
+better known Python openid packages, for instance) change their behavior
+depending on what packages are available.  If Python curl bindings are
+available, these may be preferred by the library.  If a certain XML
+package is installed, it may be preferred by the library.  These hidden
+choices may cause small or large behavior differences.  The fact that
+they can be rarely encountered can actually make it worse: you forget
+that this might be a problem, and debugging the differences can be
+difficult.  If you allow site-packages to be included in your buildout,
+and the Python you use is not managed precisely by your application (for
+instance, it is a system Python), you open yourself up to these
+possibilities.  Don't be unaware of the dangers.
+
+That explained, let's see how it works.  If you don't use namespace packages,
+this is very straightforward.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', include_site_packages=True)
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        setuptools_path = None
+        buildout_paths = [
+            '/interpreter/eggs/demo-0.3-pyN.N.egg',
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            if path == setuptools_path or path not in known_paths:
+                addsitedir(path, known_paths)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+It simply adds the original paths using addsitedir after the code to add the
+buildout paths.
+
+Here's an example of the new script in use.  Other documents and tests in
+this package give the feature a more thorough workout, but this should
+give you an idea of the feature.
+
+    >>> res = call_py(interpreter_path, "import sys; print sys.path")
+    >>> print res # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '/interpreter/eggs/demo-0.3-py2.4.egg',
+     '/interpreter/eggs/demoneeded-1.1-py2.4.egg',
+     ...]
+    <BLANKLINE>
+
+The clean_paths gathered earlier is a subset of this full list of paths.
+
+    >>> full_paths = eval(res.strip())
+    >>> len(clean_paths) < len(full_paths)
+    True
+    >>> set(os.path.normpath(p) for p in clean_paths).issubset(
+    ...     os.path.normpath(p) for p in full_paths)
+    True
+
+Unfortunately, because of how setuptools namespace packages are implemented
+differently for operating system packages (debs or rpms) as opposed to
+standard setuptools installation, there's a slightly trickier dance if you
+use them.  To show this we'll needs some extra eggs that use namespaces.
+We'll use the ``tellmy.fortune`` package, which we'll need to make an initial
+call to another text fixture to create.
+
+    >>> from zc.buildout.tests import create_sample_namespace_eggs
+    >>> namespace_eggs = tmpdir('namespace_eggs')
+    >>> create_sample_namespace_eggs(namespace_eggs)
+
+    >>> reset_interpreter()
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo', 'tellmy.fortune'], join(interpreter_dir, 'eggs'),
+    ...     links=[link_server, namespace_eggs], index=link_server+'index/')
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', include_site_packages=True)
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        setuptools_path = '...setuptools...'
+        sys.path.append(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
+        import pkg_resources
+        buildout_paths = [
+            '/interpreter/eggs/demo-0.3-pyN.N.egg',
+            '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+            '...setuptools...',
+            '/interpreter/eggs/demoneeded-1.1-pyN.N.egg'
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+                pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            if path == setuptools_path or path not in known_paths:
+                addsitedir(path, known_paths)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '...setuptools...',
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+     ...]
+
+As you can see, the script now first imports pkg_resources.  Then we
+need to process egg files specially to look for namespace packages there
+*before* we process process lines in .pth files that use the "import"
+feature--lines that might be part of the setuptools namespace package
+implementation for system packages, as mentioned above, and that must
+come after processing egg namespaces.
+
+The most complex that this function gets is if you use namespace packages,
+include site-packages, and use relative paths.  For completeness, we'll look
+at that result.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     interpreter='py', include_site_packages=True,
+    ...     relative_paths=interpreter_dir)
+    >>> sys.stdout.write('#\n'); cat(site_path)
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    #...
+    def addsitepackages(known_paths):
+        """Add site packages, as determined by zc.buildout.
+    <BLANKLINE>
+        See original_addsitepackages, below, for the original version."""
+        join = os.path.join
+        base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+        base = os.path.dirname(base)
+        base = os.path.dirname(base)
+        setuptools_path = '...setuptools...'
+        sys.path.append(setuptools_path)
+        known_paths.add(os.path.normcase(setuptools_path))
+        import pkg_resources
+        buildout_paths = [
+            join(base, 'eggs/demo-0.3-pyN.N.egg'),
+            join(base, 'eggs/tellmy.fortune-1.0-pyN.N.egg'),
+            '...setuptools...',
+            join(base, 'eggs/demoneeded-1.1-pyN.N.egg')
+            ]
+        for path in buildout_paths:
+            sitedir, sitedircase = makepath(path)
+            if not sitedircase in known_paths and os.path.exists(sitedir):
+                sys.path.append(sitedir)
+                known_paths.add(sitedircase)
+                pkg_resources.working_set.add_entry(sitedir)
+        sys.__egginsert = len(buildout_paths) # Support distribute.
+        original_paths = [
+            ...
+            ]
+        for path in original_paths:
+            if path == setuptools_path or path not in known_paths:
+                addsitedir(path, known_paths)
+        return known_paths
+    <BLANKLINE>
+    def original_addsitepackages(known_paths):...
+
+    >>> print call_py(interpreter_path, "import sys; print sys.path")
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['',
+     '/interpreter/parts/interpreter',
+     ...,
+     '...setuptools...',
+     '/interpreter/eggs/demo-0.3-pyN.N.egg',
+     '/interpreter/eggs/tellmy.fortune-1.0-pyN.N.egg',
+     '/interpreter/eggs/demoneeded-1.1-pyN.N.egg',
+     ...]
+
+The ``exec_sitecustomize`` argument does the same thing for the
+sitecustomize module--it allows you to include the code from the
+sitecustomize module in the underlying Python if you set the argument to
+True.  The z3c.recipe.scripts package sets up the full environment necessary
+to demonstrate this piece.
+
+The ``sitepackage_safe_scripts`` function: writing scripts for entry points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All of the examples so far for this function have been creating
+interpreters.  The function can also write scripts for entry
+points.  They are almost identical to the scripts that we saw for the
+``scripts`` function except that they ``import site`` after setting the
+sys.path to include our custom site.py and sitecustomize.py files.  These
+files then initialize the Python environment as we have already seen.  Let's
+see a simple example.
+
+    >>> reset_interpreter()
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo'], join(interpreter_dir, 'eggs'), links=[link_server],
+    ...     index=link_server+'index/')
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     reqs=['demo'])
+
+As before, in Windows, 2 files are generated for each script.  A script
+file, ending in '-script.py', and an exe file that allows the script
+to be invoked directly without having to specify the Python
+interpreter and without having to provide a '.py' suffix.  This is in addition
+to the site.py and sitecustomize.py files that are generated as with our
+interpreter examples above.
+
+    >>> if sys.platform == 'win32':
+    ...     demo_path = os.path.join(interpreter_bin_dir, 'demo-script.py')
+    ...     expected = [sitecustomize_path,
+    ...                 site_path,
+    ...                 os.path.join(interpreter_bin_dir, 'demo.exe'),
+    ...                 demo_path]
+    ... else:
+    ...     demo_path = os.path.join(interpreter_bin_dir, 'demo')
+    ...     expected = [sitecustomize_path, site_path, demo_path]
+    ...
+    >>> assert generated == expected, repr((generated, expected))
+
+The demo script runs the entry point defined in the demo egg:
+
+    >>> cat(demo_path) # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4 -S
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+        '/interpreter/parts/interpreter',
+        ]
+    <BLANKLINE>
+    <BLANKLINE>
+    import os
+    path = sys.path[0]
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(eggrecipedemo.main())
+
+    >>> demo_call = join(interpreter_bin_dir, 'demo')
+    >>> if sys.platform == 'win32':
+    ...     demo_call = '"%s"' % demo_call
+    >>> print system(demo_call)
+    3 1
+    <BLANKLINE>
+
+There are a few differences from the ``scripts`` function.  First, the
+``reqs`` argument (an iterable of string requirements or entry point
+tuples) is a keyword argument here.  We see that in the example above.
+Second, the ``arguments`` argument is now named ``script_arguments`` to
+try and clarify that it does not affect interpreters. While the
+``initialization`` argument continues to affect both the interpreters
+and the entry point scripts, if you have initialization that is only
+pertinent to the entry point scripts, you can use the
+``script_initialization`` argument.
+
+Let's see ``script_arguments`` and ``script_initialization`` in action.
+
+    >>> reset_interpreter()
+    >>> generated = zc.buildout.easy_install.sitepackage_safe_scripts(
+    ...     interpreter_bin_dir, ws, sys.executable, interpreter_parts_dir,
+    ...     reqs=['demo'], script_arguments='1, 2',
+    ...     script_initialization='import os\nos.chdir("foo")')
+
+    >>> cat(demo_path) # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.4 -S
+    import sys
+    sys.path[0:0] = [
+      '/interpreter/parts/interpreter',
+      ]
+    <BLANKLINE>
+    import os
+    path = sys.path[0]
+    if os.environ.get('PYTHONPATH'):
+        path = os.pathsep.join([path, os.environ['PYTHONPATH']])
+    os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'] = os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = path
+    import site # imports custom buildout-generated site.py
+    import os
+    os.chdir("foo")
+    <BLANKLINE>
+    import eggrecipedemo
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(eggrecipedemo.main(1, 2))
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------

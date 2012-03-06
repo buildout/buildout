@@ -1,0 +1,28 @@
+Change History
+**************
+
+1.0.2 (unreleased)
+==================
+
+(no changes)
+
+1.0.1 (2010-08-27)
+==================
+
+Fixes
+-----
+
+- If a section extends another one, it should be able to override it.
+
+- The allowed-eggs-from-site-packages should be looked for in the buildout
+  section if it is not found locally.
+
+1.0.0 (2010-08-23)
+==================
+
+(no significant changes)
+
+1.0.0b1 (2010-04-29)
+====================
+
+Initial public version.

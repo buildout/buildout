@@ -1,0 +1,257 @@
+Version 1.5.0 of buildout (and higher) provides the ability to use
+buildout directly with a system Python if you use z3c.recipe.scripts or
+other isolation-aware recipes that use the sitepackage_safe_scripts function.
+
+Some people use virtualenv to provide similar functionality.
+Unfortunately, a problem with the virtualenv executable as of this
+writing means that -S will not work properly with it (see
+https://bugs.launchpad.net/virtualenv/+bug/572545). This breaks
+buildout's approach to providing isolation.
+
+Because of this, if buildout detects an executable with a broken -S
+option, it will revert to its pre-1.5.0 behavior.  If buildout has been
+asked to provide isolation, it will warn the user that isolation will
+not be provided by buildout, but proceed.  This should give full
+backwards compatibility to virtualenv users.
+
+The only minor annoyance in the future may be recipes that explicitly
+use the new buildout functionality to provide isolation: as described
+above, the builds will proceed, but users will receive warnings that
+buildout is not providing isolation itself.  The warnings themselves can
+be squelched when running bin/buildout with the ``-s`` option or with a
+lower verbosity than usual (e.g., one or more ``-q`` options).
+
+For tests, then, we can examine several things.  We'll focus on four.
+
+- Running bootstrap with an executable broken in this way will not try to do
+  any -S tricks.
+
+- Running sitepackage_safe_scripts with a virtualenv will create an
+  old-style script.  This will affect the bin/buildout script that is
+  created, for instance.  If the sitepackage_safe_scripts function is asked
+  to provide isolation under these circumstances, it will warn that isolation
+  will not be available, but still create the desired script.
+
+- Using the easy_install Installer or install or build functions and trying
+  to request isolation will generate a warning and then the isolation request
+  will be ignored as it proceeds.
+
+- Passing -s (or -q) to the bin/buildout script will squelch warnings.
+
+Testing these involves first creating a Python that exhibits the same
+behavior as the problematic one we care about from virtualenv.  Let's do that
+first.
+
+    >>> import os, sys
+    >>> from zc.buildout.easy_install import _safe_arg
+    >>> py_path, site_packages_path = make_py()
+    >>> if sys.platform == 'win32':
+    ...     py_script_path = py_path + '-script.py'
+    ... else:
+    ...     py_script_path = py_path
+    ...
+    >>> py_file = open(py_script_path)
+    >>> py_lines = py_file.readlines()
+    >>> py_file.close()
+    >>> py_file = open(py_script_path, 'w')
+    >>> extra = '''\
+    ... new_argv = argv[:1]
+    ... for ix, val in enumerate(argv[1:]):
+    ...     if val.startswith('--'):
+    ...         new_argv.append(val)
+    ...     if val.startswith('-') and len(val) > 1:
+    ...         if 'S' in val:
+    ...             val = val.replace('S', '')
+    ...             environ['BROKEN_DASH_S'] = 'Y'
+    ...         if val != '-':
+    ...             new_argv.append(val)
+    ...         if 'c' in val:
+    ...             new_argv.extend(argv[ix+2:])
+    ...             break
+    ...     else:
+    ...         new_argv.extend(argv[ix+1:])
+    ... argv = new_argv
+    ... '''
+    >>> for line in py_lines:
+    ...     py_file.write(line)
+    ...     if line.startswith('environ = os.environ.copy()'):
+    ...         py_file.write(extra)
+    ...         print 'Rewritten.'
+    ...
+    Rewritten.
+    >>> py_file.close()
+    >>> sitecustomize_path = join(os.path.dirname(site_packages_path),
+    ...                           'parts', 'py', 'sitecustomize.py')
+    >>> sitecustomize_file = open(sitecustomize_path, 'a')
+    >>> sitecustomize_file.write('''
+    ... import os, sys
+    ... sys.executable = %r
+    ... if 'BROKEN_DASH_S' in os.environ:
+    ...     class ImportHook:
+    ...         site = None
+    ...
+    ...         @classmethod
+    ...         def find_module(klass, fullname, path=None):
+    ...             if klass.site is None and 'site' in sys.modules:
+    ...                 # Pop site out of sys.modules. This will be a
+    ...                 # close-enough approximation of site not being
+    ...                 # loaded for our tests--it lets us provoke the
+    ...                 # right errors when the fixes are absent, and
+    ...                 # works well enough when the fixes are present.
+    ...                 klass.site = sys.modules.pop('site')
+    ...             if fullname == 'ConfigParser':
+    ...                 raise ImportError(fullname)
+    ...             elif fullname == 'site':
+    ...                 # Keep the site module from being processed twice.
+    ...                 return klass
+    ...
+    ...         @classmethod
+    ...         def load_module(klass, fullname):
+    ...             if fullname == 'site':
+    ...                 return klass.site
+    ...             raise ImportError(fullname)
+    ...
+    ...     sys.meta_path.append(ImportHook)
+    ... ''' % (py_path,))
+    >>> sitecustomize_file.close()
+    >>> print call_py(
+    ...     _safe_arg(py_path),
+    ...     "import ConfigParser")
+    <BLANKLINE>
+    >>> print 'X'; print call_py(
+    ...     _safe_arg(py_path),
+    ...     "import ConfigParser",
+    ...     '-S') # doctest: +ELLIPSIS
+    X...Traceback (most recent call last):
+      ...
+    ImportError: No module named ConfigParser
+    <BLANKLINE>
+    >>> from zc.buildout.easy_install import _has_broken_dash_S
+    >>> _has_broken_dash_S(py_path)
+    True
+
+Well, that was ugly, but it seems to have done the trick.  The
+executable represented by py_path has the same problematic
+characteristic as the virtualenv one: -S results in a Python that does
+not allow the import of some packages from the standard library.  We'll
+test with this.
+
+First, let's try running bootstrap.
+
+    >>> from os.path import dirname, join
+    >>> import zc.buildout
+    >>> bootstrap_py = join(
+    ...    dirname(
+    ...     dirname(
+    ...      dirname(
+    ...       dirname(zc.buildout.__file__)
+    ...        )
+    ...      )
+    ...    ),
+    ...   'bootstrap', 'bootstrap.py')
+    >>> broken_S_buildout = tmpdir('broken_S')
+    >>> os.chdir(broken_S_buildout)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print 'X'; print system(
+    ...     _safe_arg(py_path)+' '+
+    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
+    X...
+    Generated script '/broken_S/bin/buildout'.
+    ...
+
+If bootstrap didn't look out for a broken -S, that would have failed.  Moreover,
+take a look at bin/buildout:
+
+    >>> cat('bin', 'buildout') # doctest: +NORMALIZE_WHITESPACE
+    #!/executable_buildout/bin/py
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/broken_S/eggs/setuptools-0.0-pyN.N.egg',
+      '/broken_S/eggs/zc.buildout-0.0-pyN.N.egg',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        zc.buildout.buildout.main()
+
+That's the old-style buildout script: no changes for users with this issue.
+
+Of course, they don't get the new features either, presumably because
+they don't need or want them.  This means that if they use a recipe that
+tries to use a new feature, the behavior needs to degrade gracefully.
+
+Here's an example.  We'll switch to another buildout in which it is easier to
+use local dev versions of zc.buildout and z3c.recipe.scripts.
+
+    >>> os.chdir(dirname(dirname(buildout)))
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... include-site-packages = false
+    ...
+    ... [primed_python]
+    ... executable = %(py_path)s
+    ...
+    ... [eggs]
+    ... recipe = z3c.recipe.scripts
+    ... python = primed_python
+    ... interpreter = py
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print system(buildout), # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    Installing eggs.
+    Getting distribution for 'demo'.
+    Got demo 0.4c1.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.2c1.
+    Generated script '/sample-buildout/bin/demo'.
+    Generated interpreter '/sample-buildout/bin/py'.
+    ...UserWarning: Buildout has been asked to exclude or limit site-packages
+       so that builds can be repeatable when using a system Python.  However,
+       the chosen Python executable has a broken implementation of -S (see
+       https://bugs.launchpad.net/virtualenv/+bug/572545 for an example
+       problem) and this breaks buildout's ability to isolate site-packages.
+       If the executable already has a clean site-packages (e.g., using
+       virtualenv's ``--no-site-packages`` option) you may be getting
+       equivalent repeatability.  To silence this warning, use the -s argument
+       to the buildout script.  Alternatively, use a Python executable with a
+       working -S (such as a standard Python binary).
+      warnings.warn(BROKEN_DASH_S_WARNING)
+
+So, it did what we asked as best it could, but gave a big warning.  If
+you don't want those warnings for those particular recipes that use the
+new features, you can use the "-s" option to squelch the warnings.
+
+    >>> print system(buildout + ' -s'),
+    Updating eggs.
+
+A lower verbosity (one or more -q options) also quiets the warning.
+
+    >>> print system(buildout + ' -q'),
+
+Notice that, as we saw before with bin/buildout, the generated scripts
+are old-style, because the new-style feature gracefully degrades to the
+previous implementation when it encounters an executable with a broken
+dash-S.
+
+    >>> print 'X'; cat('bin', 'py') # doctest: +ELLIPSIS
+    X...
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+        '/sample-buildout/eggs/demo-0.4c1-pyN.N.egg',
+        '/sample-buildout/eggs/demoneeded-1.2c1-pyN.N.egg',
+        ]
+    ...
+

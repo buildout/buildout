@@ -1,7 +1,7 @@
 Controlling which Python to use
 -------------------------------
 
-The following assumes that you have Python 2.4 installed.
+The following assumes that you have Python 2.5 installed.
 
 We can specify the python to use by specifying the name of a section
 to read the Python executable from.  The default is the section
@@ -11,21 +11,21 @@ We have a link server:
 
     >>> print get(link_server),
     <html><body>
-    <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
-    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4c1-py2.4.egg">demo-0.4c1-py2.4.egg</a><br>
+    <a href="bigdemo-0.1-py2.5.egg">bigdemo-0.1-py2.5.egg</a><br>
+    <a href="demo-0.1-py2.5.egg">demo-0.1-py2.5.egg</a><br>
+    <a href="demo-0.2-py2.5.egg">demo-0.2-py2.5.egg</a><br>
+    <a href="demo-0.3-py2.5.egg">demo-0.3-py2.5.egg</a><br>
+    <a href="demo-0.4c1-py2.5.egg">demo-0.4c1-py2.5.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
     <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
-    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    <a href="other-1.0-py2.5.egg">other-1.0-py2.5.egg</a><br>
     </body></html>
 
-We have a sample buildout.  Let's update it's configuration file to
-install the demo package using Python 2.4. 
+We have a sample buildout.  Let's update its configuration file to
+install the demo package using Python 2.5.
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -34,16 +34,16 @@ install the demo package using Python 2.4.
     ... eggs-directory = eggs
     ... index = http://www.python.org/pypi/
     ...
-    ... [python2.4]
-    ... executable = %(python23)s
+    ... [python2.5]
+    ... executable = %(python24)s
     ...
     ... [demo]
     ... recipe = zc.recipe.egg
     ... eggs = demo <0.3
     ... find-links = %(server)s
-    ... python = python2.4
+    ... python = python2.5
     ... interpreter = py-demo
-    ... """ % dict(server=link_server, python23=other_executable))
+    ... """ % dict(server=link_server, python24=other_executable))
 
 Now, if we run the buildout:
 
@@ -55,22 +55,19 @@ Now, if we run the buildout:
    Getting distribution for 'demo<0.3'.
    Got demo 0.2.
    Getting distribution for 'demoneeded'.
-   Getting distribution for 'setuptools'.
-   Got setuptools 0.6.
    Got demoneeded 1.2c1.
    Generated script '/sample-buildout/bin/demo'.
    Generated interpreter '/sample-buildout/bin/py-demo'.
 
-we'll get the Python 2.4 eggs for demo and demoneeded:
+we'll get the Python 2.5 eggs for demo and demoneeded:
 
     >>> ls(sample_buildout, 'eggs')
-    -  demo-0.2-py2.4.egg
-    -  demoneeded-1.2c1-py2.4.egg
-    d  setuptools-0.6-py2.4.egg
+    -  demo-0.2-py2.5.egg
+    -  demoneeded-1.2c1-py2.5.egg
     d  setuptools-0.6-py2.5.egg
     -  zc.buildout-1.0-py2.5.egg
- 
-And the generated scripts invoke Python 2.4:
+
+And the generated scripts invoke Python 2.5:
 
     >>> import sys
     >>> if sys.platform == 'win32':
@@ -87,14 +84,14 @@ And the generated scripts invoke Python 2.4:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.5.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-py2.5.egg',
       ]
     <BLANKLINE>
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
     >>> if sys.platform == 'win32':
     ...     f = open(os.path.join(sample_buildout, 'bin', 'py-demo-script.py'))
@@ -111,8 +108,8 @@ And the generated scripts invoke Python 2.4:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.2-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.2-py2.5.egg',
+      '/sample-buildout/eggs/demoneeded-1.2c1-py2.5.egg',
       ]
     <BLANKLINE>
     _interactive = True

@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2006-2009 Zope Corporation and Contributors.
+# Copyright (c) 2006-2009 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "1.4.4dev"
+version = "1.5.3-dev"
 
 import os
 from setuptools import setup
@@ -22,6 +22,8 @@ def read(*rnames):
 
 long_description=(
         read('README.txt')
+        + '\n' +
+        read('SYSTEM_PYTHON_HELP.txt')
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
@@ -74,7 +76,7 @@ setup(
     long_description=long_description,
     license = "ZPL 2.1",
     keywords = "development build",
-    url='http://buildout.org',
+    url='http://pypi.python.org/pypi/zc.buildout',
 
     data_files = [('.', ['README.txt'])],
     packages = ['zc', 'zc.buildout'],
@@ -83,6 +85,7 @@ setup(
     install_requires = 'setuptools',
     include_package_data = True,
     entry_points = entry_points,
+    extras_require = dict(test=['zope.testing']),
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',

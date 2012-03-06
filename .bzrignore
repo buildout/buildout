@@ -1,0 +1,9 @@
+.installed.cfg
+bin
+build
+develop-eggs
+eggs
+parts
+src/zc.buildout.egg-info
+z3c.recipe.scripts_/src/z3c.recipe.scripts.egg-info
+zc.recipe.egg_/src/zc.recipe.egg.egg-info

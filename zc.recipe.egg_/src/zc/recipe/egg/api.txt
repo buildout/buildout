@@ -15,7 +15,7 @@ To illustrate, we create a sample recipe that is a very thin layer
 around the egg recipe:
 
     >>> mkdir(sample_buildout, 'sample')
-    >>> write(sample_buildout, 'sample', 'sample.py', 
+    >>> write(sample_buildout, 'sample', 'sample.py',
     ... """
     ... import logging, os
     ... import zc.recipe.egg
@@ -53,7 +53,7 @@ of extra requirements to be included in the working set.
     >>> write(sample_buildout, 'sample', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(
     ...     name = "sample",
     ...     entry_points = {'zc.buildout': ['default = sample:Sample']},
@@ -95,12 +95,13 @@ We can see that the options were augmented with additional data
 computed by the egg recipe by looking at .installed.cfg:
 
     >>> cat(sample_buildout, '.installed.cfg')
+    ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
     installed_develop_eggs = /sample-buildout/develop-eggs/sample.egg-link
     parts = sample-part
     <BLANKLINE>
     [sample-part]
-    __buildout_installed__ = 
+    __buildout_installed__ =
     __buildout_signature__ = sample-6aWMvV2EJ9Ijq+bR8ugArQ==
             zc.recipe.egg-cAsnudgkduAa/Fd+WJIM6Q==
             setuptools-0.6-py2.4.egg
@@ -116,10 +117,10 @@ computed by the egg recipe by looking at .installed.cfg:
     extras = other
     find-links = http://localhost:27071/
     index = http://localhost:27071/index
+    python = buildout
     recipe = sample
 
 If we use the extra-paths option:
-
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -149,4 +150,3 @@ recipe instance:
     other 1.0
     demoneeded 1.2c1
     extra paths: ['/foo/bar', '/spam/eggs']
-
