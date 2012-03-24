@@ -55,8 +55,6 @@ url_match = re.compile('[a-z0-9+.-]+://').match
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
 setuptools_key = pkg_resources.Requirement.parse('setuptools').key
-is_distribute = (
-    pkg_resources.Requirement.parse('setuptools').key=='distribute')
 
 BROKEN_DASH_S_WARNING = (
     'Buildout has been asked to exclude or limit site-packages so that '

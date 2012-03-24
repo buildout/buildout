@@ -3234,13 +3234,9 @@ honoring our version specification.
     >>> write('foo.py', '')
     >>> _ = system(buildout+' setup . sdist')
 
-    >>> if zc.buildout.easy_install.is_distribute:
-    ...     distribute_version = 'distribute = %s' % (
+    >>> distribute_version = 'distribute = %s' % (
     ...         pkg_resources.working_set.find(
     ...             pkg_resources.Requirement.parse('distribute')).version,)
-    ... else:
-    ...     distribute_version = ''
-    ...
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]

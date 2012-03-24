@@ -75,8 +75,7 @@ for k, v in list(sys.modules.items()):
 
 is_jython = sys.platform.startswith('java')
 
-setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
-distribute_source = 'http://python-distribute.org/distribute_setup.py'
+setup_source = 'http://python-distribute.org/distribute_setup.py'
 
 # parsing arguments
 def normalize_to_url(option, opt_str, value, parser):
@@ -109,21 +108,11 @@ parser = OptionParser(usage=usage)
 parser.add_option("-v", "--version", dest="version",
                           help="use a specific zc.buildout version")
 parser.add_option("--setup-version", dest="setup_version",
-                  help="The version of setuptools or distribute to use.")
-parser.add_option("-d", "--distribute",
-                   action="store_true", dest="use_distribute",
-                   default= sys.version_info[0] >= 3,
-                   help="Use Distribute rather than Setuptools.")
-parser.add_option("--setup-source", action="callback", dest="setup_source",
-                  callback=normalize_to_url, nargs=1, type="string",
-                  help=("Specify a URL or file location for the setup file. "
-                        "If you use Setuptools, this will default to " +
-                        setuptools_source + "; if you use Distribute, this "
-                        "will default to " + distribute_source +"."))
+                  help="The version of distribute to use.")
 parser.add_option("--download-base", action="callback", dest="download_base",
                   callback=normalize_to_url, nargs=1, type="string",
                   help=("Specify a URL or directory for downloading "
-                        "zc.buildout and either Setuptools or Distribute. "
+                        "zc.buildout and Distribute. "
                         "Defaults to PyPI."))
 parser.add_option("--eggs",
                   help=("Specify a directory for storing eggs.  Defaults to "
@@ -154,12 +143,6 @@ if options.eggs:
 else:
     eggs_dir = tempfile.mkdtemp()
 
-if options.setup_source is None:
-    if options.use_distribute:
-        options.setup_source = distribute_source
-    else:
-        options.setup_source = setuptools_source
-
 if options.accept_buildout_test_releases:
     args.append('buildout:accept-buildout-test-releases=true')
 args.append('bootstrap')
@@ -171,7 +154,7 @@ try:
         raise ImportError
 except ImportError:
     ez_code = urllib2.urlopen(
-        options.setup_source).read().replace('\r\n'.encode(), '\n'.encode())
+        setup_source).read().replace('\r\n'.encode(), '\n'.encode())
     ez = {}
     exec(ez_code, ez)
     setup_args = dict(to_dir=eggs_dir, download_delay=0)
@@ -179,8 +162,7 @@ except ImportError:
         setup_args['download_base'] = options.download_base
     if options.setup_version:
         setup_args['version'] = options.setup_version
-    if options.use_distribute:
-        setup_args['no_fake'] = True
+    setup_args['no_fake'] = True
     ez['use_setuptools'](**setup_args)
     if 'pkg_resources' in sys.modules:
         if sys.version_info[0] >= 3:
@@ -212,10 +194,7 @@ if not find_links:
 if find_links:
     cmd.extend(['-f', quote(find_links)])
 
-if options.use_distribute:
-    setup_requirement = 'distribute'
-else:
-    setup_requirement = 'setuptools'
+setup_requirement = 'distribute'
 ws = pkg_resources.working_set
 setup_requirement_path = ws.find(
     pkg_resources.Requirement.parse(setup_requirement)).location

@@ -23,8 +23,6 @@ try:
 except ImportError:
     import urllib2
 
-from optparse import OptionParser
-
 if sys.platform == 'win32':
     def quote(c):
         if ' ' in c:
@@ -64,11 +62,10 @@ for k, v in list(sys.modules.items()):
 
 is_jython = sys.platform.startswith('java')
 
-setuptools_source = 'http://peak.telecommunity.com/dist/ez_setup.py'
-distribute_source = 'http://python-distribute.org/distribute_setup.py'
+setup_source = 'http://python-distribute.org/distribute_setup.py'
 
 usage = '''\
-[DESIRED PYTHON FOR DEVELOPING BUILDOUT] dev.py [options]
+[DESIRED PYTHON FOR DEVELOPING BUILDOUT] dev.py
 
 Bootstraps buildout itself for development.
 
@@ -76,20 +73,7 @@ This is different from a normal bootstrapping process because the
 buildout egg itself is installed as a develop egg.
 '''
 
-parser = OptionParser(usage=usage)
-parser.add_option("-d", "--distribute",
-                  action="store_true", dest="use_distribute",
-                  default=sys.version_info[0] >= 3,
-                  help="Use Distribute rather than Setuptools.")
 
-options, args = parser.parse_args()
-if args:
-    parser.error('This script accepts no arguments other than its options.')
-
-if options.use_distribute:
-    setup_source = distribute_source
-else:
-    setup_source = setuptools_source
 
 for d in 'eggs', 'develop-eggs', 'bin':
     if not os.path.exists(d):
@@ -109,9 +93,7 @@ except ImportError:
         '\r\n'.encode(), '\n'.encode())
     ez = {}
     exec(ez_code, ez)
-    setup_args = dict(to_dir='eggs', download_delay=0)
-    if options.use_distribute:
-        setup_args['no_fake'] = True
+    setup_args = dict(to_dir='eggs', download_delay=0, no_fake=True)
     ez['use_setuptools'](**setup_args)
     if to_reload:
         reload(pkg_resources)
