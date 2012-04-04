@@ -4,6 +4,8 @@ Change History
 1.4.5 (unreleased)
 ==================
 
+- Switched development location to github.com/buildout.
+
 - Avoid sorting the working set and requirements when it won't be
   logged.  When profiling a simple buildout with 10 parts with
   identical and large working sets, this resulted in a decrease of run
@@ -26,7 +28,7 @@ Bugs fixed:
 
 The 1.4.4 release is a release for people who encounter trouble
 with the 1.5 line.  By switching to `the associated bootstrap script
-<http://svn.zope.org/repos/main/zc.buildout/branches/1.4/bootstrap/bootstrap.py>`_
+<https://raw.github.com/buildout/buildout/master/bootstrap/bootstrap.py>`_
 you can stay on 1.4.4 until you are ready to migrate.
 
 1.4.3 (2009-12-10)

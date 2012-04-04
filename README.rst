@@ -119,9 +119,9 @@ This is probably the most common type of buildout.
 If I need to run a previous version of zc.buildout, I use the
 `--version` option of the bootstrap.py script::
 
-    $ python bootstrap.py --version 1.1.3
+    $ python bootstrap.py --version 1.4.2
 
-The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
+The `buildout project <https://github.com/buildout/buildout>`_
 is a slightly more complex example of this type of buildout.
 
 Install egg-based scripts
@@ -184,6 +184,6 @@ Questions and Bug Reporting
 Please send questions and comments to the
 `distutils SIG mailing list <mailto://distutils-sig@python.org>`_.
 
-Report bugs using the `zc.buildout Launchpad Bug Tracker
-<https://launchpad.net/products/zc.buildout/+bugs>`_.
+Report bugs using the `buildout Issues Tracker
+<https://github.com/buildout/buildout/issues>`_.
 
