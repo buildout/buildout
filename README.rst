@@ -42,20 +42,9 @@ Existing recipes include:
    dependencies.  It installs their console-script entry points with
    the needed eggs included in their paths.
 
-`zc.recipe.testrunner <http://pypi.python.org/pypi/zc.recipe.testrunner>`_
-   The testrunner egg creates a test runner script for one or
-   more eggs.
-
-`zc.recipe.zope3checkout <http://pypi.python.org/pypi/zc.recipe.zope3checkout>`_
-   The zope3checkout recipe installs a Zope 3 checkout into a
-   buildout.
-
-`zc.recipe.zope3instance <http://pypi.python.org/pypi/zc.recipe.zope3instance>`_
-   The zope3instance recipe sets up a Zope 3 instance.
-
-`zc.recipe.filestorage <http://pypi.python.org/pypi/zc.recipe.filestorage>`_
-   The filestorage recipe sets up a ZODB file storage for use in a
-   Zope 3 instance created by the zope3instance recipe.
+For an extensive list of recipes, look at the `Framework Buildout category
+<http://pypi.python.org/pypi?:action=browse&c=512>`_ on the Python Package
+Index.
 
 Buildout examples
 *****************
