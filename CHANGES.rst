@@ -117,7 +117,7 @@ Bugs fixed:
 - Better Windows compatibility in test infrastructure.
 
 - Now the bootstrap.py has an optional --version argument,
-  that can be used to force zc.buildout version to use.
+  that can be used to force buildout version to use.
 
 - ``zc.buildout.testing.buildoutSetUp`` installs a new handler in the
   python root logging facility. This handler is now removed during
@@ -168,7 +168,7 @@ Bugs fixed:
   of md5 module, which is deprecated in Python 2.6.
 
 - Added Jython support for bootstrap, development bootstrap
-  and zc.buildout support on Jython
+  and buildout support on Jython
 
 - Fixed a bug that would cause buildout to break while computing a
   directory hash if it found a broken symlink (Launchpad #250573)
@@ -413,7 +413,7 @@ Feature Changes
   are being added.
 
 - Changed the logging format to exclude the logger name for the
-  zc.buildout logger.  This reduces noise in the output.
+  buildout logger.  This reduces noise in the output.
 
 - Clean up lots of messages, adding missing periods and adding quotes around
   requirement strings and file paths.
@@ -754,7 +754,7 @@ Bugs Fixed
   from develop sections.
 
 - Running a non-local buildout command (one not installed in the
-  buildout) ket to a hang if there were new versions of zc.buildout or
+  buildout) ket to a hang if there were new versions of buildout or
   setuptools were available.  Now we issue a warning and don't
   upgrade.
 
@@ -827,7 +827,7 @@ support.
 - Increased the default level of verbosity.
 
 - Buildouts now automatically update themselves to new versions of
-  zc.buildout and setuptools.
+  buildout and setuptools.
 
 - Added Windows support.
 
@@ -865,10 +865,10 @@ from source distributions.
 =======
 
 - Changed the bootstrapping code to only install setuptools and
-  zc.buildout. The bootstrap code no-longer runs the buildout itself.
+  buildout. The bootstrap code no-longer runs the buildout itself.
   This was to fix a bug that caused parts to be recreated
   unnecessarily because the recipe signature in the initial buildout
-  reflected temporary locations for setuptools and zc.buildout.
+  reflected temporary locations for setuptools and buildout.
 
 - Now create a minimal setup.py if it doesn't exist and issue a
   warning that it is being created.

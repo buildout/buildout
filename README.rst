@@ -110,13 +110,13 @@ zc.recipe.testrunner recipe.  In the section for the test script, I
 specify that I want to run the tests in the zc.ngi package.
 
 When I check out this project into a new sandbox, I run bootstrap.py
-to get setuptools and zc.buildout and to create bin/buildout.  I run
+to get setuptools and buildout and to create bin/buildout.  I run
 bin/buildout, which installs the test script, bin/test, which I can
 then use to run the tests.
 
 This is probably the most common type of buildout.
 
-If I need to run a previous version of zc.buildout, I use the
+If I need to run a previous version of buildout, I use the
 `--version` option of the bootstrap.py script::
 
     $ python bootstrap.py --version 1.4.2
