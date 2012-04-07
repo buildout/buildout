@@ -2912,16 +2912,16 @@ def test_suite():
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
+               (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
+                           '-py\d.\d.egg'),
+                '\\1.egg'),
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                normalize_bang,
                (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
-               (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                           '-py\d.\d.egg'),
-                '\\1.egg'),
-               (re.compile('(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
+               (re.compile(r'(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
                 '\\1 V.V'),
                (re.compile('[-d]  setuptools'), '-  setuptools'),
                ])
