@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "1.4.5-dev"
+version = "1.4.5dev"
 
 import os
 from setuptools import setup
@@ -76,7 +76,7 @@ setup(
     keywords = "development build",
     url='http://buildout.org',
 
-    data_files = [('.', ['README.txt'])],
+    data_files = [('.', ['README.rst'])],
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
