@@ -133,7 +133,7 @@ _buildout_1_4_default_versions = {
     # Buildout and recipes that are likely to change to 1.5.0 sooner rather
     # than later.
     'zc.buildout': _buildout_version,
-    'zc.recipe.egg': '1.2.2',
+    # 'zc.recipe.egg': '1.2.2',
     'zc.recipe.testrunner': '1.3.0',
     'z3c.recipe.i18n': '0.7.0',
     'z3c.recipe.tag:': '0.3.0',
