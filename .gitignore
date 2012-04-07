@@ -1,0 +1,5 @@
+.installed.cfg
+bin/
+build/
+develop-eggs/
+eggs/
