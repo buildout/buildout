@@ -536,6 +536,7 @@ Let's fix the recipe:
     ...         except:
     ...             for d in created:
     ...                 os.rmdir(d)
+    ...                 assert not os.path.exists(d)
     ...             raise
     ...
     ...         return paths
