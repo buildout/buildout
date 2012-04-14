@@ -2813,17 +2813,16 @@ def getWorkingSetWithBuildoutEgg(test):
         # We have a develop egg, create a real egg for it:
         here = os.getcwd()
         os.chdir(os.path.dirname(dist.location))
-        assert os.spawnle(
-            os.P_WAIT, sys.executable,
-            zc.buildout.easy_install._safe_arg(sys.executable),
-            os.path.join(os.path.dirname(dist.location), 'setup.py'),
-            '-q', 'bdist_egg', '-d', eggs,
-            dict(os.environ,
-                 PYTHONPATH=pkg_resources.working_set.find(
-                               pkg_resources.Requirement.parse('setuptools')
-                               ).location,
-                 ),
-            ) == 0
+        zc.buildout.easy_install.call_subprocess(
+            [sys.executable,
+             os.path.join(os.path.dirname(dist.location), 'setup.py'),
+             '-q', 'bdist_egg', '-d', eggs],
+            env=dict(os.environ,
+                     PYTHONPATH=pkg_resources.working_set.find(
+                         pkg_resources.Requirement.parse('setuptools')
+                         ).location,
+                     ),
+            )
         os.chdir(here)
         os.remove(os.path.join(eggs, 'zc.buildout.egg-link'))
 

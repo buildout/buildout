@@ -111,19 +111,14 @@ def get(url):
 def _runsetup(setup, executable, *args):
     if os.path.isdir(setup):
         setup = os.path.join(setup, 'setup.py')
-    d = os.path.dirname(setup)
-
-    args = [zc.buildout.easy_install._safe_arg(arg)
-            for arg in args]
+    args = list(args)
     args.insert(0, '-q')
-    args.append(dict(os.environ, PYTHONPATH=setuptools_location))
-
     here = os.getcwd()
     try:
-        os.chdir(d)
-        os.spawnle(os.P_WAIT, executable,
-                   zc.buildout.easy_install._safe_arg(executable),
-                   setup, *args)
+        os.chdir(os.path.dirname(setup))
+        zc.buildout.easy_install.call_subprocess(
+            [executable, setup] + args,
+            env=dict(os.environ, PYTHONPATH=setuptools_location))
         if os.path.exists('build'):
             rmtree('build')
     finally:
