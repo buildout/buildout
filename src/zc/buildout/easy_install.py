@@ -77,7 +77,7 @@ def _get_version(executable):
     try:
         return _versions[executable]
     except KeyError:
-        cmd = _safe_arg(executable) + ' -V'
+        cmd = executable + ' -V'
         p = subprocess.Popen(cmd,
                              shell=True,
                              stdin=subprocess.PIPE,
@@ -137,10 +137,13 @@ if is_win32:
 else:
     _safe_arg = str
 
-_easy_install_cmd = _safe_arg(
-    'from setuptools.command.easy_install import main; main()'
-    )
+def call_subprocess(args, **kw):
+    if subprocess.call(args, **kw) != 0:
+        raise Exception(
+            "Failed to run command:\n%s"
+            % repr(args)[1:-1])
 
+_easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 
 class Installer:
 
@@ -301,36 +304,26 @@ class Installer:
         try:
             path = setuptools_loc
 
-            args = ('-c', _easy_install_cmd, '-mUNxd', _safe_arg(tmp))
+            args = [self._executable, '-c', _easy_install_cmd, '-mUNxd', tmp]
             if self._always_unzip:
-                args += ('-Z', )
+                args.append('-Z')
             level = logger.getEffectiveLevel()
             if level > 0:
-                args += ('-q', )
+                args.append('-q')
             elif level < 0:
-                args += ('-v', )
+                args.append('-v')
 
-            args += (_safe_arg(spec), )
+            args.append(spec)
 
             if level <= logging.DEBUG:
                 logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
                              self._executable, '" "'.join(args), path)
 
-            if is_jython:
-                extra_env = dict(os.environ, PYTHONPATH=path)
-            else:
-                args += (dict(os.environ, PYTHONPATH=path), )
-
             sys.stdout.flush() # We want any pending output first
 
-            if is_jython:
-                exit_code = subprocess.Popen(
-                [_safe_arg(self._executable)] + list(args),
-                env=extra_env).wait()
-            else:
-                exit_code = os.spawnle(
-                    os.P_WAIT, self._executable, _safe_arg (self._executable),
-                    *args)
+            exit_code = subprocess.call(
+                list(args),
+                env=dict(os.environ, PYTHONPATH=path))
 
             dists = []
             env = pkg_resources.Environment(
@@ -873,26 +866,18 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
 
-        args = [
-            zc.buildout.easy_install._safe_arg(tsetup),
-            '-q', 'develop', '-mxN',
-            '-d', _safe_arg(tmp3),
-            ]
+        args = [executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
             if log_level == 0:
-                del args[1]
+                del args[2]
             else:
-                args[1] == '-v'
+                args[2] == '-v'
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        if is_jython:
-            assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
-        else:
-            assert os.spawnl(os.P_WAIT, executable, _safe_arg(executable),
-                             *args) == 0
+        call_subprocess(args)
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
@@ -1257,13 +1242,10 @@ def redo_pyc(egg):
                 logger.warning("Couldn't compile %s", filepath)
             else:
                 # Recompile under other optimization. :)
-                args = [_safe_arg(sys.executable)]
+                args = [sys.executable]
                 if __debug__:
                     args.append('-O')
-                args.extend(['-m', 'py_compile', _safe_arg(filepath)])
+                args.extend(['-m', 'py_compile', filepath])
 
-                if is_jython:
-                    subprocess.call([sys.executable, args])
-                else:
-                    os.spawnv(os.P_WAIT, sys.executable, args)
+                call_subprocess(args)
 
