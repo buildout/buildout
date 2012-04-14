@@ -78,16 +78,6 @@ except ImportError:
     else:
         import pkg_resources
 
-if sys.platform == 'win32':
-    def quote(c):
-        if ' ' in c:
-            return '"%s"' % c # work around spawn lamosity on windows
-        else:
-            return c
-else:
-    def quote (c):
-        return c
-
 ws  = pkg_resources.working_set
 
 if USE_DISTRIBUTE:
@@ -100,11 +90,9 @@ env = dict(os.environ,
            ws.find(pkg_resources.Requirement.parse(requirement)).location
            )
 
-cmd = [quote(sys.executable),
-       '-c',
-       quote('from setuptools.command.easy_install import main; main()'),
-       '-mqNxd',
-       quote(tmpeggs)]
+cmd = [sys.executable, '-c',
+       'from setuptools.command.easy_install import main; main()',
+       '-mqNxd', tmpeggs]
 
 if 'bootstrap-testing-find-links' in os.environ:
     cmd.extend(['-f', os.environ['bootstrap-testing-find-links']])
