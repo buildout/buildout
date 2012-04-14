@@ -537,6 +537,9 @@ Let's fix the recipe:
     ...             for d in created:
     ...                 os.rmdir(d)
     ...                 assert not os.path.exists(d)
+    ...                 logging.getLogger(self.name).info(
+    ...                     'Removed %s due to error',
+    ...                      os.path.basename(d))
     ...             raise
     ...
     ...         return paths
@@ -565,6 +568,7 @@ When we rerun the buildout:
     Installing data-dir.
     data-dir: Creating directory foo
     data-dir: Creating directory bin
+    data-dir: Removed foo due to error
     While:
       Installing data-dir.
     <BLANKLINE>
