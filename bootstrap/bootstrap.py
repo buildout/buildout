@@ -25,8 +25,6 @@ from optparse import OptionParser
 
 tmpeggs = tempfile.mkdtemp()
 
-is_jython = sys.platform.startswith('java')
-
 # parsing arguments
 parser = OptionParser(
     'This is a custom version of the zc.buildout %prog script.  It is '
@@ -113,12 +111,12 @@ if 'bootstrap-testing-find-links' in os.environ:
 
 cmd.append('zc.buildout' + VERSION)
 
-if is_jython:
-    import subprocess
-    exitcode = subprocess.Popen(cmd, env=env).wait()
-else: # Windows prefers this, apparently; otherwise we would prefer subprocess
-    exitcode = os.spawnle(*([os.P_WAIT, sys.executable] + cmd + [env]))
-assert exitcode == 0
+
+import subprocess
+if subprocess.call(cmd, env=env) != 0:
+    raise Exception(
+        "Failed to execute command:\n%s",
+        repr(cmd)[1:-1])
 
 ws.add_entry(tmpeggs)
 ws.require('zc.buildout' + VERSION)
