@@ -462,7 +462,7 @@ leave previously created paths in place:
     recipe being used:
     Traceback (most recent call last):
       ...
-    OSError: [Errno 17] File exists: '/sample-buildout/bin'
+    OSError: ... exists...
 
 We meant to create a directory bins, but typed bin.  Now foo was
 left behind.
@@ -494,7 +494,7 @@ If we fix the typo:
     recipe being used:
     Traceback (most recent call last):
     ...
-    OSError: [Errno 17] File exists: '/sample-buildout/foo'
+    OSError: ... exists...
 
 Now they fail because foo exists, because it was left behind.
 
@@ -572,7 +572,7 @@ When we rerun the buildout:
     recipe being used:
     Traceback (most recent call last):
     ...
-    OSError: [Errno 17] File exists: '/sample-buildout/bin'
+    OSError: ... exists...
 
 .. Wait for the file to really disappear. My linux is weird.
 
@@ -653,7 +653,7 @@ directories will be created:
     recipe being used:
     Traceback (most recent call last):
     ...
-    OSError: [Errno 17] File exists: '/sample-buildout/bin'
+    OSError: ... exists...
 
     >>> os.path.exists('foo')
     False
