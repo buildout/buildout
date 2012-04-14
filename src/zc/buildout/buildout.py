@@ -31,6 +31,7 @@ import os
 import pkg_resources
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import UserDict
@@ -45,11 +46,6 @@ pkg_resources_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')).location
 
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
-
-is_jython = sys.platform.startswith('java')
-
-if is_jython:
-    import subprocess
 
 class MissingOption(zc.buildout.UserError, KeyError):
     """A required option was missing.
@@ -878,15 +874,11 @@ class Buildout(UserDict.DictMixin):
             )
 
         # Restart
-        args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+        args = sys.argv[:]
         if not __debug__:
             args.insert(0, '-O')
-        args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-
-        if is_jython:
-            sys.exit(subprocess.Popen([sys.executable] + list(args)).wait())
-        else:
-            sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+        args.insert(0, sys.executable)
+        sys.exit(subprocess.call(args))
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -945,22 +937,8 @@ class Buildout(UserDict.DictMixin):
                 setup=setup,
                 __file__ = setup,
                 ))
-            if is_jython:
-                arg_list = list()
-
-                for a in args:
-                    arg_list.append(zc.buildout.easy_install._safe_arg(a))
-
-                subprocess.Popen(
-                    [zc.buildout.easy_install._safe_arg(sys.executable)]
-                    + list(tsetup)
-                    + arg_list
-                    ).wait()
-
-            else:
-                os.spawnl(os.P_WAIT, sys.executable, zc.buildout.easy_install._safe_arg (sys.executable), tsetup,
-                        *[zc.buildout.easy_install._safe_arg(a)
-                            for a in args])
+            zc.buildout.easy_install.call_subprocess(
+                [sys.executable, tsetup] + args)
         finally:
             os.close(fd)
             os.remove(tsetup)
