@@ -61,6 +61,9 @@ class Eggs(object):
         """
         options = self.options
 
+        # Backward compat. :(
+        options['executable'] = sys.executable
+
         distributions = [
             r.strip()
             for r in options.get('eggs', self.name).split('\n')
