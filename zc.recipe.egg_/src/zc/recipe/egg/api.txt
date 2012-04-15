@@ -6,7 +6,7 @@ and generate scripts based on the resulting working sets.  The egg
 recipe provides an API that other recipes can use.
 
 A recipe can reuse the egg recipe, supporting the eggs, find-links,
-index, extra-paths, and python options.  This is done by creating an
+index, and extra-paths options.  This is done by creating an
 egg recipe instance in a recipes's contructor.  In the recipe's
 install script, the egg-recipe instance's working_set method is used
 to collect the requested eggs and working set.
@@ -112,7 +112,6 @@ computed by the egg recipe by looking at .installed.cfg:
     develop-eggs-directory = /sample-buildout/develop-eggs
     eggs = demo<0.3
     eggs-directory = /sample-buildout/eggs
-    executable = /usr/local/bin/python2.3
     extras = other
     find-links = http://localhost:27071/
     index = http://localhost:27071/index

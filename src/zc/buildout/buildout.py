@@ -113,8 +113,6 @@ _buildout_default_options = _annotate_section({
     'bin-directory': 'bin',
     'parts-directory': 'parts',
     'installed': '.installed.cfg',
-    'python': 'buildout',
-    'executable': sys.executable,
     'log-level': 'INFO',
     'log-format': '',
     }, 'DEFAULT_VALUE')

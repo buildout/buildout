@@ -14,7 +14,6 @@
 
 import os, re, shutil, sys
 import zc.buildout.tests
-import zc.buildout.testselectingpython
 import zc.buildout.testing
 
 import unittest
@@ -33,10 +32,6 @@ def setUp(test):
     zc.buildout.tests.easy_install_SetUp(test)
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
 
-def setUpSelecting(test):
-    zc.buildout.testselectingpython.setup(test)
-    zc.buildout.testing.install_develop('zc.recipe.egg', test)
-    
 def test_suite():
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
@@ -68,8 +63,6 @@ def test_suite():
                            'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-'),
-               (re.compile('executable = [\S ]+python\S*', re.I),
-                'executable = python'),
                (re.compile('find-links = http://localhost:\d+/'),
                 'find-links = http://localhost:8080/'),
                (re.compile('index = http://localhost:\d+/index'),
@@ -89,33 +82,7 @@ def test_suite():
                (re.compile('extdemo[.]pyd'), 'extdemo.so')
                ]),
             ),
-        
         ))
-
-    if sys.version_info[:2] == (2, 5):
-        # Only run selecting python tests if not 2.4, since
-        # 2.4 is the alternate python used in the tests.
-        suite.addTest(
-            doctest.DocFileSuite(
-                'selecting-python.txt',
-                setUp=setUpSelecting,
-                tearDown=zc.buildout.testing.buildoutTearDown,
-                checker=renormalizing.RENormalizing([
-                   zc.buildout.testing.normalize_path,
-                   zc.buildout.testing.normalize_endings,
-                   zc.buildout.testing.normalize_script,
-                   (re.compile('Got setuptools \S+'), 'Got setuptools V'),
-                   (re.compile('([d-]  )?setuptools-\S+-py'),
-                    'setuptools-V-py'),
-                   (re.compile('-py2[.][0-35-9][.]'), 'py2.5.'),
-                   (re.compile('zc.buildout-\S+[.]egg'),
-                    'zc.buildout.egg'),
-                   (re.compile('zc.buildout[.]egg-link'),
-                    'zc.buildout.egg'),
-                   ]),
-                ),
-            )
-    
     return suite
 
 if __name__ == '__main__':

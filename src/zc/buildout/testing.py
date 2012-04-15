@@ -108,7 +108,7 @@ def system(command, input=''):
 def get(url):
     return urllib2.urlopen(url).read()
 
-def _runsetup(setup, executable, *args):
+def _runsetup(setup, *args):
     if os.path.isdir(setup):
         setup = os.path.join(setup, 'setup.py')
     args = list(args)
@@ -117,7 +117,7 @@ def _runsetup(setup, executable, *args):
     try:
         os.chdir(os.path.dirname(setup))
         zc.buildout.easy_install.call_subprocess(
-            [executable, setup] + args,
+            [sys.executable, setup] + args,
             env=dict(os.environ, PYTHONPATH=setuptools_location))
         if os.path.exists('build'):
             rmtree('build')
@@ -125,64 +125,15 @@ def _runsetup(setup, executable, *args):
         os.chdir(here)
 
 def sdist(setup, dest):
-    _runsetup(setup, sys.executable, 'sdist', '-d', dest, '--formats=zip')
+    _runsetup(setup, 'sdist', '-d', dest, '--formats=zip')
 
-def bdist_egg(setup, executable, dest):
-    _runsetup(setup, executable, 'bdist_egg', '-d', dest)
-
-def find_python(version):
-    e = os.environ.get('PYTHON%s' % version)
-    if e is not None:
-        return e
-    if is_win32:
-        e = '\Python%s%s\python.exe' % tuple(version.split('.'))
-        if os.path.exists(e):
-            return e
+def bdist_egg(setup, executable, dest=None):
+    # Backward compat:
+    if dest is None:
+        dest = executable
     else:
-        cmd = 'python%s -c "import sys; print sys.executable"' % version
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=MUST_CLOSE_FDS)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        e = o.read().strip()
-        o.close()
-        if os.path.exists(e):
-            return e
-        cmd = 'python -c "import sys; print \'%s.%s\' % sys.version_info[:2]"'
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=MUST_CLOSE_FDS)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        e = o.read().strip()
-        o.close()
-        if e == version:
-            cmd = 'python -c "import sys; print sys.executable"'
-            p = subprocess.Popen(cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                close_fds=MUST_CLOSE_FDS)
-            i, o = (p.stdin, p.stdout)
-            i.close()
-            e = o.read().strip()
-            o.close()
-            if os.path.exists(e):
-                return e
-
-    raise ValueError(
-        "Couldn't figure out the executable for Python %(version)s.\n"
-        "Set the environment variable PYTHON%(version)s to the location\n"
-        "of the Python %(version)s executable before running the tests."
-        % {'version': version})
+        assert executable == sys.executable, (executable, sys.executable)
+    _runsetup(setup, 'bdist_egg', '-d', dest)
 
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:

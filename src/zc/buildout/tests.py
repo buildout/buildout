@@ -22,7 +22,6 @@ import tempfile
 import unittest
 import zc.buildout.easy_install
 import zc.buildout.testing
-import zc.buildout.testselectingpython
 import zipfile
 
 os_path_sep = os.path.sep
@@ -496,55 +495,6 @@ Then try to install it again:
 
     >>> ls(d2)
     d  demo-1.0-py2.4.egg
-
-    """
-
-def make_sure__get_version_works_with_2_digit_python_versions():
-    """
-
-This is a test of an internal function used by higher-level machinery.
-
-We'll start by creating a faux 'python' that executable that prints a
-2-digit version. This is a bit of a pain to do portably. :(
-
-    >>> mkdir('demo')
-    >>> write('demo', 'setup.py',
-    ... '''
-    ... from setuptools import setup
-    ... setup(name='demo',
-    ...       entry_points = {'console_scripts': ['demo = demo:main']},
-    ...       )
-    ... ''')
-    >>> write('demo', 'demo.py',
-    ... '''
-    ... def main():
-    ...     print 'Python 2.5'
-    ... ''')
-
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... develop = demo
-    ... parts =
-    ... ''')
-
-    >>> print system(join('bin', 'buildout')),
-    Develop: '/sample-buildout/demo'
-
-    >>> import zc.buildout.easy_install
-    >>> ws = zc.buildout.easy_install.working_set(
-    ...    ['demo'], sys.executable, ['develop-eggs'])
-    >>> bool(zc.buildout.easy_install.scripts(
-    ...      ['demo'], ws, sys.executable, 'bin'))
-    True
-
-    >>> print system(join('bin', 'demo')),
-    Python 2.5
-
-Now, finally, let's test _get_version:
-
-    >>> zc.buildout.easy_install._get_version(join('bin', 'demo'))
-    '2.5'
 
     """
 
@@ -2655,6 +2605,7 @@ def increment_on_command_line():
 ######################################################################
 
 def create_sample_eggs(test, executable=sys.executable):
+    assert executable == sys.executable, (executable, sys.executable)
     write = test.globs['write']
     dest = test.globs['sample_eggs']
     tmp = tempfile.mkdtemp()
@@ -2680,7 +2631,7 @@ def create_sample_eggs(test, executable=sys.executable):
             "setup(name='other', zip_safe=False, version='1.0', "
             "py_modules=['eggrecipedemoneeded'])\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
 
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
 
@@ -2701,7 +2652,7 @@ def create_sample_eggs(test, executable=sys.executable):
                      "['demo = eggrecipedemo:main']},"
                 " zip_safe=True, version='0.%s%s')\n" % (i, c1)
                 )
-            zc.buildout.testing.bdist_egg(tmp, executable, dest)
+            zc.buildout.testing.bdist_egg(tmp, dest)
 
         write(tmp, 'eggrecipebigdemo.py', 'import eggrecipedemo')
         write(
@@ -2712,7 +2663,7 @@ def create_sample_eggs(test, executable=sys.executable):
             " py_modules=['eggrecipebigdemo'], "
             " zip_safe=True, version='0.1')\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
 
     finally:
         shutil.rmtree(tmp)
@@ -2858,7 +2809,7 @@ def bootstrapSetup(test):
 normalize_bang = (
     re.compile(re.escape('#!'+
                          zc.buildout.easy_install._safe_arg(sys.executable))),
-    '#!/usr/local/bin/python2.4',
+    '#!/usr/local/bin/python2.7',
     )
 
 def test_suite():
@@ -2874,8 +2825,6 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('executable = [\S ]+python\S*', re.I),
-                'executable = python'),
                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
@@ -2989,7 +2938,6 @@ def test_suite():
                (re.compile(r'^[*]...'), '...'),
                ]),
             ),
-        zc.buildout.testselectingpython.test_suite(),
         zc.buildout.rmtree.test_suite(),
         doctest.DocFileSuite(
             'windows.txt',

@@ -739,8 +739,6 @@ COMMAND_LINE_VALUE).
         COMPUTED_VALUE
     eggs-directory= eggs
         DEFAULT_VALUE
-    executable= ...
-        DEFAULT_VALUE
     installed= .installed.cfg
         DEFAULT_VALUE
     log-format=
@@ -750,8 +748,6 @@ COMMAND_LINE_VALUE).
     parts= data-dir
         /sample-buildout/buildout.cfg
     parts-directory= parts
-        DEFAULT_VALUE
-    python= buildout
         DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
@@ -2209,7 +2205,6 @@ database is shown.
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
     eggs-directory = /sample-buildout/eggs
-    executable = /usr/local/bin/python2.3
     installed = /sample-buildout/.installed.cfg
     log-format =
     log-level = INFO
@@ -2217,7 +2212,6 @@ database is shown.
     offline = false
     parts =
     parts-directory = /sample-buildout/parts
-    python = buildout
     verbosity = 20
     <BLANKLINE>
 
@@ -2245,10 +2239,6 @@ eggs-directory
    *never* be modified.  This can be a relative path, which is
    interpreted relative to the directory option.
 
-executable
-   The Python executable used to run the buildout.  See the python
-   option below.
-
 installed
    The file path where information about the results of the previous
    buildout run is written.  This can be a relative path, which is
@@ -2267,16 +2257,6 @@ parts
 
 parts-directory
    A working directory that parts can used to store data.
-
-python
-   The name of a section containing information about the default
-   Python interpreter.  Recipes that need a installation
-   typically have options to tell them which Python installation to
-   use.  By convention, if a section-specific option isn't used, the
-   option is looked for in the buildout section.  The option must
-   point to a section with an executable option giving the path to a
-   Python executable.  By default, the buildout section defines the
-   default Python as the Python used to run the buildout.
 
 verbosity
    A log-level adjustment.  Typically, this is set via the -q and -v

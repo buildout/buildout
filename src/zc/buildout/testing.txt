@@ -109,25 +109,11 @@ number of names to the test namespace:
     setup argument is a directory, the thge setup.py file in that
     directory is used.
 
-``bdist_egg(setup, executable, dest)``
-    Create an egg by running the given setup file with the given
-    Python executable and placing the result in the given destination
+``bdist_egg(setup, dest)``
+    Create an egg by running the given setup file
+    and placing the result in the given destination
     directory.  If the setup argument is a directory, then the
     setup.py file in that directory is used.
-
-``find_python(version)``
-    Find a Python executable for the given version, where version is a
-    string like "2.4".
-
-    This function uses the following strategy to find a Python of the
-    given version:
-
-    - Look for an environment variable of the form PYTHON%(version)s.
-
-    - On windows, look for \Pythonm%(version)s\python
-
-    - on Unix, try running python%(version)s or just python to get the
-      executable
 
 ``zc.buildout.testing.buildoutTearDown(test)``
 ----------------------------------------------

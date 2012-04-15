@@ -47,7 +47,6 @@ test: we only want to test that ``_get_dist()`` isn't getting called:
     ...     dest=dest,
     ...     links=[link_server],
     ...     index=link_server+'index/',
-    ...     executable=sys.executable,
     ...     always_unzip=True)
     >>> installer._get_dist = mock_get_dist
     >>> installer._call_easy_install('setuptools', None, dest, dist)

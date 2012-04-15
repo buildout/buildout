@@ -12,12 +12,14 @@
 #
 ##############################################################################
 """Install packages as eggs
-
-$Id$
 """
 
-import logging, os, re, zipfile
+import logging
+import os
+import re
+import sys
 import zc.buildout.easy_install
+import zipfile
 
 class Eggs(object):
 
@@ -52,9 +54,6 @@ class Eggs(object):
 
         assert options.get('unzip') in ('true', 'false', None)
 
-        python = options.get('python', buildout['buildout']['python'])
-        options['executable'] = buildout[python]['executable']
-
     def working_set(self, extra=()):
         """Separate method to just get the working set
 
@@ -71,7 +70,7 @@ class Eggs(object):
 
         if self.buildout['buildout'].get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
-                distributions, options['executable'],
+                distributions,
                 [options['develop-eggs-directory'], options['eggs-directory']]
                 )
         else:
@@ -83,7 +82,6 @@ class Eggs(object):
                 distributions, options['eggs-directory'],
                 links=self.links,
                 index=self.index,
-                executable=options['executable'],
                 path=[options['develop-eggs-directory']],
                 newest=self.buildout['buildout'].get('newest') == 'true',
                 allow_hosts=self.allow_hosts,
@@ -159,8 +157,7 @@ class Scripts(Eggs):
                         reqs.append(name)
 
             return zc.buildout.easy_install.scripts(
-                reqs, ws, options['executable'],
-                options['bin-directory'],
+                reqs, ws, sys.executable, options['bin-directory'],
                 scripts=scripts,
                 extra_paths=self.extra_paths,
                 interpreter=options.get('interpreter'),

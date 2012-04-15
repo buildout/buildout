@@ -23,12 +23,6 @@ index
    we'll just point to an empty directory on our link server.  This
    will make our examples run a little bit faster.
 
-python
-   The name of a section to get the Python executable from.
-   If not specified, then the buildout python option is used.  The
-   Python executable is found in the executable option of the named
-   section.
-
 We have a link server that has a number of distributions:
 
     >>> print get(link_server),
@@ -373,7 +367,7 @@ extra-paths option:
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -420,7 +414,7 @@ breaking scripts.
 Let's look at the script that was generated:
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -467,7 +461,7 @@ each individual script section:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -520,7 +514,7 @@ to be included in generated scripts:
     Generated script '/sample-buildout/bin/foo'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -578,7 +572,7 @@ declare entry points using the entry-points option:
     -  other
 
     >>> cat(sample_buildout, 'bin', 'other')
-    #!/usr/local/bin/python2.4
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     sys.path[0:0] = [

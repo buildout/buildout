@@ -16,8 +16,12 @@
 $Id$
 """
 
-import logging, os, re, zipfile
+import logging
+import os
+import re
+import sys
 import zc.buildout.easy_install
+import zipfile
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +32,6 @@ class Base:
         self.name, self.options = name, options
 
         options['_d'] = buildout['buildout']['develop-eggs-directory']
-
-        python = options.get('python', buildout['buildout']['python'])
-        options['executable'] = buildout[python]['executable']
 
         self.build_ext = build_ext(buildout, options)
 
@@ -92,8 +93,8 @@ class Custom(Base):
         try:
             return zc.buildout.easy_install.build(
                 distribution, options['_d'], self.build_ext,
-                self.links, self.index, options['executable'], [options['_e']],
-                newest=self.newest,
+                self.links, self.index, sys.executable,
+                [options['_e']], newest=self.newest,
                 )
         finally:
             self._restore_environment()
@@ -130,9 +131,7 @@ class Develop(Base):
     def install(self):
         options = self.options
         return zc.buildout.easy_install.develop(
-            options['setup'], options['_d'], self.build_ext,
-            options['executable'],
-            )
+            options['setup'], options['_d'], self.build_ext)
 
 
 def build_ext(buildout, options):

@@ -72,30 +72,7 @@ class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
     """
 
-_versions = {sys.executable: '%d.%d' % sys.version_info[:2]}
-def _get_version(executable):
-    try:
-        return _versions[executable]
-    except KeyError:
-        cmd = executable + ' -V'
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT,
-                             close_fds=not is_win32)
-        i, o = (p.stdin, p.stdout)
-        i.close()
-        version = o.read().strip()
-        o.close()
-        pystring, version = version.split()
-        assert pystring == 'Python'
-        version = re.match('(\d[.]\d)([.].*\d)?$', version).group(1)
-        _versions[executable] = version
-        return version
-
 FILE_SCHEME = re.compile('file://', re.I).match
-
 
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
@@ -109,17 +86,15 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
 
 
 _indexes = {}
-def _get_index(executable, index_url, find_links, allow_hosts=('*',)):
-    key = executable, index_url, tuple(find_links)
+def _get_index(index_url, find_links, allow_hosts=('*',)):
+    key = index_url, tuple(find_links)
     index = _indexes.get(key)
     if index is not None:
         return index
 
     if index_url is None:
         index_url = default_index_url
-    index = AllowHostsPackageIndex(
-        index_url, hosts=allow_hosts, python=_get_version(executable)
-        )
+    index = AllowHostsPackageIndex(index_url, hosts=allow_hosts)
 
     if find_links:
         index.add_find_links(find_links)
@@ -167,6 +142,7 @@ class Installer:
                  use_dependency_links=None,
                  allow_hosts=('*',)
                  ):
+        assert executable == sys.executable, (executable, sys.executable)
         self._dest = dest
         self._allow_hosts = allow_hosts
 
@@ -184,7 +160,6 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        self._executable = executable
         if always_unzip is not None:
             self._always_unzip = always_unzip
         path = (path and path[:] or []) + buildout_and_setuptools_path
@@ -194,9 +169,8 @@ class Installer:
         if self._dest is None:
             newest = False
         self._newest = newest
-        self._env = pkg_resources.Environment(path,
-                                              python=_get_version(executable))
-        self._index = _get_index(executable, index, links, self._allow_hosts)
+        self._env = pkg_resources.Environment(path)
+        self._index = _get_index(index, links, self._allow_hosts)
 
         if versions is not None:
             self._versions = versions
@@ -291,10 +265,7 @@ class Installer:
         return best_we_have, None
 
     def _load_dist(self, dist):
-        dists = pkg_resources.Environment(
-            dist.location,
-            python=_get_version(self._executable),
-            )[dist.project_name]
+        dists = pkg_resources.Environment(dist.location)[dist.project_name]
         assert len(dists) == 1
         return dists[0]
 
@@ -304,7 +275,7 @@ class Installer:
         try:
             path = setuptools_loc
 
-            args = [self._executable, '-c', _easy_install_cmd, '-mUNxd', tmp]
+            args = [sys.executable, '-c', _easy_install_cmd, '-mUNxd', tmp]
             if self._always_unzip:
                 args.append('-Z')
             level = logger.getEffectiveLevel()
@@ -316,8 +287,8 @@ class Installer:
             args.append(spec)
 
             if level <= logging.DEBUG:
-                logger.debug('Running easy_install:\n%s "%s"\npath=%s\n',
-                             self._executable, '" "'.join(args), path)
+                logger.debug('Running easy_install:\n"%s"\npath=%s\n',
+                             '" "'.join(args), path)
 
             sys.stdout.flush() # We want any pending output first
 
@@ -326,10 +297,7 @@ class Installer:
                 env=dict(os.environ, PYTHONPATH=path))
 
             dists = []
-            env = pkg_resources.Environment(
-                [tmp],
-                python=_get_version(self._executable),
-                )
+            env = pkg_resources.Environment([tmp])
             for project in env:
                 dists.extend(env[project])
 
@@ -373,10 +341,7 @@ class Installer:
                         os.remove(newloc)
                 os.rename(d.location, newloc)
 
-                [d] = pkg_resources.Environment(
-                    [newloc],
-                    python=_get_version(self._executable),
-                    )[d.project_name]
+                [d] = pkg_resources.Environment([newloc])[d.project_name]
 
                 result.append(d)
 
@@ -525,10 +490,8 @@ class Installer:
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
                     # good enough.
-                    dists = pkg_resources.Environment(
-                        [newloc],
-                        python=_get_version(self._executable),
-                        )[dist.project_name]
+                    dists = pkg_resources.Environment([newloc])[
+                        dist.project_name]
                 else:
                     # It's some other kind of dist.  We'll let easy_install
                     # deal with it:
@@ -558,8 +521,7 @@ class Installer:
                     if link not in self._links:
                         logger.debug('Adding find link %r from %s', link, dist)
                         self._links.append(link)
-                        self._index = _get_index(self._executable,
-                                                 self._index_url, self._links,
+                        self._index = _get_index(self._index_url, self._links,
                                                  self._allow_hosts)
 
         for dist in dists:
@@ -787,7 +749,9 @@ def install(specs, dest,
             executable=sys.executable, always_unzip=None,
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',)):
-    installer = Installer(dest, links, index, executable, always_unzip, path,
+    assert executable == sys.executable, (executable, sys.executable)
+    installer = Installer(dest, links, index, sys.executable,
+                          always_unzip, path,
                           newest, versions, use_dependency_links,
                           allow_hosts=allow_hosts)
     return installer.install(specs, working_set)
@@ -797,7 +761,9 @@ def build(spec, dest, build_ext,
           links=(), index=None,
           executable=sys.executable,
           path=None, newest=True, versions=None, allow_hosts=('*',)):
-    installer = Installer(dest, links, index, executable, True, path, newest,
+    assert executable == sys.executable, (executable, sys.executable)
+    installer = Installer(dest, links, index, sys.executable,
+                          True, path, newest,
                           versions, allow_hosts=allow_hosts)
     return installer.build(spec, build_ext)
 
@@ -828,7 +794,7 @@ def _copyeggs(src, dest, suffix, undo):
 def develop(setup, dest,
             build_ext=None,
             executable=sys.executable):
-
+    assert executable == sys.executable, (executable, sys.executable)
     if os.path.isdir(setup):
         directory = setup
         setup = os.path.join(directory, 'setup.py')
@@ -866,7 +832,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
 
-        args = [executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
+        args = [sys.executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
@@ -886,10 +852,15 @@ def develop(setup, dest,
         [f() for f in undo]
 
 
-def working_set(specs, executable, path):
-    return install(specs, None, executable=executable, path=path)
+def working_set(specs, executable, path=None):
+    # Backward compat:
+    if path is None:
+        path = executable
+    else:
+        assert executable == sys.executable, (executable, sys.executable)
+    return install(specs, None, path=path)
 
-def scripts(reqs, working_set, executable, dest,
+def scripts(reqs, working_set, executable, dest=None,
             scripts=None,
             extra_paths=(),
             arguments='',
@@ -897,6 +868,7 @@ def scripts(reqs, working_set, executable, dest,
             initialization='',
             relative_paths=False,
             ):
+    assert executable == sys.executable, (executable, sys.executable)
 
     path = [dist.location for dist in working_set]
     path.extend(extra_paths)
@@ -942,14 +914,14 @@ def scripts(reqs, working_set, executable, dest,
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
 
         generated.extend(
-            _script(module_name, attrs, spath, sname, executable, arguments,
+            _script(module_name, attrs, spath, sname, arguments,
                     initialization, rpsetup)
             )
 
     if interpreter:
         sname = os.path.join(dest, interpreter)
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
-        generated.extend(_pyscript(spath, sname, executable, rpsetup))
+        generated.extend(_pyscript(spath, sname, rpsetup))
 
     return generated
 
@@ -1014,15 +986,14 @@ join = os.path.join
 base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 """
 
-def _script(module_name, attrs, path, dest, executable, arguments,
-            initialization, rsetup):
+def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
     generated = []
     script = dest
     if is_win32:
         dest += '-script.py'
 
     contents = script_template % dict(
-        python = _safe_arg(executable),
+        python = _safe_arg(sys.executable),
         path = path,
         module_name = module_name,
         attrs = attrs,
@@ -1074,14 +1045,14 @@ if __name__ == '__main__':
 '''
 
 
-def _pyscript(path, dest, executable, rsetup):
+def _pyscript(path, dest, rsetup):
     generated = []
     script = dest
     if is_win32:
         dest += '-script.py'
 
     contents = py_script_template % dict(
-        python = _safe_arg(executable),
+        python = _safe_arg(sys.executable),
         path = path,
         relative_paths_setup = rsetup,
         )
