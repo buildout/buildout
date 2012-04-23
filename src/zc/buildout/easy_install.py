@@ -816,6 +816,16 @@ class Installer:
 
 
     def _constrain(self, requirement):
+        if requirement.project_name == 'setuptools':
+            # Replace a requirement for setuptools by one for distutils early
+            # on for two reasons: 1. We don't want to miss constraining a
+            # requirement for distribute just because no setuptools version is
+            # pinned. 2. Distribute's requirements parsing replaces a
+            # versioned requirement for setuptools by an unversioned one for
+            # distribute, so we'd miss constraining a requirement for
+            # distribute even if that is pinned.
+            requirement = pkg_resources.Requirement.parse(setuptools_key)
+
         version = self._versions.get(requirement.project_name)
         if version:
             if version not in requirement:
