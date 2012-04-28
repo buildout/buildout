@@ -14,7 +14,7 @@
 """Python easy_install API
 
 This module provides a high-level Python API for installing packages.
-It doesn't install scripts.  It uses setuptools and requires it to be
+It doesn't install scripts.  It uses distribute and requires it to be
 installed.
 """
 
@@ -56,13 +56,13 @@ if is_jython:
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
 
-setuptools_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')
+distribute_loc = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('distribute')
     ).location
 
-# Include buildout and setuptools eggs in paths
-buildout_and_setuptools_path = [
-    setuptools_loc,
+# Include buildout and distribute eggs in paths
+buildout_and_distribute_path = [
+    distribute_loc,
     pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
@@ -162,7 +162,7 @@ class Installer:
         self._index_url = index
         if always_unzip is not None:
             self._always_unzip = always_unzip
-        path = (path and path[:] or []) + buildout_and_setuptools_path
+        path = (path and path[:] or []) + buildout_and_distribute_path
         if dest is not None and dest not in path:
             path.insert(0, dest)
         self._path = path
@@ -273,7 +273,7 @@ class Installer:
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = setuptools_loc
+            path = distribute_loc
 
             args = [sys.executable, '-c', _easy_install_cmd, '-mUNxd', tmp]
             if self._always_unzip:
@@ -417,7 +417,7 @@ class Installer:
             and (realpath(new_location) == realpath(dist.location))
             and os.path.isfile(new_location)
             ):
-            # setuptools avoids making extra copies, but we want to copy
+            # distribute avoids making extra copies, but we want to copy
             # to the download cache
             shutil.copy2(new_location, tmp)
             new_location = os.path.join(tmp, os.path.basename(new_location))
@@ -542,21 +542,21 @@ class Installer:
 
         return dists
 
-    def _maybe_add_setuptools(self, ws, dist):
+    def _maybe_add_distribute(self, ws, dist):
         if dist.has_metadata('namespace_packages.txt'):
             for r in dist.requires():
-                if r.project_name == 'setuptools':
+                if r.project_name in ('setuptools', 'distribute'):
                     break
             else:
-                # We have a namespace package but no requirement for setuptools
+                # We have a namespace package but no requirement for distribute
                 if dist.precedence == pkg_resources.DEVELOP_DIST:
                     logger.warn(
                         "Develop distribution: %s\n"
                         "uses namespace packages but the distribution "
-                        "does not require setuptools.",
+                        "does not require distribute.",
                         dist)
                 requirement = self._constrain(
-                    pkg_resources.Requirement.parse('setuptools')
+                    pkg_resources.Requirement.parse('distribute')
                     )
                 if ws.find(requirement) is None:
                     for dist in self._get_dist(requirement, ws, False):
@@ -600,7 +600,7 @@ class Installer:
         for requirement in requirements:
             for dist in self._get_dist(requirement, ws, self._always_unzip):
                 ws.add(dist)
-                self._maybe_add_setuptools(ws, dist)
+                self._maybe_add_distribute(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
         # set, but they may have unmet requirements.  We'll simply keep
@@ -626,7 +626,7 @@ class Installer:
                                            ):
 
                     ws.add(dist)
-                    self._maybe_add_setuptools(ws, dist)
+                    self._maybe_add_distribute(ws, dist)
             except pkg_resources.VersionConflict, err:
                 raise VersionConflict(err, ws)
             else:
@@ -823,7 +823,7 @@ def develop(setup, dest,
         undo.append(lambda: os.close(fd))
 
         os.write(fd, runsetup_template % dict(
-            setuptools=setuptools_loc,
+            distribute=distribute_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
@@ -1006,7 +1006,7 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
     if is_win32:
         # generate exe file and give the script a magic name:
         exe = script+'.exe'
-        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = pkg_resources.resource_string('distribute', 'cli.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
@@ -1062,7 +1062,7 @@ def _pyscript(path, dest, rsetup):
         # generate exe file and give the script a magic name:
         exe = script + '.exe'
         open(exe, 'wb').write(
-            pkg_resources.resource_string('setuptools', 'cli.exe')
+            pkg_resources.resource_string('distribute', 'cli.exe')
             )
         generated.append(exe)
 
@@ -1115,7 +1115,7 @@ if _interactive:
 runsetup_template = """
 import sys
 sys.path.insert(0, %(setupdir)r)
-sys.path.insert(0, %(setuptools)r)
+sys.path.insert(0, %(distribute)r)
 import os, setuptools
 
 __file__ = %(__file__)r

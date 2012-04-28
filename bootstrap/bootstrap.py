@@ -34,10 +34,6 @@ parser.add_option("-v", "--version", dest="version", default='1.4.4',
                           help='Use a specific zc.buildout version.  *This '
                           'bootstrap script defaults to '
                           '1.4.4, unlike usual buildpout bootstrap scripts.*')
-parser.add_option("-d", "--distribute",
-                   action="store_true", dest="distribute", default=False,
-                   help="Use Disribute rather than Setuptools.")
-
 parser.add_option("-c", None, action="store", dest="config_file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
@@ -53,7 +49,6 @@ if options.version is not None:
 else:
     VERSION = ''
 
-USE_DISTRIBUTE = options.distribute
 args = args + ['bootstrap']
 
 to_reload = False
@@ -64,14 +59,9 @@ try:
         raise ImportError
 except ImportError:
     ez = {}
-    if USE_DISTRIBUTE:
-        exec urllib2.urlopen('http://python-distribute.org/distribute_setup.py'
+    exec urllib2.urlopen('http://python-distribute.org/distribute_setup.py'
                          ).read() in ez
-        ez['use_setuptools'](to_dir=tmpeggs, download_delay=0, no_fake=True)
-    else:
-        exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
-                             ).read() in ez
-        ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
+    ez['use_setuptools'](to_dir=tmpeggs, download_delay=0, no_fake=True)
 
     if to_reload:
         reload(pkg_resources)
@@ -80,10 +70,7 @@ except ImportError:
 
 ws  = pkg_resources.working_set
 
-if USE_DISTRIBUTE:
-    requirement = 'distribute'
-else:
-    requirement = 'setuptools'
+requirement = 'distribute'
 
 env = dict(os.environ,
            PYTHONPATH=
@@ -98,7 +85,6 @@ if 'bootstrap-testing-find-links' in os.environ:
     cmd.extend(['-f', os.environ['bootstrap-testing-find-links']])
 
 cmd.append('zc.buildout' + VERSION)
-
 
 import subprocess
 if subprocess.call(cmd, env=env) != 0:

@@ -18,7 +18,7 @@ buildout software and create a buildout instance:
    script installed in a Python scripts area.
 
 2. Use the buildout bootstrap script to create a buildout that
-   includes both the setuptools and zc.buildout eggs.  This allows you
+   includes both the distribute and zc.buildout eggs.  This allows you
    to use the buildout software without modifying a Python install.
    The buildout script is installed into your buildout local scripts
    area.
@@ -32,7 +32,7 @@ such as a subversion repository, that includes some software source
 directories, buildout configuration files, and a copy of the buildout
 bootstrap script.  To work on the project, one would check out the
 project from the repository and run the bootstrap script which
-installs setuptools and zc.buildout into the checkout as well as any
+installs distribute and zc.buildout into the checkout as well as any
 parts defined.
 
 We have a sample buildout that we created using the bootstrap command
@@ -53,7 +53,7 @@ The bin directory contains scripts.
     -  buildout
 
     >>> ls(sample_buildout, 'eggs')
-    -  setuptools-0.6-py2.4.egg
+    -  distribute-0.6-py2.4.egg
     -  zc.buildout-1.0-py2.4.egg
 
 The develop-eggs and parts directories are initially empty:
@@ -228,7 +228,7 @@ classes must be exposed as entry points in the zc.buildout group.  we
 give entry points names within the group.
 
 We also need a README.txt for our recipes to avoid an annoying warning
-from distutils, on which setuptools and zc.buildout are based:
+from distutils, on which distribute and zc.buildout are based:
 
     >>> write(sample_buildout, 'recipes', 'README.txt', " ")
 
@@ -2194,10 +2194,10 @@ database is shown.
     ... """)
 
     >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
-    We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    We have the best distribution that satisfies 'distribute'.
+    Picked: distribute = 0.6
     <BLANKLINE>
     Configuration data:
     [buildout]
@@ -2267,7 +2267,7 @@ Creating new buildouts and bootstrapping
 ----------------------------------------
 
 If zc.buildout is installed, you can use it to create a new buildout
-with it's own local copies of zc.buildout and setuptools and with
+with it's own local copies of zc.buildout and distribute and with
 local buildout scripts.
 
     >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
@@ -2296,13 +2296,13 @@ Note that a basic setup.cfg was created for us.
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
-    -  setuptools-0.6-py2.3.egg
+    -  distribute-0.6-py2.3.egg
     -  zc.buildout-1.0-py2.3.egg
 
 (We list both the eggs and develop-eggs directories because the
-buildout or setuptools egg could be installed in the develop-eggs
+buildout or distribute egg could be installed in the develop-eggs
 directory if the original buildout had develop eggs for either
-buildout or setuptools.)
+buildout or distribute.)
 
 Note that the buildout script was installed but not run.  To run
 the buildout, we'd have to run the installed buildout script.

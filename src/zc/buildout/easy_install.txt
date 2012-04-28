@@ -136,7 +136,7 @@ And the actual eggs were added to the eggs directory.
 
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
 If we remove the version restriction on demo, but specify a false
 value for newest, no new distributions will be installed:
@@ -146,7 +146,7 @@ value for newest, no new distributions will be installed:
     ...     newest=False)
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
 If we leave off the newest option, we'll get an update for demo:
 
@@ -155,7 +155,7 @@ If we leave off the newest option, we'll get an update for demo:
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
 Note that we didn't get the newest versions available.  There were
 release candidates for newer versions of both packages. By default,
@@ -178,8 +178,8 @@ The old setting is returned.
     -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.4.egg
     -  demo-0.4c1-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
-    -  demoneeded-1.2c1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.2c1-py2.4.egg
 
 Let's put the setting back to the default.
 
@@ -204,9 +204,9 @@ dependencies.  We might do this to specify a specific version.
     -  demo-0.2-py2.4.egg
     -  demo-0.3-py2.4.egg
     -  demo-0.4c1-py2.4.egg
-    -  demoneeded-1.0-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
-    -  demoneeded-1.2c1-py2.4.egg
+    d  demoneeded-1.0-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.2c1-py2.4.egg
     d  other-1.0-py2.4.egg
 
 We can request that eggs be unzipped even if they are zip safe.  This
@@ -230,7 +230,7 @@ can be useful when debugging.
 
     >>> ls(dest)
     -  demo-0.3-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
 We can also set a default by calling the always_unzip function:
 
@@ -259,7 +259,7 @@ The old default is returned:
 
     >>> ls(dest)
     -  demo-0.3-py2.4.egg
-    -  demoneeded-1.1-py2.4.egg
+    d  demoneeded-1.1-py2.4.egg
 
     >>> rmdir(dest)
     >>> dest = tmpdir('sample-install')
@@ -1009,7 +1009,7 @@ Now if we look in our destination directory, we see we have an extdemo egg:
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
-    -  demoneeded-1.0-py2.4.egg
+    d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
 
@@ -1050,7 +1050,7 @@ If we run build with newest set to False, we won't get an update:
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
-    -  demoneeded-1.0-py2.4.egg
+    d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
 
@@ -1066,7 +1066,7 @@ get an updated egg:
     >>> ls(dest)
     -  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
-    -  demoneeded-1.0-py2.4.egg
+    d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  extdemo-1.4-py2.4-unix-i686.egg
     d  extdemo-1.5-py2.4-unix-i686.egg

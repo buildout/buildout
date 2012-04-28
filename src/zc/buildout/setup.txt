@@ -10,7 +10,7 @@ running the script so setuptools-provided commands are available.
 If you use a squeaky-clean Python to do your development, the setup
 script that would import setuptools because setuptools isn't in the
 path.  Because buildout requires setuptools and knows where it has
-installed a setuptools egg, it adds the setuptools egg to the Python
+installed a distribute egg, it adds the distribute egg to the Python
 path before running the script.  To run a setup script, use the
 buildout setup command, passing the name of a script or a directory
 containing a setup script and arguments to the script.  Let's look at

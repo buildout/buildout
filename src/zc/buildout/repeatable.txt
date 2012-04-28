@@ -124,10 +124,10 @@ about versions used. If we run the buildout in verbose mode without
 specifying a versions section:
 
     >>> print system(buildout+' buildout:versions= -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
-    We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    We have the best distribution that satisfies 'distribute'.
+    Picked: distribute = 0.6
     Installing 'spam'.
     We have the best distribution that satisfies 'spam'.
     Picked: spam = 2.
@@ -146,10 +146,10 @@ that we can fix them in a versions section.
 If we run the buildout with the versions section:
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
-    We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.6
+    We have the best distribution that satisfies 'distribute'.
+    Picked: distribute = 0.6
     Installing 'spam'.
     We have the distribution that satisfies 'spam==1'.
     Uninstalling foo.
@@ -157,7 +157,7 @@ If we run the buildout with the versions section:
     recipe v1
 
 We won't get output for the spam distribution, which we didn't pick,
-but we will get output for setuptools, which we didn't specify
+but we will get output for distribute, which we didn't specify
 versions for.
 
 You can request buildout to generate an error if it picks any

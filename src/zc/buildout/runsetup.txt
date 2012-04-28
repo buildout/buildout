@@ -5,12 +5,12 @@ Buildouts are often used to work on packages that will be distributed
 as eggs. During development, we use develop eggs.  When you've
 completed a development cycle, you'll need to run your setup script to
 generate a distribution and, perhaps, uploaded it to the Python
-package index.  If your script uses setuptools, you'll need setuptools
+package index.  If your script uses setuptools, you'll need distribute
 in your Python path, which may be an issue if you haven't installed
-setuptools into your Python installation.
+distribute into your Python installation.
 
 The buildout setup command is helpful in a situation like this.  It
-can be used to run a setup script and it does so with the setuptools
+can be used to run a setup script and it does so with the distribute
 egg in the Python path and with setuptools already imported.  The fact
 that setuptools is imported means that you can use setuptools-based
 commands, like bdist_egg even with packages that don't use setuptools.

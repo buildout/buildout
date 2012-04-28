@@ -57,6 +57,7 @@ Let's try with an unknown version::
     ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
     ...
     X
+    ...
     No local packages or download links found for zc.buildout==UNKNOWN
     ...
 
@@ -65,8 +66,9 @@ Now let's try with `1.1.2`, which happens to exist::
     >>> print 'X'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --version 1.1.2'); print 'X'
-    ...
+    ... # doctest: +ELLIPSIS
     X
+    ...
     Generated script '/sample/bin/buildout'.
     <BLANKLINE>
     X
@@ -81,7 +83,7 @@ Let's make sure the generated `buildout` script uses it::
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
+      '/sample/eggs/distribute-...egg',
       '/sample/eggs/zc.buildout-1.1.2...egg',
       ]
     <BLANKLINE>
@@ -98,70 +100,12 @@ Let's try with `1.2.1`::
     ...     'bootstrap.py --version 1.2.1'); print 'X' # doctest: +ELLIPSIS
     ...
     X
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
-    X
-
-Let's make sure the generated `buildout` script uses it::
-
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
-      '/sample/eggs/zc.buildout-1.2.1...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
-
-`zc.buildout` now can also run with `Distribute` with the `--distribute` option::
-
-
-    >>> print 'X'; print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --distribute'); print 'X' # doctest: +ELLIPSIS
-    ...
-    X
     ...
     Generated script '/sample/bin/buildout'.
     <BLANKLINE>
     X
 
 Let's make sure the generated `buildout` script uses it::
-
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/distribute-...egg',
-      '/sample/eggs/zc.buildout-...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
-
-Make sure both options can be used together::
-
-    >>> print 'X'; print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --distribute --version 1.2.1'); print 'X' # doctest: +ELLIPSIS
-    ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
-    X
-
-Let's make sure the generated `buildout` script uses ``Distribute`` *and* ``zc.buildout-1.2.1``::
 
     >>> print open(buildout_script).read() # doctest: +ELLIPSIS
     #...
@@ -177,21 +121,5 @@ Let's make sure the generated `buildout` script uses ``Distribute`` *and* ``zc.b
     if __name__ == '__main__':
         zc.buildout.buildout.main()
     <BLANKLINE>
-
-Last, the -c option needs to work on bootstrap.py::
-
-    >>> conf_file = os.path.join(sample_buildout, 'other.cfg')
-    >>> f = open(conf_file, 'w')
-    >>> f.write('[buildout]\nparts=\n\n')
-    >>> f.close()
-    >>> print 'X'; print system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py -c %s --distribute' % conf_file); print 'X' # doctest: +ELLIPSIS
-    ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
-    X
 
 
