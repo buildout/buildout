@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Various test-support utility functions
-
-$Id$
 """
 
 import BaseHTTPServer
