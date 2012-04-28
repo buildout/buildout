@@ -48,8 +48,6 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'easy_install.txt')
         + '\n' +
-        read('src', 'zc', 'buildout', 'distribute.txt')
-        + '\n' +
         read('CHANGES.rst')
         + '\n' +
         'Download\n'
