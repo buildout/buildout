@@ -15,8 +15,6 @@
 
 This is different from a normal boostrapping process because the
 buildout egg itself is installed as a develop egg.
-
-$Id$
 """
 
 import os, shutil, sys, subprocess, urllib2
