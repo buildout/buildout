@@ -43,9 +43,9 @@ def test_suite():
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.tests.normalize_bang,
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+               (re.compile('[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('[-d]  distribute-[^-]+-'), 'distribute-X-'),
+               (re.compile('[d-]  distribute-[^-]+-'), 'distribute-X-'),
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])

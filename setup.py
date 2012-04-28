@@ -28,8 +28,6 @@ long_description=(
         + '\n' +
         read('src', 'zc', 'buildout', 'buildout.txt')
         + '\n' +
-        read('src', 'zc', 'buildout', 'unzip.txt')
-        + '\n' +
         read('src', 'zc', 'buildout', 'repeatable.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'download.txt')

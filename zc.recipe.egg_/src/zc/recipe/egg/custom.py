@@ -69,8 +69,6 @@ class Custom(Base):
 
         options['_e'] = buildout['buildout']['eggs-directory']
 
-        assert options.get('unzip') in ('true', 'false', None)
-
         if buildout['buildout'].get('offline') == 'true':
             self.install = lambda: ()
 

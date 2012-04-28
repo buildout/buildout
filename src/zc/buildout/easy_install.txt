@@ -57,10 +57,6 @@ path
    A list of additional directories to search for locally-installed
    distributions.
 
-always_unzip
-   A flag indicating that newly-downloaded distributions should be
-   directories even if they could be installed as zip files.
-
 working_set
    An existing working set to be augmented with additional
    distributions, if necessary to satisfy requirements.  This allows
@@ -135,7 +131,7 @@ We got demoneeded because it was a dependency of demo.
 And the actual eggs were added to the eggs directory.
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
 
 If we remove the version restriction on demo, but specify a false
@@ -145,7 +141,7 @@ value for newest, no new distributions will be installed:
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     newest=False)
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
 
 If we leave off the newest option, we'll get an update for demo:
@@ -153,8 +149,8 @@ If we leave off the newest option, we'll get an update for demo:
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
-    -  demo-0.3-py2.4.egg
+    d  demo-0.2-py2.4.egg
+    d  demo-0.3-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
 
 Note that we didn't get the newest versions available.  There were
@@ -175,9 +171,9 @@ The old setting is returned.
     demoneeded 1.2c1
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
-    -  demo-0.3-py2.4.egg
-    -  demo-0.4c1-py2.4.egg
+    d  demo-0.2-py2.4.egg
+    d  demo-0.3-py2.4.egg
+    d  demo-0.4c1-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  demoneeded-1.2c1-py2.4.egg
 
@@ -201,75 +197,15 @@ dependencies.  We might do this to specify a specific version.
     demoneeded 1.0
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
-    -  demo-0.3-py2.4.egg
-    -  demo-0.4c1-py2.4.egg
+    d  demo-0.2-py2.4.egg
+    d  demo-0.3-py2.4.egg
+    d  demo-0.4c1-py2.4.egg
     d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
     d  demoneeded-1.2c1-py2.4.egg
     d  other-1.0-py2.4.egg
 
-We can request that eggs be unzipped even if they are zip safe.  This
-can be useful when debugging.
-
     >>> rmdir(dest)
-    >>> dest = tmpdir('sample-install')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
-
-    >>> ls(dest)
-    d  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
-
-    >>> rmdir(dest)
-    >>> dest = tmpdir('sample-install')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     always_unzip=False)
-
-    >>> ls(dest)
-    -  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
-
-We can also set a default by calling the always_unzip function:
-
-    >>> zc.buildout.easy_install.always_unzip(True)
-    False
-
-The old default is returned:
-
-    >>> rmdir(dest)
-    >>> dest = tmpdir('sample-install')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
-
-    >>> ls(dest)
-    d  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
-
-
-    >>> zc.buildout.easy_install.always_unzip(False)
-    True
-
-    >>> rmdir(dest)
-    >>> dest = tmpdir('sample-install')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
-
-    >>> ls(dest)
-    -  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
-
-    >>> rmdir(dest)
-    >>> dest = tmpdir('sample-install')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
-
-    >>> ls(dest)
-    d  demo-0.3-py2.4.egg
-    d  demoneeded-1.1-py2.4.egg
 
 Specifying version information independent of requirements
 ----------------------------------------------------------
@@ -322,7 +258,29 @@ reporting that a version was picked automatically:
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     )
 
-    >>> print handler
+    >>> print handler # doctest: +ELLIPSIS
+    zc.buildout.easy_install DEBUG
+      Installing 'demo'.
+    zc.buildout.easy_install INFO
+      Getting distribution for 'demo'.
+    zc.buildout.easy_install INFO
+      Got demo 0.3.
+    zc.buildout.easy_install DEBUG
+      Picked: demo = 0.3
+    zc.buildout.easy_install DEBUG
+      Getting required 'demoneeded'
+    zc.buildout.easy_install DEBUG
+        required by demo 0.3.
+    zc.buildout.easy_install INFO
+      Getting distribution for 'demoneeded'.
+    zc.buildout.easy_install DEBUG
+      Running easy_install:...
+    zc.buildout.easy_install INFO
+      Got demoneeded 1.1.
+    zc.buildout.easy_install DEBUG
+      Picked: demoneeded = 1.1
+
+
     zc.buildout.easy_install DEBUG
       Installing 'demo'.
     zc.buildout.easy_install DEBUG
@@ -1007,7 +965,7 @@ The function returns the list of eggs
 Now if we look in our destination directory, we see we have an extdemo egg:
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
@@ -1048,7 +1006,7 @@ If we run build with newest set to False, we won't get an update:
     ['/sample-install/extdemo-1.4-py2.4-linux-i686.egg']
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
@@ -1064,7 +1022,7 @@ get an updated egg:
     ['/sample-install/extdemo-1.5-py2.4-unix-i686.egg']
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
     d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
@@ -1187,8 +1145,7 @@ Now, if we install demo, and extdemo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
-    ...     links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
+    ...     links=[link_server], index=link_server+'index/')
     GET 200 /
     GET 404 /index/demo/
     GET 200 /index/
@@ -1231,8 +1188,7 @@ Now when we install the distributions:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo==0.2'], dest,
-    ...     links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
+    ...     links=[link_server], index=link_server+'index/')
     GET 200 /
     GET 404 /index/demo/
     GET 200 /index/
@@ -1257,8 +1213,7 @@ from the link server:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest,
-    ...     links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
+    ...     links=[link_server], index=link_server+'index/')
     GET 200 /demo-0.3-py2.4.egg
 
 Normally, the download cache is the preferred source of downloads, but
@@ -1299,8 +1254,7 @@ recreate the destination directory, and reinstall demo:
 
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest,
-    ...     links=[link_server], index=link_server+'index/',
-    ...     always_unzip=True)
+    ...     links=[link_server], index=link_server+'index/')
 
     >>> ls(dest)
     d  demo-0.2-py2.4.egg

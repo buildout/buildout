@@ -1862,7 +1862,7 @@ def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
     demoneeded 1.1
 
     >>> ls(dest)
-    -  demo-0.2-py2.4.egg
+    d  demo-0.2-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
 
     """
@@ -2094,8 +2094,7 @@ def prefer_final_permutation(existing, available):
 
     zc.buildout.easy_install.clear_index_cache()
     [dist] = list(
-        zc.buildout.easy_install.install(['spam'], 'existing', ['available'],
-                                         always_unzip=True)
+        zc.buildout.easy_install.install(['spam'], 'existing', ['available'])
         )
 
     if dist.extras:
@@ -2369,7 +2368,6 @@ def pyc_and_pyo_files_have_correct_paths():
     ... [buildout]
     ... parts = eggs
     ... find-links = %(link_server)s
-    ... unzip = true
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg
@@ -2878,7 +2876,7 @@ def test_suite():
 
         doctest.DocFileSuite(
             'easy_install.txt', 'downloadcache.txt', 'dependencylinks.txt',
-            'allowhosts.txt', 'unzip.txt',
+            'allowhosts.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([

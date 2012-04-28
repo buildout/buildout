@@ -52,8 +52,6 @@ class Eggs(object):
                 ] = buildout['buildout']['develop-eggs-directory']
         options['_d'] = options['develop-eggs-directory'] # backward compat.
 
-        assert options.get('unzip') in ('true', 'false', None)
-
     def working_set(self, extra=()):
         """Separate method to just get the working set
 
@@ -77,18 +75,13 @@ class Eggs(object):
                 [options['develop-eggs-directory'], options['eggs-directory']]
                 )
         else:
-            kw = {}
-            if options.get('unzip'):
-                kw['always_unzip'] = get_bool(options, 'unzip')
-
             ws = zc.buildout.easy_install.install(
                 distributions, options['eggs-directory'],
                 links=self.links,
                 index=self.index,
                 path=[options['develop-eggs-directory']],
                 newest=self.buildout['buildout'].get('newest') == 'true',
-                allow_hosts=self.allow_hosts,
-                **kw)
+                allow_hosts=self.allow_hosts)
 
         return orig_distributions, ws
 

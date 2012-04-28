@@ -128,14 +128,13 @@ class Installer:
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
-    _always_unzip = False
 
     def __init__(self,
                  dest=None,
                  links=(),
                  index=None,
                  executable=sys.executable,
-                 always_unzip=None,
+                 always_unzip=None, # Backward compat :/
                  path=None,
                  newest=True,
                  versions=None,
@@ -160,8 +159,6 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        if always_unzip is not None:
-            self._always_unzip = always_unzip
         path = (path and path[:] or []) + buildout_and_distribute_path
         if dest is not None and dest not in path:
             path.insert(0, dest)
@@ -275,9 +272,7 @@ class Installer:
         try:
             path = distribute_loc
 
-            args = [sys.executable, '-c', _easy_install_cmd, '-mUNxd', tmp]
-            if self._always_unzip:
-                args.append('-Z')
+            args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
             level = logger.getEffectiveLevel()
             if level > 0:
                 args.append('-q')
@@ -424,7 +419,7 @@ class Installer:
 
         return dist.clone(location=new_location)
 
-    def _get_dist(self, requirement, ws, always_unzip):
+    def _get_dist(self, requirement, ws):
 
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
@@ -467,23 +462,9 @@ class Installer:
                         shutil.copytree(dist.location, newloc)
                     else:
 
-                        if self._always_unzip:
-                            should_unzip = True
-                        else:
-                            metadata = pkg_resources.EggMetadata(
-                                zipimport.zipimporter(dist.location)
-                                )
-                            should_unzip = (
-                                metadata.has_metadata('not-zip-safe')
-                                or
-                                not metadata.has_metadata('zip-safe')
-                                )
 
-                        if should_unzip:
-                            setuptools.archive_util.unpack_archive(
-                                dist.location, newloc)
-                        else:
-                            shutil.copyfile(dist.location, newloc)
+                        setuptools.archive_util.unpack_archive(
+                            dist.location, newloc)
 
                     redo_pyc(newloc)
 
@@ -559,7 +540,7 @@ class Installer:
                     pkg_resources.Requirement.parse('distribute')
                     )
                 if ws.find(requirement) is None:
-                    for dist in self._get_dist(requirement, ws, False):
+                    for dist in self._get_dist(requirement, ws):
                         ws.add(dist)
 
 
@@ -598,7 +579,7 @@ class Installer:
             ws = working_set
 
         for requirement in requirements:
-            for dist in self._get_dist(requirement, ws, self._always_unzip):
+            for dist in self._get_dist(requirement, ws):
                 ws.add(dist)
                 self._maybe_add_distribute(ws, dist)
 
@@ -622,9 +603,7 @@ class Installer:
                     logger.debug('Adding required %r', str(requirement))
                 _log_requirement(ws, requirement)
 
-                for dist in self._get_dist(requirement, ws, self._always_unzip
-                                           ):
-
+                for dist in self._get_dist(requirement, ws):
                     ws.add(dist)
                     self._maybe_add_distribute(ws, dist)
             except pkg_resources.VersionConflict, err:
@@ -738,15 +717,10 @@ def allow_picked_versions(setting=None):
         Installer._allow_picked_versions = bool(setting)
     return old
 
-def always_unzip(setting=None):
-    old = Installer._always_unzip
-    if setting is not None:
-        Installer._always_unzip = bool(setting)
-    return old
-
 def install(specs, dest,
             links=(), index=None,
-            executable=sys.executable, always_unzip=None,
+            executable=sys.executable,
+            always_unzip=None, # Backward compat :/
             path=None, working_set=None, newest=True, versions=None,
             use_dependency_links=None, allow_hosts=('*',)):
     assert executable == sys.executable, (executable, sys.executable)

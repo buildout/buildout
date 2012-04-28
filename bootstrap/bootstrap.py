@@ -79,7 +79,7 @@ env = dict(os.environ,
 
 cmd = [sys.executable, '-c',
        'from setuptools.command.easy_install import main; main()',
-       '-mqNxd', tmpeggs]
+       '-mZqNxd', tmpeggs]
 
 if 'bootstrap-testing-find-links' in os.environ:
     cmd.extend(['-f', os.environ['bootstrap-testing-find-links']])

@@ -71,10 +71,10 @@ Let's run the buildout:
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
-    -  demo-0.2-py2.3.egg
+    d  demo-0.2-py2.3.egg
     d  demoneeded-1.2c1-py2.3.egg
-    -  distribute-0.6-py2.3.egg
-    -  zc.buildout-1.0-py2.3.egg
+    d  distribute-0.6-py2.3.egg
+    d  zc.buildout-1.0-py2.3.egg
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, which demo requires.  (We also see an egg
@@ -260,10 +260,10 @@ We'll also run the buildout in off-line mode:
 We didn't get an update for demo:
 
     >>> ls(sample_buildout, 'eggs')
-    -  demo-0.2-py2.3.egg
+    d  demo-0.2-py2.3.egg
     d  demoneeded-1.2c1-py2.3.egg
-    -  distribute-0.6-py2.3.egg
-    -  zc.buildout-1.0-py2.3.egg
+    d  distribute-0.6-py2.3.egg
+    d  zc.buildout-1.0-py2.3.egg
 
 If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
@@ -277,11 +277,11 @@ we'll get an update for demo:
 Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
-    -  demo-0.2-py2.3.egg
-    -  demo-0.4c1-py2.3.egg
+    d  demo-0.2-py2.3.egg
+    d  demo-0.4c1-py2.3.egg
     d  demoneeded-1.2c1-py2.3.egg
-    -  distribute-0.6-py2.4.egg
-    -  zc.buildout-1.0-py2.4.egg
+    d  distribute-0.6-py2.4.egg
+    d  zc.buildout-1.0-py2.4.egg
 
 The script is updated too:
 
