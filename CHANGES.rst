@@ -4,6 +4,11 @@ Change History
 ?.?.? (unreleased)
 ==================
 
+New features:
+
+- Added buildout:socket-timout option so that socket timeout can be configured
+  both from command line and from config files. (gotcha)
+
 - Distutils-style scripts are also installed now (for instance pyflakes' and
   docutils' scripts).  https://bugs.launchpad.net/zc.buildout/+bug/422724
 
