@@ -2624,14 +2624,26 @@ def create_sample_eggs(test, executable=sys.executable):
                 )
             zc.buildout.testing.sdist(tmp, dest)
 
+        write(tmp, 'distutilsscript', '#!/usr/bin/python\nprint "distutils!"')
         write(
             tmp, 'setup.py',
             "from setuptools import setup\n"
             "setup(name='other', zip_safe=False, version='1.0', "
+            "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
         zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
 
+        write(
+            tmp, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='du_zipped', zip_safe=True, version='1.0', "
+            "scripts=['distutilsscript'],"
+            "py_modules=['eggrecipedemoneeded'])\n"
+            )
+        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+
+        os.remove(os.path.join(tmp, 'distutilsscript'))
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
 
         for i in (1, 2, 3, 4):

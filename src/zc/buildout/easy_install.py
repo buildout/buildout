@@ -863,16 +863,25 @@ def scripts(reqs, working_set, executable, dest=None,
         initialization = '\n'+initialization+'\n'
 
     entry_points = []
+    distutils_scripts = []
     for req in reqs:
         if isinstance(req, str):
             req = pkg_resources.Requirement.parse(req)
             dist = working_set.find(req)
+            # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
                 entry_points.append(
                     (name, entry_point.module_name,
                      '.'.join(entry_point.attrs))
                     )
+            # The metadata on "old-style" distutils scripts is not retained by
+            # distutils/setuptools, except by placing the original scripts in
+            # /EGG-INFO/scripts/.
+            if dist.metadata_isdir('scripts'):
+                for name in dist.metadata_listdir('scripts'):
+                    contents = dist.get_metadata('scripts/' + name)
+                    distutils_scripts.append((name, contents))
         else:
             entry_points.append(req)
 
@@ -892,12 +901,29 @@ def scripts(reqs, working_set, executable, dest=None,
                     initialization, rpsetup)
             )
 
+    for name, contents in distutils_scripts:
+        if scripts is not None:
+            sname = scripts.get(name)
+            if sname is None:
+                continue
+        else:
+            sname = name
+
+        sname = os.path.join(dest, sname)
+        spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
+
+        generated.extend(
+            _distutils_script(spath, sname, contents,
+                              executable, initialization, rpsetup)
+            )
+
     if interpreter:
         sname = os.path.join(dest, interpreter)
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
         generated.extend(_pyscript(spath, sname, rpsetup))
 
     return generated
+
 
 def _relative_path_and_setup(sname, path, relative_paths):
     if relative_paths:
@@ -928,6 +954,7 @@ def _relative_depth(common, path):
         path = dirname
     return n
 
+
 def _relative_path(common, path):
     r = []
     while 1:
@@ -940,6 +967,7 @@ def _relative_path(common, path):
         path = dirname
     r.reverse()
     return os.path.join(*r)
+
 
 def _relativitize(path, script, relative_paths):
     if path == script:
@@ -975,6 +1003,33 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
         initialization = initialization,
         relative_paths_setup = rsetup,
         )
+    return _create_script(contents, dest)
+
+
+def _distutils_script(path, dest, script_content, executable,
+                      initialization, rsetup):
+
+    lines = script_content.splitlines(True)
+    if not ('#!' in lines[0]) and ('python' in lines[0]):
+        # The script doesn't follow distutil's rules.  Ignore it.
+        return []
+    original_content = ''.join(lines[1:])
+    contents = distutils_script_template % dict(
+        python = _safe_arg(executable),
+        path = path,
+        initialization = initialization,
+        relative_paths_setup = rsetup,
+        original_content = original_content
+        )
+    return _create_script(contents, dest)
+
+
+def _create_script(contents, dest):
+    generated = []
+    script = dest
+    if is_win32:
+        dest += '-script.py'
+
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
     if is_win32:
@@ -998,6 +1053,7 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
     generated.append(dest)
     return generated
 
+
 if is_jython and jython_os_name == 'linux':
     script_header = '#!/usr/bin/env %(python)s'
 else:
@@ -1016,6 +1072,18 @@ import %(module_name)s
 
 if __name__ == '__main__':
     %(module_name)s.%(attrs)s(%(arguments)s)
+'''
+
+distutils_script_template = script_header + '''\
+
+%(relative_paths_setup)s
+import sys
+sys.path[0:0] = [
+  %(path)s,
+  ]
+%(initialization)s
+
+%(original_content)s
 '''
 
 

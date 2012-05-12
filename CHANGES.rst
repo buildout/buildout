@@ -1,8 +1,11 @@
 Change History
 **************
 
-1.4.5 (unreleased)
+?.?.? (unreleased)
 ==================
+
+- Distutils-style scripts are also installed now (for instance pyflakes' and
+  docutils' scripts).  https://bugs.launchpad.net/zc.buildout/+bug/422724
 
 - Switched development location to github.com/buildout.
 

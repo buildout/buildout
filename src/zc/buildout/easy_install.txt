@@ -101,6 +101,7 @@ We have a link server that has a number of eggs:
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
     <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
+    <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
@@ -865,6 +866,55 @@ We specified an interpreter and its paths are adjusted too:
         __import__("code").interact(banner="", local=globals())
 
 
+Installing distutils-style scripts
+----------------------------------
+
+Most python libraries use the console_scripts entry point nowadays.  But
+several still have a ``scripts=['bin/something']`` in their setup() call.
+Buildout also installs those:
+
+    >>> distdir = tmpdir('distutilsscriptdir')
+    >>> distbin = tmpdir('distutilsscriptbin')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['other'], distdir,
+    ...     links=[link_server], index=link_server+'index/')
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['other'], ws, sys.executable, distbin)
+    >>> ls(distbin)
+    -  distutilsscript
+
+It also works for zipped eggs:
+
+    >>> distdir2 = tmpdir('distutilsscriptdir2')
+    >>> distbin2 = tmpdir('distutilsscriptbin2')
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['du_zipped'], distdir2,
+    ...     links=[link_server], index=link_server+'index/')
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['du_zipped'], ws, sys.executable, distbin2)
+    >>> ls(distbin2)
+    -  distutilsscript
+
+Distutils copies the script files verbatim, apart from a line at the top that
+looks like ``#!/usr/bin/python``, which gets replaced by the actual python
+interpreter.  Buildout does the same, but additionally also adds the sys.path
+like for the console_scripts:
+
+    >>> cat(distbin, 'distutilsscript')
+    #!/usr/local/bin/python2.7
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/distutilsscriptdir/other-1.0-pyN.N.egg',
+      ]
+    <BLANKLINE>
+    <BLANKLINE>
+    print "distutils!"
+
+Due to the nature of distutils scripts, buildout cannot pass arguments as
+there's no specific method to pass them to.
+
+
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
 
@@ -984,6 +1034,7 @@ Let's update our link server with a new version of extdemo:
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
     <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
+    <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>
     <a href="index/">index/</a><br>
