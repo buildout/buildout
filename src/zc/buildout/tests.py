@@ -11,8 +11,8 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-from zope.testing import doctest
 from zope.testing import renormalizing
+import doctest
 import os
 import pkg_resources
 import re

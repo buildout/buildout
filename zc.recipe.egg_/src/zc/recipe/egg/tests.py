@@ -12,12 +12,16 @@
 #
 ##############################################################################
 
-import os, re, shutil, sys
+from zope.testing import renormalizing
+import doctest
+import os
+import re
+import shutil
+import sys
 import zc.buildout.tests
 import zc.buildout.testing
 
 import unittest
-from zope.testing import doctest, renormalizing
 
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
