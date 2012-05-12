@@ -124,7 +124,6 @@ _buildout_default_options = _annotate_section({
     'parts-directory': 'parts',
     'prefer-final': 'false',
     'python': 'buildout',
-    'unzip': 'false',
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
