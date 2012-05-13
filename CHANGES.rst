@@ -2,8 +2,15 @@ Change History
 **************
 
 ?.?.? (unreleased)
+==================
 
 New features:
+
+- The buildout init command now accepts distribution requirements and
+  paths to set up a custom interpreter part that has the distributions
+  or parts in the path. For example::
+
+     python bootstrap.py init BeautifulSoup
 
 - Added buildout:socket-timout option so that socket timeout can be configured
   both from command line and from config files. (gotcha)
