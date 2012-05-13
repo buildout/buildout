@@ -195,12 +195,12 @@ class Buildout(UserDict.DictMixin):
                                        '.buildout', 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
-                                    [], data['buildout'].copy(), override))
+                                    [], data['buildout'].copy(), override, set()))
 
         # load configuration files
         if config_file:
             _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data['buildout'].copy(), override))
+                                data['buildout'].copy(), override, set()))
 
         # apply command-line options
         _update(data, cloptions)
@@ -1286,17 +1286,26 @@ def _save_options(section, options, f):
     for option, value in items:
         _save_option(option, value, f)
 
-def _open(base, filename, seen, dl_options, override):
+def _convert_bool(name, value):
+    if value not in ('true', 'false'):
+        raise zc.buildout.UserError(
+            'Invalid value for %s option: %s' % (name, value))
+    else:
+        return value == 'true'
+
+def _open(base, filename, seen, dl_options, override, downloaded):
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
     """
     _update_section(dl_options, override)
     _dl_options = _unannotate_section(dl_options.copy())
-    is_temp = False
+    newest = _convert_bool('newest', _dl_options.get('newest', 'false'))
+    fallback = newest and not (filename in downloaded)
     download = zc.buildout.download.Download(
-        _dl_options, cache=_dl_options.get('extends-cache'), fallback=True,
-        hash_name=True)
+        _dl_options, cache=_dl_options.get('extends-cache'),
+        fallback=fallback, hash_name=True)
+    is_temp = False
     if _isurl(filename):
         path, is_temp = download(filename)
         fp = open(path)
@@ -1314,6 +1323,7 @@ def _open(base, filename, seen, dl_options, override):
         filename = os.path.join(base, filename)
         fp = open(filename)
         base = os.path.dirname(filename)
+    downloaded.add(filename)
 
     if filename in seen:
         if is_temp:
@@ -1348,9 +1358,11 @@ def _open(base, filename, seen, dl_options, override):
 
     if extends:
         extends = extends.split()
-        eresult = _open(base, extends.pop(0), seen, dl_options, override)
+        eresult = _open(base, extends.pop(0), seen, dl_options, override,
+                        downloaded)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override))
+            _update(eresult, _open(base, fname, seen, dl_options, override,
+                    downloaded))
         result = _update(eresult, result)
 
     if extended_by:
@@ -1358,9 +1370,9 @@ def _open(base, filename, seen, dl_options, override):
             "The extendedBy option is deprecated.  Stop using it."
             )
         for fname in extended_by.split():
-            result = _update(result,
-                             _open(base, fname, seen, dl_options, override))
-
+            result = _update(
+                result,
+                _open(base, fname, seen, dl_options, override, downloaded))
     seen.pop()
     return result
 

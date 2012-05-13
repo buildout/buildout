@@ -25,6 +25,9 @@ New features:
 
 - Remove duplicate path from script's sys.path setup.
 
+- Make sure to download extended configuration files only once per buildout
+  run even if they are referenced multiple times (patch by Rafael Monnerat).
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed
