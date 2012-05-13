@@ -254,6 +254,13 @@ ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
 
 >>> remove(path)
 
+If the file is completely missing it should notify the user of the error:
+
+>>> download(server_url+'bar.txt')
+Traceback (most recent call last):
+UserError: Error downloading extends for URL http://localhost/bar.txt: (404, 'Not Found')
+>>> ls(cache)
+
 Finally, let's see what happens if the download cache to be used doesn't exist
 as a directory in the file system yet:
 

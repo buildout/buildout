@@ -175,16 +175,19 @@ class Download(object):
         urllib._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
-            try:
-                tmp_path, headers = urllib.urlretrieve(url, tmp_path)
-                if not check_md5sum(tmp_path, md5sum):
-                    raise ChecksumError(
-                        'MD5 checksum mismatch downloading %r' % url)
-            finally:
-                os.close(handle)
-        except:
+            tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+            if not check_md5sum(tmp_path, md5sum):
+                raise ChecksumError(
+                    'MD5 checksum mismatch downloading %r' % url)
+        except IOError, e:
+            os.remove(tmp_path)
+            raise zc.buildout.UserError("Error downloading extends for URL "
+                              "%s: %r" % (url, e[1:3]))
+        except Exception, e:
             os.remove(tmp_path)
             raise
+        finally:
+            os.close(handle)
 
         if path:
             shutil.move(tmp_path, path)
