@@ -2,7 +2,6 @@ Change History
 **************
 
 ?.?.? (unreleased)
-==================
 
 New features:
 
@@ -39,6 +38,9 @@ Bugs fixed:
 - if you have a configuration with an extends entry in the [buildout]
   section which points to a non-existing URL the result is not very
   user friendly. https://bugs.launchpad.net/zc.buildout/+bug/566167
+
+- https://bugs.launchpad.net/bugs/697913 : Buildout doesn't honor exit code
+  from scripts. Fixed.
 
 1.4.4 (2010-08-20)
 ==================

@@ -381,7 +381,7 @@ Let's look at the script that was generated:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Relative egg paths
 ------------------
@@ -434,7 +434,7 @@ Let's look at the script that was generated:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 You can specify relative paths in the buildout section, rather than in
 each individual script section:
@@ -481,7 +481,7 @@ each individual script section:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main()
+        sys.exit(eggrecipedemo.main())
 
 Specifying initialialization code and arguments
 -----------------------------------------------
@@ -531,7 +531,7 @@ to be included in generated scripts:
     import eggrecipedemo
     <BLANKLINE>
     if __name__ == '__main__':
-        eggrecipedemo.main(a, 2)
+        sys.exit(eggrecipedemo.main(a, 2))
 
 Here we see that the initialization code we specified was added after
 setting the path.  Note, as mentioned above, that leading whitespace
@@ -586,7 +586,7 @@ declare entry points using the entry-points option:
     import foo.bar
     <BLANKLINE>
     if __name__ == '__main__':
-        foo.bar.a.b.c()
+        sys.exit(foo.bar.a.b.c())
 
 Generating all scripts
 ----------------------

@@ -1071,7 +1071,7 @@ sys.path[0:0] = [
 import %(module_name)s
 
 if __name__ == '__main__':
-    %(module_name)s.%(attrs)s(%(arguments)s)
+    sys.exit(%(module_name)s.%(attrs)s(%(arguments)s))
 '''
 
 distutils_script_template = script_header + '''\
