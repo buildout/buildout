@@ -79,6 +79,11 @@ number of names to the test namespace:
 
     The directory will be reset at the end of the test.
 
+``uncd()``
+    Change to the directory that was current prior to the previous
+    call to ``cd``. You can call ``cd`` multiple times and then
+    ``uncd`` the same number of times to return to the same location.
+
 ``join(*path)``
     A convenient reference to os.path.join.
 

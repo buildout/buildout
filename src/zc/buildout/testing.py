@@ -227,6 +227,15 @@ def buildoutSetUp(test):
         register_teardown(lambda: stop_server(url, thread))
         return url
 
+    cdpaths = []
+    def cd(*path):
+        path = os.path.join(*path)
+        cdpaths.append(os.path.abspath(os.getcwd()))
+        os.chdir(path)
+
+    def uncd():
+        os.chdir(cdpaths.pop())
+
     test.globs.update(dict(
         sample_buildout = sample,
         ls = ls,
@@ -238,7 +247,7 @@ def buildoutSetUp(test):
         write = write,
         system = system,
         get = get,
-        cd = (lambda *path: os.chdir(os.path.join(*path))),
+        cd = cd, uncd = uncd,
         join = os.path.join,
         sdist = sdist,
         bdist_egg = bdist_egg,
