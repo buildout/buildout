@@ -36,6 +36,9 @@ Bugs fixed:
 - In the download module, fixed the handling of directories that are pointed
   to by file-system paths and ``file:`` URLs.
 
+- if you have a configuration with an extends entry in the [buildout]
+  section which points to a non-existing URL the result is not very
+  user friendly. https://bugs.launchpad.net/zc.buildout/+bug/566167
 
 1.4.4 (2010-08-20)
 ==================
