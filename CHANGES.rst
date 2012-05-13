@@ -28,6 +28,9 @@ New features:
 - Make sure to download extended configuration files only once per buildout
   run even if they are referenced multiple times (patch by Rafael Monnerat).
 
+- Removed any traces of the implementation of ``extended-by``. Raise a
+  UserError if the option is encountered instead of ignoring it, though.
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed
