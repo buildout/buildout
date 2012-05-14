@@ -39,6 +39,9 @@ New features:
 
 Bugs fixed:
 
+- https://bugs.launchpad.net/bugs/180705 : Buildout doesn't honor
+  umask when setting script executable.
+
 - In the download module, fixed the handling of directories that are pointed
   to by file-system paths and ``file:`` URLs.
 
