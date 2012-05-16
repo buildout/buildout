@@ -3,3 +3,4 @@ bin/
 build/
 develop-eggs/
 eggs/
+.tox
