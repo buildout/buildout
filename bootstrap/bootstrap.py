@@ -23,66 +23,137 @@ from optparse import OptionParser
 
 tmpeggs = tempfile.mkdtemp()
 
-# parsing arguments
-parser = OptionParser(
-    'This is a custom version of the zc.buildout %prog script.  It is '
-    'intended to meet a temporary need if you encounter problems with '
-    'the zc.buildout 1.5 release.')
-parser.add_option("-v", "--version", dest="version", default='1.4.4',
-                          help='Use a specific zc.buildout version.  *This '
-                          'bootstrap script defaults to '
-                          '1.4.4, unlike usual buildpout bootstrap scripts.*')
+usage = '''\
+[DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
+
+Bootstraps a buildout-based project.
+
+Simply run this script in a directory containing a buildout.cfg, using the
+Python that you want bin/buildout to use.
+
+Note that by using --setup-source and --download-base to point to
+local resources, you can keep this script from going over the network.
+'''
+
+parser = OptionParser(usage=usage)
+parser.add_option("-v", "--version", help="use a specific zc.buildout version")
+
+parser.add_option("-t", "--accept-buildout-test-releases",
+                  dest='accept_buildout_test_releases',
+                  action="store_true", default=False,
+                  help=("Normally, if you do not specify a --version, the "
+                        "bootstrap script and buildout gets the newest "
+                        "*final* versions of zc.buildout and its recipes and "
+                        "extensions for you.  If you use this flag, "
+                        "bootstrap and buildout will get the newest releases "
+                        "even if they are alphas or betas."))
 parser.add_option("-c", None, action="store", dest="config_file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
 
 options, args = parser.parse_args()
 
-# if -c was provided, we push it back into args for buildout' main function
-if options.config_file is not None:
-    args += ['-c', options.config_file]
+######################################################################
+# handle -S
 
-if options.version is not None:
-    VERSION = '==%s' % options.version
+def normpath(p):
+    return p[:-1] if p.endswith('/') else p
+
+nosite = 'site' not in sys.modules
+if nosite:
+    # They've asked not to import site.  Cool, but distribute is going to
+    # import it anyway, so we're going to have to clean up. :(
+    initial_paths = set(map(normpath, sys.path))
+    import site
+    to_remove = set(map(normpath, sys.path)) - initial_paths
 else:
-    VERSION = ''
+    to_remove = ()
 
-args = args + ['bootstrap']
+######################################################################
+# load/install distribute
 
 to_reload = False
 try:
-    import pkg_resources
+    import pkg_resources, setuptools
     if not hasattr(pkg_resources, '_distribute'):
         to_reload = True
         raise ImportError
 except ImportError:
     ez = {}
-    exec urllib2.urlopen('http://python-distribute.org/distribute_setup.py'
-                         ).read() in ez
-    ez['use_setuptools'](to_dir=tmpeggs, download_delay=0, no_fake=True)
+    exec urllib2.urlopen(
+        'http://python-distribute.org/distribute_setup.py'
+        ).read() in ez
+    setup_args = dict(to_dir=tmpeggs, download_delay=0, no_fake=True)
+    ez['use_setuptools'](**setup_args)
 
     if to_reload:
         reload(pkg_resources)
-    else:
-        import pkg_resources
+    import pkg_resources
+    # This does not (always?) update the default working set.  We will
+    # do it.
+    for path in sys.path:
+        if path not in pkg_resources.working_set.entries:
+            pkg_resources.working_set.add_entry(path)
+
+# Clean up
+if nosite and 'site' in sys.modules:
+    del sys.modules['site']
+    sys.path[:] = [p for p in sys.path[:]
+        if normpath(p) not in to_remove
+        ]
+
+######################################################################
+# Install buildout
 
 ws  = pkg_resources.working_set
-
-requirement = 'distribute'
-
-env = dict(os.environ,
-           PYTHONPATH=
-           ws.find(pkg_resources.Requirement.parse(requirement)).location
-           )
 
 cmd = [sys.executable, '-c',
        'from setuptools.command.easy_install import main; main()',
        '-mZqNxd', tmpeggs]
 
-if 'bootstrap-testing-find-links' in os.environ:
-    cmd.extend(['-f', os.environ['bootstrap-testing-find-links']])
+find_links = os.environ.get('bootstrap-testing-find-links')
+if find_links:
+    cmd.extend(['-f', find_links])
 
-cmd.append('zc.buildout' + VERSION)
+distribute_path = ws.find(
+    pkg_resources.Requirement.parse('distribute')).location
+env = dict(os.environ, PYTHONPATH=distribute_path)
+
+requirement = 'zc.buildout'
+version = options.version
+if version is None and not options.accept_buildout_test_releases:
+    # Figure out the most recent final version of zc.buildout.
+    import setuptools.package_index
+    _final_parts = '*final-', '*final'
+    def _final_version(parsed_version):
+        for part in parsed_version:
+            if (part[:1] == '*') and (part not in _final_parts):
+                return False
+        return True
+    index = setuptools.package_index.PackageIndex(
+        search_path=[distribute_path])
+    if find_links:
+        index.add_find_links((find_links,))
+    req = pkg_resources.Requirement.parse(requirement)
+    if index.obtain(req) is not None:
+        best = []
+        bestv = None
+        for dist in index[req.project_name]:
+            distv = dist.parsed_version
+            if _final_version(distv):
+                if bestv is None or distv > bestv:
+                    best = [dist]
+                    bestv = distv
+                elif distv == bestv:
+                    best.append(dist)
+        if best:
+            best.sort()
+            version = best[-1].version
+if version:
+    requirement = '=='.join((requirement, version))
+cmd.append(requirement)
+
+print 'requirement', requirement
 
 import subprocess
 if subprocess.call(cmd, env=env) != 0:
@@ -90,8 +161,23 @@ if subprocess.call(cmd, env=env) != 0:
         "Failed to execute command:\n%s",
         repr(cmd)[1:-1])
 
+######################################################################
+# Import and run buildout
+
 ws.add_entry(tmpeggs)
-ws.require('zc.buildout' + VERSION)
+ws.require(requirement)
 import zc.buildout.buildout
+
+if not args:
+    # Note that if there are args, they may be for another command, say, init.
+    args = ['bootstrap']
+
+if options.accept_buildout_test_releases:
+    args.append('buildout:accept-buildout-test-releases=true')
+
+# if -c was provided, we push it back into args for buildout' main function
+if options.config_file is not None:
+    args[0:0] = ['-c', options.config_file]
+
 zc.buildout.buildout.main(args)
 shutil.rmtree(tmpeggs)

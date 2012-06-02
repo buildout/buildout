@@ -71,9 +71,49 @@ provided to the Python executable:
     #!/usr/local/bin/python2.7 -S
     ...
 
+The -S option is also used when invoking setup scripts.
+
+    >>> mkdir('proj')
+    >>> write('proj', 'setup.py', """
+    ... from distutils.core import setup
+    ... import sys
+    ... print 'site:', 'site' in sys.modules
+    ... setup(name='hassite')
+    ... """)
+    >>> print system(join('bin', 'buildout')+' setup proj sdist')
+    ... # doctest: +ELLIPSIS
+    Running setup script 'proj/setup.py'.
+    site: True
+    ...
+
+    >>> write('buildout.cfg', """
+    ... [buildout]
+    ... parts = egg
+    ... find-links = %s
+    ... [egg]
+    ... recipe = zc.recipe.egg
+    ... eggs = hassite
+    ... """ % join('proj', 'dist'))
+    >>> print system(join('bin', 'buildout'))
+    ... # doctest: +ELLIPSIS
+    Uninstalling py.
+    Installing egg.
+    Getting distribution for 'hassite'.
+    site: True
+    ...
 
 
 
+    >>> write('buildout.cfg', """
+    ... [buildout]
+    ... parts =
+    ... develop = %s
+    ... """ % join('proj'))
+    >>> print system(join('bin', 'buildout'))
+    ... # doctest: +ELLIPSIS
+    Develop: '/sample/proj'
+    site: True
+    ...
 
 
 .. [#simple] It's worth noting that system Python builds can make
