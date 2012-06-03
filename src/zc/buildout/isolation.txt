@@ -16,7 +16,8 @@ applications:
 
 2. Use a 'virtual environment
    <http://pypi.python.org/pypi/virtualenv>'_ that wraps a Python
-   installation in a way that hides 3rd-party modules.
+   installation in a way that hides 3rd-party modules.  `This is buildt
+   into Python 3.3 <http://docs.python.org/dev/library/venv.html>`_
 
 3. Use the -S Python option when bootstrapping buildout.  This will
    bypass the normal execution of the Python site.py file, which is
@@ -125,4 +126,5 @@ The -S option is also used when invoking setup scripts.
    3rd-party libraries that are added to the Python path regardless of
    whether site.py is loaded.  Still, even on Mac OS X, use of the -S
    option prevents some 3rd-party modules from being added to the
-   Python path,
+   Python path.
+

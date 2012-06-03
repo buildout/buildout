@@ -57,7 +57,7 @@ options, args = parser.parse_args()
 # handle -S
 
 def normpath(p):
-    return p[:-1] if p.endswith('/') else p
+    return p[:-1] if p.endswith(os.path.sep) else p
 
 nosite = 'site' not in sys.modules
 if nosite:
@@ -152,8 +152,6 @@ if version is None and not options.accept_buildout_test_releases:
 if version:
     requirement = '=='.join((requirement, version))
 cmd.append(requirement)
-
-print 'requirement', requirement
 
 import subprocess
 if subprocess.call(cmd, env=env) != 0:

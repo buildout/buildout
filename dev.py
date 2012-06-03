@@ -30,7 +30,7 @@ if os.path.isdir('build'):
 # handle -S
 
 def normpath(p):
-    return p[:-1] if p.endswith('/') else p
+    return p[:-1] if p.endswith(os.path.sep) else p
 
 nosite = 'site' not in sys.modules
 if nosite:

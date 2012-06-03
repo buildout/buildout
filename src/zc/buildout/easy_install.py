@@ -18,13 +18,15 @@ It doesn't install scripts.  It uses distribute and requires it to be
 installed.
 """
 
+import os
 import sys
 
 ######################################################################
 # handle -S
 
 def normpath(p):
-    return p[:-1] if p.endswith('/') else p
+    return p[:-1] if p.endswith(os.path.sep) else p
+
 no_site = 'site' not in sys.modules
 if no_site:
     initial_paths = set(map(normpath, sys.path))
@@ -36,7 +38,6 @@ if no_site:
 import distutils.errors
 import glob
 import logging
-import os
 import pkg_resources
 import py_compile
 import re
@@ -1014,7 +1015,7 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
 
     python = _safe_arg(sys.executable)
     if no_site:
-            python += ' -S'
+        python += ' -S'
 
     contents = script_template % dict(
         python = python,
@@ -1038,7 +1039,7 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
 
     python = _safe_arg(sys.executable)
     if no_site:
-            python += ' -S'
+        python += ' -S'
 
     contents = distutils_script_template % dict(
         python = python,
@@ -1121,7 +1122,7 @@ def _pyscript(path, dest, rsetup):
 
     python = _safe_arg(sys.executable)
     if no_site:
-            python += ' -S'
+        python += ' -S'
 
     contents = py_script_template % dict(
         python = python,
