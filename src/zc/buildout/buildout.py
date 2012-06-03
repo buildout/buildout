@@ -14,12 +14,12 @@
 """Buildout main script
 """
 
+# handle -S
+import zc.buildout.easy_install
+no_site = zc.buildout.easy_install.no_site
+
 from rmtree import rmtree
-try:
-    from hashlib import md5
-except ImportError:
-    # Python 2.4 and older
-    from md5 import md5
+from hashlib import md5
 
 import ConfigParser
 import copy
@@ -37,7 +37,6 @@ import tempfile
 import UserDict
 import zc.buildout
 import zc.buildout.download
-import zc.buildout.easy_install
 
 
 realpath = zc.buildout.easy_install.realpath
@@ -906,6 +905,8 @@ class Buildout(UserDict.DictMixin):
             args.insert(1, '-W')
             if not __debug__:
                 args.insert(0, '-O')
+            if no_site:
+                args.insert(0, '-S')
             args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
             os.execv(sys.executable, args)
 
@@ -929,6 +930,8 @@ class Buildout(UserDict.DictMixin):
         args = sys.argv[:]
         if not __debug__:
             args.insert(0, '-O')
+        if no_site:
+            args.insert(0, '-S')
         args.insert(0, sys.executable)
         sys.exit(subprocess.call(args))
 
@@ -989,8 +992,10 @@ class Buildout(UserDict.DictMixin):
                 setup=setup,
                 __file__ = setup,
                 ))
-            zc.buildout.easy_install.call_subprocess(
-                [sys.executable, tsetup] + args)
+            args = [sys.executable, tsetup] + args
+            if no_site:
+                args.insert(1, '-S')
+            zc.buildout.easy_install.call_subprocess(args)
         finally:
             os.close(fd)
             os.remove(tsetup)

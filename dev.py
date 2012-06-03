@@ -19,30 +19,65 @@ buildout egg itself is installed as a develop egg.
 
 import os, shutil, sys, subprocess, urllib2
 
-is_jython = sys.platform.startswith('java')
-
-for d in 'eggs', 'develop-eggs', 'bin':
+for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
         os.mkdir(d)
 
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
+######################################################################
+# handle -S
+
+def normpath(p):
+    return p[:-1] if p.endswith(os.path.sep) else p
+
+nosite = 'site' not in sys.modules
+if nosite:
+    # They've asked not to import site.  Cool, but distribute is going to
+    # import it anyway, so we're going to have to clean up. :(
+    initial_paths = set(map(normpath, sys.path))
+    import site
+    to_remove = set(map(normpath, sys.path)) - initial_paths
+else:
+    to_remove = ()
+
+######################################################################
+# Make sure we have a relatively clean environment
 try:
-    import pkg_resources
+    import pkg_resources, setuptools
 except ImportError:
-    ez = {}
-    exec urllib2.urlopen(
-        'http://python-distribute.org/distribute_setup.py'
-        ).read() in ez
-    ez['use_setuptools'](to_dir='eggs', download_delay=0)
+    pass
+else:
+    raise SystemError(
+        "Buildout development with a pre-installed setuptools or "
+        "distribute is not supported.%s"
+        % ('' if nosite else ' Try running with -S option to Python.'))
 
-    import pkg_resources
+######################################################################
+# Install distribute
+ez = {}
+exec urllib2.urlopen(
+    'http://python-distribute.org/distribute_setup.py').read() in ez
+ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
-subprocess.Popen(
+import pkg_resources
+
+# Clean up
+if nosite and 'site' in sys.modules:
+    del sys.modules['site']
+    sys.path[:] = [p for p in sys.path[:]
+        if normpath(p) not in to_remove
+        ]
+
+######################################################################
+# Install buildout
+
+if subprocess.call(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env = {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)}).wait()
+    env = {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)}):
+    raise RuntimeError("buildout build failed.")
 
 pkg_resources.working_set.add_entry('src')
 
@@ -52,7 +87,7 @@ zc.buildout.easy_install.scripts(
 
 bin_buildout = os.path.join('bin', 'buildout')
 
-if is_jython:
+if sys.platform.startswith('java'):
     # Jython needs the script to be called twice via sys.executable
     assert subprocess.Popen([sys.executable] + [bin_buildout]).wait() == 0
 
