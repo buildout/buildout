@@ -18,10 +18,26 @@ It doesn't install scripts.  It uses distribute and requires it to be
 installed.
 """
 
+import os
+import sys
+
+######################################################################
+# handle -S
+
+def normpath(p):
+    return p[:-1] if p.endswith(os.path.sep) else p
+
+no_site = 'site' not in sys.modules
+if no_site:
+    initial_paths = set(map(normpath, sys.path))
+    import site
+    sys.path[:] = [p for p in sys.path if normpath(p) in initial_paths]
+#
+######################################################################
+
 import distutils.errors
 import glob
 import logging
-import os
 import pkg_resources
 import py_compile
 import re
@@ -30,7 +46,6 @@ import setuptools.command.setopt
 import setuptools.package_index
 import shutil
 import subprocess
-import sys
 import tempfile
 import zc.buildout
 import zipimport
@@ -273,6 +288,8 @@ class Installer:
             path = distribute_loc
 
             args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
+            if no_site:
+                args.insert(1, '-S')
             level = logger.getEffectiveLevel()
             if level > 0:
                 args.append('-q')
@@ -736,7 +753,7 @@ def build(spec, dest, build_ext,
           executable=sys.executable,
           path=None, newest=True, versions=None, allow_hosts=('*',)):
     assert executable == sys.executable, (executable, sys.executable)
-    installer = Installer(dest, links, index, sys.executable,
+    installer = Installer(dest, links, index, executable,
                           True, path, newest,
                           versions, allow_hosts=allow_hosts)
     return installer.build(spec, build_ext)
@@ -806,7 +823,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
 
-        args = [sys.executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
+        args = [executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
@@ -816,6 +833,9 @@ def develop(setup, dest,
                 args[2] == '-v'
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
+
+        if no_site:
+            args.insert(1, '-S')
 
         call_subprocess(args)
 
@@ -913,8 +933,7 @@ def scripts(reqs, working_set, executable, dest=None,
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
 
         generated.extend(
-            _distutils_script(spath, sname, contents,
-                              executable, initialization, rpsetup)
+            _distutils_script(spath, sname, contents, initialization, rpsetup)
             )
 
     if interpreter:
@@ -994,8 +1013,12 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
     if is_win32:
         dest += '-script.py'
 
+    python = _safe_arg(sys.executable)
+    if no_site:
+        python += ' -S'
+
     contents = script_template % dict(
-        python = _safe_arg(sys.executable),
+        python = python,
         path = path,
         module_name = module_name,
         attrs = attrs,
@@ -1006,16 +1029,20 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
     return _create_script(contents, dest)
 
 
-def _distutils_script(path, dest, script_content, executable,
-                      initialization, rsetup):
+def _distutils_script(path, dest, script_content, initialization, rsetup):
 
     lines = script_content.splitlines(True)
     if not ('#!' in lines[0]) and ('python' in lines[0]):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
     original_content = ''.join(lines[1:])
+
+    python = _safe_arg(sys.executable)
+    if no_site:
+        python += ' -S'
+
     contents = distutils_script_template % dict(
-        python = _safe_arg(executable),
+        python = python,
         path = path,
         initialization = initialization,
         relative_paths_setup = rsetup,
@@ -1093,8 +1120,12 @@ def _pyscript(path, dest, rsetup):
     if is_win32:
         dest += '-script.py'
 
+    python = _safe_arg(sys.executable)
+    if no_site:
+        python += ' -S'
+
     contents = py_script_template % dict(
-        python = _safe_arg(sys.executable),
+        python = python,
         path = path,
         relative_paths_setup = rsetup,
         )
@@ -1206,7 +1237,7 @@ def _log_requirement(ws, req):
         # decrease of run time from 93.411 to 15.068 seconds, about a
         # 6 fold improvement.
         return
-    
+
     ws = list(ws)
     ws.sort()
     for dist in ws:

@@ -2832,17 +2832,29 @@ def updateSetup(test):
     makeNewRelease('distribute', ws, new_releases)
     os.mkdir(os.path.join(new_releases, 'distribute'))
 
+bootstrap_py = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.dirname(__file__)))),
+    'bootstrap', 'bootstrap.py')
+
 def bootstrapSetup(test):
-    easy_install_SetUp(test)
+    buildout_txt_setup(test)
+    test.globs['link_server'] = test.globs['start_server'](
+        test.globs['sample_eggs'])
     sample_eggs = test.globs['sample_eggs']
     ws = getWorkingSetWithBuildoutEgg(test)
-    makeNewRelease('zc.buildout', ws, sample_eggs, '1.4.4')
+    makeNewRelease('zc.buildout', ws, sample_eggs, '2.0.0')
     os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
-
+    test.globs['bootstrap_py'] = bootstrap_py
 
 normalize_bang = (
     re.compile(re.escape('#!'+
                          zc.buildout.easy_install._safe_arg(sys.executable))),
+    '#!/usr/local/bin/python2.7',
+    )
+
+normalize_S = (
+    re.compile(r'#!/usr/local/bin/python2.7 -S'),
     '#!/usr/local/bin/python2.7',
     )
 
@@ -2929,18 +2941,20 @@ def test_suite():
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               (re.compile(r'(zc.buildout|distribute)-\d+[.]\d+\S*'
-                           '-py\d.\d.egg'),
-                '\\1.egg'),
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               normalize_bang,
-               (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
-               (re.compile(r'(zc.buildout|distribute)( version)? \d+[.]\d+\S*'),
-                '\\1 V.V'),
-               (re.compile('[-d]  distribute'), '-  distribute'),
+                (re.compile(r'(zc.buildout|distribute)-\d+[.]\d+\S*'
+                            '-py\d.\d.egg'),
+                 '\\1.egg'),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                normalize_bang,
+                normalize_S,
+                (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
+                (re.compile(
+                    r'(zc.buildout|distribute)( version)? \d+[.]\d+\S*'),
+                 '\\1 V.V'),
+                (re.compile('[-d]  distribute'), '-  distribute'),
                ])
             ),
 
@@ -2950,15 +2964,16 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               normalize_bang,
-               (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-               (re.compile('[-d]  distribute-\S+[.]egg'), 'distribute.egg'),
-               (re.compile(r'\\[\\]?'), '/'),
-               ]+(sys.version_info < (2, 5) and [
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                normalize_bang,
+                normalize_S,
+                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
+                (re.compile('[-d]  distribute-\S+[.]egg'), 'distribute.egg'),
+                (re.compile(r'\\[\\]?'), '/'),
+                ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
                   (re.compile('.*Error: what does not exist.*', re.S), ''),
@@ -3005,7 +3020,8 @@ def test_suite():
                    '-q develop -mxN -d /sample-buildout/develop-eggs'
                 ),
                (re.compile(r'^[*]...'), '...'),
-               # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
+               # for
+               # bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
                (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
                 "Unused options for buildout: 'scripts' 'eggs'."),
                ]),
@@ -3043,21 +3059,11 @@ def test_suite():
             'testing_bugfix.txt'),
     ]
 
-    # adding bootstrap.txt doctest to the suite
+    # adding bootstrap.txt and isolation.txt doctest to the suite
     # only if bootstrap.py is present
-    bootstrap_py = os.path.join(
-       os.path.dirname(
-          os.path.dirname(
-             os.path.dirname(
-                os.path.dirname(zc.buildout.__file__)
-                )
-             )
-          ),
-       'bootstrap', 'bootstrap.py')
-
     if os.path.exists(bootstrap_py):
         test_suite.append(doctest.DocFileSuite(
-            'bootstrap.txt',
+            'bootstrap.txt', 'isolation.txt',
             setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
