@@ -16,7 +16,7 @@ applications:
 
 2. Use a 'virtual environment
    <http://pypi.python.org/pypi/virtualenv>'_ that wraps a Python
-   installation in a way that hides 3rd-party modules.  `This is buildt
+   installation in a way that hides 3rd-party modules.  `This is built
    into Python 3.3 <http://docs.python.org/dev/library/venv.html>`_
 
 3. Use the -S Python option when bootstrapping buildout.  This will
