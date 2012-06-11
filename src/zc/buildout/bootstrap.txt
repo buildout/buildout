@@ -20,9 +20,9 @@ Make sure the bootstrap script actually works::
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print 'X'; print system(
+    >>> print_('X'; print system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py')); print_('X') # doctest: +ELLIPSIS
     X...
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
@@ -43,7 +43,7 @@ Make sure the bootstrap script actually works::
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
-    >>> print 'X'; ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
+    >>> print_('X'); ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
     X...
     d  zc.buildout-...egg
 
@@ -52,9 +52,9 @@ Now trying the `--version` option, that let you define a version for
 
 Let's try with an unknown version::
 
-    >>> print 'X'; print system(
+    >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version UNKNOWN'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py --version UNKNOWN')); print_('X') # doctest: +ELLIPSIS
     ...
     X
     ...
@@ -63,9 +63,9 @@ Let's try with an unknown version::
 
 Now let's try with `1.1.2`, which happens to exist::
 
-    >>> print 'X'; print system(
+    >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.1.2'); print 'X'
+    ...     'bootstrap.py --version 1.1.2')); print_('X')
     ... # doctest: +ELLIPSIS
     X
     ...
@@ -78,7 +78,7 @@ Let's make sure the generated `buildout` script uses it::
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
     >>> if sys.platform.startswith('win'):
     ...     buildout_script += '-script.py'
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys
@@ -95,9 +95,9 @@ Let's make sure the generated `buildout` script uses it::
 
 Let's try with `1.2.1`::
 
-    >>> print 'X'; print system(
+    >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.2.1'); print 'X' # doctest: +ELLIPSIS
+    ...     'bootstrap.py --version 1.2.1')); print_('X') # doctest: +ELLIPSIS
     ...
     X
     ...
@@ -107,7 +107,7 @@ Let's try with `1.2.1`::
 
 Let's make sure the generated `buildout` script uses it::
 
-    >>> print open(buildout_script).read() # doctest: +ELLIPSIS
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     <BLANKLINE>
     import sys

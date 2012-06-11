@@ -28,7 +28,7 @@ without any arguments:
 
 >>> from zc.buildout.download import Download
 >>> download = Download()
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 None
 
 Downloading a file is achieved by calling the utility with the URL as an
@@ -37,7 +37,7 @@ of the file and a boolean value indicating whether this is a temporary file
 meant to be cleaned up during the same buildout run:
 
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /.../buildout-...
 >>> cat(path)
 This is a foo text.
@@ -59,8 +59,8 @@ We are responsible for cleaning up temporary files behind us:
 When trying to access a file that doesn't exist, we'll get an exception:
 
 >>> try: download(server_url+'not-there') # doctest: +ELLIPSIS
-... except: print 'download error'
-... else: print 'woops'
+... except: print_('download error')
+... else: print_('woops')
 download error
 
 Downloading a local file doesn't produce a temporary file but simply returns
@@ -102,7 +102,7 @@ Finally, we can download the file to a specified place in the file system:
 >>> target_dir = tmpdir('download-target')
 >>> path, is_temp = download(server_url+'foo.txt',
 ...                          path=join(target_dir, 'downloaded.txt'))
->>> print path
+>>> print_(path)
 /download-target/downloaded.txt
 >>> cat(path)
 This is a foo text.
@@ -136,7 +136,7 @@ attribute upon instantiation:
 
 >>> cache = tmpdir('download-cache')
 >>> download = Download(cache=cache)
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /download-cache/
 
 Simple usage
@@ -148,7 +148,7 @@ to the cached copy:
 
 >>> ls(cache)
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/foo.txt
 >>> cat(path)
 This is a foo text.
@@ -160,7 +160,7 @@ the file on the server to see this:
 
 >>> write(server_data, 'foo.txt', 'The wrong text.')
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/foo.txt
 >>> cat(path)
 This is a foo text.
@@ -179,7 +179,7 @@ will result in the cached copy being used:
 >>> mkdir(server_data, 'other')
 >>> write(server_data, 'other', 'foo.txt', 'The wrong text.')
 >>> path, is_temp = download(server_url+'other/foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/foo.txt
 >>> cat(path)
 This is a foo text.
@@ -194,7 +194,7 @@ cached copy:
 
 >>> path, is_temp = download(server_url+'foo.txt',
 ...                          path=join(target_dir, 'downloaded.txt'))
->>> print path
+>>> print_(path)
 /download-target/downloaded.txt
 >>> cat(path)
 This is a foo text.
@@ -208,7 +208,7 @@ False
 
 >>> path, is_temp = download(server_url+'foo.txt',
 ...                          path=join(target_dir, 'downloaded.txt'))
->>> print path
+>>> print_(path)
 /download-target/downloaded.txt
 >>> cat(path)
 This is a foo text.
@@ -281,7 +281,7 @@ namespaces to use, so the download utility stored files directly inside the
 download cache. Let's use a namespace "test" instead:
 
 >>> download = Download(cache=cache, namespace='test')
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /download-cache/test
 
 The namespace sub-directory hasn't been created yet:
@@ -292,7 +292,7 @@ Downloading a file now creates the namespace sub-directory and places a copy
 of the file inside it:
 
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/test/foo.txt
 >>> ls(cache)
 d test
@@ -311,7 +311,7 @@ different content both on the server and in the cache's root directory:
 >>> write(cache, 'foo.txt', 'The wrong text.')
 
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/test/foo.txt
 >>> cat(path)
 This is a foo text.
@@ -332,7 +332,7 @@ be used as the filename in the cache:
 
 >>> download = Download(cache=cache, hash_name=True)
 >>> path, is_temp = download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/09f5793fcdc1716727f72d49519c688d
 >>> cat(path)
 This is a foo text.
@@ -362,7 +362,7 @@ file the same, the file will be downloaded again this time and put in the
 cache under a different name:
 
 >>> path2, is_temp = download(server_url+'other/foo.txt')
->>> print path2
+>>> print_(path2)
 /download-cache/537b6d73267f8f4447586989af8c470e
 >>> path == path2
 False
@@ -390,7 +390,7 @@ down or if we are in offline mode. This mode is only in effect if a download
 cache is configured in the first place:
 
 >>> download = Download(cache=cache, fallback=True)
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /download-cache/
 
 A downloaded file will be cached:
@@ -408,8 +408,8 @@ If the file cannot be served, the cached copy will be used:
 
 >>> remove(server_data, 'foo.txt')
 >>> try: Download()(server_url+'foo.txt') # doctest: +ELLIPSIS
-... except: print 'download error'
-... else: print 'woops'
+... except: print_('download error')
+... else: print_('woops')
 download error
 >>> path, is_temp = download(server_url+'foo.txt')
 >>> cat(path)
@@ -426,7 +426,7 @@ using the cache:
 
 >>> offline_download = Download(cache=cache, offline=True, fallback=True)
 >>> path, is_temp = offline_download(server_url+'foo.txt')
->>> print path
+>>> print_(path)
 /download-cache/foo.txt
 >>> cat(path)
 This is a foo text.
@@ -466,7 +466,7 @@ The location of the download cache is specified by the ``download-cache``
 option:
 
 >>> download = Download({'download-cache': cache}, namespace='cmmi')
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /download-cache/cmmi
 
 If the ``download-cache`` option specifies a relative path, it is understood
@@ -474,18 +474,18 @@ relative to the current working directory, or to the buildout directory if
 that is given:
 
 >>> download = Download({'download-cache': 'relative-cache'})
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /sample-buildout/relative-cache/
 
 >>> download = Download({'directory': join(sample_buildout, 'root'),
 ...                      'download-cache': 'relative-cache'})
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 /sample-buildout/root/relative-cache/
 
 Keyword parameters take precedence over the corresponding options:
 
 >>> download = Download({'download-cache': cache}, cache=None)
->>> print download.cache_dir
+>>> print_(download.cache_dir)
 None
 
 Whether to assume offline mode can be inferred from either the ``offline`` or

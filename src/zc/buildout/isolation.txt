@@ -38,7 +38,8 @@ This document tests the 3rd option.
     >>> sample_buildout = tmpdir('sample')
     >>> cd(sample_buildout)
     >>> import sys
-    >>> print system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
+    >>> print_(system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
+    ...        end='')
     ... # doctest: +ELLIPSIS
     Downloading http://pypi.python.org/packages/source/d/distribute/...
     Creating '/sample/buildout.cfg'.
@@ -78,10 +79,10 @@ The -S option is also used when invoking setup scripts.
     >>> write('proj', 'setup.py', """
     ... from distutils.core import setup
     ... import sys
-    ... print 'site:', 'site' in sys.modules
+    ... print_('site:', 'site' in sys.modules)
     ... setup(name='hassite')
     ... """)
-    >>> print system(join('bin', 'buildout')+' setup proj sdist')
+    >>> print_(system(join('bin', 'buildout')+' setup proj sdist'))
     ... # doctest: +ELLIPSIS
     Running setup script 'proj/setup.py'.
     site: True
@@ -95,7 +96,7 @@ The -S option is also used when invoking setup scripts.
     ... recipe = zc.recipe.egg
     ... eggs = hassite
     ... """ % join('proj', 'dist'))
-    >>> print system(join('bin', 'buildout'))
+    >>> print_(system(join('bin', 'buildout')))
     ... # doctest: +ELLIPSIS
     Uninstalling py.
     Installing egg.
@@ -110,7 +111,7 @@ The -S option is also used when invoking setup scripts.
     ... parts =
     ... develop = %s
     ... """ % join('proj'))
-    >>> print system(join('bin', 'buildout'))
+    >>> print_(system(join('bin', 'buildout')))
     ... # doctest: +ELLIPSIS
     Develop: '/sample/proj'
     site: True

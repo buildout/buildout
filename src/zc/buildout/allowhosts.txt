@@ -55,7 +55,7 @@ local files::
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print system(buildout)
+    >>> print_(system(buildout))
     Develop: '/sample-buildout/allowdemo'
     Installing eggs.
     <BLANKLINE>
@@ -91,7 +91,7 @@ XXX (showcase with a svn:// file)
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print system(buildout)
+    >>> print_(system(buildout))
     Develop: '/sample-buildout/allowdemo'
     Installing eggs.
     <BLANKLINE>
@@ -121,7 +121,7 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     ... eggs=zc.buildout
     ... interpreter=python
     ... ''')
-    >>> print 'XX'; print system(buildout) # doctest: +ELLIPSIS
+    >>> print_('XX'; print system(buildout)) # doctest: +ELLIPSIS
     X...
     Unused options for buildout: 'foo'.
     Installing python.

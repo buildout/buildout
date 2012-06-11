@@ -611,8 +611,9 @@ class Installer:
         while 1:
             try:
                 ws.resolve(requirements)
-            except pkg_resources.DistributionNotFound, err:
-                [requirement] = err
+            except pkg_resources.DistributionNotFound:
+                err = sys.exc_info()[1]
+                [requirement] = err.args
                 requirement = self._constrain(requirement)
                 if dest:
                     logger.debug('Getting required %r', str(requirement))
@@ -623,7 +624,8 @@ class Installer:
                 for dist in self._get_dist(requirement, ws):
                     ws.add(dist)
                     self._maybe_add_distribute(ws, dist)
-            except pkg_resources.VersionConflict, err:
+            except pkg_resources.VersionConflict:
+                err = sys.exc_info()[1]
                 raise VersionConflict(err, ws)
             else:
                 break
@@ -813,12 +815,12 @@ def develop(setup, dest,
         undo.append(lambda: os.remove(tsetup))
         undo.append(lambda: os.close(fd))
 
-        os.write(fd, runsetup_template % dict(
+        os.write(fd, (runsetup_template % dict(
             distribute=distribute_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
-            ))
+            )).encode())
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
@@ -871,7 +873,7 @@ def scripts(reqs, working_set, executable, dest=None,
     for p in path:
         if p not in unique_path:
             unique_path.append(p)
-    path = map(realpath, unique_path)
+    path = list(map(realpath, unique_path))
 
     generated = []
 
@@ -1073,7 +1075,7 @@ def _create_script(contents, dest):
         logger.info("Generated script %r.", script)
 
         try:
-            os.chmod(dest, 0755)
+            os.chmod(dest, 0o755)
         except (AttributeError, os.error):
             pass
 
@@ -1110,8 +1112,7 @@ sys.path[0:0] = [
   ]
 %(initialization)s
 
-%(original_content)s
-'''
+%(original_content)s'''
 
 
 def _pyscript(path, dest, rsetup):
@@ -1142,7 +1143,7 @@ def _pyscript(path, dest, rsetup):
     if changed:
         open(dest, 'w').write(contents)
         try:
-            os.chmod(dest,0755)
+            os.chmod(dest,0o755)
         except (AttributeError, os.error):
             pass
         logger.info("Generated interpreter %r.", script)
@@ -1167,7 +1168,7 @@ if len(sys.argv) > 1:
         if _opt == '-i':
             _interactive = True
         elif _opt == '-c':
-            exec _val
+            exec(_val)
         elif _opt == '-m':
             sys.argv[1:] = _args
             _args = []
@@ -1178,7 +1179,9 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        execfile(__file__)
+        __file__f = open(__file__)
+        exec(compile(__file__f.read(), __file__, "exec"))
+        __file__f.close(); del __file__f
 
 if _interactive:
     del _interactive
@@ -1195,7 +1198,8 @@ __file__ = %(__file__)r
 
 os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
-execfile(%(setup)r)
+
+exec(compile(open(%(setup)r).read(), %(setup)r, 'exec'))
 """
 
 

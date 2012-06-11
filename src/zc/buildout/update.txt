@@ -34,6 +34,8 @@ zc.buildout used:
     >>> write(sample_buildout, 'showversions', 'showversions.py',
     ... """
     ... import pkg_resources
+    ... import sys
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\n')
     ...
     ... class Recipe:
     ...
@@ -43,7 +45,7 @@ zc.buildout used:
     ...     def install(self):
     ...         for project in 'zc.buildout', 'distribute':
     ...             req = pkg_resources.Requirement.parse(project)
-    ...             print project, pkg_resources.working_set.find(req).version
+    ...             print_(project, pkg_resources.working_set.find(req).version)
     ...         return ()
     ...     update = install
     ... """)
@@ -63,7 +65,7 @@ zc.buildout used:
 Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Getting distribution for 'distribute'.
     Got distribute 99.99.
     Upgraded:
@@ -111,7 +113,7 @@ will install earlier versions of these packages:
 
 Now we can see that we actually "upgrade" to an earlier version.
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Upgraded:
       distribute version 0.6;
     restarting.
@@ -138,7 +140,7 @@ We won't upgrade in offline mode:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print system(buildout+' -o'),
+    >>> print_(system(buildout+' -o'), ed='')
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -146,7 +148,7 @@ We won't upgrade in offline mode:
 
 Or in non-newest mode:
 
-    >>> print system(buildout+' -N'),
+    >>> print_(system(buildout+' -N'), end='')
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -166,7 +168,7 @@ directory:
     ... """ % dict(new_releases=new_releases))
 
     >>> cd(sample_buildout2)
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.

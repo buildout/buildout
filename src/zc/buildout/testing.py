@@ -14,7 +14,7 @@
 """Various test-support utility functions
 """
 
-import BaseHTTPServer
+import http.server
 import errno
 import logging
 import os
@@ -28,11 +28,13 @@ import sys
 import tempfile
 import threading
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import zc.buildout.buildout
 import zc.buildout.easy_install
 from zc.buildout.rmtree import rmtree
+
+print_ = zc.buildout.buildout.print_
 
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
@@ -47,7 +49,7 @@ def cat(dir, *names):
         and os.path.exists(path+'-script.py')
         ):
         path = path+'-script.py'
-    print open(path).read(),
+    print_(open(path).read(), end='')
 
 def ls(dir, *subs):
     if subs:
@@ -56,12 +58,12 @@ def ls(dir, *subs):
     names.sort()
     for name in names:
         if os.path.isdir(os.path.join(dir, name)):
-            print 'd ',
+            print_('d ', end=' ')
         elif os.path.islink(os.path.join(dir, name)):
-            print 'l ',
+            print_('l ', end=' ')
         else:
-            print '- ',
-        print name
+            print_('- ', end=' ')
+        print_(name)
 
 def mkdir(*path):
     os.mkdir(os.path.join(*path))
@@ -96,15 +98,15 @@ def system(command, input=''):
                          close_fds=MUST_CLOSE_FDS)
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
-        i.write(input)
+        i.write(input.encode())
     i.close()
     result = o.read() + e.read()
     o.close()
     e.close()
-    return result
+    return result.decode()
 
 def get(url):
-    return urllib2.urlopen(url).read()
+    return urllib.request.urlopen(url).read().decode()
 
 def _runsetup(setup, *args):
     if os.path.isdir(setup):
@@ -254,6 +256,7 @@ def buildoutSetUp(test):
         start_server = start_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
+        print_ = print_,
         ))
 
     zc.buildout.easy_install.prefer_final(prefer_final)
@@ -262,10 +265,10 @@ def buildoutTearDown(test):
     for f in test.globs['__tear_downs']:
         f()
 
-class Server(BaseHTTPServer.HTTPServer):
+class Server(http.server.HTTPServer):
 
     def __init__(self, tree, *args):
-        BaseHTTPServer.HTTPServer.__init__(self, *args)
+        http.server.HTTPServer.__init__(self, *args)
         self.tree = os.path.abspath(tree)
 
     __run = True
@@ -276,14 +279,14 @@ class Server(BaseHTTPServer.HTTPServer):
     def handle_error(self, *_):
         self.__run = False
 
-class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Handler(http.server.BaseHTTPRequestHandler):
 
     Server.__log = False
 
     def __init__(self, request, address, server):
         self.__server = server
         self.tree = server.tree
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(
+        http.server.BaseHTTPRequestHandler.__init__(
             self, request, address, server)
 
     def do_GET(self):
@@ -308,7 +311,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             ):
             self.send_response(404, 'Not Found')
             #self.send_response(200)
-            out = '<html><body>Not Found</body></html>'
+            out = '<html><body>Not Found</body></html>'.encode()
             #out = '\n'.join(self.tree, self.path, path)
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
@@ -326,7 +329,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
                     name += '/'
                 out.append('<a href="%s">%s</a><br>\n' % (name, name))
             out.append('</body></html>\n')
-            out = ''.join(out)
+            out = ''.join(out).encode()
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
         else:
@@ -346,7 +349,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def log_request(self, code):
         if self.__server.__log:
-            print '%s %s %s' % (self.command, code, self.path)
+            print_('%s %s %s' % (self.command, code, self.path))
 
 def _run(tree, port):
     server_address = ('localhost', port)
@@ -364,7 +367,7 @@ def get_port():
                 return port
         finally:
             s.close()
-    raise RuntimeError, "Can't find port"
+    raise RuntimeError("Can't find port")
 
 def _start_server(tree, name=''):
     port = get_port()
@@ -379,7 +382,7 @@ def start_server(tree):
 
 def stop_server(url, thread=None):
     try:
-        urllib2.urlopen(url+'__stop__')
+        urllib.request.urlopen(url+'__stop__')
     except Exception:
         pass
     if thread is not None:
@@ -395,7 +398,7 @@ def wait(port, up):
             s.close()
             if up:
                 break
-        except socket.error, e:
+        except socket.error as e:
             if e[0] not in (errno.ECONNREFUSED, errno.ECONNRESET):
                 raise
             s.close()
@@ -408,7 +411,7 @@ def wait(port, up):
             raise SystemError("Couln't stop server")
 
 def install(project, destination):
-    if not isinstance(destination, basestring):
+    if not isinstance(destination, str):
         destination = os.path.join(destination.globs['sample_buildout'],
                                    'eggs')
 
@@ -428,7 +431,7 @@ def install(project, destination):
              ).write(dist.location)
 
 def install_develop(project, destination):
-    if not isinstance(destination, basestring):
+    if not isinstance(destination, str):
         destination = os.path.join(destination.globs['sample_buildout'],
                                    'develop-eggs')
 
@@ -462,3 +465,7 @@ normalize_egg_py = (
     re.compile('-py\d[.]\d(-\S+)?.egg'),
     '-pyN.N.egg',
     )
+
+normalize_exception_type_for_python_2_and_3 = (
+    re.compile(r'^(\w+\.)*([A-Z][A-Za-z0-9]+Error: )'),
+    '\2')

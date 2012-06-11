@@ -17,7 +17,8 @@ commands, like bdist_egg even with packages that don't use setuptools.
 To illustrate this, we'll create a package in a sample buildout:
 
     >>> mkdir('hello')
-    >>> write('hello', 'hello.py', 'print "Hello World!"')
+    >>> write('hello', 'hello.py',
+    ...      'import sys; sys.stdout.write("Hello World!\n")\n')
     >>> write('hello', 'README', 'This is hello')
     >>> write('hello', 'setup.py',
     ... """
@@ -32,7 +33,7 @@ To illustrate this, we'll create a package in a sample buildout:
   
 We can use the buildout command to generate the hello egg:
 
-    >>> print system(buildout +' setup hello -q bdist_egg'),
+    >>> print_(system(buildout +' setup hello -q bdist_egg'), end='')
     Running setup script 'hello/setup.py'.
     zip_safe flag not set; analyzing archive contents...
 

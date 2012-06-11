@@ -17,7 +17,7 @@ This is different from a normal boostrapping process because the
 buildout egg itself is installed as a develop egg.
 """
 
-import os, shutil, sys, subprocess, urllib2
+import os, shutil, sys, subprocess, urllib.request, urllib.error, urllib.parse
 
 for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
@@ -57,8 +57,8 @@ else:
 ######################################################################
 # Install distribute
 ez = {}
-exec urllib2.urlopen(
-    'http://python-distribute.org/distribute_setup.py').read() in ez
+exec(urllib.request.urlopen(
+    'http://python-distribute.org/distribute_setup.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
 import pkg_resources

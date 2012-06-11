@@ -18,10 +18,15 @@
 import zc.buildout.easy_install
 no_site = zc.buildout.easy_install.no_site
 
-from rmtree import rmtree
+from .rmtree import rmtree
 from hashlib import md5
 
-import ConfigParser
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from collections import MutableMapping as DictMixin
+
+import zc.buildout.configparser
 import copy
 import distutils.errors
 import glob
@@ -34,10 +39,17 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import UserDict
 import zc.buildout
 import zc.buildout.download
 
+def _print_options(sep=' ', end='\n', file=None):
+    return sep, end, file
+
+def print_(*args, **kw):
+    sep, end, file = _print_options(**kw)
+    if file is None:
+        file = sys.stdout
+    file.write(sep.join(map(str, args))+end)
 
 realpath = zc.buildout.easy_install.realpath
 
@@ -69,20 +81,20 @@ def _annotate(data, note):
     return data
 
 def _print_annotate(data):
-    sections = data.keys()
+    sections = list(data.keys())
     sections.sort()
-    print
-    print "Annotated sections"
-    print "="*len("Annotated sections")
+    print_()
+    print_("Annotated sections")
+    print_("="*len("Annotated sections"))
     for section in sections:
-        print
-        print '[%s]' % section
-        keys = data[section].keys()
+        print_()
+        print_('[%s]' % section)
+        keys = list(data[section].keys())
         keys.sort()
         for key in keys:
             value, notes = data[section][key]
             keyvalue = "%s= %s" % (key, value)
-            print keyvalue
+            print_(keyvalue)
             line = '   '
             for note in notes.split():
                 if note == '[+]':
@@ -90,9 +102,9 @@ def _print_annotate(data):
                 elif note == '[-]':
                     line = '-= '
                 else:
-                    print line, note
+                    print_(line, note)
                     line = '   '
-    print
+    print_()
 
 
 def _unannotate_section(section):
@@ -127,24 +139,7 @@ _buildout_default_options = _annotate_section({
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
-# _buildout_version and _buildout_1_4_default_versions are part of a
-# hack specific to zc.buildout 1.4.4. Search for
-# _buildout_1_4_default_versions below to see the usage.
-_buildout_version = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('zc.buildout')).version
-
-_buildout_1_4_default_versions = {
-    # Buildout and recipes that are likely to change to 1.5.0 sooner rather
-    # than later.
-    'zc.buildout': _buildout_version,
-    # 'zc.recipe.egg': '1.2.2',
-    'zc.recipe.testrunner': '1.3.0',
-    'z3c.recipe.i18n': '0.7.0',
-    'z3c.recipe.tag:': '0.3.0',
-    'djangorecipe': '0.20',
-    }
-
-class Buildout(UserDict.DictMixin):
+class Buildout(DictMixin):
 
     def __init__(self, config_file, cloptions,
                  user_defaults=True, windows_restart=False,
@@ -295,7 +290,7 @@ class Buildout(UserDict.DictMixin):
         # of it is to keep from migrating to 1.5 unless explicitly
         # requested.  This lets 1.4.4 be an "aspirin release" that people can
         # use if they are having trouble with the 1.5 releases.
-        versions = _buildout_1_4_default_versions.copy()
+        versions = {}
         versions_section = options.get('versions')
         if versions_section:
             versions.update(dict(self[versions_section]))
@@ -392,7 +387,7 @@ class Buildout(UserDict.DictMixin):
             self['buildout']['bin-directory'])
 
     def _init_config(self, config_file, args):
-        print 'Creating %r.' % config_file
+        print_('Creating %r.' % config_file)
         f = open(config_file, 'w')
         sep = re.compile(r'[\\/]')
         if args:
@@ -477,11 +472,11 @@ class Buildout(UserDict.DictMixin):
         if self._log_level < logging.DEBUG:
             sections = list(self)
             sections.sort()
-            print
-            print 'Configuration data:'
+            print_()
+            print_('Configuration data:')
             for section in self._data:
                 _save_options(section, self[section], sys.stdout)
-            print
+            print_()
 
 
         # compute new part recipe signatures
@@ -628,7 +623,7 @@ class Buildout(UserDict.DictMixin):
         installed = self['buildout']['installed']
         f = open(installed, 'a')
         f.write('\n[buildout]\n')
-        for option, value in buildout_options.items():
+        for option, value in list(buildout_options.items()):
             _save_option(option, value, f)
         f.close()
 
@@ -644,7 +639,7 @@ class Buildout(UserDict.DictMixin):
                 recipe, 'zc.buildout.uninstall', entry, self)
             self._logger.info('Running uninstall recipe.')
             uninstaller(part, installed_part_options[part])
-        except (ImportError, pkg_resources.DistributionNotFound), v:
+        except (ImportError, pkg_resources.DistributionNotFound):
             pass
 
         # remove created files and directories
@@ -734,17 +729,15 @@ class Buildout(UserDict.DictMixin):
     def _read_installed_part_options(self):
         old = self['buildout']['installed']
         if old and os.path.isfile(old):
-            parser = ConfigParser.RawConfigParser()
-            parser.optionxform = lambda s: s
-            parser.read(old)
+            with open(old) as fp:
+                sections = zc.buildout.configparser.parse(fp, old)
             result = {}
-            for section in parser.sections():
-                options = {}
-                for option, value in parser.items(section):
+            for section, options in sections.items():
+                for option, value in options.items():
                     if '%(' in value:
                         for k, v in _spacey_defaults:
                             value = value.replace(k, v)
-                    options[option] = value
+                        options[option] = value
                 result[section] = Options(self, section, options)
 
             return result, True
@@ -784,7 +777,7 @@ class Buildout(UserDict.DictMixin):
         installed = recipe_class(self, part, options).install()
         if installed is None:
             installed = []
-        elif isinstance(installed, basestring):
+        elif isinstance(installed, str):
             installed = [installed]
         base = self._buildout_path('')
         installed = [d.startswith(base) and d[len(base):] or d
@@ -799,7 +792,7 @@ class Buildout(UserDict.DictMixin):
         f = open(installed, 'w')
         _save_options('buildout', installed_options['buildout'], f)
         for part in installed_options['buildout']['parts'].split():
-            print >>f
+            print_(file=f)
             _save_options(part, installed_options[part], f)
         f.close()
 
@@ -808,7 +801,7 @@ class Buildout(UserDict.DictMixin):
 
     def _setup_socket_timeout(self):
         timeout = self['buildout']['socket-timeout']
-        if timeout <> '':
+        if timeout != '':
             try:
                 timeout = int(timeout)
                 import socket
@@ -901,7 +894,7 @@ class Buildout(UserDict.DictMixin):
             return
 
         if sys.platform == 'win32' and not self.__windows_restart:
-            args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+            args = list(map(zc.buildout.easy_install._safe_arg, sys.argv))
             args.insert(1, '-W')
             if not __debug__:
                 args.insert(0, '-O')
@@ -986,12 +979,12 @@ class Buildout(UserDict.DictMixin):
 
         fd, tsetup = tempfile.mkstemp()
         try:
-            os.write(fd, zc.buildout.easy_install.runsetup_template % dict(
+            os.write(fd, (zc.buildout.easy_install.runsetup_template % dict(
                 distribute=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
-                ))
+                )).encode())
             args = [sys.executable, tsetup] + args
             if no_site:
                 args.insert(1, '-S')
@@ -1029,10 +1022,13 @@ class Buildout(UserDict.DictMixin):
         raise NotImplementedError('__delitem__')
 
     def keys(self):
-        return self._raw.keys()
+        return list(self._raw.keys())
 
     def __iter__(self):
         return iter(self._raw)
+
+    def __len__(self):
+        return len(self._raw)
 
 
 def _install_and_load(spec, group, entry, buildout):
@@ -1066,14 +1062,15 @@ def _install_and_load(spec, group, entry, buildout):
         return pkg_resources.load_entry_point(
             req.project_name, group, entry)
 
-    except Exception, v:
+    except Exception:
+        v = sys.exc_info()[1]
         buildout._logger.log(
             1,
             "Could't load %s entry point %s\nfrom %s:\n%s.",
             group, entry, spec, v)
         raise
 
-class Options(UserDict.DictMixin):
+class Options(DictMixin):
 
     def __init__(self, buildout, section, data):
         self.buildout = buildout
@@ -1090,7 +1087,7 @@ class Options(UserDict.DictMixin):
             self._raw = self._do_extend_raw(name, self._raw, [])
 
         # force substitutions
-        for k, v in self._raw.items():
+        for k, v in list(self._raw.items()):
             if '${' in v:
                 self._dosub(k, v)
 
@@ -1241,11 +1238,17 @@ class Options(UserDict.DictMixin):
         elif key in self._data:
             del self._data[key]
         else:
-            raise KeyError, key
+            raise KeyError(key)
 
     def keys(self):
         raw = self._raw
         return list(self._raw) + [k for k in self._data if k not in raw]
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return len(self.keys())
 
     def copy(self):
         result = self._raw.copy()
@@ -1317,11 +1320,11 @@ def _save_option(option, value, f):
         value = '%(__buildout_space_n__)s' + value[2:]
     if value.endswith('\n\t'):
         value = value[:-2] + '%(__buildout_space_n__)s'
-    print >>f, option, '=', value
+    print_(option, '=', value, file=f)
 
 def _save_options(section, options, f):
-    print >>f, '[%s]' % section
-    items = options.items()
+    print_('[%s]' % section, file=f)
+    items = list(options.items())
     items.sort()
     for option, value in items:
         _save_option(option, value, f)
@@ -1374,25 +1377,17 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     root_config_file = not seen
     seen.append(filename)
 
-    result = {}
-
-    parser = ConfigParser.RawConfigParser()
-    parser.optionxform = lambda s: s
-    parser.readfp(fp)
+    result = zc.buildout.configparser.parse(fp, filename)
+    fp.close()
     if is_temp:
-        fp.close()
         os.remove(path)
 
-    extends = None
-    for section in parser.sections():
-        options = dict(parser.items(section))
-        if section == 'buildout':
-            extends = options.pop('extends', extends)
-            if 'extended-by' in options:
-                raise zc.buildout.UserError(
-                    'No-longer supported "extended-by" option found in %s.' %
-                    filename)
-        result[section] = options
+    options = result.get('buildout', {})
+    extends = options.pop('extends', None)
+    if 'extended-by' in options:
+        raise zc.buildout.UserError(
+            'No-longer supported "extended-by" option found in %s.' %
+            filename)
 
     result = _annotate(result, filename)
 
@@ -1425,11 +1420,11 @@ def _dir_hash(dir):
                         if (not (f.endswith('pyc') or f.endswith('pyo'))
                             and os.path.exists(os.path.join(dirpath, f)))
                         ]
-        hash.update(' '.join(dirnames))
-        hash.update(' '.join(filenames))
+        hash.update(' '.join(dirnames).encode())
+        hash.update(' '.join(filenames).encode())
         for name in filenames:
-            hash.update(open(os.path.join(dirpath, name)).read())
-    _dir_hashes[dir] = dir_hash = hash.digest().encode('base64').strip()
+            hash.update(open(os.path.join(dirpath, name), 'rb').read())
+    _dir_hashes[dir] = dir_hash = hash.hexdigest()
     return dir_hash
 
 def _dists_sig(dists):
@@ -1444,7 +1439,7 @@ def _dists_sig(dists):
 
 def _update_section(s1, s2):
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
-    for k, v in s2.items():
+    for k, v in list(s2.items()):
         v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
@@ -1631,7 +1626,7 @@ Commands:
 
 """
 def _help():
-    print _usage
+    print_(_usage)
     sys.exit(0)
 
 def main(args=None):
@@ -1728,7 +1723,8 @@ def main(args=None):
             getattr(buildout, command)(args)
         except SystemExit:
             pass
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             _doing()
             exc_info = sys.exc_info()
             import pdb, traceback
@@ -1738,7 +1734,7 @@ def main(args=None):
                 pdb.post_mortem(exc_info[2])
             else:
                 if isinstance(v, (zc.buildout.UserError,
-                                  distutils.errors.DistutilsError,
+                                  distutils.errors.DistutilsError
                                   )
                               ):
                     _error(str(v))
