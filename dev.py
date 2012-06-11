@@ -26,21 +26,7 @@ for d in 'eggs', 'develop-eggs', 'bin', 'parts':
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
-######################################################################
-# handle -S
-
-def normpath(p):
-    return p[:-1] if p.endswith(os.path.sep) else p
-
 nosite = 'site' not in sys.modules
-if nosite:
-    # They've asked not to import site.  Cool, but distribute is going to
-    # import it anyway, so we're going to have to clean up. :(
-    initial_paths = set(map(normpath, sys.path))
-    import site
-    to_remove = set(map(normpath, sys.path)) - initial_paths
-else:
-    to_remove = ()
 
 ######################################################################
 # Make sure we have a relatively clean environment
@@ -53,6 +39,21 @@ else:
         "Buildout development with a pre-installed setuptools or "
         "distribute is not supported.%s"
         % ('' if nosite else ' Try running with -S option to Python.'))
+
+######################################################################
+# handle -S
+
+def normpath(p):
+    return p[:-1] if p.endswith(os.path.sep) else p
+
+if nosite:
+    # They've asked not to import site.  Cool, but distribute is going to
+    # import it anyway, so we're going to have to clean up. :(
+    initial_paths = set(map(normpath, sys.path))
+    import site
+    to_remove = set(map(normpath, sys.path)) - initial_paths
+else:
+    to_remove = ()
 
 ######################################################################
 # Install distribute
