@@ -23,6 +23,7 @@ import os
 import os.path
 import re
 import shutil
+import sys
 import tempfile
 import urllib.request, urllib.parse, urllib.error
 import urllib.parse
@@ -183,7 +184,7 @@ class Download(object):
             e = sys.exc_info()[1]
             os.remove(tmp_path)
             raise zc.buildout.UserError("Error downloading extends for URL "
-                              "%s: %r" % (url, e[1:3]))
+                              "%s: %s" % (url, e))
         except Exception:
             os.remove(tmp_path)
             raise
@@ -201,7 +202,7 @@ class Download(object):
 
         """
         if self.hash_name:
-            return md5(url).hexdigest()
+            return md5(url.encode()).hexdigest()
         else:
             if re.match(r"^[A-Za-z]:\\", url):
                 url = 'file:' + url

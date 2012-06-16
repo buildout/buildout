@@ -22,7 +22,7 @@ To see how this works, we'll create two versions of a recipe egg:
     >>> write('recipe', 'recipe.py',
     ... '''
     ... import sys
-    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\n')
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\\n')
     ... class Recipe:
     ...     def __init__(*a): pass
     ...     def install(self):
@@ -50,7 +50,7 @@ To see how this works, we'll create two versions of a recipe egg:
     >>> write('recipe', 'recipe.py',
     ... '''
     ... import sys
-    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\n')
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\\n')
     ... class Recipe:
     ...     def __init__(*a): pass
     ...     def install(self):

@@ -55,19 +55,15 @@ local files::
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print_(system(buildout))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
-    Installing eggs.
-    <BLANKLINE>
+    Installing eggs...
     Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
-    <BLANKLINE>
-    Couldn't find index page for 'kss.core' (maybe misspelled?)
-    Getting distribution for 'kss.core'.
+    ...
     While:
       Installing eggs.
       Getting distribution for 'kss.core'.
     Error: Couldn't find a distribution for 'kss.core'.
-    <BLANKLINE>
 
 That's what we wanted : this will prevent any attempt to access
 unwanted domains. For instance, some packages are listing in their
@@ -91,19 +87,15 @@ XXX (showcase with a svn:// file)
 
 Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 
-    >>> print_(system(buildout))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
-    Installing eggs.
-    <BLANKLINE>
+    Installing eggs...
     Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
-    <BLANKLINE>
-    Couldn't find index page for 'kss.core' (maybe misspelled?)
-    Getting distribution for 'kss.core'.
+    ...
     While:
       Installing eggs.
       Getting distribution for 'kss.core'.
     Error: Couldn't find a distribution for 'kss.core'.
-    <BLANKLINE>
 
 Test for issues
 ---------------
@@ -121,15 +113,14 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     ... eggs=zc.buildout
     ... interpreter=python
     ... ''')
-    >>> print_('XX'; print system(buildout)) # doctest: +ELLIPSIS
+    >>> print_('XX'); print_(system(buildout), end='') # doctest: +ELLIPSIS
     X...
     Unused options for buildout: 'foo'.
     Installing python.
     Generated script '/sample-buildout/bin/buildout'.
     Generated interpreter '/sample-buildout/bin/python'.
-    <BLANKLINE>
 
-The bug 239212 above would have got us an *AttributeError* on *buildout._allow_hosts*.
-This was fixed in this changeset:
+The bug 239212 above would have got us an *AttributeError* on
+*buildout._allow_hosts*.  This was fixed in this changeset:
 http://svn.zope.org/zc.buildout/trunk/src/zc/buildout/buildout.py?rev=87309&r1=87277&r2=87309
 

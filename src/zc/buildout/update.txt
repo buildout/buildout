@@ -35,7 +35,7 @@ zc.buildout used:
     ... """
     ... import pkg_resources
     ... import sys
-    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\n')
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\\n')
     ...
     ... class Recipe:
     ...
@@ -66,15 +66,18 @@ Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
     >>> print_(system(buildout), end='')
+    Getting distribution for 'zc.buildout'.
+    Got zc.buildout 99.99.
     Getting distribution for 'distribute'.
     Got distribute 99.99.
     Upgraded:
+      zc.buildout version 99.99,
       distribute version 99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
-    zc.buildout 1.4.4
+    zc.buildout 99.99
     distribute 99.99
 
 Our buildout script has been updated to use the new eggs:
@@ -84,7 +87,7 @@ Our buildout script has been updated to use the new eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-1.4.4-py2.4.egg',
+      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
       '/sample-buildout/eggs/distribute-99.99-py2.4.egg',
       ]
     <BLANKLINE>
@@ -115,6 +118,7 @@ Now we can see that we actually "upgrade" to an earlier version.
 
     >>> print_(system(buildout), end='')
     Upgraded:
+      zc.buildout version 1.4.4;
       distribute version 0.6;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
@@ -140,7 +144,7 @@ We won't upgrade in offline mode:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print_(system(buildout+' -o'), ed='')
+    >>> print_(system(buildout+' -o'), end='')
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
@@ -173,6 +177,8 @@ directory:
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/develop-eggs'.
+    Getting distribution for 'zc.buildout'.
+    Got zc.buildout 99.99.
     Getting distribution for 'distribute'.
     Got distribute 99.99.
     Not upgrading because not running a local buildout command.

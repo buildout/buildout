@@ -25,7 +25,7 @@ index
 
 We have a link server that has a number of distributions:
 
-    >>> print get(link_server),
+    >>> print_(get(link_server), end='')
     <html><body>
     <a href="bigdemo-0.1-py2.3.egg">bigdemo-0.1-py2.3.egg</a><br>
     <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
@@ -62,7 +62,7 @@ specified where to find distributions using the find-links option.
 Let's run the buildout:
 
     >>> import os
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Installing demo.
     Getting distribution for 'demo<0.3'.
     Got demo 0.2.
@@ -106,7 +106,7 @@ scripts recipe:
     ... index = %(server)s/index
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/demo'.
@@ -186,7 +186,7 @@ Note that we ommitted the entry point name from the recipe
 specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
-   >>> print system(buildout),
+   >>> print_(system(buildout), end='')
    Uninstalling demo.
    Installing demo.
    Generated script '/sample-buildout/bin/demo'.
@@ -203,20 +203,20 @@ This is useful for debugging and testing.
 
 If we run the demo script, it prints out some minimal data:
 
-    >>> print system(join(sample_buildout, 'bin', 'demo')),
+    >>> print_(system(join(sample_buildout, 'bin', 'demo')), end='')
     2 2
 
 The value it prints out happens to be some values defined in the
 modules installed.
 
-We can also run the py-demo script.  Here we'll just print out
+We can also run the py-demo script.  Here we'll just print_(out)
 the bits if the path added to reflect the eggs:
 
-    >>> print system(join(sample_buildout, 'bin', 'py-demo'),
+    >>> print_(system(join(sample_buildout, 'bin', 'py-demo'), end='')
     ... """import os, sys
     ... for p in sys.path:
     ...     if 'demo' in p:
-    ...         print os.path.basename(p)
+    ...         print_(os.path.basename(p))
     ...
     ... """).replace('>>> ', '').replace('... ', ''),
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
@@ -244,7 +244,7 @@ remove the restriction on demo:
 
 and run the buildout in non-newest mode:
 
-    >>> print system(buildout+' -N'),
+    >>> print_(system(buildout+' -N'), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/demo'.
@@ -255,7 +255,7 @@ reinstalled.
 
 We'll also run the buildout in off-line mode:
 
-    >>> print system(buildout+' -o'),
+    >>> print_(system(buildout+' -o'), end='')
     Updating demo.
 
 We didn't get an update for demo:
@@ -269,7 +269,7 @@ We didn't get an update for demo:
 If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Updating demo.
     Getting distribution for 'demo'.
     Got demo 0.4c1.
@@ -286,7 +286,7 @@ Then we'll get a new demo egg:
 
 The script is updated too:
 
-    >>> print system(join(sample_buildout, 'bin', 'demo')),
+    >>> print_(system(join(sample_buildout, 'bin', 'demo')), end='')
     4 2
 
 Controlling script generation
@@ -309,7 +309,7 @@ arguments:
     ... """ % dict(server=link_server))
 
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
 
@@ -330,7 +330,7 @@ You can also control the name used for scripts:
     ... scripts = demo=foo
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
@@ -360,7 +360,7 @@ extra-paths option:
     ...    ${buildout:directory}/spam
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
@@ -407,7 +407,7 @@ breaking scripts.
     ...    ${buildout:directory}/spam
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
@@ -456,7 +456,7 @@ each individual script section:
     ...    ${buildout:directory}/spam
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
@@ -509,7 +509,7 @@ to be included in generated scripts:
     ... arguments = a, 2
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
@@ -559,7 +559,7 @@ declare entry points using the entry-points option:
     ... entry-points = alt=eggrecipedemo:alt other=foo.bar:a.b.c
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/demo'.
@@ -606,7 +606,7 @@ generate all scripts in required packages:
     ... index = %(server)s/index
     ... dependent-scripts = true
     ... """ % dict(server=link_server))
-    >>> print system(buildout+' -N'),
+    >>> print_(system(buildout+' -N'), end='')
     Uninstalling demo.
     Installing bigdemo.
     Getting distribution for 'bigdemo'.
@@ -631,7 +631,7 @@ be made to contact an index server:
     ... scripts = demo=foo
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling bigdemo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.

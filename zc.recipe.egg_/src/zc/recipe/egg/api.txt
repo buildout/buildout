@@ -17,8 +17,11 @@ around the egg recipe:
     >>> mkdir(sample_buildout, 'sample')
     >>> write(sample_buildout, 'sample', 'sample.py', 
     ... """
-    ... import logging, os
+    ... import logging, os, sys
     ... import zc.recipe.egg
+    ...
+    ... def print_(*args):
+    ...     sys.stdout.write(' '.join(map(str, args)))
     ...
     ... class Sample:
     ...
@@ -30,14 +33,14 @@ around the egg recipe:
     ...     def install(self):
     ...         extras = self.options['extras'].split()
     ...         requirements, ws = self.egg.working_set(extras)
-    ...         print 'Part:', self.name
-    ...         print 'Egg requirements:'
+    ...         print_('Part:', self.name)
+    ...         print_('Egg requirements:')
     ...         for r in requirements:
-    ...             print r
-    ...         print 'Working set:'
+    ...             print_(r)
+    ...         print_('Working set:')
     ...         for d in ws:
-    ...             print d
-    ...         print 'extra paths:', self.egg.extra_paths
+    ...             print_(d)
+    ...         print_('extra paths:', self.egg.extra_paths)
     ...         return ()
     ...
     ...     update = install
@@ -81,7 +84,7 @@ of extra requirements to be included in the working set.
     >>> import os
     >>> os.chdir(sample_buildout)
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> print system(buildout + ' -q'),
+    >>> print_(system(buildout + ' -q'), end='')
     Part: sample-part
     Egg requirements:
     demo<0.3
@@ -139,7 +142,7 @@ If we use the extra-paths option:
 Then we'll see that reflected in the extra_paths attribute in the egg
 recipe instance:
 
-    >>> print system(buildout + ' -q'),
+    >>> print_(system(buildout + ' -q'), end='')
     Part: sample-part
     Egg requirements:
     demo<0.3
