@@ -461,6 +461,13 @@ normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')
 
+if sys.version_info > (2, ):
+    normalize___pycache__ = (
+        re.compile('(\n?)d  __pycache__\n'), '\\1')
+else:
+    normalize___pycache__ = (
+        re.compile('(\n?)-  \S+\.pyc\n'), '\\1')
+
 normalize_egg_py = (
     re.compile('-py\d[.]\d(-\S+)?.egg'),
     '-pyN.N.egg',
@@ -469,3 +476,4 @@ normalize_egg_py = (
 normalize_exception_type_for_python_2_and_3 = (
     re.compile(r'^(\w+\.)*([A-Z][A-Za-z0-9]+Error: )'),
     '\2')
+

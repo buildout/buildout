@@ -943,7 +943,10 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     >>> mkdir('demo')
 
     >>> write('demo', 'demo.py',
-    ... """
+    ... r"""
+    ... import sys
+    ... def print_(*args):
+    ...     sys.stdout.write(' '.join(map(str, args)) + '\\n')
     ... def ext(buildout):
     ...     print_('ext', list(buildout))
     ... """)
@@ -1070,7 +1073,6 @@ because of the missing target file.
     >>> ls('recipe')
     l  another-file
     -  foo.py
-    -  foo.pyc
     d  recipe.egg-info
     -  setup.py
     -  some-file
@@ -1815,7 +1817,7 @@ def bug_59270_recipes_always_start_in_buildout_dir():
     ... r'''
     ... import os, sys
     ... def print_(*args):
-    ...     sys.stdout.write(' '.join(map(str, args)))
+    ...     sys.stdout.write(' '.join(map(str, args)) + '\n')
     ... class Bad:
     ...     def __init__(self, *_):
     ...         print_(os.getcwd())
@@ -1856,7 +1858,6 @@ def bug_59270_recipes_always_start_in_buildout_dir():
     Installing b2.
     /sample-buildout
     /sample-buildout/bad_start
-
     """
 
 def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
@@ -1929,15 +1930,14 @@ def dealing_with_extremely_insane_dependencies():
     ... eggs = pack0
     ... ''')
 
-    >>> print_(system(buildout), end='')
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
     Develop: '/sample-buildout/pack2'
     Develop: '/sample-buildout/pack3'
     Develop: '/sample-buildout/pack4'
     Installing pack1.
-    Couldn't find index page for 'pack5' (maybe misspelled?)
-    Getting distribution for 'pack5'.
+    ...
     While:
       Installing pack1.
       Getting distribution for 'pack5'.
@@ -1979,8 +1979,7 @@ def dealing_with_extremely_insane_dependencies():
     Getting required 'pack5'
       required by pack4 0.0.0.
     We have no distributions for pack5 that satisfies 'pack5'.
-    Couldn't find index page for 'pack5' (maybe misspelled?)
-    Getting distribution for 'pack5'.
+    ...
     While:
       Installing pack1.
       Getting distribution for 'pack5'.
@@ -2499,7 +2498,7 @@ def make_sure_versions_dont_cancel_extras():
     """
     There was a bug that caused extras in requirements to be lost.
 
-    >>> open('setup.py', 'w').write('''
+    >>> _ = open('setup.py', 'w').write('''
     ... from setuptools import setup
     ... setup(name='extraversiondemo', version='1.0',
     ...       url='x', author='x', author_email='x',
@@ -3060,33 +3059,36 @@ def test_suite():
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.normalize_egg_py,
-               (re.compile("buildout: Running \S*setup.py"),
-                'buildout: Running setup.py'),
-               (re.compile('distribute-\S+-'),
-                'distribute.egg'),
-               (re.compile('zc.buildout-\S+-'),
-                'zc.buildout.egg'),
-               (re.compile('File "\S+one.py"'),
-                'File "one.py"'),
-               (re.compile(r'We have a develop egg: (\S+) (\S+)'),
-                r'We have a develop egg: \1 V'),
-               (re.compile('Picked: distribute = \S+'),
-                'Picked: distribute = V'),
-               (re.compile(r'\\[\\]?'), '/'),
-               (re.compile(
-                   '-q develop -mxN -d "/sample-buildout/develop-eggs'),
-                   '-q develop -mxN -d /sample-buildout/develop-eggs'
-                ),
-               (re.compile(r'^[*]...'), '...'),
-               # for
-               # bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
-               (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
-                "Unused options for buildout: 'scripts' 'eggs'."),
-               ]),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.testing.normalize___pycache__,
+                (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
+                (re.compile("buildout: Running \S*setup.py"),
+                 'buildout: Running setup.py'),
+                (re.compile('distribute-\S+-'),
+                 'distribute.egg'),
+                (re.compile('zc.buildout-\S+-'),
+                 'zc.buildout.egg'),
+                (re.compile('File "\S+one.py"'),
+                 'File "one.py"'),
+                (re.compile(r'We have a develop egg: (\S+) (\S+)'),
+                 r'We have a develop egg: \1 V'),
+                (re.compile('Picked: distribute = \S+'),
+                 'Picked: distribute = V'),
+                (re.compile(r'\\[\\]?'), '/'),
+                (re.compile(
+                    '-q develop -mxN -d "/sample-buildout/develop-eggs'),
+                 '-q develop -mxN -d /sample-buildout/develop-eggs'
+                 ),
+                (re.compile(r'^[*]...'), '...'),
+                # for
+                # bug_92891
+                # bootstrap_crashes_with_egg_recipe_in_buildout_section
+                (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
+                 "Unused options for buildout: 'scripts' 'eggs'."),
+                ]),
             ),
         zc.buildout.rmtree.test_suite(),
         doctest.DocFileSuite(

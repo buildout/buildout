@@ -158,7 +158,7 @@ Let's define a script that uses out ext demo:
     ... """
     ... import extdemo, sys
     ... def print_(*args):
-    ...     sys.stdout.write(' '.join(map(str, args)))
+    ...     sys.stdout.write(' '.join(map(str, args)) + '\n')
     ... def main():
     ...     print_(extdemo.val)
     ... """)

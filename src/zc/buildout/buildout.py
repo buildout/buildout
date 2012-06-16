@@ -67,7 +67,7 @@ class MissingSection(zc.buildout.UserError, KeyError):
     """
 
     def __str__(self):
-        return "The referenced section, %r, was not defined." % self[0]
+        return "The referenced section, %r, was not defined." % self.args[0]
 
 
 def _annotate_section(section, note):
