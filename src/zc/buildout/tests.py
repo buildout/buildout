@@ -361,9 +361,10 @@ If we use the verbose switch, we can see where requirements are coming from:
 def show_who_requires_missing_distributions():
     """
 
-When working with a lot of eggs, which require eggs recursively, it can
-be hard to tell why we're requiring things we can't find. Fortunately,
-buildout will tell us who's asking for something that we can't find.
+When working with a lot of eggs, which require eggs recursively, it
+can be hard to tell why we're requiring things we can't
+find. Fortunately, buildout will tell us who's asking for something
+that we can't find. when run in verbose mode
 
     >>> make_dist_that_requires(sample_buildout, 'sampley', ['demoneeded'])
     >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb'])
@@ -380,19 +381,25 @@ buildout will tell us who's asking for something that we can't find.
     ... eggs = samplea
     ... ''')
 
-    >>> print_(system(buildout), end='')
-    Develop: '/sample-buildout/sampley'
-    Develop: '/sample-buildout/samplea'
-    Develop: '/sample-buildout/sampleb'
-    Installing eggs.
-    Couldn't find index page for 'demoneeded' (maybe misspelled?)
-    Getting distribution for 'demoneeded'.
+    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
+    Installing ...
+    Installing 'samplea'.
+    We have a develop egg: samplea 1
+    Getting required 'sampleb'
+      required by samplea 1.
+    We have a develop egg: sampleb 1
+    Getting required 'sampley'
+      required by sampleb 1.
+    We have a develop egg: sampley 1
+    Getting required 'demoneeded'
+      required by sampley 1.
+    We have no distributions for demoneeded that satisfies 'demoneeded'.
+    ...
     While:
       Installing eggs.
       Getting distribution for 'demoneeded'.
     Error: Couldn't find a distribution for 'demoneeded'.
     """
-
 
 def test_comparing_saved_options_with_funny_characters():
     """
