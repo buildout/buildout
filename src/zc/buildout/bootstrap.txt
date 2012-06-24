@@ -47,8 +47,20 @@ Make sure the bootstrap script actually works::
     X...
     d  zc.buildout-...egg
 
+By default it gets the latest version:
+
+    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
+    >>> if sys.platform.startswith('win'):
+    ...     buildout_script += '-script.py'
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    #...
+    sys.path[0:0] = [
+      '/sample/eggs/distribute-...egg',
+      '/sample/eggs/zc.buildout-22.0.0...egg',
+      ]...
+
 Now trying the `--version` option, that let you define a version for
-`zc.buildout`. If not provided, bootstrap will look for the latest one.
+`zc.buildout`.
 
 Let's try with an unknown version::
 
@@ -61,65 +73,23 @@ Let's try with an unknown version::
     No local packages or download links found for zc.buildout==UNKNOWN
     ...
 
-Now let's try with `1.1.2`, which happens to exist::
+Now let's try with `2.0.0`, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.1.2')); print_('X')
+    ...     'bootstrap.py --version 2.0.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X
     ...
     Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
-    X
-
-Let's make sure the generated `buildout` script uses it::
-
-    >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
-    >>> if sys.platform.startswith('win'):
-    ...     buildout_script += '-script.py'
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
-    #...
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/sample/eggs/distribute-...egg',
-      '/sample/eggs/zc.buildout-1.1.2...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
-
-Let's try with `1.2.1`::
-
-    >>> print_('X'); print_(system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --version 1.2.1')); print_('X') # doctest: +ELLIPSIS
     ...
-    X
-    ...
-    Generated script '/sample/bin/buildout'.
-    <BLANKLINE>
     X
 
 Let's make sure the generated `buildout` script uses it::
 
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
-    <BLANKLINE>
-    import sys
     sys.path[0:0] = [
       '/sample/eggs/distribute-...egg',
-      '/sample/eggs/zc.buildout-1.2.1...egg',
-      ]
-    <BLANKLINE>
-    import zc.buildout.buildout
-    <BLANKLINE>
-    if __name__ == '__main__':
-        zc.buildout.buildout.main()
-    <BLANKLINE>
-
-
+      '/sample/eggs/zc.buildout-2.0.0...egg',
+      ]...

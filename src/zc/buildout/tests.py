@@ -2893,6 +2893,7 @@ def bootstrapSetup(test):
     sample_eggs = test.globs['sample_eggs']
     ws = getWorkingSetWithBuildoutEgg(test)
     makeNewRelease('zc.buildout', ws, sample_eggs, '2.0.0')
+    makeNewRelease('zc.buildout', ws, sample_eggs, '22.0.0')
     os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
     test.globs['bootstrap_py'] = bootstrap_py
 
