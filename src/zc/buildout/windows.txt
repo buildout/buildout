@@ -15,7 +15,7 @@ can't delete.
     ... '''
     ... import os
     ... import sys
-    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\n')
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\\n')
     ... class Recipe:
     ...     def __init__(self, buildout, name, options):
     ...         self.location = os.path.join(
@@ -29,7 +29,7 @@ can't delete.
     ...
     ...         name = os.path.join (self.location, 'readonly.txt')
     ...         open (name, 'w').write ('this is a read only file')
-    ...         os.chmod (name, 0400)
+    ...         os.chmod(name, 256)
     ...         return ()
     ...
     ...     update = install
