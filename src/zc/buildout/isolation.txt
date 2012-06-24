@@ -38,10 +38,11 @@ This document tests the 3rd option.
     >>> sample_buildout = tmpdir('sample')
     >>> cd(sample_buildout)
     >>> import sys
-    >>> print_(system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
-    ...        end='')
+    >>> print_('X' +
+    ...        system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
+    ...        end='\n===')
     ... # doctest: +ELLIPSIS
-    Downloading http://pypi.python.org/packages/source/d/distribute/...
+    X...
     Creating '/sample/buildout.cfg'.
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
@@ -57,6 +58,8 @@ This document tests the 3rd option.
     Got demoneeded 1.2c1.
     Generated script '/sample/bin/demo'.
     Generated interpreter '/sample/bin/py'.
+    ...
+    ===
 
 If we look at the scripts generated, se see that the -S option is
 provided to the Python executable:
@@ -79,7 +82,7 @@ The -S option is also used when invoking setup scripts.
     >>> write('proj', 'setup.py', """
     ... from distutils.core import setup
     ... import sys
-    ... print_('site:', 'site' in sys.modules)
+    ... sys.stdout.write('site: %s\\n' % ('site' in sys.modules))
     ... setup(name='hassite')
     ... """)
     >>> print_(system(join('bin', 'buildout')+' setup proj sdist'))
