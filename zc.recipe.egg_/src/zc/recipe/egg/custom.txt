@@ -131,9 +131,8 @@ the egg:
     ...
     ... """ % dict(server=link_server))
 
-    >>> print_(system(buildout), end='')
-    Installing extdemo.
-    zip_safe flag not set; analyzing archive contents...
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Installing extdemo...
 
 We got the zip_safe warning because the source distribution we used
 wasn't setuptools based and thus didn't set the option.
@@ -158,7 +157,7 @@ Let's define a script that uses out ext demo:
     ... """
     ... import extdemo, sys
     ... def print_(*args):
-    ...     sys.stdout.write(' '.join(map(str, args)) + '\n')
+    ...     sys.stdout.write(' '.join(map(str, args)) + '\\n')
     ... def main():
     ...     print_(extdemo.val)
     ... """)

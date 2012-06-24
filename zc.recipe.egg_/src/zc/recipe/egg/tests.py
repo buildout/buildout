@@ -78,24 +78,31 @@ def test_suite():
             'custom.txt',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               (re.compile("(d  ((ext)?demo(needed)?|other)"
-                           "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
-                '\\1V.V.egg'),
-               (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
-               (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-               (re.compile(
-                   "extdemo[.]c\n"
-                   "extdemo[.]obj : warning LNK4197: "
-                   "export 'initextdemo' specified multiple times; "
-                   "using first specification\n"
-                   "   Creating library build\\\\temp[.]win-amd64-2[.]"
-                   "[4567]\\\\Release\\\\extdemo[.]lib and object "
-                   "build\\\\temp[.]win-amd64-2[.][4567]\\\\Re"
-                   "lease\\\\extdemo[.]exp\n"),
-                ''),
-               ]),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                (re.compile("(d  ((ext)?demo(needed)?|other)"
+                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                 '\\1V.V.egg'),
+                (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
+                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
+                (re.compile(
+                    r'zip_safe flag not set; analyzing archive contents.*\n'),
+                 ''),
+                (re.compile(
+                    r'\n.*module references __file__'),
+                 ''),
+                (re.compile(''), ''),
+                (re.compile(
+                    "extdemo[.]c\n"
+                    "extdemo[.]obj : warning LNK4197: "
+                    "export 'initextdemo' specified multiple times; "
+                    "using first specification\n"
+                    "   Creating library build\\\\temp[.]win-amd64-2[.]"
+                    "[4567]\\\\Release\\\\extdemo[.]lib and object "
+                    "build\\\\temp[.]win-amd64-2[.][4567]\\\\Re"
+                    "lease\\\\extdemo[.]exp\n"),
+                 ''),
+                ]),
             ),
         ))
     return suite
