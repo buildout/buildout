@@ -1987,17 +1987,15 @@ def dealing_with_extremely_insane_dependencies():
     """
 
 def read_find_links_to_load_extensions():
-    """
-We'll create a wacky buildout extension that is just another name for http:
+    r"""
+We'll create a wacky buildout extension that just announces itself when used:
 
     >>> src = tmpdir('src')
     >>> write(src, 'wacky_handler.py',
     ... '''
-    ... import urllib2
-    ... class Wacky(urllib2.HTTPHandler):
-    ...     wacky_open = urllib2.HTTPHandler.http_open
+    ... import sys
     ... def install(buildout=None):
-    ...     urllib2.install_opener(urllib2.build_opener(Wacky))
+    ...     sys.stdout.write("I am a wacky extension\\n")
     ... ''')
     >>> write(src, 'setup.py',
     ... '''
@@ -2021,13 +2019,9 @@ Now we'll create a buildout that uses this extension to load other packages:
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
-    ... parts = demo
+    ... parts =
     ... extensions = wackyextension
-    ... find-links = %(wacky_server)s/demoneeded-1.0.zip
-    ...              %(dist)s
-    ... [demo]
-    ... recipe = zc.recipe.egg
-    ... eggs = demoneeded
+    ... find-links = %(dist)s
     ... ''' % globals())
 
 When we run the buildout. it will load the extension from the dist
@@ -2036,9 +2030,7 @@ directory and then use the wacky extension to load the demo package
     >>> print_(system(buildout), end='')
     Getting distribution for 'wackyextension'.
     Got wackyextension 1.
-    Installing demo.
-    Getting distribution for 'demoneeded'.
-    Got demoneeded 1.0.
+    I am a wacky extension
 
     """
 
