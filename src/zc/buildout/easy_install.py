@@ -1211,7 +1211,7 @@ class VersionConflict(zc.buildout.UserError):
         self.err, self.ws = err, ws
 
     def __str__(self):
-        existing_dist, req = self.err
+        existing_dist, req = self.err.args
         result = ["There is a version conflict.",
                   "We already have: %s" % existing_dist,
                   ]
