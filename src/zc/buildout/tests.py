@@ -2389,23 +2389,17 @@ def pyc_and_pyo_files_have_correct_paths():
     >>> write('t.py',
     ... r'''
     ... import eggrecipedemo, eggrecipedemoneeded, sys
-    ... sys.stdout.write(eggrecipedemo.main.func_code.co_filename+'\n')
-    ... sys.stdout.write(eggrecipedemoneeded.f.func_code.co_filename+'\n')
+    ... if sys.version_info > (3,):
+    ...     code = lambda f: f.__code__
+    ... else:
+    ...     code = lambda f: f.func_code
+    ... sys.stdout.write(code(eggrecipedemo.main).co_filename+'\n')
+    ... sys.stdout.write(code(eggrecipedemoneeded.f).co_filename+'\n')
     ... ''')
 
     >>> print_(system(join('bin', 'py')+ ' t.py'), end='')
     /sample-buildout/eggs/demo-0.4c1-py2.4.egg/eggrecipedemo.py
     /sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg/eggrecipedemoneeded.py
-
-    >>> import os
-    >>> for name in os.listdir('eggs'):
-    ...     if name.startswith('demoneeded'):
-    ...         ls('eggs', name)
-    d  EGG-INFO
-    -  eggrecipedemoneeded.py
-    -  eggrecipedemoneeded.pyc
-    -  eggrecipedemoneeded.pyo
-
     """
 
 def dont_mess_with_standard_dirs_with_variable_refs():
