@@ -1085,7 +1085,10 @@ This is illustrated below; first we define a base configuration.
     ...
     ... [part2]
     ... recipe =
-    ... option = b1 b2 b3 b4
+    ... option = b1 
+    ...     b2
+    ...     b3
+    ...     b4
     ...
     ... [part3]
     ... recipe =
@@ -1113,7 +1116,8 @@ base configuration file.
     ...
     ... # removing values
     ... [part2]
-    ... option -= b1 b2
+    ... option -= b1
+    ...      b2
     ...
     ... # alt. spelling
     ... [part3]
@@ -1143,7 +1147,9 @@ An additional extension.
     ...
     ... # removing values
     ... [part2]
-    ... option -= b1 b2 b3
+    ... option -= b1
+    ...     b2
+    ...     b3
     ...
     ... """)
 
@@ -1197,7 +1203,7 @@ Verify option values.
     ... """)
 
     >>> print system(os.path.join('bin', 'buildout')),
-    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
+    ['a1 a2/na3 a4/na5', 'b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
@@ -1221,7 +1227,7 @@ operations.
         /sample-buildout/base.cfg
     <BLANKLINE>
     [part2]
-    option= b1 b2 b3 b4
+    option= b4
         /sample-buildout/base.cfg
     -=  /sample-buildout/extension1.cfg
     -=  /sample-buildout/extension2.cfg
