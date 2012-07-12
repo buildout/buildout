@@ -1091,6 +1091,12 @@ This is illustrated below; first we define a base configuration.
     ... recipe =
     ... option = c1 c2
     ...
+    ... [part4]
+    ... recipe =
+    ... option = d2
+    ...     d3
+    ...     d5
+    ...
     ... """)
 
 Extending this configuration, we can "adjust" the values set in the
@@ -1113,10 +1119,15 @@ base configuration file.
     ... [part3]
     ... option+=c3 c4 c5
     ...
-    ... # normal assignment
+    ... # combining both adding and removing
     ... [part4]
-    ... option = h1 h2
+    ... option += d1 
+    ...      d4
+    ... option -= d5
     ...
+    ... # normal assignment
+    ... [part5]
+    ... option = h1 h2
     ... """)
 
 An additional extension.
@@ -1186,7 +1197,7 @@ Verify option values.
     ... """)
 
     >>> print system(os.path.join('bin', 'buildout')),
-    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'h1 h2']
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
@@ -1226,6 +1237,17 @@ operations.
         /sample-buildout/base.cfg
     <BLANKLINE>
     [part4]
+    option= d2
+    d3
+    d1
+    d4
+        /sample-buildout/base.cfg
+    +=  /sample-buildout/extension1.cfg
+    -=  /sample-buildout/extension1.cfg
+    recipe= 
+        /sample-buildout/base.cfg
+    <BLANKLINE>
+    [part5]
     option= h1 h2
         /sample-buildout/extension1.cfg
 

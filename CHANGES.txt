@@ -36,6 +36,9 @@ Bugs fixed:
 - https://bugs.launchpad.net/bugs/697913 : Buildout doesn't honor exit code
   from scripts. Fixed.
 
+- Handle both addition and subtraction of elements (+= and -=) on the same key
+  in the same section.
+
 1.5.2 (2010-10-11)
 ==================
 

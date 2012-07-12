@@ -1527,19 +1527,26 @@ def _dists_sig(dists):
     return result
 
 def _update_section(s1, s2):
+    # Base section 2 on section 1; section 1 is copied, with key-value pairs
+    # in section 2 overriding those in section 1. If there are += or -=
+    # operators in section 2, process these to add or substract items (delimited
+    # by newlines) from the preexisting values.
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
-    for k, v in s2.items():
+    # Sort on key, then on the addition or substraction operator (+ comes first)
+    for k, v in sorted(s2.items(), key=lambda x: (x[0].rstrip(' +'), x[0][-1])):
         v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
-            v1, note1 = s1.get(key, ("", ""))
+            # Find v1 in s2 first; it may have been defined locally too.
+            v1, note1 = s2.get(key, s1.get(key, ("", "")))
             newnote = ' [+] '.join((note1, note2)).strip()
             s2[key] = "\n".join((v1).split('\n') +
                 v2.split('\n')), newnote
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
-            v1, note1 = s1.get(key, ("", ""))
+            # Find v1 in s2 first; it may have been set by a += operation first
+            v1, note1 = s2.get(key, s1.get(key, ("", "")))
             newnote = ' [-] '.join((note1, note2)).strip()
             s2[key] = ("\n".join(
                 [v for v in v1.split('\n')
