@@ -35,47 +35,33 @@ standard libraries or non-standard Python build options.
 
 This document tests the 3rd option.
 
+First, the non-isolated case:
+
     >>> sample_buildout = tmpdir('sample')
     >>> cd(sample_buildout)
     >>> import sys
     >>> print_('X' +
-    ...        system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
+    ...        system("%s %s init demo" % (sys.executable, bootstrap_py)),
     ...        end='\n===')
     ... # doctest: +ELLIPSIS
-    X...Creating '/sample/buildout.cfg'.
-    Creating directory '/sample/bin'.
-    Creating directory '/sample/parts'.
-    Creating directory '/sample/eggs'.
-    Creating directory '/sample/develop-eggs'.
-    Generated script '/sample/bin/buildout'...
-    Getting distribution for 'zc.recipe.egg'.
-    Got zc.recipe.egg 1.3.3dev.
-    Installing py.
-    Getting distribution for 'demo'.
-    Got demo 0.4c1.
-    Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
-    Generated script '/sample/bin/demo'.
-    Generated interpreter '/sample/bin/py'.
-    ...
-    ===
+    X...
 
-If we look at the scripts generated, se see that the -S option is
+If we look at the scripts generated, we see that the -S option is **not**
 provided to the Python executable:
 
     >>> cat('bin', 'buildout') # doctest: +ELLIPSIS
-    #!/usr/local/bin/python2.7 -S
+    #!/usr/local/bin/python2.7
     ...
 
     >>> cat('bin', 'demo') # doctest: +ELLIPSIS
-    #!/usr/local/bin/python2.7 -S
+    #!/usr/local/bin/python2.7
     ...
 
     >>> cat('bin', 'py') # doctest: +ELLIPSIS
-    #!/usr/local/bin/python2.7 -S
+    #!/usr/local/bin/python2.7
     ...
 
-The -S option is also used when invoking setup scripts.
+The -S option is also not used when invoking setup scripts.
 
     >>> mkdir('proj')
     >>> write('proj', 'setup.py', """
@@ -106,17 +92,75 @@ The -S option is also used when invoking setup scripts.
     site: True
     ...
 
-
-
     >>> write('buildout.cfg', """
     ... [buildout]
     ... parts =
-    ... develop = %s
-    ... """ % join('proj'))
+    ... develop = proj
+    ... """)
     >>> print_(system(join('bin', 'buildout')))
     ... # doctest: +ELLIPSIS
     Develop: '/sample/proj'
     site: True
+    ...
+
+Now, we'll re-bootstrap with -S, to get isolation:
+
+    >>> remove('buildout.cfg')
+    >>> remove('eggs')
+    >>> print_('X' +
+    ...        system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
+    ...        end='\n===')
+    ... # doctest: +ELLIPSIS
+    X...
+
+If we look at the scripts generated, se see that the -S option is
+provided to the Python executable:
+
+    >>> cat('bin', 'buildout') # doctest: +ELLIPSIS
+    #!/usr/local/bin/python2.7 -S
+    ...
+
+    >>> cat('bin', 'demo') # doctest: +ELLIPSIS
+    #!/usr/local/bin/python2.7 -S
+    ...
+
+    >>> cat('bin', 'py') # doctest: +ELLIPSIS
+    #!/usr/local/bin/python2.7 -S
+    ...
+
+The -S option is also used when invoking setup scripts.
+
+    >>> print_(system(join('bin', 'buildout')+' setup proj sdist'))
+    ... # doctest: +ELLIPSIS
+    Running setup script 'proj/setup.py'.
+    site: False
+    ...
+
+    >>> write('buildout.cfg', """
+    ... [buildout]
+    ... parts = egg
+    ... find-links = %s
+    ... [egg]
+    ... recipe = zc.recipe.egg
+    ... eggs = hassite
+    ... """ % join('proj', 'dist'))
+    >>> print_(system(join('bin', 'buildout')))
+    ... # doctest: +ELLIPSIS
+    Uninstalling py.
+    Installing egg.
+    Getting distribution for 'hassite'.
+    site: False
+    ...
+
+    >>> write('buildout.cfg', """
+    ... [buildout]
+    ... parts =
+    ... develop = proj
+    ... """)
+    >>> print_(system(join('bin', 'buildout')))
+    ... # doctest: +ELLIPSIS
+    Develop: '/sample/proj'
+    site: False
     ...
 
 
