@@ -404,7 +404,8 @@ def wait(port, up):
             s.close()
             if up:
                 break
-        except socket.error as e:
+        except socket.error:
+            e = sys.exc_info()[1]
             if e[0] not in (errno.ECONNREFUSED, errno.ECONNRESET):
                 raise
             s.close()

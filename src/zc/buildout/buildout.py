@@ -19,7 +19,11 @@ import zc.buildout.easy_install
 no_site = zc.buildout.easy_install.no_site
 
 from zc.buildout.rmtree import rmtree
-from hashlib import md5
+
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 
 try:
     from UserDict import DictMixin
@@ -729,8 +733,9 @@ class Buildout(DictMixin):
     def _read_installed_part_options(self):
         old = self['buildout']['installed']
         if old and os.path.isfile(old):
-            with open(old) as fp:
-                sections = zc.buildout.configparser.parse(fp, old)
+            fp = open(old)
+            sections = zc.buildout.configparser.parse(fp, old)
+            fp.close()
             result = {}
             for section, options in sections.items():
                 for option, value in options.items():

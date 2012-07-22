@@ -668,7 +668,11 @@ We have a link server that has a number of eggs:
  For Python 2.5 and higher, you can also use the -m option to run a
  module:
 
-     >>> print_(system(join(bin, 'py')+' -m pdb'), end='') # doctest: +ELLIPSIS
+     >>> if sys.version_info < (2, 5):
+     ...    print ('usage: pdb.py blah blah blah')
+     ... else:
+     ...    print_(system(join(bin, 'py')+' -m pdb'), end='')
+     ... # doctest: +ELLIPSIS
      usage: pdb.py ...
 
      >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')

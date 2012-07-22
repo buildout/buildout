@@ -1195,7 +1195,15 @@ runsetup_template = """
 import sys
 sys.path.insert(0, %(setupdir)r)
 sys.path.insert(0, %(distribute)r)
+
+nosite = 'site' not in sys.modules
+original_path = sys.path[:]
+
 import os, setuptools
+
+if nosite and ('site' in sys.modules):
+    sys.path[:] = original_path
+    del sys.modules['site']
 
 __file__ = %(__file__)r
 

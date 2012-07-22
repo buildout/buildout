@@ -42,7 +42,7 @@ def rmtree (path):
 
     and make it unwriteable
 
-    >>> os.chmod (foo, 0o400)
+    >>> os.chmod (foo, 256) # 0400
 
     rmtree should be able to remove it:
 
