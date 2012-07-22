@@ -17,6 +17,24 @@ try:
     from hashlib import md5
 except ImportError:
     from md5 import new as md5
+
+try:
+    # Python 3
+    from urllib.request import FancyURLopener, URLopener, urlretrieve
+    from urllib.parse import urlparse
+    from urllib import request as urllib # for monkey patch below :(
+except ImportError:
+    # Python 2
+    from urllib import FancyURLopener, URLopener, urlretrieve
+    from urlparse import urlparse
+    import urllib
+
+class URLOpener(FancyURLopener):
+    http_error_default = URLopener.http_error_default
+
+urllib._urlopener = URLOpener() # Ook! Monkey patch!
+
+
 from zc.buildout.easy_install import realpath
 import logging
 import os
@@ -25,21 +43,10 @@ import re
 import shutil
 import sys
 import tempfile
-import urllib.request, urllib.parse, urllib.error
-import urllib.parse
 import zc.buildout
-
-
-class URLOpener(urllib.request.FancyURLopener):
-    http_error_default = urllib.request.URLopener.http_error_default
-
 
 class ChecksumError(zc.buildout.UserError):
     pass
-
-
-url_opener = URLOpener()
-
 
 class Download(object):
     """Configurable download utility.
@@ -158,7 +165,7 @@ class Download(object):
         if re.match(r"^[A-Za-z]:\\", url):
             url = 'file:' + url
 
-        parsed_url = urllib.parse.urlparse(url, 'file')
+        parsed_url = urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
             self.logger.debug('Using local resource %s' % url)
@@ -173,10 +180,9 @@ class Download(object):
                 "Couldn't download %r in offline mode." % url)
 
         self.logger.info('Downloading %s' % url)
-        urllib.request._urlopener = url_opener
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
         try:
-            tmp_path, headers = urllib.request.urlretrieve(url, tmp_path)
+            tmp_path, headers = urlretrieve(url, tmp_path)
             if not check_md5sum(tmp_path, md5sum):
                 raise ChecksumError(
                     'MD5 checksum mismatch downloading %r' % url)
@@ -206,7 +212,7 @@ class Download(object):
         else:
             if re.match(r"^[A-Za-z]:\\", url):
                 url = 'file:' + url
-            parsed = urllib.parse.urlparse(url, 'file')
+            parsed = urlparse(url, 'file')
             url_path = parsed[2]
 
             if parsed[0] == 'file':

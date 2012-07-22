@@ -79,11 +79,7 @@ Now let's try with `2.0.0`, which happens to exist::
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py --version 2.0.0')); print_('X')
     ... # doctest: +ELLIPSIS
-    X
-    ...
-    Generated script '/sample/bin/buildout'.
-    ...
-    X
+    X...Generated script '/sample/bin/buildout'...X
 
 Let's make sure the generated `buildout` script uses it::
 

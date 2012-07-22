@@ -256,11 +256,11 @@ ChecksumError: MD5 checksum mismatch downloading 'http://localhost/foo.txt'
 
 If the file is completely missing it should notify the user of the error:
 
->>> download(server_url+'bar.txt') # doctest: +NORMALIZE_WHITESPACE
+>>> download(server_url+'bar.txt') # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
 Traceback (most recent call last):
 ...
 UserError: Error downloading extends for URL http://localhost/bar.txt:
-HTTP Error 404: Not Found
+...404...
 >>> ls(cache)
 
 Finally, let's see what happens if the download cache to be used doesn't exist

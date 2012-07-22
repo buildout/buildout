@@ -17,7 +17,7 @@ This is different from a normal boostrapping process because the
 buildout egg itself is installed as a develop egg.
 """
 
-import os, shutil, sys, subprocess, urllib.request, urllib.error, urllib.parse
+import os, shutil, sys, subprocess
 
 for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
@@ -49,16 +49,24 @@ try:
 except ImportError:
     pass
 else:
-    raise SystemError(
+    message = (
         "Buildout development with a pre-installed setuptools or "
-        "distribute is not supported.%s"
-        % ('' if nosite else ' Try running with -S option to Python.'))
+        "distribute is not supported."
+        )
+    if not nosite:
+        message += '  Try running with -S option to Python.'
+    raise SystemError(message)
 
 ######################################################################
 # Install distribute
 ez = {}
-exec(urllib.request.urlopen(
-    'http://python-distribute.org/distribute_setup.py').read(), ez)
+
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+
+exec(urlopen('http://python-distribute.org/distribute_setup.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
 import pkg_resources

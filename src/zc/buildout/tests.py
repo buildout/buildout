@@ -1077,13 +1077,6 @@ because of the missing target file.
     >>> write('recipe', 'some-file', '1')
     >>> os.symlink(join('recipe', 'some-file'),
     ...            join('recipe', 'another-file'))
-    >>> ls('recipe')
-    l  another-file
-    -  foo.py
-    d  recipe.egg-info
-    -  setup.py
-    -  some-file
-
     >>> remove('recipe', 'some-file')
 
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')

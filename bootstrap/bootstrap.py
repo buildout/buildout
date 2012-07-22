@@ -18,7 +18,7 @@ The script accepts buildout command-line options, so you can
 use the -c option to specify an alternate configuration file.
 """
 
-import os, shutil, sys, tempfile, urllib.request, urllib.error, urllib.parse
+import os, shutil, sys, tempfile
 from optparse import OptionParser
 
 tmpeggs = tempfile.mkdtemp()
@@ -80,9 +80,13 @@ try:
         raise ImportError
 except ImportError:
     ez = {}
-    exec(urllib.request.urlopen(
-        'http://python-distribute.org/distribute_setup.py'
-        ).read(), ez)
+
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
+
+    exec(urlopen('http://python-distribute.org/distribute_setup.py').read(), ez)
     setup_args = dict(to_dir=tmpeggs, download_delay=0, no_fake=True)
     ez['use_setuptools'](**setup_args)
 

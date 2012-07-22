@@ -25,7 +25,10 @@ import sys
 # handle -S
 
 def normpath(p):
-    return p[:-1] if p.endswith(os.path.sep) else p
+    if p.endswith(os.path.sep):
+        return p[:-1]
+    else:
+        return p
 
 no_site = 'site' not in sys.modules
 if no_site:
@@ -1075,7 +1078,7 @@ def _create_script(contents, dest):
         logger.info("Generated script %r.", script)
 
         try:
-            os.chmod(dest, 0o755)
+            os.chmod(dest, 493) # 0755
         except (AttributeError, os.error):
             pass
 
@@ -1143,7 +1146,7 @@ def _pyscript(path, dest, rsetup):
     if changed:
         open(dest, 'w').write(contents)
         try:
-            os.chmod(dest,0o755)
+            os.chmod(dest, 493) # 0755
         except (AttributeError, os.error):
             pass
         logger.info("Generated interpreter %r.", script)

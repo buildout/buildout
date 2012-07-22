@@ -42,8 +42,7 @@ This document tests the 3rd option.
     ...        system("%s -S %s init demo" % (sys.executable, bootstrap_py)),
     ...        end='\n===')
     ... # doctest: +ELLIPSIS
-    X...
-    Creating '/sample/buildout.cfg'.
+    X...Creating '/sample/buildout.cfg'.
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
     Creating directory '/sample/eggs'.

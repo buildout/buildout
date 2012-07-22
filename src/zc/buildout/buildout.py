@@ -18,7 +18,7 @@
 import zc.buildout.easy_install
 no_site = zc.buildout.easy_install.no_site
 
-from .rmtree import rmtree
+from zc.buildout.rmtree import rmtree
 from hashlib import md5
 
 try:
