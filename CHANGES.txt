@@ -25,6 +25,17 @@ Change History
 - Made sure to download extended configuration files only once per buildout
   run even if they are referenced multiple times (patch by Rafael Monnerat).
 
+- Ported speedup optimization patch by Ross Patterson to 1.5.x series.
+  Improved patch to calculate required_by packages in linear time
+  in verbose mode (-v). Running relatively simple Buildout envornment
+  yielded in running time improvement from 30 seconds to 10 seconds.
+  (Domen Kožar, Ross Patterson)
+
+- Removed unnecessary pyc recompilation with optimization flags. Running
+  Buildout with pre-downloaded ~300 packages that were installed in empty
+  eggs repository yielded in running time improvement from 1126 seconds
+  to 348 seconds. (Domen Kožar)
+
 Bugs fixed:
 
 - In the download module, fixed the handling of directories that are pointed

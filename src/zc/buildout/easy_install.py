@@ -1850,8 +1850,9 @@ class MissingDistribution(zc.buildout.UserError):
         return "Couldn't find a distribution for %r." % str(req)
 
 def _log_requirement(ws, req):
-    ws = list(ws)
-    ws.sort()
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+
     for dist in ws:
         if req in dist.requires():
             logger.debug("  required by %s." % dist)
@@ -1896,15 +1897,3 @@ def redo_pyc(egg):
                 py_compile.compile(filepath)
             except py_compile.PyCompileError:
                 logger.warning("Couldn't compile %s", filepath)
-            else:
-                # Recompile under other optimization. :)
-                args = [_safe_arg(sys.executable)]
-                if __debug__:
-                    args.append('-O')
-                args.extend(['-m', 'py_compile', _safe_arg(filepath)])
-
-                if is_jython:
-                    subprocess.call([sys.executable, args])
-                else:
-                    os.spawnv(os.P_WAIT, sys.executable, args)
-

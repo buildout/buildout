@@ -2822,14 +2822,14 @@ def dealing_with_extremely_insane_dependencies():
     We have a develop egg: pack3 0.0.0
     Getting required 'pack2'
       required by pack0 0.0.0.
-      required by pack3 0.0.0.
       required by pack4 0.0.0.
+      required by pack3 0.0.0.
     We have a develop egg: pack2 0.0.0
     Getting required 'pack1'
       required by pack0 0.0.0.
-      required by pack2 0.0.0.
-      required by pack3 0.0.0.
       required by pack4 0.0.0.
+      required by pack3 0.0.0.
+      required by pack2 0.0.0.
     We have a develop egg: pack1 0.0.0
     Getting required 'pack5'
       required by pack4 0.0.0.
@@ -3345,7 +3345,7 @@ honoring our version specification.
 
     """
 
-def pyc_and_pyo_files_have_correct_paths():
+def pyc_files_have_correct_paths():
     r"""
 
     >>> write('buildout.cfg',
@@ -3381,7 +3381,6 @@ def pyc_and_pyo_files_have_correct_paths():
     d  EGG-INFO
     -  eggrecipedemoneeded.py
     -  eggrecipedemoneeded.pyc
-    -  eggrecipedemoneeded.pyo
 
     """
 
