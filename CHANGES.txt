@@ -1,7 +1,7 @@
 Change History
 **************
 
-1.6.0 (unreleased)
+1.6.0 (2012-08-15)
 ==================
 
 - The buildout init command now accepts distribution requirements and
