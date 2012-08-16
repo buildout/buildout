@@ -311,11 +311,13 @@ class Buildout(UserDict.DictMixin):
         download_cache = options.get('download-cache')
         if download_cache:
             download_cache = os.path.join(options['directory'], download_cache)
+            if not os.path.exists(download_cache):
+                os.makedirs(download_cache)
             if not os.path.isdir(download_cache):
                 raise zc.buildout.UserError(
                     'The specified download cache:\n'
                     '%r\n'
-                    "Doesn't exist.\n"
+                    "is not a directory.\n"
                     % download_cache)
             download_cache = os.path.join(download_cache, 'dist')
             if not os.path.isdir(download_cache):
