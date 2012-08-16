@@ -166,6 +166,63 @@ def _get_version_info(executable):
     return eval(stdout.strip())
 
 
+_platforms = {sys.executable: pkg_resources.get_supported_platform()}
+def _get_platform(executable):
+    code = """
+import sys
+import re
+
+macosVersionString = re.compile(r'macosx-(\d+)\.(\d+)-(.*)')
+
+def _macosx_vers(_cache=[]):
+    if not _cache:
+        from platform import mac_ver
+        _cache.append(mac_ver()[0].split('.'))
+    return _cache[0]
+
+def get_build_platform():
+    from distutils.util import get_platform
+    plat = get_platform()
+    if sys.platform == 'darwin' and not plat.startswith('macosx-'):
+        try:
+            version = _macosx_vers()
+            machine = os.uname()[4].replace(' ', '_')
+            return 'macosx-%d.%d-%s' % (int(version[0]), int(version[1]),
+                _macosx_arch(machine))
+        except ValueError:
+            # if someone is running a non-Mac darwin system, this will fall
+            # through to the default implementation
+            pass
+    return plat
+
+def get_supported_platform():
+    plat = get_build_platform(); m = macosVersionString.match(plat)
+    if m is not None and sys.platform == 'darwin':
+        try:
+            plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
+        except ValueError:
+            pass    # not Mac OS X
+    return plat
+
+print get_supported_platform()
+"""
+    try:
+        return _platforms[executable]
+    except KeyError:
+        cmd = _safe_arg(executable) + ' -c "%s"' % code
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=not is_win32)
+        i, o = (p.stdin, p.stdout)
+        i.close()
+        platform = o.read().strip()
+        o.close()
+        _platforms[executable] = platform
+        return platform
+
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
     """
@@ -396,6 +453,7 @@ class Installer:
             newest = False
         self._newest = newest
         self._env = pkg_resources.Environment(path,
+                                              platform=_get_platform(executable),
                                               python=_get_version(executable))
         self._index = _get_index(executable, index, links, self._allow_hosts,
                                  self._path)
@@ -528,6 +586,7 @@ class Installer:
     def _load_dist(self, dist):
         dists = pkg_resources.Environment(
             dist.location,
+            platform=_get_platform(self._executable),
             python=_get_version(self._executable),
             )[dist.project_name]
         assert len(dists) == 1
@@ -575,6 +634,7 @@ class Installer:
             dists = []
             env = pkg_resources.Environment(
                 [tmp],
+                platform=_get_platform(self._executable),
                 python=_get_version(self._executable),
                 )
             for project in env:
@@ -622,6 +682,7 @@ class Installer:
 
                 [d] = pkg_resources.Environment(
                     [newloc],
+                    platform=_get_platform(self._executable),
                     python=_get_version(self._executable),
                     )[d.project_name]
 
@@ -782,6 +843,7 @@ class Installer:
                     # good enough.
                     dists = pkg_resources.Environment(
                         [newloc],
+                        platform=_get_platform(self._executable),
                         python=_get_version(self._executable),
                         )[dist.project_name]
                 else:
