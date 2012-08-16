@@ -211,7 +211,7 @@ print get_supported_platform()
     except KeyError:
         cmd = _safe_arg(executable) + ' -c "%s"' % code
         p = subprocess.Popen(cmd,
-                             shell=True,
+                             shell=not is_win32,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
@@ -234,7 +234,7 @@ def _get_version(executable):
     except KeyError:
         cmd = _safe_arg(executable) + ' -V'
         p = subprocess.Popen(cmd,
-                             shell=True,
+                             shell=not is_win32,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
@@ -1230,9 +1230,9 @@ def develop(setup, dest,
         undo.append(lambda : shutil.rmtree(tmp3))
 
         args = [
-            zc.buildout.easy_install._safe_arg(tsetup),
+            tsetup,
             '-q', 'develop', '-mxN',
-            '-d', _safe_arg(tmp3),
+            '-d', tmp3,
             ]
 
         log_level = logger.getEffectiveLevel()
@@ -1245,7 +1245,7 @@ def develop(setup, dest,
             logger.debug("in: %r\n%s", directory, ' '.join(args))
         
         try:
-            subprocess.check_call([_safe_arg(executable)] + args)
+            subprocess.check_call([executable] + args)
         except subprocess.CalledProcessError:
             raise zc.buildout.UserError("Installing develop egg failed")
             
