@@ -92,7 +92,7 @@ def _has_broken_dash_S(executable):
     # file does not pass the -script.py's returncode back properly, at least in
     # some circumstances. Therefore...print statements.
     stdout, stderr = subprocess.Popen(
-        [executable, '-S', '-c',
+        [executable.replace('/', os.path.sep), '-S', '-c',
          'try:\n'
          '    import ConfigParser\n'
          'except ImportError:\n'
@@ -125,7 +125,7 @@ def _get_system_paths(executable):
     # the context of code that has manipulated the sys.path--for
     # instance, to add local zc.buildout or setuptools eggs.
     def get_sys_path(*args, **kwargs):
-        cmd = [executable]
+        cmd = [executable.replace('/', os.path.sep)]
         cmd.extend(args)
         cmd.extend([
             "-c", "import sys, os;"
@@ -155,11 +155,11 @@ def _get_system_paths(executable):
     return (stdlib, site_paths)
 
 def _get_version_info(executable):
-    cmd = [executable, '-Sc',
+    cmd = [executable.replace('/', os.path.sep), '-Sc',
            'import sys; print(repr(tuple(x for x in sys.version_info)))']
     _proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = _proc.communicate();
+    stdout, stderr = _proc.communicate()
     if _proc.returncode:
         raise RuntimeError(
             'error trying to get system packages:\n%s' % (stderr,))
@@ -412,7 +412,7 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        self._executable = executable
+        self._executable = executable.replace('/', os.path.sep)
         self._has_broken_dash_S = _has_broken_dash_S(self._executable)
         if always_unzip is not None:
             self._always_unzip = always_unzip
@@ -453,8 +453,8 @@ class Installer:
             newest = False
         self._newest = newest
         self._env = pkg_resources.Environment(path,
-                                              platform=_get_platform(executable),
-                                              python=_get_version(executable))
+                                              platform=_get_platform(self._executable),
+                                              python=_get_version(self._executable))
         self._index = _get_index(executable, index, links, self._allow_hosts,
                                  self._path)
 
@@ -1636,7 +1636,7 @@ def _get_module_file(executable, name, silent=False):
     - executable is a path to the desired Python executable.
     - name is the name of the (pure, not C) Python module.
     """
-    cmd = [executable, "-Sc",
+    cmd = [executable.replace('/', os.path.sep), "-Sc",
            "import imp; "
            "fp, path, desc = imp.find_module(%r); "
            "fp.close(); "
