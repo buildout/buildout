@@ -1,6 +1,21 @@
 Change History
 **************
 
+1.6.1 (TBD)
+===========
+
+- Buildout's easy_install now uses 64bit executable wrappers on Windows x64 instead of 32bit.
+
+- Buildout now creates the download-cache directory is it does not exist.
+
+Bug fixed:
+
+- Buildout now runs when buildout.cfg contains "develop = ." on Windows.
+
+- Buildout now uses os.path.sep instead of hard-coded POSIX-style path '/'.
+
+- Buildout now detects the correct platform for the specific python executable (and not the system-wide ) Python. This fix is mostly needed for OSX machines.
+
 1.6.0 (2012-08-15)
 ==================
 

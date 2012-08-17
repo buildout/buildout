@@ -92,7 +92,7 @@ def _has_broken_dash_S(executable):
     # file does not pass the -script.py's returncode back properly, at least in
     # some circumstances. Therefore...print statements.
     stdout, stderr = subprocess.Popen(
-        [executable, '-S', '-c',
+        [executable.replace('/', os.path.sep), '-S', '-c',
          'try:\n'
          '    import ConfigParser\n'
          'except ImportError:\n'
@@ -125,7 +125,7 @@ def _get_system_paths(executable):
     # the context of code that has manipulated the sys.path--for
     # instance, to add local zc.buildout or setuptools eggs.
     def get_sys_path(*args, **kwargs):
-        cmd = [executable]
+        cmd = [executable.replace('/', os.path.sep)]
         cmd.extend(args)
         cmd.extend([
             "-c", "import sys, os;"
@@ -155,16 +155,73 @@ def _get_system_paths(executable):
     return (stdlib, site_paths)
 
 def _get_version_info(executable):
-    cmd = [executable, '-Sc',
+    cmd = [executable.replace('/', os.path.sep), '-Sc',
            'import sys; print(repr(tuple(x for x in sys.version_info)))']
     _proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = _proc.communicate();
+    stdout, stderr = _proc.communicate()
     if _proc.returncode:
         raise RuntimeError(
             'error trying to get system packages:\n%s' % (stderr,))
     return eval(stdout.strip())
 
+
+_platforms = {sys.executable: pkg_resources.get_supported_platform()}
+def _get_platform(executable):
+    code = """
+import sys
+import re
+
+macosVersionString = re.compile(r'macosx-(\d+)\.(\d+)-(.*)')
+
+def _macosx_vers(_cache=[]):
+    if not _cache:
+        from platform import mac_ver
+        _cache.append(mac_ver()[0].split('.'))
+    return _cache[0]
+
+def get_build_platform():
+    from distutils.util import get_platform
+    plat = get_platform()
+    if sys.platform == 'darwin' and not plat.startswith('macosx-'):
+        try:
+            version = _macosx_vers()
+            machine = os.uname()[4].replace(' ', '_')
+            return 'macosx-%d.%d-%s' % (int(version[0]), int(version[1]),
+                _macosx_arch(machine))
+        except ValueError:
+            # if someone is running a non-Mac darwin system, this will fall
+            # through to the default implementation
+            pass
+    return plat
+
+def get_supported_platform():
+    plat = get_build_platform(); m = macosVersionString.match(plat)
+    if m is not None and sys.platform == 'darwin':
+        try:
+            plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
+        except ValueError:
+            pass    # not Mac OS X
+    return plat
+
+print get_supported_platform()
+"""
+    try:
+        return _platforms[executable]
+    except KeyError:
+        cmd = _safe_arg(executable) + ' -c "%s"' % code
+        p = subprocess.Popen(cmd,
+                             shell=not is_win32,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT,
+                             close_fds=not is_win32)
+        i, o = (p.stdin, p.stdout)
+        i.close()
+        platform = o.read().strip()
+        o.close()
+        _platforms[executable] = platform
+        return platform
 
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
@@ -177,7 +234,7 @@ def _get_version(executable):
     except KeyError:
         cmd = _safe_arg(executable) + ' -V'
         p = subprocess.Popen(cmd,
-                             shell=True,
+                             shell=not is_win32,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
@@ -355,7 +412,7 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        self._executable = executable
+        self._executable = executable.replace('/', os.path.sep)
         self._has_broken_dash_S = _has_broken_dash_S(self._executable)
         if always_unzip is not None:
             self._always_unzip = always_unzip
@@ -396,7 +453,8 @@ class Installer:
             newest = False
         self._newest = newest
         self._env = pkg_resources.Environment(path,
-                                              python=_get_version(executable))
+                                              platform=_get_platform(self._executable),
+                                              python=_get_version(self._executable))
         self._index = _get_index(executable, index, links, self._allow_hosts,
                                  self._path)
 
@@ -528,6 +586,7 @@ class Installer:
     def _load_dist(self, dist):
         dists = pkg_resources.Environment(
             dist.location,
+            platform=_get_platform(self._executable),
             python=_get_version(self._executable),
             )[dist.project_name]
         assert len(dists) == 1
@@ -575,6 +634,7 @@ class Installer:
             dists = []
             env = pkg_resources.Environment(
                 [tmp],
+                platform=_get_platform(self._executable),
                 python=_get_version(self._executable),
                 )
             for project in env:
@@ -622,6 +682,7 @@ class Installer:
 
                 [d] = pkg_resources.Environment(
                     [newloc],
+                    platform=_get_platform(self._executable),
                     python=_get_version(self._executable),
                     )[d.project_name]
 
@@ -782,6 +843,7 @@ class Installer:
                     # good enough.
                     dists = pkg_resources.Environment(
                         [newloc],
+                        platform=_get_platform(self._executable),
                         python=_get_version(self._executable),
                         )[dist.project_name]
                 else:
@@ -1168,9 +1230,9 @@ def develop(setup, dest,
         undo.append(lambda : shutil.rmtree(tmp3))
 
         args = [
-            zc.buildout.easy_install._safe_arg(tsetup),
+            tsetup,
             '-q', 'develop', '-mxN',
-            '-d', _safe_arg(tmp3),
+            '-d', tmp3,
             ]
 
         log_level = logger.getEffectiveLevel()
@@ -1183,7 +1245,7 @@ def develop(setup, dest,
             logger.debug("in: %r\n%s", directory, ' '.join(args))
         
         try:
-            subprocess.check_call([_safe_arg(executable)] + args)
+            subprocess.check_call([executable] + args)
         except subprocess.CalledProcessError:
             raise zc.buildout.UserError("Installing develop egg failed")
             
@@ -1453,7 +1515,7 @@ def _write_script(full_name, contents, logged_type):
         script_name += '-script.py'
         # Generate exe file and give the script a magic name.
         exe = full_name + '.exe'
-        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = pkg_resources.resource_string('setuptools', 'cli-64.exe' if sys.maxsize > 2**32 else 'cli-32.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
@@ -1574,7 +1636,7 @@ def _get_module_file(executable, name, silent=False):
     - executable is a path to the desired Python executable.
     - name is the name of the (pure, not C) Python module.
     """
-    cmd = [executable, "-Sc",
+    cmd = [executable.replace('/', os.path.sep), "-Sc",
            "import imp; "
            "fp, path, desc = imp.find_module(%r); "
            "fp.close(); "
