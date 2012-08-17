@@ -8,8 +8,6 @@ Change History
 
 - Buildout now creates the download-cache directory is it does not exist.
 
-- Buildout is not using distribute by default, since setuptools is deprecated.
-
 Bug fixed:
 
 - Buildout now runs when buildout.cfg contains "develop = ." on Windows.
