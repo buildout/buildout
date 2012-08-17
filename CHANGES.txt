@@ -1,6 +1,11 @@
 Change History
 **************
 
+1.6.1 (xxx)
+===========
+
+- added travis-ci testing (Domen Kožar)
+
 1.6.0 (2012-08-15)
 ==================
 
