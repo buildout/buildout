@@ -917,7 +917,7 @@ class Buildout(UserDict.DictMixin):
         if sys.platform == 'win32':
             should_run += '-script.py'
 
-        if (realpath(os.path.abspath(sys.argv[0])) != should_run):
+        if realpath(os.path.abspath(sys.argv[0])) != should_run:
             self._logger.debug("Running %r.", realpath(sys.argv[0]))
             self._logger.debug("Local buildout is %r.", should_run)
             self._logger.warn("Not upgrading because not running a local "

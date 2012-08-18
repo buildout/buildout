@@ -1181,12 +1181,12 @@ def develop(setup, dest,
                 args[1] == '-v'
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
-        
-        try:
-            subprocess.check_call([_safe_arg(executable)] + args)
-        except subprocess.CalledProcessError:
-            raise zc.buildout.UserError("Installing develop egg failed")
-            
+
+        p = subprocess.Popen(
+            [_safe_arg(executable)] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if p.wait() > 0:
+            raise zc.buildout.UserError("Installing develop egg failed: %s" % p.stderr.read())
+
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
