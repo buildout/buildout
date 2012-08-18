@@ -134,7 +134,9 @@ parser.add_option("-c", None, action="store", dest="config_file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
 
-options, args = parser.parse_args()
+options, orig_args = parser.parse_args()
+
+args = []
 
 # if -c was provided, we push it back into args for buildout's main function
 if options.config_file is not None:
@@ -153,7 +155,6 @@ if options.setup_source is None:
 
 if options.accept_buildout_test_releases:
     args.append('buildout:accept-buildout-test-releases=true')
-args.append('bootstrap')
 
 try:
     import pkg_resources
@@ -257,6 +258,9 @@ if exitcode != 0:
 ws.add_entry(eggs_dir)
 ws.require(requirement)
 import zc.buildout.buildout
-zc.buildout.buildout.main(args)
+if orig_args:
+    # run buildout with commands passed to bootstrap.py, then actually bootstrap
+    zc.buildout.buildout.main(args + orig_args)
+zc.buildout.buildout.main(args + ['bootstrap'])
 if not options.eggs:  # clean up temporary egg directory
     shutil.rmtree(eggs_dir)

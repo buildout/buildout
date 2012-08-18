@@ -4,6 +4,11 @@ Change History
 1.6.1 (xxx)
 ===========
 
+- `bootstrap.py -d init` would invoke buildout with arguments
+  `init bootstrap` leading into installation of bootstrap package.
+  now bootstrap.py first runs any commands passed, then tries to
+  bootstrap. (Domen Kožar)
+
 - fix Python 2.4 support (Domen Kožar)
 
 - added travis-ci testing (Domen Kožar)

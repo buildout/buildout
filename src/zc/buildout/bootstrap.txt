@@ -347,3 +347,15 @@ Here's the entire help text.
                             or betas.
       -c CONFIG_FILE        Specify the path to the buildout configuration file to
                             be used.
+
+Rebootstrap and create config file.
+
+    >>> remove('buildout.cfg')
+    >>> print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable) +
+    ...     ' bootstrap.py init') # doctest: +NORMALIZE_WHITESPACE
+    Creating '/sample/buildout.cfg'.
+
+    >>> cat('buildout.cfg') # doctest: +NORMALIZE_WHITESPACE
+    [buildout]
+    parts = 
