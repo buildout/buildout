@@ -1,7 +1,7 @@
 Change History
 **************
 
-1.6.1 (xxx)
+1.6.1 (2012-08-18)
 ===========
 
 - `bootstrap.py -d init` would invoke buildout with arguments
