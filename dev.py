@@ -26,6 +26,20 @@ for d in 'eggs', 'develop-eggs', 'bin', 'parts':
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
+nosite = 'site' not in sys.modules
+
+######################################################################
+# Make sure we have a relatively clean environment
+try:
+    import pkg_resources, setuptools
+except ImportError:
+    pass
+else:
+    raise SystemError(
+        "Buildout development with a pre-installed setuptools or "
+        "distribute is not supported.%s"
+        % ('' if nosite else ' Try running with -S option to Python.'))
+
 ######################################################################
 # handle -S
 
@@ -35,7 +49,6 @@ def normpath(p):
     else:
         return p
 
-nosite = 'site' not in sys.modules
 if nosite:
     # They've asked not to import site.  Cool, but distribute is going to
     # import it anyway, so we're going to have to clean up. :(

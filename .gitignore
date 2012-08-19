@@ -3,3 +3,6 @@ bin/
 build/
 develop-eggs/
 eggs/
+*.pyc
+*.egg
+*.egg-info
