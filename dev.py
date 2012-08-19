@@ -38,7 +38,7 @@ else:
     raise SystemError(
         "Buildout development with a pre-installed setuptools or "
         "distribute is not supported.%s"
-        % ('' if nosite else ' Try running with -S option to Python.'))
+        % ((not nosite) and ' Try running with -S option to Python.' or ''))
 
 ######################################################################
 # handle -S
