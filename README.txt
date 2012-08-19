@@ -135,7 +135,7 @@ If I need to run a previous version of zc.buildout, I use the
 
     $ python bootstrap.py --version 1.1.3
 
-The `zc.buildout project <http://svn.zope.org/zc.buildout/trunk>`_
+The `zc.buildout project <https://github.com/buildout/buildout>`_
 is a slightly more complex example of this type of buildout.
 
 Install egg-based scripts

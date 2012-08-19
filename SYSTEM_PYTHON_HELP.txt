@@ -32,7 +32,7 @@ the biggest is that Buildout itself supports usage with a system Python.
 This can work if you follow a couple of simple rules.
 
 1. Use the new bootstrap.py (available from
-   svn://svn.zope.org/repos/main/zc.buildout/trunk/bootstrap/bootstrap.py).
+   https://github.com/buildout/buildout/raw/1.6.x/bootstrap/bootstrap.py).
 
 2. Use buildout recipes that have been upgraded to work with zc.buildout 1.5
    and higher.  Specifically, they should use
@@ -188,7 +188,7 @@ If you want to support the other arguments (``include_site_packages``,
 ``exec_sitecustomize``, ``script_initialization``, as well as the
 ``allowed-eggs-from-site-packages`` option),  you might want to look at
 some of the code in
-svn://svn.zope.org/repos/main/zc.buildout/trunk/z3c.recipe.scripts\_/src/z3c/recipe/scripts/scripts.py .
+https://github.com/buildout/buildout/blob/1.6.x/z3c.recipe.scripts_/src/z3c/recipe/scripts/scripts.py .
 You might even be able to adopt some of it by subclassing or delegating.
 The Scripts class in that file is the closest to what you might be used
 to from zc.recipe.egg.
