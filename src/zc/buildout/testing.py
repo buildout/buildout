@@ -172,6 +172,7 @@ def bdist_egg(setup, executable, dest):
 
 def sys_install(setup, dest):
     _runsetup(setup, sys.executable, 'install', '--install-purelib', dest,
+              '--install-scripts', dest,
               '--record', os.path.join(dest, '__added_files__'),
               '--single-version-externally-managed')
 
