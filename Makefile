@@ -35,4 +35,4 @@ clean:
 	rm -rf $(BUILD_DIRS)
 
 test:
-	$(HERE)/bin/test -v
+	$(HERE)/bin/test -v -1 -t \!isolation.txt
