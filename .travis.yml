@@ -14,7 +14,7 @@ notifications:
     - hanno@hannosch.eu
 
 install:
-    - python -c "import re; print(re);"
+    - python -c "import zipfile; print(zipfile);"
 
 script:
     - python dev.py
