@@ -13,7 +13,11 @@ notifications:
   email:
     - hanno@hannosch.eu
 
-script:
+install:
+    - dpkg -l
     - deactivate
-    - /usr/bin/python$TRAVIS_PYTHON_VERSION dev.py
+    - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then /usr/bin/pypy dev.py; fi
+    - if [[ $TRAVIS_PYTHON_VERSION <> 'pypy' ]]; then /usr/bin/python$TRAVIS_PYTHON_VERSION dev.py; fi
+
+script:
     - bin/test
