@@ -10,7 +10,14 @@ ifeq ($(PYTHON_VER),3.2)
 	PYTHON_MINOR = 3.2.3
 endif
 
-PYTHON_DOWNLOAD ?= http://www.python.org/ftp/python/$(PYTHON_MINOR)/Python-$(PYTHON_MINOR).tgz
+ifeq ($(PYTHON_VER),3.3)
+	PYTHON_MINOR = 3.3.0
+	PYTHON_ARCHIVE = Python-3.3.0b2
+endif
+
+PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
+PYTHON_DOWNLOAD = http://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
+PYTHON_EXE = python$(PYTHON_VER)
 
 .PHONY: all build test
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
@@ -22,14 +29,14 @@ $(PYTHON_PATH):
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
-	cd $(PYTHON_PATH)/Python-$(PYTHON_MINOR) && \
+	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
 	make >/dev/null 2>&1 && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
 build: $(PYTHON_PATH)
-	$(PYTHON_PATH)/bin/python dev.py
+	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 
 clean:
 	rm -rf $(BUILD_DIRS)
