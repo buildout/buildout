@@ -85,7 +85,7 @@ def test_suite():
                  '\\1V.V.egg'),
                 (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
                 (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-                (re.compile('extdemo[.]cpython-32m.so'), 'extdemo.so'),
+                (re.compile('extdemo[.]cpython-3?m.so'), 'extdemo.so'),
                 (re.compile(
                     r'zip_safe flag not set; analyzing archive contents.*\n'),
                  ''),
