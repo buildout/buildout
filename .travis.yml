@@ -13,9 +13,7 @@ notifications:
   email:
     - hanno@hannosch.eu
 
-install:
-    - python -c "import zipfile; print(zipfile);"
-
 script:
-    - python dev.py
+    - deactivate
+    - /usr/bin/python$TRAVIS_PYTHON_VERSION dev.py
     - bin/test
