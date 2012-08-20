@@ -3018,6 +3018,7 @@ def test_suite():
                 normalize_bang,
                 normalize_S,
                 (re.compile('extdemo[.]pyd'), 'extdemo.so'),
+                (re.compile('extdemo[.]cpython-32m.so'), 'extdemo.so'),
                 (re.compile('[-d]  distribute-\S+[.]egg'), 'distribute.egg'),
                 (re.compile(r'\\[\\]?'), '/'),
                 ]+(sys.version_info < (2, 5) and [
