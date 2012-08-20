@@ -13,6 +13,7 @@ endif
 PYTHON_DOWNLOAD ?= http://www.python.org/ftp/python/$(PYTHON_MINOR)/Python-$(PYTHON_MINOR).tgz
 
 .PHONY: all build test
+BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
 all: build
 
@@ -29,6 +30,9 @@ $(PYTHON_PATH):
 
 build: $(PYTHON_PATH)
 	$(PYTHON_PATH)/bin/python dev.py
+
+clean:
+	rm -rf $(BUILD_DIRS)
 
 test:
 	$(HERE)/bin/test -v
