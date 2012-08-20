@@ -29,6 +29,12 @@ $(PYTHON_PATH):
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
+ifeq ($(PYTHON_VER),2.6)
+	cd $(PYTHON_PATH) && \
+	curl --progress-bar https://raw.github.com/collective/buildout.python/master/src/issue12012-sslv2-py26.txt > ssl.txt
+	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
+	patch -p0 < ../ssl.txt
+endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
 	make >/dev/null 2>&1 && \
