@@ -22,7 +22,9 @@ $(PYTHON_PATH):
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
 	cd $(PYTHON_PATH)/Python-$(PYTHON_MINOR) && \
-	./configure --prefix $(PYTHON_PATH) && make && make install
+	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
+	make >/dev/null 2>&1 && \
+	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
 build: $(PYTHON_PATH)
