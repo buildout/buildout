@@ -44,4 +44,4 @@ Buildout is a project designed to solve 2 problems:
    distribution, there can only be one installed.
 
 To learn more about buildout, including how to use it, see the
-`Buildout Documentation <http://packages.python.org/buildout/>`_.
+`Buildout Documentation <http://pypi.python.org/pypi/zc.buildout/1.6.1>`_.
