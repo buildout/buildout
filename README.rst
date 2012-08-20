@@ -2,6 +2,12 @@
 Buildout
 ********
 
+.. image:: https://secure.travis-ci.org/buildout/buildout.png?branch=master
+   :width: 82px
+   :height: 13px
+   :alt: Travis CI build report
+   :target: https://secure.travis-ci.org/#!/buildout/buildout
+
 Buildout is a project designed to solve 2 problems:
 
 1. Application-centric assembly and deployment
