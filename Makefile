@@ -10,7 +10,7 @@ ifeq ($(PYTHON_VER),"3.2")
 	PYTHON_MINOR ?= 3.2.3
 endif
 
-PYTHON_DOWNLOAD ?= http://www.python.org/ftp/python/$(PYTHON_MINOR)/Python-$(PYTHON_MINOR).tar.bz2
+PYTHON_DOWNLOAD ?= http://www.python.org/ftp/python/$(PYTHON_MINOR)/Python-$(PYTHON_MINOR).tgz
 
 .PHONY: all build test
 
