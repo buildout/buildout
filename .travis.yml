@@ -3,8 +3,9 @@ python:
   - 2.7
   - 2.6
   - 2.5
+  - 2.4
 install:
-  - python -S dev.py -d
+  - python dev.py -d
 
 script:
   - bin/test
