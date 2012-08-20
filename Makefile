@@ -19,6 +19,8 @@ all: build
 $(PYTHON_PATH):
 	@echo "Installing Python"
 	mkdir -p $(PYTHON_PATH)
+	cd $(PYTHON_PATH) && \
+	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
 	cd $(PYTHON_PATH)/Python-$(PYTHON_MINOR) && \
 	./configure --prefix $(PYTHON_PATH) && make && make install
 	@echo "Finished installing Python"
