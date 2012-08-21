@@ -1064,11 +1064,10 @@ def _create_script(contents, dest):
 
     if is_win32:
         # generate exe file and give the script a magic name:
-        #from dbgp.client import brk; brk('127.0.0.1')
-        win32_exe = os.path.splitext(dest)[0]
+        win32_exe = os.path.splitext(dest)[0] # remove ".py"
         if win32_exe.endswith('-script'):
-            win32_exe = win32_exe[:-7]
-        win32_exe = win32_exe + '.exe'
+            win32_exe = win32_exe[:-7] # remove "-script"
+        win32_exe = win32_exe + '.exe' # add ".exe"
         new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
         if not os.path.exists(win32_exe) or (open(win32_exe, 'rb').read() != new_data):
             # Only write it if it's different.
