@@ -1059,19 +1059,21 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
 def _create_script(contents, dest):
     generated = []
     script = dest
-    if is_win32:
-        dest += '-script.py'
 
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
     if is_win32:
         # generate exe file and give the script a magic name:
-        exe = script+'.exe'
-        new_data = pkg_resources.resource_string('distribute', 'cli.exe')
-        if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
+        #from dbgp.client import brk; brk('127.0.0.1')
+        win32_exe = os.path.splitext(dest)[0]
+        if win32_exe.endswith('-script'):
+            win32_exe = win32_exe[:-7]
+        win32_exe = win32_exe + '.exe'
+        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        if not os.path.exists(win32_exe) or (open(win32_exe, 'rb').read() != new_data):
             # Only write it if it's different.
-            open(exe, 'wb').write(new_data)
-        generated.append(exe)
+            open(win32_exe, 'wb').write(new_data)
+        generated.append(win32_exe)
 
     if changed:
         open(dest, 'w').write(contents)
@@ -1139,7 +1141,7 @@ def _pyscript(path, dest, rsetup):
         # generate exe file and give the script a magic name:
         exe = script + '.exe'
         open(exe, 'wb').write(
-            pkg_resources.resource_string('distribute', 'cli.exe')
+            pkg_resources.resource_string('setuptools', 'cli.exe')
             )
         generated.append(exe)
 

@@ -106,6 +106,7 @@ if subprocess.call(
 pkg_resources.working_set.add_entry('src')
 
 import zc.buildout.easy_install
+#from dbgp.client import brk; brk('127.0.0.1')
 zc.buildout.easy_install.scripts(
     ['zc.buildout'], pkg_resources.working_set , sys.executable, 'bin')
 
