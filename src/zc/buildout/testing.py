@@ -93,6 +93,17 @@ def write(dir, *args):
     fsync(f.fileno())
     f.close()
 
+def clean_up_pyc(*path):
+    base, filename = os.path.join(*path[:-1]), path[-1]
+    if filename.endswith('.py'):
+        filename += 'c' # .py -> .pyc
+    for path in (
+        os.path.join(base, filename),
+        os.path.join(base, '__pycache__', filename),
+        ):
+        if os.path.exists(path):
+            remove(path)
+
 ## FIXME - check for other platforms
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
@@ -264,6 +275,7 @@ def buildoutSetUp(test):
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
         print_ = print_,
+        clean_up_pyc = clean_up_pyc,
         ))
 
     zc.buildout.easy_install.prefer_final(prefer_final)

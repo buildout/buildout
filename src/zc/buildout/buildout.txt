@@ -435,6 +435,10 @@ the mkdir recipe to support multiple paths:
     ...         pass
     ... """)
 
+..
+
+    >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
+
 If there is an error creating a path, the install method will exit and
 leave previously created paths in place:
 
@@ -550,6 +554,10 @@ Let's fix the recipe:
     ...         pass
     ... """)
 
+..
+
+    >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
+
 And put back the typo:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -579,11 +587,6 @@ When we rerun the buildout:
     Traceback (most recent call last):
     ...
     OSError: ... exists...
-
-.. Wait for the file to really disappear. My linux is weird.
-
-    >>> wait_until("foo goes away", lambda : not os.path.exists('foo'),
-    ...            timeout=200)
 
 we get the same error, but we don't get the directory left behind:
 
@@ -638,12 +641,7 @@ recipe:
 
 ..
 
-    >>> for path in (
-    ...     join(sample_buildout, 'recipes', 'mkdir.pyc'),
-    ...     join(sample_buildout, 'recipes', '__pycache__', 'mkdir.pyc'),
-    ...     ):
-    ...     if os.path.exists(path):
-    ...         remove(path)
+    >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
 
 We returned by calling created, taking advantage of the fact that it
 returns the registered paths.  We did this for illustrative purposes.
