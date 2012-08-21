@@ -1,7 +1,7 @@
 HERE = $(shell pwd)
-PYTHON_PATH = $(HERE)/python
 PYTHON_VER ?= 2.7
 PYTHON_MINOR ?= 2.7.3
+PYTHON_PATH = $(HERE)/python$(PYTHON_VER)
 
 ifeq ($(PYTHON_VER),2.6)
 	PYTHON_MINOR = 2.6.8
