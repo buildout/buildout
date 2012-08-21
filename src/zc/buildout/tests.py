@@ -3017,8 +3017,6 @@ def test_suite():
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 normalize_bang,
                 normalize_S,
-                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-                (re.compile('extdemo[.]cpython-3?m.so'), 'extdemo.so'),
                 (re.compile('[-d]  distribute-\S+[.]egg'), 'distribute.egg'),
                 (re.compile(r'\\[\\]?'), '/'),
                 ]+(sys.version_info < (2, 5) and [

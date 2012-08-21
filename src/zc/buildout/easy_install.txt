@@ -1159,15 +1159,9 @@ We have a link server that has a number of eggs:
 
  And that the source directory contains the compiled extension:
 
-     >>> ls(extdemo)
-     -  MANIFEST
-     -  MANIFEST.in
-     -  README
-     d  build
-     -  extdemo.c
-     d  extdemo.egg-info
-     -  extdemo.so
-     -  setup.py
+     >>> contents = os.listdir(extdemo)
+     >>> any([f for f in contents if f.endswith(('.so', '.pyd'))])
+     True
 
  Download cache
  --------------

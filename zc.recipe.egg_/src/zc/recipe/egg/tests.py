@@ -84,8 +84,6 @@ def test_suite():
                             "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
                 (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
-                (re.compile('extdemo[.]pyd'), 'extdemo.so'),
-                (re.compile('extdemo[.]cpython-3?m.so'), 'extdemo.so'),
                 (re.compile(
                     r'zip_safe flag not set; analyzing archive contents.*\n'),
                  ''),

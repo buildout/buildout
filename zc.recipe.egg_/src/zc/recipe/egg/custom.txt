@@ -546,15 +546,9 @@ Our develop-eggs now includes an egg link for extdemo:
 
 and the extdemo now has a built extension:
 
-    >>> ls(extdemo)
-    -  MANIFEST
-    -  MANIFEST.in
-    -  README
-    d  build
-    -  extdemo.c
-    d  extdemo.egg-info
-    -  extdemo.so
-    -  setup.py
+    >>> contents = os.listdir(extdemo)
+    >>> any([f for f in contents if f.endswith(('.so', '.pyd'))])
+    True
 
 Because develop eggs take precedence over non-develop eggs, the demo
 script will use the new develop egg:
