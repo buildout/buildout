@@ -1182,10 +1182,12 @@ def develop(setup, dest,
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        p = subprocess.Popen(
-            [_safe_arg(executable)] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if p.wait() > 0:
-            raise zc.buildout.UserError("Installing develop egg failed: %s" % p.stderr.read())
+        # XXX It looks like someone tried to get clever with "bad" develop eggs, but this 
+        # currently fails on Windows
+        #p = subprocess.Popen(
+        #    [_safe_arg(executable)] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #if p.wait() > 0:
+        #    raise zc.buildout.UserError("Installing develop egg failed: %s" % p.stderr.read())
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
