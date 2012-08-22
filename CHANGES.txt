@@ -1,8 +1,14 @@
 Change History
 **************
 
+1.6.2 (2012-08-21)
+==================
+
+- Fix Windows regression (see: https://github.com/buildout/buildout/commit/cfa0478937d16769c268bf51e60e69cd3ead50f3)
+  [aclark4life]
+
 1.6.1 (2012-08-18)
-===========
+==================
 
 - `bootstrap.py -d init` would invoke buildout with arguments
   `init bootstrap` leading into installation of bootstrap package.
