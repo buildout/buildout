@@ -1188,6 +1188,11 @@ def develop(setup, dest,
         #    [_safe_arg(executable)] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         #if p.wait() > 0:
         #    raise zc.buildout.UserError("Installing develop egg failed: %s" % p.stderr.read())
+        if is_jython:
+            assert subprocess.Popen([_safe_arg(executable)] + args).wait() == 0
+        else:
+            assert os.spawnl(os.P_WAIT, executable, _safe_arg(executable),
+                             *args) == 0
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
