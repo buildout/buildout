@@ -1844,7 +1844,11 @@ def main(args=None):
         try:
             buildout = Buildout(config_file, options,
                                 user_defaults, windows_restart,
-                                command, args)
+# XXX What or why is this `args` parameter here? If this is for
+# the new include-packages-on-command-line-feature, then it
+# currently breaks Windows support (not sure why yet)
+#                                command, args)
+                                command)
             getattr(buildout, command)(args)
         except Exception, v:
             _doing()
