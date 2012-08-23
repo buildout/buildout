@@ -37,11 +37,15 @@ ifeq ($(PYTHON_VER),2.6)
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	patch -p0 < ../ssl.txt
 endif
+ifeq ($(PYTHON_VER),2.4)
+	sudo apt-get install zlib1g-dev
+	sed -i 's@#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
+endif
 ifeq ($(PYTHON_VER),2.5)
 	sed -i '1ifrom __future__ import with_statement' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py"
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	./configure --prefix $(PYTHON_PATH) --without-sqlite >/dev/null 2>&1 && \
+	./configure --prefix $(PYTHON_PATH) --with-zlib=/usr/include --without-sqlite >/dev/null 2>&1 && \
 	make  && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
