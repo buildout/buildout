@@ -1187,13 +1187,13 @@ Set up a buildout configuration for this extension.
     ... """)
 
     >>> os.chdir(sample_buildout)
-    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    >>> print system(os.path.join(sample_buildout, 'bin', 'buildout')), # doctest: +ELLIPSIS
     Develop: '/sample-buildout/demo'
     Uninstalling myfiles.
     Getting distribution for 'recipes'.
     zip_safe flag not set; analyzing archive contents...
     Got recipes 0.0.0.
-    warning: install_lib: 'build/lib' does not exist -- no Python modules to install
+    warning: install_lib: 'build/lib...' does not exist -- no Python modules to install
 
 Verify option values.
 

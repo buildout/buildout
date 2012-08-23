@@ -1,10 +1,16 @@
 language: python
-python:
-  - 2.7
-  - 2.6
-  - 2.5
-install:
-  - python dev.py -d
+env:
+    - PYTHON_VER=2.4
+    - PYTHON_VER=2.5
+    - PYTHON_VER=2.6
+    - PYTHON_VER=2.7
 
-script:
-  - bin/test
+branches:
+  only:
+    - 1.6.x
+
+install:
+    - deactivate
+    - make build
+
+script: make test
