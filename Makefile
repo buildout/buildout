@@ -30,6 +30,7 @@ $(PYTHON_PATH):
 	@echo "Installing Python"
 	# see http://mail.python.org/pipermail/python-bugs-list/2007-April/038211.html
 	sudo mv /usr/include/sqlite3.h /tmp/
+	sudo apt-get install zlibc
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
