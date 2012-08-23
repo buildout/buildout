@@ -37,7 +37,7 @@ ifeq ($(PYTHON_VER),2.6)
 	patch -p0 < ../ssl.txt
 endif
 ifeq ($(PYTHON_VER),2.5)
-	sed -i 'from __future__ import with_statement' $(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py
+	sed -i '1ifrom __future__ import with_statement' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py"
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	./configure --prefix $(PYTHON_PATH) --without-sqlite --with-zlib=/usr/include >/dev/null 2>&1 && \
