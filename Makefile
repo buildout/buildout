@@ -2,6 +2,8 @@ HERE = $(shell pwd)
 PYTHON_VER ?= 2.7
 PYTHON_MINOR ?= 2.7.3
 PYTHON_PATH = $(HERE)/python$(PYTHON_VER)
+# see http://lipyrary.blogspot.com/2011/05/how-to-compile-python-on-ubuntu-1104.html
+ARCH = $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 ifeq ($(PYTHON_VER),2.6)
 	PYTHON_MINOR = 2.6.8
@@ -38,17 +40,7 @@ ifeq ($(PYTHON_VER),2.6)
 	patch -p0 < ../ssl.txt
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	./configure --prefix $(PYTHON_PATH) --with-zlib=/usr/include --without-sqlite >/dev/null 2>&1 && \
-ifeq ($(PYTHON_VER),2.4)
-	sed -i 's@#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-endif
-ifeq ($(PYTHON_VER),2.5)
-	sed -i '1ifrom __future__ import with_statement' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py"
-	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-endif
+	./configure LDFLAGS="-L/usr/lib/$(ARCH) -L/lib/$(ARCH)" --prefix $(PYTHON_PATH) && \
 	make  && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
