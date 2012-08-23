@@ -41,8 +41,11 @@ ifeq ($(PYTHON_VER),2.6)
 	patch -p0 < ../ssl.txt
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	./configure LDFLAGS="-L/usr/lib/$(ARCH) -L/lib/$(ARCH)" --prefix $(PYTHON_PATH) --with-zlib=/usr/include && \
-	make  && \
+	./configure LDFLAGS="-L/usr/lib/$(ARCH) -L/lib/$(ARCH)" --prefix $(PYTHON_PATH) --with-zlib=$(PYTHON_PATH)/include && \
+ifeq ($(PYTHON_VER),2.4)
+	sed -i "s/^#zlib/zlib/g" $(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup
+endif
+	make && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
