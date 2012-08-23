@@ -25,8 +25,9 @@ BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 all: build
 
 $(PYTHON_PATH):
-	sudo apt-get install zlib1g-dev zlib-bin
 	@echo "Installing Python"
+	# see http://mail.python.org/pipermail/python-bugs-list/2007-April/038211.html
+	sudo mv /usr/include/sqlite3.h /tmp/
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
@@ -40,7 +41,7 @@ ifeq ($(PYTHON_VER),2.5)
 	sed -i '1ifrom __future__ import with_statement' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py"
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	./configure --prefix $(PYTHON_PATH) --without-sqlite --with-zlib=/usr/include >/dev/null 2>&1 && \
+	./configure --prefix $(PYTHON_PATH) --without-sqlite >/dev/null 2>&1 && \
 	make  && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
