@@ -165,7 +165,7 @@ def _runsetup(setup, executable, *args):
         p = subprocess.Popen(
             [zc.buildout.easy_install._safe_arg(executable), setup] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            close_fds=True, env=env)
+            close_fds=MUST_CLOSE_FDS, env=env)
         out = p.stdout.read()
         if p.wait():
             print out
