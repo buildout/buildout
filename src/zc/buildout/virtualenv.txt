@@ -167,7 +167,7 @@ First, let's try running bootstrap.
 If bootstrap didn't look out for a broken -S, that would have failed.  Moreover,
 take a look at bin/buildout:
 
-    >>> cat('bin', 'buildout') # doctest: +ELLIPSIS
+    >>> cat('bin', 'buildout') # doctest: +NORMALIZE_WHITESPACE
     #!/executable_buildout/bin/py
     <BLANKLINE>
     import sys
@@ -175,10 +175,11 @@ take a look at bin/buildout:
       '/broken_S/eggs/setuptools-0.0-pyN.N.egg',
       '/broken_S/eggs/zc.buildout-0.0-pyN.N.egg',
       ]
-    ...import zc.buildout.buildout
+    <BLANKLINE>
+    import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
-        zc.buildout.buildout.main()
+        sys.exit(zc.buildout.buildout.main())
 
 That's the old-style buildout script: no changes for users with this issue.
 
