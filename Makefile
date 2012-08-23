@@ -37,7 +37,7 @@ ifeq ($(PYTHON_VER),2.6)
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
-	make >/dev/null 2>&1 && \
+	make  && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
