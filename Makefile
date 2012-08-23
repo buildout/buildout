@@ -32,14 +32,14 @@ $(PYTHON_PATH):
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
 ifeq ($(PYTHON_VER),2.4)
-	sed -i 's@#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
+	sed -i 's@#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)@' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup.dist"
+	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup.dist"
+	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup.dist"
 endif
 ifeq ($(PYTHON_VER),2.5)
 	sed -i '1ifrom __future__ import with_statement' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/setup.py"
-	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
-	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup"
+	sed -i '200i_socket socketmodule.c' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup.dist"
+	sed -i '202iSSL=/usr/lib/ssl _ssl _ssl.c -DUSE_SSL -I/usr/include/openssl -L/usr/lib/ssl -lssl -lcrypto' "$(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup.dist"
 endif
 ifeq ($(PYTHON_VER),2.6)
 	cd $(PYTHON_PATH) && \
