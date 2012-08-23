@@ -151,8 +151,7 @@ def _runsetup(setup, executable, *args):
         setup = os.path.join(setup, 'setup.py')
     d = os.path.dirname(setup)
 
-    args = [zc.buildout.easy_install._safe_arg(arg)
-            for arg in args]
+    args = list(args)
     args.insert(0, '-q')
     env = dict(os.environ)
     if executable == sys.executable:
@@ -163,7 +162,7 @@ def _runsetup(setup, executable, *args):
     try:
         os.chdir(d)
         p = subprocess.Popen(
-            [zc.buildout.easy_install._safe_arg(executable), setup] + args,
+            [executable, setup] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             close_fds=MUST_CLOSE_FDS, env=env)
         out = p.stdout.read()
