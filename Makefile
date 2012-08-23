@@ -25,6 +25,7 @@ BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 all: build
 
 $(PYTHON_PATH):
+	sudo apt-get install zlib1g-dev zlib-bin
 	@echo "Installing Python"
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
