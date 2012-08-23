@@ -976,10 +976,10 @@ class Buildout(UserDict.DictMixin):
             )
 
         # Restart
-        args = map(zc.buildout.easy_install._safe_arg, sys.argv)
+        args = list(sys.argv)
         if not __debug__:
             args.insert(0, '-O')
-        args.insert(0, zc.buildout.easy_install._safe_arg(sys.executable))
+        args.insert(0, sys.executable)
         # We want to make sure that our new site.py is used for rerunning
         # buildout, so we put the partsdir in PYTHONPATH for our restart.
         # This overrides any set PYTHONPATH, but since we generally are
@@ -987,6 +987,8 @@ class Buildout(UserDict.DictMixin):
         # library) then that should be fine.
         env = os.environ.copy()
         env['PYTHONPATH'] = partsdir
+        # windows: Popen will quote args itself if needed
+        # see subprocess.list2cmdline
         sys.exit(subprocess.Popen(args, env=env).wait())
 
     def _load_extensions(self):
