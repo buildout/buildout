@@ -1,0 +1,9 @@
+.installed.cfg
+bin/
+build/
+develop-eggs/
+eggs/
+parts/
+*.pyc
+*.egg
+*.egg-info
