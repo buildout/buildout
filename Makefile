@@ -45,6 +45,7 @@ endif
 ifeq ($(PYTHON_VER),2.4)
 	sed -i "s/^#zlib/zlib/g" $(PYTHON_PATH)/$(PYTHON_ARCHIVE)/Modules/Setup
 endif
+	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	make && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
