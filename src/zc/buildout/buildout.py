@@ -989,7 +989,7 @@ class Buildout(UserDict.DictMixin):
         env['PYTHONPATH'] = partsdir
         # windows: Popen will quote args itself if needed
         # see subprocess.list2cmdline
-        sys.exit(subprocess.Popen(args, env=env).wait())
+        os._exit(subprocess.Popen(args, env=env).wait())
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
