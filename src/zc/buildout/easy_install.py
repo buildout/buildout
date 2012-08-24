@@ -30,6 +30,7 @@ import setuptools.archive_util
 import setuptools.command.setopt
 import setuptools.package_index
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -51,6 +52,7 @@ logger = logging.getLogger('zc.buildout.easy_install')
 url_match = re.compile('[a-z0-9+.-]+://').match
 
 is_win32 = sys.platform == 'win32'
+is_64 = struct.calcsize("P") == 8
 is_jython = sys.platform.startswith('java')
 is_distribute = (
     pkg_resources.Requirement.parse('setuptools').key=='distribute')
@@ -1460,7 +1462,7 @@ def _write_script(full_name, contents, logged_type):
         script_name += '-script.py'
         # Generate exe file and give the script a magic name.
         exe = full_name + '.exe'
-        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = pkg_resources.resource_string('setuptools', 'cli-64.exe' if is_64 else 'cli-32.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
