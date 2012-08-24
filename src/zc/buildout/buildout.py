@@ -423,11 +423,14 @@ class Buildout(UserDict.DictMixin):
     def _init_config(self, config_file, args):
         print 'Creating %r.' % config_file
         f = open(config_file, 'w')
-        sep = re.compile(r'[\\/]')
         if args:
+            sep = re.compile(r'[\\/]')
+            ossep = os.path.sep
+            if ossep == '\\':
+                ossep = '\\\\' # re.sub does not like a single backslash
             eggs = '\n  '.join(a for a in args if not sep.search(a))
             paths = '\n  '.join(
-                sep.sub(os.path.sep, a) for a in args if sep.search(a))
+                sep.sub(ossep, a) for a in args if sep.search(a))
             f.write('[buildout]\n'
                     'parts = py\n'
                     '\n'
