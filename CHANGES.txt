@@ -4,8 +4,14 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- fixed all builds on travis-ci
+  [Domen Kožar]
+
+- use os._exit insted of sys.exit after ugrade forking
+  [Domen Kožar]
+
 - Revert cfa0478937d16769c268bf51e60e69cd3ead50f3, it only broke a feature
-  (Domen Kožar)
+  [Domen Kožar]
 
 1.6.3 (2012-08-22)
 ==================
