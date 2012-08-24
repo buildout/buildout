@@ -4,6 +4,8 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- Windows fix: `buildout init` was broken, re.sub does not like a single backslash
+
 - Revert cfa0478937d16769c268bf51e60e69cd3ead50f3, it only broke a feature
   (Domen Kožar)
 
