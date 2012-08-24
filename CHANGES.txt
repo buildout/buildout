@@ -4,6 +4,10 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- Windows fix: use cli-64.exe/cli.exe depending on 64/32 bit
+  and try cli.exe if cli-64.exe is not found,
+  fixing 9c6be7ac6d218f09e33725e07dccc4af74d8cf97
+
 - Windows fix: `buildout init` was broken, re.sub does not like a single backslash
 
 - fixed all builds on travis-ci

@@ -1462,7 +1462,15 @@ def _write_script(full_name, contents, logged_type):
         script_name += '-script.py'
         # Generate exe file and give the script a magic name.
         exe = full_name + '.exe'
-        new_data = pkg_resources.resource_string('setuptools', 'cli-64.exe' if is_64 else 'cli-32.exe')
+        if is_64:
+            resource = 'cli-64.exe'
+        else:
+            resource = 'cli.exe'
+        try:
+            new_data = pkg_resources.resource_string('setuptools', resource)
+        except IOError:
+            # setuptools has just cli.exe, no matter if 64/32 bit
+            new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
         if not os.path.exists(exe) or (open(exe, 'rb').read() != new_data):
             # Only write it if it's different.
             open(exe, 'wb').write(new_data)
