@@ -267,10 +267,10 @@ caught (displaying a warning) and the rest of the buildout update process
 should continue.
 
     >>> version = sys.version_info[0:2]
-    >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg ' % version
-    >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg ' % version
-    >>> system('cp ' + egg  + copy_egg)
-    ''
+    >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg' % version
+    >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg' % version
+    >>> import shutil
+    >>> shutil.copy(egg, copy_egg)
 
 Create a broken egg
 
