@@ -12,7 +12,7 @@ endif
 
 ifeq ($(PYTHON_VER),3.3)
 	PYTHON_MINOR = 3.3.0
-	PYTHON_ARCHIVE = Python-3.3.0b2
+	PYTHON_ARCHIVE = Python-3.3.0rc1
 endif
 
 PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
