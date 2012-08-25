@@ -85,6 +85,12 @@ buildout_and_setuptools_path = [setuptools_loc]
 if os.path.normpath(setuptools_loc) != os.path.normpath(buildout_loc):
     buildout_and_setuptools_path.append(buildout_loc)
 
+def _fix_executable_path(executable):
+    # on Windows, we need to replace '/' with os.path.sep
+    if os.name == 'nt':
+        return executable.replace('/', os.path.sep)
+    return executable
+
 def _has_broken_dash_S(executable):
     """Detect https://bugs.launchpad.net/virtualenv/+bug/572545 ."""
     # The first attempt here was to simply have the executable attempt to import
@@ -94,7 +100,7 @@ def _has_broken_dash_S(executable):
     # file does not pass the -script.py's returncode back properly, at least in
     # some circumstances. Therefore...print statements.
     stdout, stderr = subprocess.Popen(
-        [executable, '-S', '-c',
+        [_fix_executable_path(executable), '-S', '-c',
          'try:\n'
          '    import ConfigParser\n'
          'except ImportError:\n'
@@ -127,7 +133,7 @@ def _get_system_paths(executable):
     # the context of code that has manipulated the sys.path--for
     # instance, to add local zc.buildout or setuptools eggs.
     def get_sys_path(*args, **kwargs):
-        cmd = [executable]
+        cmd = [_fix_executable_path(executable)]
         cmd.extend(args)
         cmd.extend([
             "-c", "import sys, os;"
@@ -157,7 +163,7 @@ def _get_system_paths(executable):
     return (stdlib, site_paths)
 
 def _get_version_info(executable):
-    cmd = [executable, '-Sc',
+    cmd = [_fix_executable_path(executable), '-Sc',
            'import sys; print(repr(tuple(x for x in sys.version_info)))']
     _proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -357,7 +363,7 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        self._executable = executable
+        self._executable = _fix_executable_path(executable)
         self._has_broken_dash_S = _has_broken_dash_S(self._executable)
         if always_unzip is not None:
             self._always_unzip = always_unzip
@@ -398,8 +404,8 @@ class Installer:
             newest = False
         self._newest = newest
         self._env = pkg_resources.Environment(path,
-                                              python=_get_version(executable))
-        self._index = _get_index(executable, index, links, self._allow_hosts,
+                                              python=_get_version(self._executable))
+        self._index = _get_index(self._executable, index, links, self._allow_hosts,
                                  self._path)
 
         if versions is not None:
