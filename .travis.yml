@@ -10,7 +10,6 @@ branches:
 
 notifications:
   email:
-    - hanno@hannosch.eu
     - buildout-development@googlegroups.com
 
 install:
