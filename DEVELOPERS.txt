@@ -9,3 +9,16 @@ When you're developing buildout itself, you need to know two things:
 
 - Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
   dev.py``.
+
+For your convenience we provide a Makefile to build various Python versions
+in subdirectories of the buildout checkout. To use this do::
+
+    make PYTHON_VER=2.6 build
+    make PYTHON_VER=2.7 build
+    make PYTHON_VER=3.2 build
+
+In order to run the tests, you can then use::
+
+    make PYTHON_VER=2.6 test
+    make PYTHON_VER=2.7 test
+    make PYTHON_VER=3.2 test
