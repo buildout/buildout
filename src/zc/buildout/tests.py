@@ -3109,11 +3109,11 @@ def test_suite():
             'testing_bugfix.txt'),
     ]
 
-    # adding bootstrap.txt and isolation.txt doctest to the suite
+    # adding bootstrap.txt doctest to the suite
     # only if bootstrap.py is present
     if os.path.exists(bootstrap_py):
         test_suite.append(doctest.DocFileSuite(
-            'bootstrap.txt', 'isolation.txt',
+            'bootstrap.txt',
             setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([

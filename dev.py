@@ -26,8 +26,6 @@ for d in 'eggs', 'develop-eggs', 'bin', 'parts':
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
-nosite = 'site' not in sys.modules
-
 ######################################################################
 # Make sure we have a relatively clean environment
 try:
@@ -37,41 +35,7 @@ except ImportError:
 else:
     raise SystemError(
         "Buildout development with a pre-installed setuptools or "
-        "distribute is not supported.%s"
-        % ((not nosite) and ' Try running with -S option to Python.' or ''))
-
-######################################################################
-# handle -S
-
-def normpath(p):
-    if p.endswith(os.path.sep):
-        return p[:-1]
-    else:
-        return p
-
-if nosite:
-    # They've asked not to import site.  Cool, but distribute is going to
-    # import it anyway, so we're going to have to clean up. :(
-    initial_paths = set(map(normpath, sys.path))
-    import site
-    to_remove = set(map(normpath, sys.path)) - initial_paths
-else:
-    to_remove = ()
-
-######################################################################
-# Make sure we have a relatively clean environment
-try:
-    import pkg_resources, setuptools
-except ImportError:
-    pass
-else:
-    message = (
-        "Buildout development with a pre-installed setuptools or "
-        "distribute is not supported."
-        )
-    if not nosite:
-        message += '  Try running with -S option to Python.'
-    raise SystemError(message)
+        "distribute is not supported.")
 
 ######################################################################
 # Install distribute
@@ -86,13 +50,6 @@ exec(urlopen('http://python-distribute.org/distribute_setup.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
 import pkg_resources
-
-# Clean up
-if nosite and 'site' in sys.modules:
-    del sys.modules['site']
-    sys.path[:] = [p for p in sys.path[:]
-        if normpath(p) not in to_remove
-        ]
 
 ######################################################################
 # Install buildout
