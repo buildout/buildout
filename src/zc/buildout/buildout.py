@@ -14,11 +14,8 @@
 """Buildout main script
 """
 
-# handle -S
-import zc.buildout.easy_install
-no_site = zc.buildout.easy_install.no_site
-
 from zc.buildout.rmtree import rmtree
+import zc.buildout.easy_install
 
 try:
     from hashlib import md5
@@ -903,8 +900,6 @@ class Buildout(DictMixin):
             args.insert(1, '-W')
             if not __debug__:
                 args.insert(0, '-O')
-            if no_site:
-                args.insert(0, '-S')
             args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
             os.execv(sys.executable, args)
 
@@ -928,8 +923,6 @@ class Buildout(DictMixin):
         args = sys.argv[:]
         if not __debug__:
             args.insert(0, '-O')
-        if no_site:
-            args.insert(0, '-S')
         args.insert(0, sys.executable)
         sys.exit(subprocess.call(args))
 
@@ -991,8 +984,6 @@ class Buildout(DictMixin):
                 __file__ = setup,
                 )).encode())
             args = [sys.executable, tsetup] + args
-            if no_site:
-                args.insert(1, '-S')
             zc.buildout.easy_install.call_subprocess(args)
         finally:
             os.close(fd)

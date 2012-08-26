@@ -18,29 +18,10 @@ It doesn't install scripts.  It uses distribute and requires it to be
 installed.
 """
 
-import os
-import sys
-
-######################################################################
-# handle -S
-
-def normpath(p):
-    if p.endswith(os.path.sep):
-        return p[:-1]
-    else:
-        return p
-
-no_site = 'site' not in sys.modules
-if no_site:
-    initial_paths = set(map(normpath, sys.path))
-    import site
-    sys.path[:] = [p for p in sys.path if normpath(p) in initial_paths]
-#
-######################################################################
-
 import distutils.errors
 import glob
 import logging
+import os
 import pkg_resources
 import py_compile
 import re
@@ -49,6 +30,7 @@ import setuptools.command.setopt
 import setuptools.package_index
 import shutil
 import subprocess
+import sys
 import tempfile
 import zc.buildout
 import zipimport
@@ -291,8 +273,6 @@ class Installer:
             path = distribute_loc
 
             args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
-            if no_site:
-                args.insert(1, '-S')
             level = logger.getEffectiveLevel()
             if level > 0:
                 args.append('-q')
@@ -839,9 +819,6 @@ def develop(setup, dest,
         if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        if no_site:
-            args.insert(1, '-S')
-
         call_subprocess(args)
 
         return _copyeggs(tmp3, dest, '.egg-link', undo)
@@ -1019,8 +996,6 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
         dest += '-script.py'
 
     python = _safe_arg(sys.executable)
-    if no_site:
-        python += ' -S'
 
     contents = script_template % dict(
         python = python,
@@ -1043,8 +1018,6 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
     original_content = ''.join(lines[1:])
 
     python = _safe_arg(sys.executable)
-    if no_site:
-        python += ' -S'
 
     contents = distutils_script_template % dict(
         python = python,
@@ -1126,8 +1099,6 @@ def _pyscript(path, dest, rsetup):
         dest += '-script.py'
 
     python = _safe_arg(sys.executable)
-    if no_site:
-        python += ' -S'
 
     contents = py_script_template % dict(
         python = python,
@@ -1197,14 +1168,7 @@ import sys
 sys.path.insert(0, %(setupdir)r)
 sys.path.insert(0, %(distribute)r)
 
-nosite = 'site' not in sys.modules
-original_path = sys.path[:]
-
 import os, setuptools
-
-if nosite and ('site' in sys.modules):
-    sys.path[:] = original_path
-    del sys.modules['site']
 
 __file__ = %(__file__)r
 
