@@ -1501,7 +1501,8 @@ recipe being used:
 
 def _check_for_unused_options_in_section(buildout, section):
     options = buildout[section]
-    unused = [option for option in options._raw if option not in options._data]
+    unused = [option for option in sorted(options._raw)
+              if option not in options._data]
     if unused:
         buildout._logger.warn("Unused options for %s: %s."
                               % (section, ' '.join(map(repr, unused)))
