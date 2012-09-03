@@ -311,15 +311,21 @@ class Handler(BaseHTTPRequestHandler):
         if '__stop__' in self.path:
             raise SystemExit
 
+        def k():
+            self.send_response(200)
+            out = '<html><body>k</body></html>\n'.encode()
+            self.send_header('Content-Length', str(len(out)))
+            self.send_header('Content-Type', 'text/html')
+            self.end_headers()
+            self.wfile.write(out)
+
         if self.path == '/enable_server_logging':
             self.__server.__log = True
-            self.send_response(200)
-            return
+            return k()
 
         if self.path == '/disable_server_logging':
             self.__server.__log = False
-            self.send_response(200)
-            return
+            return k()
 
         path = os.path.abspath(os.path.join(self.tree, *self.path.split('/')))
         if not (
@@ -361,6 +367,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/x-gzip')
             else:
                 self.send_header('Content-Type', 'text/html')
+
         self.end_headers()
 
         self.wfile.write(out)
