@@ -428,8 +428,7 @@ Create a clean buildout.cfg w/o the checkenv recipe, and delete the recipe:
     Develop: '/sample-buildout/recipes'
     Uninstalling checkenv.
     Uninstalling extdemo.
-    Installing extdemo.
-    ...
+    Installing extdemo...
 
     >>> rmdir(sample_buildout, 'recipes')
 
