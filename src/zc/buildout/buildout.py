@@ -1403,7 +1403,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     return result
 
 
-ignore_directories = '.svn', 'CVS'
+ignore_directories = '.svn', 'CVS', '__pycache__'
 _dir_hashes = {}
 def _dir_hash(dir):
     dir_hash = _dir_hashes.get(dir, None)
@@ -1411,15 +1411,31 @@ def _dir_hash(dir):
         return dir_hash
     hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
-        dirnames[:] = [n for n in dirnames if n not in ignore_directories]
-        filenames[:] = [f for f in filenames
-                        if (not (f.endswith('pyc') or f.endswith('pyo'))
-                            and os.path.exists(os.path.join(dirpath, f)))
-                        ]
+        dirnames[:] = sorted(n for n in dirnames if n not in ignore_directories)
+        filenames[:] = sorted(f for f in filenames
+                              if (not (f.endswith('pyc') or f.endswith('pyo'))
+                                  and os.path.exists(os.path.join(dirpath, f)))
+                              )
         hash.update(' '.join(dirnames).encode())
         hash.update(' '.join(filenames).encode())
         for name in filenames:
-            hash.update(open(os.path.join(dirpath, name), 'rb').read())
+            path = os.path.join(dirpath, name)
+            if name == 'entry_points.txt':
+                f = open(path)
+                # Entry points aren't written in stable order. :(
+                try:
+                    sections = zc.buildout.configparser.parse(f, path)
+                    data = repr([(sname, sorted(sections[sname].items()))
+                                 for sname in sorted(sections)]).encode('utf-8')
+                except Exception:
+                    f.close()
+                    f = open(path, 'rb')
+                    data = f.read()
+            else:
+                f = open(path, 'rb')
+                data = f.read()
+            f.close()
+            hash.update(data)
     _dir_hashes[dir] = dir_hash = hash.hexdigest()
     return dir_hash
 
