@@ -1083,7 +1083,7 @@ class Options(DictMixin):
             self._raw = self._do_extend_raw(name, self._raw, [])
 
         # force substitutions
-        for k, v in list(self._raw.items()):
+        for k, v in sorted(self._raw.items()):
             if '${' in v:
                 self._dosub(k, v)
 
