@@ -465,8 +465,7 @@ leave previously created paths in place:
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
-      ...
-    OSError: ... exists...
+    ... exists...
 
 We meant to create a directory bins, but typed bin.  Now foo was
 left behind.
@@ -497,8 +496,7 @@ If we fix the typo:
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
-    ...
-    OSError: ... exists...
+    ... exists...
 
 Now they fail because foo exists, because it was left behind.
 
@@ -585,8 +583,7 @@ When we rerun the buildout:
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
-    ...
-    OSError: ... exists...
+    ... exists...
 
 we get the same error, but we don't get the directory left behind:
 
@@ -661,8 +658,7 @@ directories will be created:
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
-    ...
-    OSError: ... exists...
+    ... exists...
 
     >>> os.path.exists('foo')
     False
@@ -1137,7 +1133,7 @@ extension that prints out the options.
     ... import sys
     ... def ext(buildout):
     ...     sys.stdout.write(str(
-    ...         [part['option'] for name, part in buildout.items()
+    ...         [part['option'] for name, part in sorted(buildout.items())
     ...          if name.startswith('part')])+'\\n')
     ... """)
 
