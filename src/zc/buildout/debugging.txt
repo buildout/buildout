@@ -69,7 +69,7 @@ supply some input:
 
     >>> print_(system(buildout+" -D", """\
     ... up
-    ... p self.options.keys()
+    ... p sorted(self.options.keys())
     ... q
     ... """), end='')
     Develop: '/sample-buildout/recipes'
