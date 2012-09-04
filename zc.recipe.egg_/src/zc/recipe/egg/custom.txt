@@ -541,7 +541,7 @@ Our develop-eggs now includes an egg link for extdemo:
 and the extdemo now has a built extension:
 
     >>> contents = os.listdir(extdemo)
-    >>> any([f for f in contents if f.endswith(('.so', '.pyd'))])
+    >>> bool([f for f in contents if f.endswith('.so') or f.endswith('.pyd')])
     True
 
 Because develop eggs take precedence over non-develop eggs, the demo
