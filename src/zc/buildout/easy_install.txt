@@ -376,9 +376,8 @@ We have a link server that has a number of eggs:
  Turn on logging on this server so that we can see when eggs are pulled
  from it.
 
-     >>> get(link_server2 + 'enable_server_logging')
+     >>> _ = get(link_server2 + 'enable_server_logging')
      GET 200 /enable_server_logging
-     ''
 
  Now we can create an egg that specifies that its dependencies are
  found on this server.
@@ -1160,7 +1159,7 @@ We have a link server that has a number of eggs:
  And that the source directory contains the compiled extension:
 
      >>> contents = os.listdir(extdemo)
-     >>> any([f for f in contents if f.endswith(('.so', '.pyd'))])
+     >>> bool([f for f in contents if f.endswith('.so') or f.endswith('.pyd')])
      True
 
  Download cache
@@ -1192,9 +1191,8 @@ We have a link server that has a number of eggs:
  We'd like to see what is being fetched from the server, so we'll
  enable server logging:
 
-     >>> get(link_server+'enable_server_logging')
+     >>> _ = get(link_server+'enable_server_logging')
      GET 200 /enable_server_logging
-     ''
 
  Now, if we install demo, and extdemo:
 

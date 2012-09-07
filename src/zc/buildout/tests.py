@@ -137,10 +137,10 @@ It is an error to create a variable-reference cycle:
       Initializing.
       Getting section buildout.
       Initializing section buildout.
+      Getting option buildout:x.
       Getting option buildout:y.
       Getting option buildout:z.
       Getting option buildout:x.
-      Getting option buildout:y.
     Error: Circular reference in substitutions.
 
 It is an error to use funny characters in variable refereces:
