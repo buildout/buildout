@@ -4,6 +4,10 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- remove `data_files` from `setup.py`, which was installing README.txt
+  in current directory during installation
+  [Domen Kožar]
+
 - fixed all builds on travis-ci
   [Domen Kožar]
 

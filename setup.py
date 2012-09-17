@@ -77,8 +77,6 @@ setup(
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://pypi.python.org/pypi/zc.buildout',
-
-    data_files = [('.', ['README.txt'])],
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
