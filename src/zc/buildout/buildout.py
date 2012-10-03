@@ -1451,24 +1451,7 @@ def _dists_sig(dists):
 
 def _update_section(s1, s2):
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
-    for k, v in list(s2.items()):
-        v2, note2 = v
-        if k.endswith('+'):
-            key = k.rstrip(' +')
-            v1, note1 = s1.get(key, ("", ""))
-            newnote = ' [+] '.join((note1, note2)).strip()
-            s2[key] = "\n".join((v1).split('\n') +
-                v2.split('\n')), newnote
-            del s2[k]
-        elif k.endswith('-'):
-            key = k.rstrip(' -')
-            v1, note1 = s1.get(key, ("", ""))
-            newnote = ' [-] '.join((note1, note2)).strip()
-            s2[key] = ("\n".join(
-                [v for v in v1.split('\n')
-                   if v not in v2.split('\n')]), newnote)
-            del s2[k]
-
+    _apply_assignation_operators(s1, s2)
     s1.update(s2)
     return s1
 
@@ -1481,7 +1464,13 @@ def _update(d1, d2):
     return d1
 
 def _apply_assignation_operators(s1, s2):
-    """Modify s2 in-place: apply += and -= operators of s2 based on s1."""
+    """Apply += and -= operators from s2 to s1.
+
+    .. warning::
+
+       Modifies s1 and s2 in place. So pass copies if necessary.
+
+    """
     for k, v in list(s2.items()):
         v2, note2 = v
         if k.endswith('+'):
