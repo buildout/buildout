@@ -1395,8 +1395,8 @@ def _open(base, filename, seen, dl_options, override, downloaded):
         eresult = _open(base, extends.pop(0), seen, dl_options, override,
                         downloaded)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override,
-                    downloaded))
+            _merge_bases(eresult, _open(base, fname, seen, dl_options,
+                                        override, downloaded))
         result = _update(eresult, result)
 
     seen.pop()
@@ -1476,6 +1476,50 @@ def _update(d1, d2):
     for section in d2:
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
+        else:
+            d1[section] = d2[section]
+    return d1
+
+def _apply_assignation_operators(s1, s2):
+    """Modify s2 in-place: apply += and -= operators of s2 based on s1."""
+    for k, v in list(s2.items()):
+        v2, note2 = v
+        if k.endswith('+'):
+            key = k.rstrip(' +')
+            v1, note1 = s1.get(key, ("", ""))
+            newnote = ' [+] '.join((note1, note2)).strip()
+            s2[key] = "\n".join((v1).split('\n') +
+                v2.split('\n')), newnote
+            del s2[k]
+        elif k.endswith('-'):
+            key = k.rstrip(' -')
+            v1, note1 = s1.get(key, ("", ""))
+            newnote = ' [-] '.join((note1, note2)).strip()
+            s2[key] = ("\n".join(
+                [v for v in v1.split('\n')
+                   if v not in v2.split('\n')]), newnote)
+            del s2[k]
+
+def _merge_bases_sections(s1, s2):
+    s2 = s2.copy() # avoid mutating the second argument, which is unexpected
+    # On s1, keep only = operators, i.e. apply += and -= operators if any.
+    _apply_assignation_operators(s1, s1)
+    # Same on s2: keep only = operators.
+    _apply_assignation_operators(s2, s2)
+    for k, v in list(s2.items()):
+        v2, note2 = v
+        if k in s1:
+            v1, note1 = s1[k]
+            newnote = ' [+] '.join((note1, note2)).strip()
+            s1[k] = "\n".join((v1).split('\n') + v2.split('\n')), newnote
+        else:
+            s1[k] = s2[k]
+    return s1
+
+def _merge_bases(d1, d2):
+    for section in d2:
+        if section in d1:
+            d1[section] = _merge_bases_sections(d1[section], d2[section])
         else:
             d1[section] = d2[section]
     return d1
