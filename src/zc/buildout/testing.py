@@ -503,3 +503,9 @@ normalize_exception_type_for_python_2_and_3 = (
     re.compile(r'^(\w+\.)*([A-Z][A-Za-z0-9]+Error: )'),
     '\2')
 
+not_found = (re.compile(r'^Not found: [^\n]+/\w+/\r?\n', re.M), '')
+
+ignore_not_upgrading = (
+    re.compile(
+    'Not upgrading because not running a local buildout command.\n'
+    ), '')
