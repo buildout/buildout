@@ -393,8 +393,10 @@ class Buildout(DictMixin):
         sep = re.compile(r'[\\/]')
         if args:
             eggs = '\n  '.join(a for a in args if not sep.search(a))
+            sepsub = os.path.sep == '/' and '/' or re.escape(os.path.sep)
             paths = '\n  '.join(
-                sep.sub(os.path.sep, a) for a in args if sep.search(a))
+                sep.sub(sepsub, a)
+                for a in args if sep.search(a))
             f.write('[buildout]\n'
                     'parts = py\n'
                     '\n'

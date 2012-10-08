@@ -94,6 +94,8 @@ def _get_index(index_url, find_links, allow_hosts=('*',)):
 
     if index_url is None:
         index_url = default_index_url
+    if index_url.startswith('file://'):
+        index_url = index_url[7:]
     index = AllowHostsPackageIndex(index_url, hosts=allow_hosts)
 
     if find_links:
@@ -433,6 +435,7 @@ class Installer:
 
             # Retrieve the dist:
             if avail is None:
+                self._index.obtain(requirement)
                 raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
@@ -1049,7 +1052,10 @@ def _create_script(contents, dest):
 
     if changed:
         open(dest, 'w').write(contents)
-        logger.info("Generated script %r.", script)
+        logger.info(
+            "Generated script %r.",
+            # Normalize for windows
+            script.endswith('-script.py') and script[:-10] or script)
 
         try:
             os.chmod(dest, 493) # 0755
