@@ -1394,11 +1394,14 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 
     if extends:
         extends = extends.split()
+        # Parse the first base.
         eresult = _open(base, extends.pop(0), seen, dl_options, override,
                         downloaded)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override,
-                    downloaded))
+            # Merge bases.
+            _merge_bases(eresult, _open(base, fname, seen, dl_options,
+                                        override, downloaded))
+        # Override bases result with current file's result.
         result = _update(eresult, result)
 
     seen.pop()
@@ -1453,6 +1456,26 @@ def _dists_sig(dists):
 
 def _update_section(s1, s2):
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
+    _apply_assignation_operators(s1, s2)
+    s1.update(s2)
+    return s1
+
+def _update(d1, d2):
+    for section in d2:
+        if section in d1:
+            d1[section] = _update_section(d1[section], d2[section])
+        else:
+            d1[section] = d2[section]
+    return d1
+
+def _apply_assignation_operators(s1, s2):
+    """Apply += and -= operators from s2 to s1.
+
+    .. warning::
+
+       Modifies s1 and s2 in place. So provide copies if necessary.
+
+    """
     for k, v in list(s2.items()):
         v2, note2 = v
         if k.endswith('+'):
@@ -1471,13 +1494,36 @@ def _update_section(s1, s2):
                    if v not in v2.split('\n')]), newnote)
             del s2[k]
 
-    s1.update(s2)
+def _merge_bases_sections(s1, s2):
+    """Merge s1 and s2 sections and return updated s1.
+
+    .. note:: s1 is modified in place.
+
+    """
+    s2 = s2.copy() # avoid mutating the second argument, which is unexpected
+    # On s1, keep only = operators, i.e. apply += and -= operators if any.
+    _apply_assignation_operators(s1, s1)
+    # Same on s2: keep only = operators.
+    _apply_assignation_operators(s2, s2)
+    # Instead of overriding s1 with s2, combine values for duplicate keys.
+    for k, v in list(s2.items()):
+        v2, note2 = v
+        if k in s1:
+            v1, note1 = s1[k]
+            v1_items = set(v1.split('\n'))
+            v2_items = set(v2.split('\n'))
+            v1_items = v1_items.union(v2_items)
+            newnote = ' [+] '.join((note1, note2)).strip()
+            s1[k] = "\n".join(v1_items), newnote
+        else:
+            s1[k] = s2[k]
     return s1
 
-def _update(d1, d2):
+def _merge_bases(d1, d2):
+    """Combine d1 and d2 bases in d1 (in place) and return updated d1."""
     for section in d2:
         if section in d1:
-            d1[section] = _update_section(d1[section], d2[section])
+            d1[section] = _merge_bases_sections(d1[section], d2[section])
         else:
             d1[section] = d2[section]
     return d1
