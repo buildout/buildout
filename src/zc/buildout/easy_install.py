@@ -29,6 +29,7 @@ import setuptools.archive_util
 import setuptools.command.setopt
 import setuptools.package_index
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -67,6 +68,7 @@ buildout_and_distribute_path = [
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
 
+exec_mask = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
 
 class IncompatibleVersionError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
@@ -1058,7 +1060,7 @@ def _create_script(contents, dest):
             script.endswith('-script.py') and script[:-10] or script)
 
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, os.stat(dest).st_mode | exec_mask)
         except (AttributeError, os.error):
             pass
 
@@ -1124,7 +1126,7 @@ def _pyscript(path, dest, rsetup):
     if changed:
         open(dest, 'w').write(contents)
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, os.stat(dest).st_mode | exec_mask)
         except (AttributeError, os.error):
             pass
         logger.info("Generated interpreter %r.", script)
