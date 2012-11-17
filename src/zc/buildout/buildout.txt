@@ -143,7 +143,7 @@ and then we'll create a source file for our mkdir recipe:
     ...         pass
     ... """)
 
-Currently, recipes must define 3 methods [#future_recipe_methods]_:
+Currently, recipes must define 3 methods:
 
 - a constructor,
 
@@ -207,7 +207,7 @@ information by adding any new files returned by the update method.
 
 We need to provide packaging information so that our recipe can be
 installed as a develop egg. The minimum information we need to specify
-[#packaging_info]_ is a name.  For recipes, we also need to define the
+is a name.  For recipes, we also need to define the
 names of the recipe classes as entry points.  Packaging information is
 provided via a setup.py script:
 
