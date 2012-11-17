@@ -53,11 +53,10 @@ import pkg_resources
 
 ######################################################################
 # Install buildout
-
 if subprocess.call(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env = {'PYTHONPATH': os.path.dirname(pkg_resources.__file__)}):
+    env=dict(os.environ, PYTHONPATH=os.path.dirname(pkg_resources.__file__))):
     raise RuntimeError("buildout build failed.")
 
 pkg_resources.working_set.add_entry('src')

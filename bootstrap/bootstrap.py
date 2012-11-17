@@ -98,7 +98,6 @@ if find_links:
 
 distribute_path = ws.find(
     pkg_resources.Requirement.parse('distribute')).location
-env = dict(os.environ, PYTHONPATH=distribute_path)
 
 requirement = 'zc.buildout'
 version = options.version
@@ -135,7 +134,7 @@ if version:
 cmd.append(requirement)
 
 import subprocess
-if subprocess.call(cmd, env=env) != 0:
+if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=distribute_path)) != 0:
     raise Exception(
         "Failed to execute command:\n%s",
         repr(cmd)[1:-1])

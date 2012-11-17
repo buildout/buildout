@@ -48,6 +48,7 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.tests.normalize_bang,
                zc.buildout.tests.normalize_S,
+               zc.buildout.testing.not_found,
                (re.compile('[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile('[d-]  distribute-[^-]+-'), 'distribute-X-'),
@@ -61,6 +62,7 @@ def test_suite():
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
+               zc.buildout.testing.not_found,
                (re.compile('__buildout_signature__ = '
                            'sample-\S+\s+'
                            'zc.recipe.egg-\S+\s+'
@@ -80,6 +82,7 @@ def test_suite():
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.not_found,
                 (re.compile("(d  ((ext)?demo(needed)?|other)"
                             "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
