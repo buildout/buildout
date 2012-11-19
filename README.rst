@@ -58,7 +58,7 @@ For example, using curl:
 
   curl https://raw.github.com/buildout/buildout/master/bootstrap/bootstrap.py > bootstrap.py
 
-Since this is still an alpha release, you'll need to supply the -y
+Since this is still an alpha release, you'll need to supply the -t
 option to bootstrap.py::
 
   python bootstrap.py -t
