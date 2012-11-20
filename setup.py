@@ -22,10 +22,12 @@ def read(*rnames):
 
 doc_intro = """
 
-Below, you'll find doctest-based documentation.  It was an expoeriment
+Below, you'll find doctest-based documentation.  It was an experiment
 in reusing tests as documentation.  The experiment didn't go that
 well, but there may be details below that aren't easy to find on
 buildout.org yet.
+
+.. contents ::
 
 doctest-based Documentation
 ***************************
