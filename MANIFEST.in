@@ -1,4 +1,3 @@
 recursive-include src/zc *.txt
-recursive-include src/zc *.rst
 include *.txt
 include *.rst
