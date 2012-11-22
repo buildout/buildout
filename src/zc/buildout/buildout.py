@@ -286,11 +286,6 @@ class Buildout(DictMixin):
                 self._error('Invalid value for newest option: %s', newest)
         self.newest = (newest == 'true')
 
-        # This is a hacked version of zc.buildout for 1.4.4.
-        # This means that buildout uses the defaults set up above.  The point
-        # of it is to keep from migrating to 1.5 unless explicitly
-        # requested.  This lets 1.4.4 be an "aspirin release" that people can
-        # use if they are having trouble with the 1.5 releases.
         versions = {}
         versions_section = options.get('versions')
         if versions_section:
