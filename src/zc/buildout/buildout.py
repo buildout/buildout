@@ -287,6 +287,7 @@ class Buildout(DictMixin):
         self.newest = (newest == 'true')
 
         versions = {}
+        self.versions = versions
         versions_section = options.get('versions')
         if versions_section:
             versions.update(dict(self[versions_section]))
@@ -853,6 +854,16 @@ class Buildout(DictMixin):
 
         if not self.newest:
             return
+
+        # Prevent downgrading due to prefer-final:
+        options = self['buildout']
+        if not ('zc.buildout-version' in options
+                or
+                'zc.buildout' in self.versions):
+            v = pkg_resources.working_set.find(
+                pkg_resources.Requirement.parse('zc.buildout')
+                ).version
+            options['zc.buildout-version'] = '>=' + v
 
         ws = zc.buildout.easy_install.install(
             [

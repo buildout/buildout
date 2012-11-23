@@ -2261,7 +2261,7 @@ database is shown.
     ... """)
 
     >>> print_(system(buildout+' -vv'), end='') # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'distribute'.
+    Installing 'zc.buildout >=1.9a1', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6
@@ -2289,6 +2289,7 @@ database is shown.
     socket-timeout =
     use-dependency-links = true
     verbosity = 20
+    zc.buildout-version = >=1.9a1
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
