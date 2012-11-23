@@ -727,8 +727,14 @@ def install(specs, dest,
             executable=sys.executable,
             always_unzip=None, # Backward compat :/
             path=None, working_set=None, newest=True, versions=None,
-            use_dependency_links=None, allow_hosts=('*',)):
+            use_dependency_links=None, allow_hosts=('*',),
+            include_site_packages=None,
+            allowed_eggs_from_site_packages=None,
+            ):
     assert executable == sys.executable, (executable, sys.executable)
+    assert include_site_packages is None
+    assert allowed_eggs_from_site_packages is None
+
     installer = Installer(dest, links, index, sys.executable,
                           always_unzip, path,
                           newest, versions, use_dependency_links,
@@ -831,12 +837,17 @@ def develop(setup, dest,
         [f() for f in undo]
 
 
-def working_set(specs, executable, path=None):
+def working_set(specs, executable, path=None,
+                include_site_packages=None,
+                allowed_eggs_from_site_packages=None):
     # Backward compat:
     if path is None:
         path = executable
     else:
         assert executable == sys.executable, (executable, sys.executable)
+    assert include_site_packages is None
+    assert allowed_eggs_from_site_packages is None
+
     return install(specs, None, path=path)
 
 def scripts(reqs, working_set, executable, dest=None,
