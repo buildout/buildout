@@ -55,11 +55,11 @@ Now we can run the buildout.
 
     >>> print_(system(buildout), end='')
     GET 200 /
-    GET 200 /demoneeded-1.2c1.zip
+    GET 200 /demoneeded-1.1.zip
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
 
 Notice that the egg was retrieved from the logging server.
 
@@ -112,7 +112,7 @@ to look for eggs.
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
 
 This time the dependency egg was found on the server without logging
 configured.
@@ -134,7 +134,7 @@ specify different places to look for the dependency egg.
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
 
 So when both setuptools and buildout specify places to search for
 eggs, the dependency_links takes precedence over find-links.
@@ -164,7 +164,7 @@ Here is an example of using this option to disable dependency_links.
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
 
 Notice that this time the egg isn't downloaded from the logging server.
 
@@ -189,4 +189,4 @@ before. The dependency's are looked for first in the logging server.
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.

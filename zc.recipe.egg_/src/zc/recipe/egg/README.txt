@@ -67,13 +67,13 @@ Let's run the buildout:
     Getting distribution for 'demo<0.3'.
     Got demo 0.2.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
 
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
-    d  demoneeded-1.2c1-py2.3.egg
+    d  demoneeded-1.1-py2.3.egg
     d  distribute-0.6-py2.3.egg
     d  zc.buildout-1.0-py2.3.egg
 
@@ -204,7 +204,7 @@ This is useful for debugging and testing.
 If we run the demo script, it prints out some minimal data:
 
     >>> print_(system(join(sample_buildout, 'bin', 'demo')), end='')
-    2 2
+    2 1
 
 The value it prints out happens to be some values defined in the
 modules installed.
@@ -221,7 +221,7 @@ the bits if the path added to reflect the eggs:
     ... """).replace('>>> ', '').replace('... ', ''), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     demo-0.2-py2.4.egg
-    demoneeded-1.2c1-py2.4.egg
+    demoneeded-1.1-py2.4.egg
 
 Egg updating
 ------------
@@ -262,7 +262,7 @@ We didn't get an update for demo:
 
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
-    d  demoneeded-1.2c1-py2.3.egg
+    d  demoneeded-1.1-py2.3.egg
     d  distribute-0.6-py2.3.egg
     d  zc.buildout-1.0-py2.3.egg
 
@@ -272,22 +272,22 @@ we'll get an update for demo:
     >>> print_(system(buildout), end='')
     Updating demo.
     Getting distribution for 'demo'.
-    Got demo 0.4c1.
+    Got demo 0.3.
     Generated script '/sample-buildout/bin/demo'.
 
 Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
-    d  demo-0.4c1-py2.3.egg
-    d  demoneeded-1.2c1-py2.3.egg
+    d  demo-0.3-py2.3.egg
+    d  demoneeded-1.1-py2.3.egg
     d  distribute-0.6-py2.4.egg
     d  zc.buildout-1.0-py2.4.egg
 
 The script is updated too:
 
     >>> print_(system(join(sample_buildout, 'bin', 'demo')), end='')
-    4 2
+    3 1
 
 Controlling script generation
 -----------------------------
@@ -372,8 +372,8 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]
@@ -425,8 +425,8 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.4c1-pyN.N.egg'),
-      join(base, 'eggs/demoneeded-1.2c1-pyN.N.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/foo/bar',
       join(base, 'spam'),
       ]
@@ -472,8 +472,8 @@ each individual script section:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.4c1-pyN.N.egg'),
-      join(base, 'eggs/demoneeded-1.2c1-pyN.N.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/foo/bar',
       join(base, 'spam'),
       ]
@@ -519,8 +519,8 @@ to be included in generated scripts:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]
@@ -577,8 +577,8 @@ declare entry points using the entry-points option:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.4c1-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg',
+      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]

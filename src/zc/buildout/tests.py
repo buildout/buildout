@@ -1708,13 +1708,13 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     >>> print_(system(buildout), end='')
     Installing x.
     Getting distribution for 'demo'.
-    Got demo 0.4c1.
+    Got demo 0.3.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
     Generated script '/sample-buildout/bin/demo'.
 
     >>> print_(system(join('bin', 'demo')), end='')
-    4 2
+    3 1
 
     >>> write('buildout.cfg',
     ... '''
@@ -1735,7 +1735,7 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     Generated script '/sample-buildout/bin/demo'.
 
     >>> print_(system(join('bin', 'demo')), end='')
-    1 2
+    1 1
     """
 
 if sys.version_info > (2, 4):
@@ -2213,7 +2213,7 @@ def buildout_prefer_final_option():
 The prefer-final buildout option can be used for override the default
 preference for newer distributions.
 
-The default is prefer-final = false:
+The default is prefer-final = true:
 
     >>> write('buildout.cfg',
     ... '''
@@ -2229,34 +2229,12 @@ The default is prefer-final = false:
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'distribute'.
     ...
-    Picked: demo = 0.4c1
+    Picked: demo = 0.3
     ...
-    Picked: demoneeded = 1.2c1
+    Picked: demoneeded = 1.1
 
 Here we see that the final versions of demo and demoneeded are used.
-We get the same behavior if we add prefer-final = false
-
-    >>> write('buildout.cfg',
-    ... '''
-    ... [buildout]
-    ... parts = eggs
-    ... find-links = %(link_server)s
-    ... prefer-final = false
-    ...
-    ... [eggs]
-    ... recipe = zc.recipe.egg:eggs
-    ... eggs = demo
-    ... ''' % globals())
-
-    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'distribute'.
-    ...
-    Picked: demo = 0.4c1
-    ...
-    Picked: demoneeded = 1.2c1
-
-If we specify prefer-final = true, we'll get the newest
-distributions:
+We get the same behavior if we add prefer-final = true
 
     >>> write('buildout.cfg',
     ... '''
@@ -2276,6 +2254,28 @@ distributions:
     Picked: demo = 0.3
     ...
     Picked: demoneeded = 1.1
+
+If we specify prefer-final = false, we'll get the newest
+distributions:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... find-links = %(link_server)s
+    ... prefer-final = false
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = demo
+    ... ''' % globals())
+
+    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
+    Installing 'zc.buildout', 'distribute'.
+    ...
+    Picked: demo = 0.4c1
+    ...
+    Picked: demoneeded = 1.2c1
 
 We get an error if we specify anything but true or false:
 
@@ -2398,8 +2398,8 @@ def pyc_and_pyo_files_have_correct_paths():
     ... ''')
 
     >>> print_(system(join('bin', 'py')+ ' t.py'), end='')
-    /sample-buildout/eggs/demo-0.4c1-py2.4.egg/eggrecipedemo.py
-    /sample-buildout/eggs/demoneeded-1.2c1-py2.4.egg/eggrecipedemoneeded.py
+    /sample-buildout/eggs/demo-0.3-py2.4.egg/eggrecipedemo.py
+    /sample-buildout/eggs/demoneeded-1.1-py2.4.egg/eggrecipedemoneeded.py
     """
 
 def dont_mess_with_standard_dirs_with_variable_refs():

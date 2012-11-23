@@ -134,7 +134,7 @@ _buildout_default_options = _annotate_section({
     'newest': 'true',
     'offline': 'false',
     'parts-directory': 'parts',
-    'prefer-final': 'false',
+    'prefer-final': 'true',
     'python': 'buildout',
     'socket-timeout': '',
     'use-dependency-links': 'true',

@@ -764,7 +764,7 @@ COMMAND_LINE_VALUE).
         /sample-buildout/buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
-    prefer-final= false
+    prefer-final= true
         DEFAULT_VALUE
     python= buildout
         DEFAULT_VALUE
@@ -2284,7 +2284,7 @@ database is shown.
     offline = false
     parts =
     parts-directory = /sample-buildout/parts
-    prefer-final = false
+    prefer-final = true
     python = buildout
     socket-timeout =
     use-dependency-links = true
@@ -2581,11 +2581,11 @@ or paths to use:
     Got zc.recipe.egg 1.3.3dev.
     Installing py.
     Getting distribution for 'demo'.
-    Got demo 0.4c1.
+    Got demo 0.3.
     Getting distribution for 'other'.
     Got other 1.0.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.2c1.
+    Got demoneeded 1.1.
     Generated script '/sample-bootstrapped/bin/demo'.
     Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
