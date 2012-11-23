@@ -2323,10 +2323,10 @@ def wont_downgrade_due_to_prefer_final():
     ... parts =
     ... zc.buildout-version = >.1
     ... ''')
-    >>> [l.split('=', 1)[1].strip()
+    >>> [str(l.split('=', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
     ...        if l.startswith('zc.buildout-version =')]
-    [u'>.1']
+    ['>.1']
 
     >>> write('buildout.cfg',
     ... '''
