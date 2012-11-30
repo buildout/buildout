@@ -1,6 +1,12 @@
 Change History
 **************
 
+2.0.0a5 (2012-??-??)
+====================
+
+- Versions in versions sections can now be simple constraints, like
+  >=2.0dev in addition to being simple versions.
+
 2.0.0a4 (2012-11-19)
 ====================
 

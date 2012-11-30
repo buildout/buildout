@@ -67,11 +67,6 @@ buildout_and_distribute_path = [
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
 
-
-class IncompatibleVersionError(zc.buildout.UserError):
-    """A specified version is incompatible with a given requirement.
-    """
-
 FILE_SCHEME = re.compile('file://', re.I).match
 
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
@@ -548,17 +543,9 @@ class Installer:
 
 
     def _constrain(self, requirement):
-        version = self._versions.get(requirement.project_name)
-        if version:
-            if version not in requirement:
-                logger.error("The version, %s, is not consistent with the "
-                             "requirement, %r.", version, str(requirement))
-                raise IncompatibleVersionError("Bad version", version)
-
-            requirement = pkg_resources.Requirement.parse(
-                "%s[%s] ==%s" % (requirement.project_name,
-                               ','.join(requirement.extras),
-                               version))
+        constraint = self._versions.get(requirement.project_name)
+        if constraint:
+            requirement = _constrained_requirement(constraint, requirement)
 
         return requirement
 
@@ -1290,3 +1277,108 @@ def redo_pyc(egg):
 
                 call_subprocess(args)
 
+def _constrained_requirement(constraint, requirement):
+    return pkg_resources.Requirement.parse(
+        "%s[%s]%s" % (
+            requirement.project_name,
+            ','.join(requirement.extras),
+            _constrained_requirement_constraint(constraint, requirement)
+            )
+        )
+
+class IncompatibleConstraintError(zc.buildout.UserError):
+    """A specified version is incompatible with a given requirement.
+    """
+
+def bad_constraint(constraint, requirement):
+    logger.error("The constraint, %s, is not consistent with the "
+                 "requirement, %r.", constraint, str(requirement))
+    raise IncompatibleConstraintError("Bad constraint", constraint, requirement)
+
+_parse_constraint = re.compile(r'([<>]=?)(\S+)').match
+_comparef = {
+    '>' : lambda x, y: x >  y,
+    '>=': lambda x, y: x >= y,
+    '<' : lambda x, y: x <  y,
+    '<=': lambda x, y: x <= y,
+    }
+_opop = {'<': '>', '>': '<'}
+_opeqop = {'<': '>=', '>': '<='}
+def _constrained_requirement_constraint(constraint, requirement):
+
+    # Simple cases:
+
+    # No specs tp merge with:
+    if not requirement.specs:
+        if not constraint[0] in '<=>':
+            constraint = '==' + constraint
+        return constraint
+
+    # Simple single-version constraint:
+    if constraint[0] not in '<>':
+        if constraint.startswith('='):
+            assert constraint.startswith('==')
+            constraint = constraint[2:]
+        if constraint in requirement:
+            return '=='+constraint
+        bad_constraint(constraint, requirement)
+
+
+    # OK, we have a complex constraint (<. <=, >=, or >) and specs.
+    # In many cases, the spec needs to filter constraints.
+    # In other cases, the constraints need to limit the constraint.
+
+    specs = requirement.specs
+    cop, cv = _parse_constraint(constraint).group(1, 2)
+    pcv = pkg_resources.parse_version(cv)
+
+    # Special case, all of the specs are == specs:
+    if not [op for (op, v) in specs if op != '==']:
+        # There aren't any non-== specs.
+
+        # See if any of the specs satisfy the constraint:
+        specs = [op+v for (op, v) in specs
+                 if _comparef[cop](pkg_resources.parse_version(v), pcv)]
+        if specs:
+            return ','.join(specs)
+
+        bad_constraint(constraint, requirement)
+
+    cop0 = cop[0]
+
+    # Normalize specs by splitting >= and <= specs. We meed tp do this
+    # becaise these have really weird semantics. Also cache parsed
+    # versions, which we'll need for comparisons:
+    specs = []
+    for op, v in requirement.specs:
+        pv = pkg_resources.parse_version(v)
+        if op == _opeqop[cop0]:
+            specs.append((op[0], v, pv))
+            specs.append(('==', v, pv))
+        else:
+            specs.append((op, v, pv))
+
+    # Error if there are opposite specs that conflict with the constraint
+    # and there are no equal specs that satisfy the constraint:
+    if [v for (op, v, pv) in specs
+        if op == _opop[cop0] and _comparef[_opop[cop0]](pv, pcv)
+        ]:
+        eqspecs = [op+v for (op, v, pv) in specs
+                   if _comparef[cop](pv, pcv)]
+        if eqspecs:
+            # OK, we do, use these:
+            return ','.join(eqspecs)
+
+        bad_constraint(constraint, requirement)
+
+    # We have a combination of range constraints and eq specs that
+    # satisfy the requirement.
+
+    # Return the constraint + the filtered specs
+    return ','.join(
+        op+v
+        for (op, v) in (
+            [(cop, cv)] +
+            [(op, v) for (op, v, pv) in specs if _comparef[cop](pv, pcv)]
+            )
+        )
