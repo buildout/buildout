@@ -4,6 +4,12 @@ Change History
 2.0.0a5 (2012-??-??)
 ====================
 
+- Buildout now prefers final releases by default
+  (buildout:prefer-final now defaults to true, rather than false.)
+
+  However, if buildout is bootstrapped with a non-final release, it
+  won't downgrade itself to a final release.
+
 - Versions in versions sections can now be simple constraints, like
   >=2.0dev in addition to being simple versions.
 
