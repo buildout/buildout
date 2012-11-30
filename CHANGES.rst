@@ -13,6 +13,9 @@ Change History
 - Versions in versions sections can now be simple constraints, like
   >=2.0dev in addition to being simple versions.
 
+  Buildout 2 leverages this to make sure it used
+  zc.recipe.egg>=2.0.0a3, which mainly matters for Python 3.
+
 2.0.0a4 (2012-11-19)
 ====================
 

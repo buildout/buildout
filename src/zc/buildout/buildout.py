@@ -286,7 +286,7 @@ class Buildout(DictMixin):
                 self._error('Invalid value for newest option: %s', newest)
         self.newest = (newest == 'true')
 
-        versions = {}
+        versions = {'zc.recipe.egg': '>=2.0.0a3'}
         self.versions = versions
         versions_section = options.get('versions')
         if versions_section:

@@ -2578,8 +2578,8 @@ or paths to use:
     >>> remove('setup.cfg')
     >>> print_(system(buildout + ' -csetup.cfg init demo other ./src'), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
-    Getting distribution for 'zc.recipe.egg'.
-    Got zc.recipe.egg 1.3.3dev.
+    Getting distribution for 'zc.recipe.egg>=2.0.0a3'.
+    Got zc.recipe.egg
     Installing py.
     Getting distribution for 'demo'.
     Got demo 0.3.
