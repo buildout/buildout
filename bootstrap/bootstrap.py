@@ -47,9 +47,12 @@ parser.add_option("-t", "--accept-buildout-test-releases",
                         "extensions for you.  If you use this flag, "
                         "bootstrap and buildout will get the newest releases "
                         "even if they are alphas or betas."))
-parser.add_option("-c", None, action="store", dest="config_file",
+parser.add_option("-c", "--config-file",
                    help=("Specify the path to the buildout configuration "
                          "file to be used."))
+parser.add_option("-f", "--find-links",
+                   help=("Specify a URL to search for buildout releases"))
+
 
 options, args = parser.parse_args()
 
@@ -94,8 +97,9 @@ cmd = [sys.executable, '-c',
 
 find_links = os.environ.get(
     'bootstrap-testing-find-links',
-    'https://github.com/buildout/buildout/downloads'
-    if options.accept_buildout_test_releases else None
+    options.find_links or
+    ('https://github.com/buildout/buildout/downloads'
+     if options.accept_buildout_test_releases else None)
     )
 if find_links:
     cmd.extend(['-f', find_links])
