@@ -52,11 +52,15 @@ Buildout is a project designed to solve 2 problems:
 To learn more about buildout, including how to use it, see
 http://buildout.org/.
 
-To get the bootstrap.py file for this release of buildout, get
-``https://raw.github.com/buildout/buildout/master/bootstrap/bootstrap.py``.
-For example, using curl:
+This version of buildout is available from the github project
+download page, not from pypi.
 
-  curl https://raw.github.com/buildout/buildout/master/bootstrap/bootstrap.py > bootstrap.py
+To get the bootstrap.py file for this release of buildout, get
+``https://github.com/downloads/buildout/buildout/bootstrap.py``.
+
+For example, using wget:
+
+  wget https://github.com/downloads/buildout/buildout/bootstrap.py
 
 Since this is still an alpha release, you'll need to supply the -t
 option to bootstrap.py::
