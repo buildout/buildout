@@ -58,9 +58,9 @@ long_description=(
         read('src', 'zc', 'buildout', 'easy_install.txt')
         + '\n' +
         read('CHANGES.rst')
-        + '\n' +
-        'Download\n'
-        '**********************\n'
+        # + '\n' +
+        # 'Download\n'
+        # '**********************\n'
         )
 
 entry_points = """
