@@ -183,7 +183,7 @@ class Download(object):
                 # tmp_path, headers = urllib.urlretrieve(url, tmp_path)
                 # to fix https://bugs.launchpad.net/zc.buildout/+bug/484735
                 tmp_sock = urllib2.urlopen(url)
-                tmp_file = open(tmp_path, 'w')
+                tmp_file = open(tmp_path, 'wb')
                 tmp_file.write(tmp_sock.read())
                 tmp_file.close()
                 # end proxy
