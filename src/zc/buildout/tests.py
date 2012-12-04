@@ -2691,7 +2691,7 @@ def test_constrained_requirement():
     ...         g = _constrained_requirement(c, o)
     ...     except IncompatibleConstraintError:
     ...         g = IncompatibleConstraintError
-    ...     if g != e:
+    ...     if str(g) != str(e):
     ...         print_('failed', o, c, g, '!=', e)
     """
 
