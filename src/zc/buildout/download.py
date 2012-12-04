@@ -25,6 +25,7 @@ import re
 import shutil
 import tempfile
 import urllib
+import urllib2
 import urlparse
 import zc.buildout
 
@@ -177,7 +178,16 @@ class Download(object):
 
         try:
             try:
-                tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+                # begin proxy patch
+                # Commenting the following line:
+                # tmp_path, headers = urllib.urlretrieve(url, tmp_path)
+                # to fix https://bugs.launchpad.net/zc.buildout/+bug/484735
+                tmp_sock = urllib2.urlopen(url)
+                tmp_file = open(tmp_path, 'w')
+                tmp_file.write(tmp_sock.read())
+                tmp_file.close()
+                # end proxy
+
                 if not check_md5sum(tmp_path, md5sum):
                     raise ChecksumError(
                         'MD5 checksum mismatch downloading %r' % url)

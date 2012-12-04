@@ -4,6 +4,9 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- Make zc.buildout work behind a cntlm proxy 
+  [ale-rt]
+
 - remove `data_files` from `setup.py`, which was installing README.txt
   in current directory during installation
   [Domen Kožar]
