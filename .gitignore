@@ -8,3 +8,4 @@ python*/
 *.pyc
 *.egg
 *.egg-info
+dist
