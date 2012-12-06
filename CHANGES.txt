@@ -4,6 +4,10 @@ Change History
 1.6.4 (unreleased)
 ==================
 
+- Make zc.buildout work behind a cntlm proxy.
+  Fixes https://bugs.launchpad.net/zc.buildout/+bug/484735
+  [ale-rt]
+
 - remove `data_files` from `setup.py`, which was installing README.txt
   in current directory during installation
   [Domen Kožar]
