@@ -1133,7 +1133,7 @@ class Options(DictMixin):
                 result.update(self._do_extend_raw(iname, raw, doing))
 
             result.update(data)
-            result.pop('<')
+            result.pop('<', None)
             return result
         finally:
             assert doing.pop() == name
