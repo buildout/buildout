@@ -1117,7 +1117,7 @@ class Options(DictMixin):
             raise zc.buildout.UserError("Infinite extending loop %r" % name)
         doing.append(name)
         try:
-            to_do = data.pop('<', None)
+            to_do = data.get('<', None)
             if to_do is None:
                 return data
             __doing__ = 'Loading input sections for %r', name
@@ -1133,6 +1133,7 @@ class Options(DictMixin):
                 result.update(self._do_extend_raw(iname, raw, doing))
 
             result.update(data)
+            result.pop('<')
             return result
         finally:
             assert doing.pop() == name
