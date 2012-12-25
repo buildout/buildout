@@ -7,3 +7,4 @@ parts/
 *.pyc
 *.egg
 *.egg-info
+dist
