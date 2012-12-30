@@ -171,6 +171,8 @@ except ImportError:
         setup_args['download_base'] = options.download_base
     if options.use_distribute:
         setup_args['no_fake'] = True
+        if sys.version_info[:2] == (2, 4):
+            setup_args['version'] = '0.6.32'
     ez['use_setuptools'](**setup_args)
     if 'pkg_resources' in sys.modules:
         reload(sys.modules['pkg_resources'])

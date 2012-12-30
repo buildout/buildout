@@ -10,6 +10,8 @@ Change History
 - If buildout is bootstrapped with a non-final release, it
   won't downgrade itself to a final release.
 
+- Fix: distribute 0.6.33 broke Python 2.4 compatibility
+
 - remove `data_files` from `setup.py`, which was installing README.txt
   in current directory during installation
   [Domen Kožar]
