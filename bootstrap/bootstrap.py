@@ -195,6 +195,8 @@ if not has_broken_dash_S:
 find_links = options.download_base
 if not find_links:
     find_links = os.environ.get('bootstrap-testing-find-links')
+if not find_links and options.accept_buildout_test_releases:
+    find_links = 'https://github.com/buildout/buildout/downloads'
 if find_links:
     cmd.extend(['-f', quote(find_links)])
 
