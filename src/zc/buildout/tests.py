@@ -3630,6 +3630,53 @@ def increment_on_command_line():
       recipe='zc.buildout:debug'
     """
 
+def test_constrained_requirement():
+    """
+    zc.buildout.easy_install._constrained_requirement(constraint, requitement)
+
+    Transforms an environment by applying a constraint.
+
+    Here's a table of examples:
+
+    >>> from zc.buildout.easy_install import IncompatibleConstraintError
+    >>> examples = [
+    ... # original, constraint, transformed
+    ... ('x',        '1',        'x==1'),
+    ... ('x>1',      '2',        'x==2'),
+    ... ('x>3',      '2',        IncompatibleConstraintError),
+    ... ('x>1',      '>2',       'x>2'),
+    ... ('x>1',      '>=2',      'x>=2'),
+    ... ('x<1',      '>2',       IncompatibleConstraintError),
+    ... ('x<=1',     '>=1',      'x>=1,<1,==1'),
+    ... ('x<3',      '>1',       'x>1,<3'),
+    ... ('x==2',     '>1',       'x==2'),
+    ... ('x==2',     '>=2',      'x==2'),
+    ... ('x[y]',        '1',        'x[y]==1'),
+    ... ('x[y]>1',      '2',        'x[y]==2'),
+    ... ('x<3',      '2',        'x==2'),
+    ... ('x<1',      '2',        IncompatibleConstraintError),
+    ... ('x<3',      '<2',       'x<2'),
+    ... ('x<3',      '<=2',      'x<=2'),
+    ... ('x>3',      '<2',       IncompatibleConstraintError),
+    ... ('x>=1',     '<=1',      'x<=1,>1,==1'),
+    ... ('x<3',      '>1',       'x>1,<3'),
+    ... ('x==2',     '<3',       'x==2'),
+    ... ('x==2',     '<=2',      'x==2'),
+    ... ('x[y]<3',      '2',        'x[y]==2'),
+    ... ]
+    >>> from zc.buildout.easy_install import _constrained_requirement
+    >>> for o, c, e in examples:
+    ...     try:
+    ...         o = pkg_resources.Requirement.parse(o)
+    ...         if isinstance(e, str):
+    ...             e = pkg_resources.Requirement.parse(e)
+    ...         g = _constrained_requirement(c, o)
+    ...     except IncompatibleConstraintError:
+    ...         g = IncompatibleConstraintError
+    ...     if str(g) != str(e):
+    ...         print 'failed', o, c, g, '!=', e
+    """
+
 ######################################################################
 
 def make_py_with_system_install(make_py, sample_eggs):
