@@ -4,14 +4,17 @@ Change History
 1.7.0 (unreleased)
 ==================
 
+- Unless version requirements are specified, buildout won't upgrade
+  itself past version 1.
+
 - Versions in versions sections can now be simple constraints, like
   <2.0dev in addition to being simple versions.
 
+  This is used to prevent upgrading zc.recipe.egg and
+  zc.recipe.testrunner past version 1.
+
 - If buildout is bootstrapped with a non-final release, it
   won't downgrade itself to a final release.
-
-- Unless version requirements are specified, buildout won't upgrade
-  itself past version 1.
 
 - Fix: distribute 0.6.33 broke Python 2.4 compatibility
 

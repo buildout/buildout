@@ -2584,7 +2584,7 @@ or paths to use:
     >>> print system(buildout + ' -csetup.cfg init demo other ./src'),
     Creating '/sample-bootstrapped/setup.cfg'.
     Generated script '/sample-bootstrapped/bin/buildout'.
-    Getting distribution for 'zc.recipe.egg'.
+    Getting distribution for 'zc.recipe.egg<2'.
     Got zc.recipe.egg 1.3.3dev.
     Installing py.
     Getting distribution for 'demo'.

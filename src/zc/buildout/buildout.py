@@ -275,13 +275,14 @@ class Buildout(UserDict.DictMixin):
 
         self._setup_logging()
 
-        versions = options.get('versions')
-        if versions:
-            versions = dict(self[versions])
-            zc.buildout.easy_install.default_versions(versions)
-        else:
-            versions = {}
-        self.versions = versions
+        self.versions = {
+            'zc.recipe.egg': '<2',
+            'zc.recipe.testrunner': '<2',
+            }
+        versions_option = options.get('versions')
+        if versions_option:
+            self.versions.update(self[versions_option])
+        zc.buildout.easy_install.default_versions(self.versions)
 
         self.offline = options.get_bool('offline')
         if self.offline:
