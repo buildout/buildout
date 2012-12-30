@@ -188,7 +188,7 @@ def sys_install(setup, dest):
 
 def find_python(version):
     env_friendly_version = ''.join(version.split('.'))
-    
+
     e = os.environ.get('PYTHON%s' % env_friendly_version)
     if e is not None:
         return e
