@@ -65,7 +65,7 @@ Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
     >>> print system(buildout),
-    Getting distribution for 'zc.buildout'.
+    Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.
     Getting distribution for 'setuptools'.
     Got setuptools 99.99.
@@ -200,7 +200,7 @@ directory:
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/develop-eggs'.
-    Getting distribution for 'zc.buildout'.
+    Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.
     Getting distribution for 'setuptools'.
     Got setuptools 99.99.
@@ -233,7 +233,7 @@ We'll mimic this by passing the argument actually in the command line.
     >>> print system(buildout +
     ...              ' buildout:accept-buildout-test-releases=true'),
     ... # doctest: +NORMALIZE_WHITESPACE
-    Getting distribution for 'zc.buildout'.
+    Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 100.0b1.
     Upgraded:
       zc.buildout version 100.0b1,

@@ -277,8 +277,11 @@ class Buildout(UserDict.DictMixin):
 
         versions = options.get('versions')
         if versions:
-            zc.buildout.easy_install.default_versions(dict(self[versions]))
-
+            versions = dict(self[versions])
+            zc.buildout.easy_install.default_versions(versions)
+        else:
+            versions = {}
+        self.versions = versions
 
         self.offline = options.get_bool('offline')
         if self.offline:
@@ -881,13 +884,22 @@ class Buildout(UserDict.DictMixin):
         if not self.newest:
             return
 
-        options = self['buildout']
-
         specs = ['zc.buildout']
         if zc.buildout.easy_install.is_distribute:
             specs.append('distribute')
         else:
             specs.append('setuptools')
+
+        # Prevent downgrading due to prefer-final:
+        options = self['buildout']
+        if not ('zc.buildout-version' in options
+                or
+                'zc.buildout' in self.versions):
+            v = pkg_resources.working_set.find(
+                pkg_resources.Requirement.parse('zc.buildout')
+                ).version
+            options['zc.buildout-version'] = '>=' + v
+
         ws = zc.buildout.easy_install.install(
             [
             (spec + ' ' + options.get(spec+'-version', '')).strip()

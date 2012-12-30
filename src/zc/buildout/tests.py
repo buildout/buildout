@@ -321,7 +321,7 @@ if we hadn't required sampley ourselves:
 If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.99', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
@@ -420,7 +420,7 @@ indicate the eggs from site-packages that have been selected.  You'll see
 we have two: demo 0.3 and demoneeded 1.1.
 
     >>> print system(buildout+" -v"),
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.9.0', 'setuptools'.
     We have a develop egg: zc.buildout V
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = V
@@ -616,7 +616,7 @@ def create_sections_on_command_line():
     ... ''')
 
     >>> print system(buildout + ' foo:bar=1 -vv'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.99', 'setuptools'.
     ...
     [foo]
     bar = 1
@@ -2801,7 +2801,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.9.0', 'setuptools'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
@@ -3092,7 +3092,7 @@ The default is prefer-final = false:
     ... ''' % globals())
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.99', 'setuptools'.
     ...
     Picked: demo = 0.4c1
     ...
@@ -3114,7 +3114,7 @@ We get the same behavior if we add prefer-final = false
     ... ''' % globals())
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.99', 'setuptools'.
     ...
     Picked: demo = 0.4c1
     ...
@@ -3136,7 +3136,7 @@ distributions:
     ... ''' % globals())
 
     >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.99', 'setuptools'.
     ...
     Picked: demo = 0.3
     ...
@@ -3160,6 +3160,50 @@ We get an error if we specify anything but true or false:
     While:
       Initializing.
     Error: Invalid value for prefer-final option: no
+    """
+
+def wont_downgrade_due_to_prefer_final():
+    r"""
+    If we install a non-final buildout version, we don't want to
+    downgrade just bcause we prefer-final.  If a buildout version
+    isn't specified, either through buildout-version or a versions
+    entry, then buildout-version gets set to >=CURRENT_VERSION.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> [v] = [l.split('=', 1)[1].strip()
+    ...        for l in system(buildout+' -vv').split('\n')
+    ...        if l.startswith('zc.buildout-version = ')]
+    >>> v == '>=' + pkg_resources.working_set.find(
+    ...         pkg_resources.Requirement.parse('zc.buildout')
+    ...         ).version
+    True
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... zc.buildout-version = >.1
+    ... ''')
+    >>> [l.split('=', 1)[1].strip()
+    ...        for l in system(buildout+' -vv').split('\n')
+    ...        if l.startswith('zc.buildout-version =')]
+    ['>.1']
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... versions = versions
+    ... [versions]
+    ... zc.buildout = 43
+    ... ''')
+    >>> print system(buildout+' -v'), # doctest: +ELLIPSIS
+    Installing...
+    Error: Couldn't find a distribution for 'zc.buildout==43'.
 
     """
 
@@ -3975,6 +4019,8 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.tests.hide_distribute_additions,
                 hide_zip_safe_message,
+                (re.compile(r'zc.buildout-version = >=\S+'), ''),
+                (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                 (re.compile('__buildout_signature__ = recipes-\S+'),
                  '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                 (re.compile('executable = [\S ]+python\S*', re.I),
@@ -4010,6 +4056,9 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.tests.hide_distribute_additions,
                 hide_zip_safe_message,
+                (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+                (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
+                 ''),
                 (re.compile('__buildout_signature__ = recipes-\S+'),
                  '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                 (re.compile('executable = [\S ]+python\S*', re.I),
@@ -4058,6 +4107,9 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 normalize_bang,
                 zc.buildout.tests.hide_distribute_additions,
+                (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+                (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
+                 ''),
                 (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
                 (re.compile('(zc.buildout|setuptools)-\d+[.]\d+\S*'
                             '-py\d.\d.egg'),
@@ -4115,12 +4167,12 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
-               (re.compile(' at -?0x[^>]+'), '<MEM ADDRESS>'),
-               (re.compile('http://localhost:[0-9]{4,5}/'),
-                'http://localhost/'),
-               (re.compile('[0-9a-f]{32}'), '<MD5 CHECKSUM>'),
-               zc.buildout.testing.normalize_path,
-               ]),
+                (re.compile(' at -?0x[^>]+'), '<MEM ADDRESS>'),
+                (re.compile('http://localhost:[0-9]{4,5}/'),
+                 'http://localhost/'),
+                (re.compile('[0-9a-f]{32}'), '<MD5 CHECKSUM>'),
+                zc.buildout.testing.normalize_path,
+                ]),
             ),
 
         doctest.DocTestSuite(
@@ -4133,6 +4185,8 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.tests.hide_distribute_additions,
                 hide_first_index_page_message,
+                (re.compile(r"Installing 'zc.buildout >=\S+"), 'Installing '),
+                (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile("buildout: Running \S*setup.py"),
                  'buildout: Running setup.py'),
                 (re.compile('(setuptools|distribute)-\S+-'),
@@ -4151,7 +4205,8 @@ def test_suite():
                     '-q develop -mxN -d /sample-buildout/develop-eggs'
                  ),
                 (re.compile(r'^[*]...'), '...'),
-                # for bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section
+                # for 92891
+                # bootstrap_crashes_with_egg_recipe_in_buildout_section
                 (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
                  "Unused options for buildout: 'scripts' 'eggs'."),
                 (re.compile('distribute'), 'setuptools'),

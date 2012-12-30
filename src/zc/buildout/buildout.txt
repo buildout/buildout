@@ -2259,7 +2259,7 @@ database is shown.
     ... """)
 
     >>> print system(buildout+' -vv'), # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'setuptools'.
+    Installing 'zc.buildout >=1.9a1', 'setuptools'.
     We have a develop egg: zc.buildout X.X.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = V.V
@@ -2293,6 +2293,7 @@ database is shown.
     unzip = false
     use-dependency-links = true
     verbosity = 20
+    zc.buildout-version = >=1.9a1
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
