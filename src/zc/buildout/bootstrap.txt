@@ -86,7 +86,7 @@ selected the (generated-locally) 99.99 egg rather than the also-available
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
-            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            '/sample/eggs/zc.buildout-1.99.99-pyN.N.egg'
             ]
     ...
 
@@ -106,11 +106,11 @@ Here's an example.
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
-            '/sample/eggs/zc.buildout-100.0b1-pyN.N.egg'
+            '/sample/eggs/zc.buildout-1.100.0b1-pyN.N.egg'
             ]
     ...
 
-Notice we are now using zc.buildout 100.0b1, a non-final release.
+Notice we are now using zc.buildout 1.100.0b1, a non-final release.
 
 The buildout script remembers the decision to accept early releases, and
 alerts the user.
@@ -141,7 +141,7 @@ As the note says, to undo, you just need to re-run bootstrap without
     "...
         buildout_paths = [
             '/sample/eggs/setuptools-...egg',
-            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            '/sample/eggs/zc.buildout-1.99.99-pyN.N.egg'
             ]
     ...
     >>> ('buildout:accept-buildout-test-releases=true' in
@@ -232,7 +232,7 @@ Let's make sure the generated ``site.py`` uses it::
     "...
         buildout_paths = [
             '/sample/eggs/distribute-...egg',
-            '/sample/eggs/zc.buildout-99.99-pyN.N.egg'
+            '/sample/eggs/zc.buildout-1.99.99-pyN.N.egg'
             ]
     ...
 

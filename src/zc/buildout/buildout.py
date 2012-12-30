@@ -898,7 +898,7 @@ class Buildout(UserDict.DictMixin):
             v = pkg_resources.working_set.find(
                 pkg_resources.Requirement.parse('zc.buildout')
                 ).version
-            options['zc.buildout-version'] = '>=' + v
+            options['zc.buildout-version'] = '>=' + v + ', <2dev'
 
         ws = zc.buildout.easy_install.install(
             [

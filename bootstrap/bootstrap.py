@@ -231,6 +231,8 @@ if version is None and not options.accept_buildout_test_releases:
         bestv = None
         for dist in index[req.project_name]:
             distv = dist.parsed_version
+            if distv >= pkg_resources.parse_version('2dev'):
+                continue
             if _final_version(distv):
                 if bestv is None or distv > bestv:
                     best = [dist]
@@ -240,8 +242,12 @@ if version is None and not options.accept_buildout_test_releases:
         if best:
             best.sort()
             version = best[-1].version
+
 if version:
-    requirement = '=='.join((requirement, version))
+    requirement += '=='+version
+else:
+    requirement += '<2dev'
+
 cmd.append(requirement)
 
 if is_jython:

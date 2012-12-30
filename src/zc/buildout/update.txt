@@ -8,10 +8,11 @@ new_releases folder:
 
     >>> ls(new_releases)
     d  setuptools
-    -  setuptools-99.99-py2.4.egg
+    -  setuptools-1.99.99-py2.4.egg
     d  zc.buildout
-    -  zc.buildout-100.0b1-pyN.N.egg
-    -  zc.buildout-99.99-py2.4.egg
+    -  zc.buildout-1.100.0b1-pyN.N.egg
+    -  zc.buildout-1.99.99-py2.4.egg
+    -  zc.buildout-2.0.0-pyN.N.egg
 
 Let's update the sample buildout.cfg to look in this area:
 
@@ -65,26 +66,29 @@ Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
     >>> print system(buildout),
-    Getting distribution for 'zc.buildout>=1.99'.
-    Got zc.buildout 99.99.
+    Getting distribution for 'zc.buildout>=1.99, <2dev'.
+    Got zc.buildout 1.99.99.
     Getting distribution for 'setuptools'.
-    Got setuptools 99.99.
+    Got setuptools 1.99.99.
     Upgraded:
-      zc.buildout version 99.99,
-      setuptools version 99.99;
+      zc.buildout version 1.99.99,
+      setuptools version 1.99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
-    zc.buildout 99.99
-    setuptools 99.99
+    zc.buildout 1.99.99
+    setuptools 1.99.99
 
 Notice that, even though we have a newer beta version of zc.buildout
-available, the final "99.99" was selected.  If you want to get non-final
+available, the final "1.99.99" was selected.  If you want to get non-final
 versions, specify a specific version in your buildout's versions
 section, you typically want to use the --accept-buildout-test-releases
 option to the bootstrap script, which internally uses the
 ``accept-buildout-test-releases = true`` discussed below.
+
+Also, even thought there's a later final version, buildout won't
+upgrade itself past version 1.
 
 Our buildout script's site.py has been updated to use the new eggs:
 
@@ -95,13 +99,13 @@ Our buildout script's site.py has been updated to use the new eggs:
         """Add site packages, as determined by zc.buildout.
     <BLANKLINE>
         See original_addsitepackages, below, for the original version."""
-        setuptools_path = '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+        setuptools_path = '/sample-buildout/eggs/setuptools-1.99.99-pyN.N.egg'
         sys.path.append(setuptools_path)
         known_paths.add(os.path.normcase(setuptools_path))
         import pkg_resources
         buildout_paths = [
-            '/sample-buildout/eggs/zc.buildout-99.99-pyN.N.egg',
-            '/sample-buildout/eggs/setuptools-99.99-pyN.N.egg'
+            '/sample-buildout/eggs/zc.buildout-1.99.99-pyN.N.egg',
+            '/sample-buildout/eggs/setuptools-1.99.99-pyN.N.egg'
             ]
         for path in buildout_paths:
             sitedir, sitedircase = makepath(path)
@@ -130,9 +134,9 @@ running the buildout will install earlier versions of these packages:
     ... index = %(new_releases)s
     ... parts = show-versions
     ... develop = showversions
-    ... zc.buildout-version = < 99
-    ... setuptools-version = < 99
-    ... distribute-version = < 99
+    ... zc.buildout-version = < 1.99
+    ... setuptools-version = < 1.99
+    ... distribute-version = < 1.99
     ...
     ... [show-versions]
     ... recipe = showversions
@@ -200,10 +204,10 @@ directory:
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/develop-eggs'.
-    Getting distribution for 'zc.buildout>=1.99'.
-    Got zc.buildout 99.99.
+    Getting distribution for 'zc.buildout>=1.99, <2dev'.
+    Got zc.buildout 1.99.99.
     Getting distribution for 'setuptools'.
-    Got setuptools 99.99.
+    Got setuptools 1.99.99.
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
@@ -233,11 +237,11 @@ We'll mimic this by passing the argument actually in the command line.
     >>> print system(buildout +
     ...              ' buildout:accept-buildout-test-releases=true'),
     ... # doctest: +NORMALIZE_WHITESPACE
-    Getting distribution for 'zc.buildout>=1.99'.
-    Got zc.buildout 100.0b1.
+    Getting distribution for 'zc.buildout>=1.99, <2dev'.
+    Got zc.buildout 1.100.0b1.
     Upgraded:
-      zc.buildout version 100.0b1,
-      setuptools version 99.99;
+      zc.buildout version 1.100.0b1,
+      setuptools version 1.99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     NOTE: Accepting early releases of build system packages.  Rerun bootstrap
@@ -245,8 +249,8 @@ We'll mimic this by passing the argument actually in the command line.
           behavior.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
-    zc.buildout 100.0b1
-    setuptools 99.99
+    zc.buildout 1.100.0b1
+    setuptools 1.99.99
 
 The buildout script shows the change.
 
@@ -267,8 +271,8 @@ caught (displaying a warning) and the rest of the buildout update process
 should continue.
 
     >>> version = sys.version_info[0:2]
-    >>> egg = new_releases + '/zc.buildout-99.99-py%s.%s.egg' % version
-    >>> copy_egg = new_releases + '/zc.buildout-1000-py%s.%s.egg' % version
+    >>> egg = new_releases + '/zc.buildout-1.99.99-py%s.%s.egg' % version
+    >>> copy_egg = new_releases + '/zc.buildout-1.1000-py%s.%s.egg' % version
     >>> import shutil
     >>> shutil.copy(egg, copy_egg)
 
