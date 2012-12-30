@@ -7,6 +7,9 @@ Change History
 - Versions in versions sections can now be simple constraints, like
   <2.0dev in addition to being simple versions.
 
+- If buildout is bootstrapped with a non-final release, it
+  won't downgrade itself to a final release.
+
 - remove `data_files` from `setup.py`, which was installing README.txt
   in current directory during installation
   [Domen Kožar]
