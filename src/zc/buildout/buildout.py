@@ -352,7 +352,7 @@ class Buildout(UserDict.DictMixin):
 
         # Get a base working set for our distributions that corresponds to the
         # stated desires in the configuration.
-        distributions = ['setuptools', 'zc.buildout']
+        distributions = ['setuptools', 'zc.buildout<2dev']
         if options.get('offline') == 'true':
             ws = zc.buildout.easy_install.working_set(
                 distributions, options['executable'],

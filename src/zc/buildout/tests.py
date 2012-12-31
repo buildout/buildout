@@ -4328,7 +4328,7 @@ def test_suite():
 
     if os.path.exists(bootstrap_py):
         test_suite.append(doctest.DocFileSuite(
-            'bootstrap.txt',
+            'bootstrap.txt', 'bootstrap1.txt',
             setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
