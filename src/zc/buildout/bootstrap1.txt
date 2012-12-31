@@ -1,0 +1,60 @@
+Bootstrap.py won't bootstrap buildout 2 even if there's a 2 egg in the
+user's egg cache:
+
+    >>> import os
+    >>> home = os.environ['HOME']
+    >>> mkdir(home)
+    >>> mkdir(home, '.buildout')
+    >>> write(home, '.buildout', 'default.cfg', """
+    ... [buildout]
+    ... eggs-directory = %s
+    ... """ % sample_eggs)
+
+
+    >>> import os, sys
+    >>> from os.path import dirname, join
+    >>> import zc.buildout
+    >>> bootstrap_py = join(
+    ...    dirname(
+    ...     dirname(
+    ...      dirname(
+    ...       dirname(zc.buildout.__file__)
+    ...        )
+    ...      )
+    ...    ),
+    ...   'bootstrap', 'bootstrap.py')
+    >>> sample_buildout = tmpdir('sample')
+    >>> os.chdir(sample_buildout)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py'); print 'X' # doctest: +ELLIPSIS
+    X...
+    Creating directory '/sample/bin'.
+    Creating directory '/sample/parts'.
+    Creating directory '/sample/develop-eggs'.
+    Generated script '/sample/bin/buildout'.
+    ...
+
+The bootstrap process prefers final versions of zc.buildout, so it has
+selected the (generated-locally) 99.99 egg rather than the also-available
+100.0b1 egg.  We can see that in the buildout script's site.py.
+
+    >>> buildout_site_py = join(
+    ...     sample_buildout, 'parts', 'buildout', 'site.py')
+    >>> print open(buildout_site_py).read() # doctest: +ELLIPSIS
+    "...
+        buildout_paths = [
+            '/sample_eggs/setuptools-...egg',
+            '/sample_eggs/zc.buildout-1.99.99-pyN.N.egg'
+            ]
+    ...
+
+It hasn't chosen buildout2.
+
+
