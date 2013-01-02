@@ -196,7 +196,7 @@ find_links = options.download_base
 if not find_links:
     find_links = os.environ.get('bootstrap-testing-find-links')
 if not find_links and options.accept_buildout_test_releases:
-    find_links = 'http://buildoutx.riversnake.com/'
+    find_links = 'http://downloads.buildout.org/'
 if find_links:
     cmd.extend(['-f', quote(find_links)])
 
