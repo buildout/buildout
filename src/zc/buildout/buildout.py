@@ -322,7 +322,14 @@ class Buildout(DictMixin):
                     '%r\n'
                     "Doesn't exist.\n"
                     % download_cache)
-            download_cache = os.path.join(download_cache, 'dist')
+            # the namespace is a subdir of the download-cache dir
+            # allow defining an empty namespace or use a default 'dist' subdir
+            if 'download-cache-subdir' in options:
+                download_cache_subdir = options.get('download-cache-subdir')
+            else:
+                download_cache_subdir = 'dist'
+                
+            download_cache = os.path.join(download_cache, download_cache_subdir)
             if not os.path.isdir(download_cache):
                 os.mkdir(download_cache)
 

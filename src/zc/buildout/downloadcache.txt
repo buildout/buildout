@@ -139,3 +139,117 @@ install-from-cache option set to true:
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.1.
     Generated script '/sample-buildout/bin/demo'.
+
+    
+Using a custom download cache sub-directory 
+-----------------------------------------------------
+
+Cached downloads are stored by default in a 'dist' sub-directory of
+the download cache.  Sometimes we want to control exactly where downloads are
+cached and not use the default 'dist' sub-directory.  The buildout 
+download-cache-subdir option to specify the name of the sub-directory to 
+to use to store cached downloads .
+
+Let's remove our installed eggs first, then create a new cache and run the 
+buildout with the download-cache-subdir option set to 'downloads':
+
+
+    >>> for  f in os.listdir('eggs'):
+    ...     if f.startswith('demo'):
+    ...         remove('eggs', f)
+
+Create a new cache directory:
+
+    >>> cache = tmpdir('another-cache')
+
+And set up a buildout that downloads some eggs:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... download-cache = %(cache)s
+    ... download-cache-subdir = downloads
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo ==0.2
+    ... ''' % globals())
+
+If we run the buildout, we'll see the eggs installed from the link
+server as usual:
+
+    >>> print_(system(buildout), end='')
+    GET 200 /
+    GET 200 /demo-0.2-pyN.N.egg
+    GET 200 /demoneeded-1.1.zip
+    Uninstalling eggs.
+    Installing eggs.
+    Getting distribution for 'demo==0.2'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
+    Generated script '/sample-buildout/bin/demo'.
+
+We'll also get the download cache populated. The sub-directory is 
+downloads and not the default dist:
+
+    >>> ls(cache)
+    d  downloads
+
+    >>> ls(cache, 'downloads')
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1.zip
+
+
+To avoid the use of an intermediate sub-directory entirely, we can assign 
+an empty value to download-cache-subdir.
+
+Let's remove our installed eggs again, then create a new cache and run the 
+buildout with the download-cache-subdir option set to nothing:
+
+
+    >>> for  f in os.listdir('eggs'):
+    ...     if f.startswith('demo'):
+    ...         remove('eggs', f)
+
+Let's create a new cache and run the buildout with the
+download-cache-subdir option set to '':
+
+    >>> new_cache = tmpdir('yet-another-cache')
+
+And set up a buildout that downloads some eggs:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... download-cache = %(new_cache)s
+    ... download-cache-subdir = 
+    ... find-links = %(link_server)s
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo ==0.2
+    ... ''' % globals())
+
+If we run the buildout, we'll see the eggs installed from the link server 
+as usual:
+
+    >>> print_(system(buildout), end='')
+    GET 200 /
+    GET 200 /demo-0.2-pyN.N.egg
+    GET 200 /demoneeded-1.1.zip
+    Updating eggs.
+    Getting distribution for 'demo==0.2'.
+    Got demo 0.2.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
+
+We'll also get the download cache directory populated directly. No intermediate
+directory was created as we specified an empty subdir:
+
+    >>> ls(new_cache)
+    -  demo-0.2-py2.4.egg
+    -  demoneeded-1.1.zip
