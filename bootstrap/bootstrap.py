@@ -154,9 +154,8 @@ ws.add_entry(tmpeggs)
 ws.require(requirement)
 import zc.buildout.buildout
 
-if not args:
-    # Note that if there are args, they may be for another command, say, init.
-    args = ['bootstrap']
+if not [a for a in args if '=' not in a]:
+    args.append('bootstrap')
 
 # if -c was provided, we push it back into args for buildout' main function
 if options.config_file is not None:
