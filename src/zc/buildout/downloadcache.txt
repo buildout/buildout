@@ -147,12 +147,12 @@ Using a custom download cache sub-directory
 Cached downloads are stored by default in a 'dist' sub-directory of
 the download cache.  Sometimes we want to control exactly where downloads are
 cached and not use the default 'dist' sub-directory.  The buildout 
-download-cache-subdir option to specify the name of the sub-directory to 
-to use to store cached downloads .
+download-cache-subdir option can be used to specify either the name of the 
+sub-directory to to use to store cached downloads or no sub-directory if this
+option is empty.
 
 Let's remove our installed eggs first, then create a new cache and run the 
 buildout with the download-cache-subdir option set to 'downloads':
-
 
     >>> for  f in os.listdir('eggs'):
     ...     if f.startswith('demo'):
@@ -192,8 +192,8 @@ server as usual:
     Got demoneeded 1.1.
     Generated script '/sample-buildout/bin/demo'.
 
-We'll also get the download cache populated. The sub-directory is 
-downloads and not the default dist:
+We'll also get the download cache populated. The sub-directory used 
+to cache the files is 'downloads' and not the default 'dist':
 
     >>> ls(cache)
     d  downloads
@@ -204,11 +204,9 @@ downloads and not the default dist:
 
 
 To avoid the use of an intermediate sub-directory entirely, we can assign 
-an empty value to download-cache-subdir.
-
-Let's remove our installed eggs again, then create a new cache and run the 
-buildout with the download-cache-subdir option set to nothing:
-
+an empty value to download-cache-subdir. Let's remove our installed eggs 
+again, then create a new cache and run the buildout with the 
+download-cache-subdir option set to nothing:
 
     >>> for  f in os.listdir('eggs'):
     ...     if f.startswith('demo'):
@@ -248,7 +246,7 @@ as usual:
     Got demoneeded 1.1.
 
 We'll also get the download cache directory populated directly. No intermediate
-directory was created as we specified an empty subdir:
+directory was created since we specified an empty subdir:
 
     >>> ls(new_cache)
     -  demo-0.2-py2.4.egg
