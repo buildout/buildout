@@ -1,0 +1,59 @@
+Some people pass buildout settings to bootstrap.
+
+    >>> import os, sys
+    >>> from os.path import dirname, join
+    >>> import zc.buildout
+    >>> bootstrap_py = join(
+    ...    dirname(
+    ...     dirname(
+    ...      dirname(
+    ...       dirname(zc.buildout.__file__)
+    ...        )
+    ...      )
+    ...    ),
+    ...   'bootstrap', 'bootstrap.py')
+    >>> top = tmpdir('top')
+    >>> mkdir(top, 'buildout')
+    >>> os.chdir(top)
+    >>> write('buildout', 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable) +
+    ...     ' bootstrap.py buildout:directory=' + top +
+    ...     ' -c'+join('buildout', 'buildout.cfg')
+    ...    ); print 'X' # doctest: +ELLIPSIS
+    X
+    Creating directory '/top/bin'.
+    Creating directory '/top/parts'.
+    Creating directory '/top/eggs'.
+    Creating directory '/top/develop-eggs'.
+    Generated script '/top/bin/buildout'.
+    ...
+    X
+
+They might do it with init, but no worries:
+
+    >>> remove(top)
+    >>> top = tmpdir('top')
+    >>> mkdir(top, 'buildout')
+    >>> os.chdir(top)
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print 'X'; print system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable) +
+    ...     ' bootstrap.py buildout:directory=' + top +
+    ...     ' -c'+join('buildout', 'buildout.cfg') +
+    ...     ' init'
+    ...    ); print 'X' # doctest: +ELLIPSIS
+    X
+    Creating '/top/buildout/buildout.cfg'.
+    Creating directory '/top/bin'.
+    Creating directory '/top/parts'.
+    Creating directory '/top/eggs'.
+    Creating directory '/top/develop-eggs'.
+    Generated script '/top/bin/buildout'.
+    ...
+    X
