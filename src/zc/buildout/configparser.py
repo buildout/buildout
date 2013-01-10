@@ -18,6 +18,7 @@
 # - dict of dicts is a much simpler api
 
 import re
+import textwrap
 
 class Error(Exception):
     """Base class for ConfigParser exceptions."""
@@ -44,6 +45,8 @@ class Error(Exception):
     def __repr__(self):
         return self.message
 
+    __str__ = __repr__
+
 class ParsingError(Error):
     """Raised when a configuration file does not follow legal syntax."""
 
@@ -68,19 +71,13 @@ class MissingSectionHeaderError(ParsingError):
         self.lineno = lineno
         self.line = line
 
-SECTCRE = re.compile(
-    r'\['                                 # [
-    r'(?P<header>[^]]+)'                  # very permissive!
-    r'\]'                                 # ]
-    )
-OPTCRE = re.compile(
-    r'(?P<option>[^:=\s][^:=]*)'          # very permissive!
-    r'\s*(?P<vi>[:=])\s*'                 # any number of space/tab,
-                                          # followed by separator
-                                          # (either : or =), followed
-                                          # by any # space/tab
-    r'(?P<value>.*)$'                     # everything up to eol
-    )
+section_header = re.compile(
+    r'\[\s*(?P<header>[^\s[\]:{}]+)\s*]\s*([#;].*)?$').match
+option_start = re.compile(
+    r'(?P<name>[^\s{}[\]=:]+\s*[-+]?)'
+    r'='
+    r'(?P<value>.*)$').match
+leading_blank_lines = re.compile(r"^(\s*\n)+")
 
 def parse(fp, fpname):
     """Parse a sectioned setup file.
@@ -92,63 +89,56 @@ def parse(fp, fpname):
     leading whitespace.  Blank lines, lines beginning with a '#',
     and just about everything else are ignored.
     """
-    _sections = {}
+    sections = {}
     cursect = None                            # None, or a dictionary
+    blockmode = None
     optname = None
     lineno = 0
     e = None                                  # None, or an exception
     while True:
         line = fp.readline()
         if not line:
-            break
+            break # EOF
+
         lineno = lineno + 1
-        # comment or blank line?
-        if line.strip() == '' or line[0] in '#;':
-            continue
-        if line.split(None, 1)[0].lower() == 'rem' and line[0] in "rR":
-            # no leading whitespace
-            continue
-        # continuation line?
+
+        if line[0] in '#;':
+            continue # comment
+
         if line[0].isspace() and cursect is not None and optname:
-            value = line.strip()
-            if value:
-                cursect[optname] = "%s\n%s" % (cursect[optname], value)
-        # a section header or option header?
+            # continuation line
+            if blockmode:
+                line = line.rstrip()
+            else:
+                line = line.strip()
+                if not line:
+                    continue
+            cursect[optname] = "%s\n%s" % (cursect[optname], line)
         else:
-            # is it a section header?
-            mo = SECTCRE.match(line)
+            mo = section_header(line)
             if mo:
+                # section header
                 sectname = mo.group('header')
-                if sectname in _sections:
-                    cursect = _sections[sectname]
+                if sectname in sections:
+                    cursect = sections[sectname]
                 else:
-                    cursect = {}
-                    _sections[sectname] = cursect
+                    sections[sectname] = cursect = {}
                 # So sections can't start with a continuation line
                 optname = None
-            # no section header in the file?
             elif cursect is None:
+                if not line.strip():
+                    continue
+                # no section header in the file?
                 raise MissingSectionHeaderError(fpname, lineno, line)
-            # an option line?
             else:
-                mo = OPTCRE.match(line)
+                mo = option_start(line)
                 if mo:
-                    optname, vi, optval = mo.group('option', 'vi', 'value')
-                    # This check is fine because the OPTCRE cannot
-                    # match if it would set optval to None
-                    if optval is not None:
-                        if vi in ('=', ':') and ';' in optval:
-                            # ';' is a comment delimiter only if it follows
-                            # a spacing character
-                            pos = optval.find(';')
-                            if pos != -1 and optval[pos-1].isspace():
-                                optval = optval[:pos]
-                        optval = optval.strip()
-                    # allow empty values
-                    if optval == '""':
-                        optval = ''
+                    # option start line
+                    optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
+                    optval = optval.strip()
                     cursect[optname] = optval
+                    blockmode = not optval
                 else:
                     # a non-fatal parsing error occurred.  set up the
                     # exception but keep going. the exception will be
@@ -157,8 +147,17 @@ def parse(fp, fpname):
                     if not e:
                         e = ParsingError(fpname)
                     e.append(lineno, repr(line))
+
     # if any parsing errors occurred, raise an exception
     if e:
         raise e
 
-    return _sections
+    for sectname in sections:
+        section = sections[sectname]
+        for name in section:
+            value = section[name]
+            if value[:1].isspace():
+                section[name] = leading_blank_lines.sub(
+                    '', textwrap.dedent(value.rstrip()))
+
+    return sections

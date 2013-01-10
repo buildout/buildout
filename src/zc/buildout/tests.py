@@ -15,6 +15,9 @@ from zc.buildout.buildout import print_
 from zope.testing import renormalizing
 
 import doctest
+import manuel.capture
+import manuel.doctest
+import manuel.testing
 import os
 import pkg_resources
 import re
@@ -3015,41 +3018,46 @@ normalize_S = (
 
 def test_suite():
     test_suite = [
-        doctest.DocFileSuite(
+        manuel.testing.TestSuite(
+            manuel.doctest.Manuel() + manuel.capture.Manuel(),
+            'configparser.test'),
+        manuel.testing.TestSuite(
+            manuel.doctest.Manuel(
+                checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.normalize_path,
+                    zc.buildout.testing.normalize_endings,
+                    zc.buildout.testing.normalize_script,
+                    zc.buildout.testing.normalize_egg_py,
+                    zc.buildout.testing.not_found,
+                    (re.compile(r'zc.buildout-version = >=\S+'), ''),
+                    (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+                    (re.compile('__buildout_signature__ = recipes-\S+'),
+                     '__buildout_signature__ = recipes-SSSSSSSSSSS'),
+                    (re.compile('executable = [\S ]+python\S*', re.I),
+                     'executable = python'),
+                    (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
+                     'setuptools.egg'),
+                    (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                     'zc.buildout.egg'),
+                    (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
+                    (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
+                    (re.compile('Picked: (\S+) = \S+'),
+                     'Picked: \\1 = V.V'),
+                    (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
+                     'We have a develop egg: zc.buildout X.X.'),
+                    (re.compile(r'\\[\\]?'), '/'),
+                    (re.compile('WindowsError'), 'OSError'),
+                    (re.compile(r'\[Error \d+\] Cannot create a file '
+                                r'when that file already exists: '),
+                     '[Errno 17] File exists: '
+                     ),
+                    (re.compile('distribute'), 'setuptools'),
+                    (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
+                    ])
+                ) + manuel.capture.Manuel(),
             'buildout.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
-            checker=renormalizing.RENormalizing([
-                zc.buildout.testing.normalize_path,
-                zc.buildout.testing.normalize_endings,
-                zc.buildout.testing.normalize_script,
-                zc.buildout.testing.normalize_egg_py,
-                zc.buildout.testing.not_found,
-                (re.compile(r'zc.buildout-version = >=\S+'), ''),
-                (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
-                (re.compile('__buildout_signature__ = recipes-\S+'),
-                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-                (re.compile('executable = [\S ]+python\S*', re.I),
-                 'executable = python'),
-                (re.compile('[-d]  (setuptools|distribute)-\S+[.]egg'),
-                 'setuptools.egg'),
-                (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
-                 'zc.buildout.egg'),
-                (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-                (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-                (re.compile('Picked: (\S+) = \S+'),
-                 'Picked: \\1 = V.V'),
-                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
-                 'We have a develop egg: zc.buildout X.X.'),
-                (re.compile(r'\\[\\]?'), '/'),
-                (re.compile('WindowsError'), 'OSError'),
-                (re.compile(r'\[Error \d+\] Cannot create a file '
-                            r'when that file already exists: '),
-                 '[Errno 17] File exists: '
-                 ),
-                (re.compile('distribute'), 'setuptools'),
-                (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
-                ])
             ),
         doctest.DocFileSuite(
             'runsetup.txt', 'repeatable.txt', 'setup.txt',

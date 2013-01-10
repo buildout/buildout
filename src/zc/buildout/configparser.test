@@ -1,0 +1,59 @@
+Some tests of the basic config-file parser:
+
+First, an example that illustrates a well-formed configuration::
+
+  [s1]
+  a = 1
+
+  [   s2  ]         # a comment
+  long = a
+      b
+
+      c
+  l2 =
+
+
+      a
+
+
+      # not a comment
+
+  # comment
+  ; also a coment
+
+      b
+
+        c
+
+
+  empty =
+
+  c=1
+
+  b    += 1
+
+  [s3]; comment
+  x =           a b        
+
+.. -> text
+
+    >>> import pprint, StringIO, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'s1': {'a': '1'},
+     's2': {'b    +': '1',
+            'c': '1',
+            'empty': '',
+            'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c',
+            'long': 'a\nb\nc'},
+     's3': {'x': 'a b'}}
+
+Here's an example with leading blank lines:
+
+    >>> text = '\n\n[buildout]\nz=1\n\n'
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'buildout': {'z': '1'}}
+
+Some examples that should error:
+

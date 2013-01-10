@@ -690,9 +690,84 @@ Now, we'll fix the typo again and we'll get the directories we expect:
 Configuration file syntax
 -------------------------
 
-As mentioned earlier, buildout configuration files use the format
-defined by the Python ConfigParser module with extensions.  The
-extensions are:
+A buildout configuration file consists of a sequence of sections.  A
+section has a section header followed by 0 or more section options.
+(Buildout configuration files may be viewed as a variation on INI
+files.)
+
+A section header consists of a section name enclosed in square braces.
+A section name consists of one or more non-whitespace characters
+other than square braces ('[', ']'), curly braces ('{', '}'), colons
+(':') or equal signs ('='). Whitespace surrounding section names is ignored.
+
+Options consist of option names, followed by optional space or tab
+characters, an optional plus or minus sign and an equal signs and
+values.  An option value may be spread over multiple lines as long as
+the lines after the first start with a whitespace character.  An
+option name consists of one or more non-whitespace characters other
+than equal signs, square braces ("[", "]"), curly braces ("{", "}"),
+plus signs or colons (":"). The option name '<' is reserved.  An
+option's data consists of the characters following the equal sign on
+the start line, plus the continuation lines.
+
+Option values have extra whitespace stripped.  How this is done
+depends on whether the value has non-whitespace characterts on the
+first line.  If an option value has non-whitespace characters on the
+first line, then each line is stripped and blank lines are removed.
+For exampe, in::
+
+  [foo]
+  bar = 1
+  baz = a
+        b
+
+        c
+
+.. -> text
+
+    >>> import pprint, StringIO, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'foo': {'bar': '1', 'baz': 'a\nb\nc'}}
+
+The value of of ``bar`` is ``'1'`` and the value of ``baz`` is
+``'a\nb\nc'``.
+
+If the first line of an option doesn't contain whitespace, then the
+value is dedented (with ``textwrap.dedent``), trailing spaces in lines
+are removed, and leading and trailing blank lines are removed.  For
+example, in::
+
+
+  [foo]
+  bar =
+  baz =
+
+    a
+      b
+
+    c
+
+.. -> text
+
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'foo': {'bar': '', 'baz': 'a\n  b\n\nc'}}
+
+The value of bar is ``''``, and the value of baz is ``'a\n  b\n\nc'``.
+
+Lines starting with '#' or ';' characters are comments.  Comments can
+also be placed after the closing square bracket (']') in a section header.
+
+Buildout configuration data are Python strings, which are bytes in
+Python 2 and unicode in Python 3.
+
+Sections and options within sections may be repeated.  Multiple
+occurrences of of a section are treated as if they were concantinated.
+The last option value for a given name in a section overrides previous
+values.
+
+In addition top the syntactic details above:
 
 - option names are case sensitive
 
@@ -701,18 +776,6 @@ extensions are:
 
 - option values can be appended or removed using the - and +
   operators.
-
-The ConfigParser syntax is very flexible.  Section names can contain
-any characters other than newlines and right square braces ("]").
-Option names can contain any characters other than newlines, colons,
-and equal signs, can not start with a space, and don't include
-trailing spaces.
-
-It is likely that, in the future, some characters will be given
-special buildout-defined meanings.  This is already true of the
-characters ":", "$", "%", "(", and ")".  For now, it is a good idea to
-keep section and option names simple, sticking to alphanumeric
-characters, hyphens, and periods.
 
 Annotated sections
 ------------------
@@ -839,15 +902,15 @@ examples:
     ...
     ... [debug]
     ... recipe = recipes:debug
-    ... File 1 = ${data-dir:path}/file
-    ... File 2 = ${debug:File 1}/log
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
     ...
     ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mydata
     ... """)
 
-We used a string-template substitution for File 1 and File 2.  This
+We used a string-template substitution for File-1 and File-2.  This
 type of substitution uses the string.Template syntax.  Names
 substituted are qualified option names, consisting of a section name
 and option name joined by a colon.
@@ -861,8 +924,8 @@ substituted.
     Installing data-dir.
     data-dir: Creating directory mydata
     Installing debug.
-    File 1 /sample-buildout/mydata/file
-    File 2 /sample-buildout/mydata/file/log
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
 Note that the substitution of the data-dir path option reflects the
@@ -878,8 +941,8 @@ the buildout:
     Develop: '/sample-buildout/recipes'
     Updating data-dir.
     Updating debug.
-    File 1 /sample-buildout/mydata/file
-    File 2 /sample-buildout/mydata/file/log
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
 We can see that mydata was not recreated.
@@ -904,8 +967,8 @@ _buildout_section_name_ to get the current section name.
     ...
     ... [debug]
     ... recipe = recipes:debug
-    ... File 1 = ${data-dir:path}/file
-    ... File 2 = ${:File 1}/log
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${:File-1}/log
     ... my_name = ${:_buildout_section_name_}
     ...
     ... [data-dir]
@@ -918,8 +981,8 @@ _buildout_section_name_ to get the current section name.
     Uninstalling debug.
     Updating data-dir.
     Installing debug.
-    File 1 /sample-buildout/mydata/file
-    File 2 /sample-buildout/mydata/file/log
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
     my_name debug
     recipe recipes:debug
 
@@ -940,8 +1003,8 @@ example, we can leave data-dir out of the parts list:
     ...
     ... [debug]
     ... recipe = recipes:debug
-    ... File 1 = ${data-dir:path}/file
-    ... File 2 = ${debug:File 1}/log
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
     ...
     ... [data-dir]
     ... recipe = recipes:mkdir
@@ -956,8 +1019,8 @@ It will still be treated as a part:
     Uninstalling debug.
     Updating data-dir.
     Installing debug.
-    File 1 /sample-buildout/mydata/file
-    File 2 /sample-buildout/mydata/file/log
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
     >>> cat('.installed.cfg') # doctest: +ELLIPSIS
@@ -979,8 +1042,8 @@ the data-dir part after the debug part, it will be included before:
     ...
     ... [debug]
     ... recipe = recipes:debug
-    ... File 1 = ${data-dir:path}/file
-    ... File 2 = ${debug:File 1}/log
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
     ...
     ... [data-dir]
     ... recipe = recipes:mkdir
@@ -994,8 +1057,8 @@ It will still be treated as a part:
     Develop: '/sample-buildout/recipes'
     Updating data-dir.
     Updating debug.
-    File 1 /sample-buildout/mydata/file
-    File 2 /sample-buildout/mydata/file/log
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
     >>> cat('.installed.cfg') # doctest: +ELLIPSIS
