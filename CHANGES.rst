@@ -1,6 +1,48 @@
 Change History
 **************
 
+2.0.0a6 (2013-01-10)
+====================
+
+Changed the configuratiion file format:
+
+- Relative indentation in option values is retained if the first
+  line is blank. (IOW, if the non-blank text is on the continuation
+  lines.) As in::
+
+     [mysection]
+     tree =
+       /root
+         branch
+
+  In such cases, internal blank lines are also retained.
+
+- The configuration syntax is more tightly defined, allowing fewer
+  syntax definitions.
+
+  Buildout 1 configuration files were parsed with the Python
+  ConfigParser module. The ConfigParser module's format is poorly
+  documented and wildly flexible. For example:
+
+  - Any characters other than left square brackets were allowed in
+    section names.
+
+  - Arbitrary text was allowed and ignored after the closing bracket on
+    section header lines.
+
+  - Any characters other than equal signs or colons were allowed in an
+    option name.
+
+  - Configuration options could be spelled as RFC 822 mail headers
+    (using a colon, rather than an equal sign).
+
+  - Comments could begin with "rem".
+
+  - Semicolons could be used to start inline comments, but only if
+    preceeded by a whitespace character.
+
+See `Configuration file syntax`_.
+
 2.0.0a5 (2012-12-01)
 ====================
 
