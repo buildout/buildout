@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.0a6 (2013-01-10)
+2.0.0a6 (2013-01-11)
 ====================
 
 Changed the configuratiion file format:
