@@ -725,7 +725,9 @@ For exampe, in::
 
 .. -> text
 
-    >>> import pprint, StringIO, zc.buildout.configparser
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test'))
     {'foo': {'bar': '1', 'baz': 'a\nb\nc'}}

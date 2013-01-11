@@ -21,12 +21,12 @@ Some people pass buildout settings to bootstrap.
     ... parts =
     ... ''')
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print 'X'; print system(
+    >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable) +
     ...     ' bootstrap.py buildout:directory=' + top +
     ...     ' -c'+join('buildout', 'buildout.cfg')
-    ...    ); print 'X' # doctest: +ELLIPSIS
-    X
+    ...    )); print_('X') # doctest: +ELLIPSIS
+    X...
     Creating directory '/top/bin'.
     Creating directory '/top/parts'.
     Creating directory '/top/eggs'.
@@ -44,13 +44,13 @@ They might do it with init, but no worries:
     >>> mkdir(top, 'buildout')
     >>> os.chdir(top)
     >>> write('bootstrap.py', open(bootstrap_py).read())
-    >>> print 'X'; print system(
+    >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable) +
     ...     ' bootstrap.py buildout:directory=' + top +
     ...     ' -c'+join('buildout', 'buildout.cfg') +
     ...     ' init'
-    ...    ); print 'X' # doctest: +ELLIPSIS
-    X
+    ...    )); print_('X') # doctest: +ELLIPSIS
+    X...
     Creating '/top/buildout/buildout.cfg'.
     Creating directory '/top/bin'.
     Creating directory '/top/parts'.
