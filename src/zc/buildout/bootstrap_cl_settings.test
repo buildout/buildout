@@ -37,8 +37,10 @@ Some people pass buildout settings to bootstrap.
 
 They might do it with init, but no worries:
 
+    >>> os.chdir('..')
     >>> remove(top)
     >>> top = tmpdir('top')
+    >>> os.chdir(top)
     >>> mkdir(top, 'buildout')
     >>> os.chdir(top)
     >>> write('bootstrap.py', open(bootstrap_py).read())
