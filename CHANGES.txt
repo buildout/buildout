@@ -1,13 +1,8 @@
 Change History
 **************
 
-1.7.0b2 (2013-01-03)
-=====================
-
-- Fixed: zc.buildout.easy_install.IncompatibleVersionError went away.
-
-1.7.0b1 (2012-12-31)
-=====================
+1.7.0 (2013-01-11)
+==================
 
 - Unless version requirements are specified, buildout won't upgrade
   itself past version 1.
