@@ -57,5 +57,35 @@ Here's an example with leading blank lines:
     ...     text), 'test'))
     {'buildout': {'z': '1'}}
 
-Some examples that should error:
 
+From email:
+
+"It fails when the first non-comment line after a section (even an
+otherwise empty section) is blank.  For example:"
+
+    [buildout]
+
+    parts = hello
+    versions = versions
+
+    [versions]
+    # Add any version pins here.
+
+    [hello]
+
+    recipe = collective.recipe.cmd
+    on_install = true
+
+    on_update = true
+    cmds = echo Hello
+
+.. -> text
+
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'buildout': {'parts': 'hello', 'versions': 'versions'},
+     'hello': {'cmds': 'echo Hello',
+               'on_install': 'true',
+               'on_update': 'true',
+               'recipe': 'collective.recipe.cmd'},
+     'versions': {}}

@@ -1,6 +1,12 @@
 Change History
 **************
 
+2.0.0a7 (2013-01-12)
+====================
+
+Fixed: Blank lines in buildout configuration file sections before
+       options were treated as errors.
+
 2.0.0a6 (2013-01-11)
 ====================
 

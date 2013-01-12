@@ -139,6 +139,9 @@ def parse(fp, fpname):
                     optval = optval.strip()
                     cursect[optname] = optval
                     blockmode = not optval
+                elif not (optname or line.strip()):
+                    # blank line after section start
+                    continue
                 else:
                     # a non-fatal parsing error occurred.  set up the
                     # exception but keep going. the exception will be
