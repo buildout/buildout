@@ -1704,7 +1704,8 @@ def main(args=None):
                     try:
                         timeout_string = args.pop(0)
                         timeout = int(timeout_string)
-                        options.append(('buildout', 'socket-timeout', timeout_string))
+                        options.append(
+                            ('buildout', 'socket-timeout', timeout_string))
                     except IndexError:
                         _error("No timeout value specified for option", orig_op)
                     except ValueError:
