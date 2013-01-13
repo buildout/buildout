@@ -506,6 +506,7 @@ to be included in generated scripts:
     ...    ${buildout:directory}/spam
     ... initialization = a = (1, 2
     ...                       3, 4)
+    ... interpreter = py
     ... arguments = a, 2
     ... """ % dict(server=link_server))
 
@@ -513,6 +514,7 @@ to be included in generated scripts:
     Uninstalling demo.
     Installing demo.
     Generated script '/sample-buildout/bin/foo'.
+    Generated interpreter '/sample-buildout/bin/py'.
 
     >>> cat(sample_buildout, 'bin', 'foo') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.7
@@ -537,6 +539,28 @@ Here we see that the initialization code we specified was added after
 setting the path.  Note, as mentioned above, that leading whitespace
 has been stripped.  Similarly, the argument code we specified was
 added in the entry point call (to main).
+
+Our interpreter also has the initialization code:
+
+    >>> cat(sample_buildout, 'bin', 'py')
+    ... # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    #!/usr/local/bin/python2.7
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+      '/sample-buildout/eggs/demo-0.3-py3.3.egg',
+      '/sample-buildout/eggs/demoneeded-1.1-py3.3.egg',
+      '/foo/bar',
+      '/sample-buildout/spam',
+      ]
+    <BLANKLINE>
+    a = (1, 2
+    3, 4)
+    <BLANKLINE>
+    <BLANKLINE>
+    _interactive = True
+    ...
 
 Specifying entry points
 -----------------------

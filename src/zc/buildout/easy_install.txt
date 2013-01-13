@@ -755,7 +755,8 @@ You can also pass script initialization code:
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, bin, dict(demo='run'),
     ...    arguments='1, 2',
-    ...    initialization='import os\nos.chdir("foo")')
+    ...    initialization='import os\nos.chdir("foo")',
+    ...    interpreter='py')
 
     >>> cat(bin, 'run') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.7
@@ -772,6 +773,25 @@ You can also pass script initialization code:
     <BLANKLINE>
     if __name__ == '__main__':
         sys.exit(eggrecipedemo.main(1, 2))
+
+It will be included in interpreters too:
+
+    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    #!/Users/jim/bin/python3.3
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+      '/sample-install/demo-0.3-py3.3.egg',
+      '/sample-install/demoneeded-1.1-py3.3.egg',
+      ]
+    <BLANKLINE>
+    import os
+    os.chdir("foo")
+    <BLANKLINE>
+    <BLANKLINE>
+    _interactive = True
+    ...
 
 Relative paths
 --------------
@@ -829,7 +849,7 @@ Of course, running the script works:
 
 We specified an interpreter and its paths are adjusted too:
 
-    >>> cat(bo, 'bin', 'py')
+    >>> cat(bo, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
     #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os

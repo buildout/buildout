@@ -922,7 +922,7 @@ def scripts(reqs, working_set, executable, dest=None,
     if interpreter:
         sname = os.path.join(dest, interpreter)
         spath, rpsetup = _relative_path_and_setup(sname, path, relative_paths)
-        generated.extend(_pyscript(spath, sname, rpsetup))
+        generated.extend(_pyscript(spath, sname, rpsetup, initialization))
 
     return generated
 
@@ -1043,7 +1043,9 @@ def _create_script(contents, dest):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
         new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
-        if not os.path.exists(win32_exe) or (open(win32_exe, 'rb').read() != new_data):
+        if (not os.path.exists(win32_exe) or
+            (open(win32_exe, 'rb').read() != new_data)
+            ):
             # Only write it if it's different.
             open(win32_exe, 'wb').write(new_data)
         generated.append(win32_exe)
@@ -1096,7 +1098,7 @@ sys.path[0:0] = [
 %(original_content)s'''
 
 
-def _pyscript(path, dest, rsetup):
+def _pyscript(path, dest, rsetup, initialization=''):
     generated = []
     script = dest
     if is_win32:
@@ -1108,6 +1110,7 @@ def _pyscript(path, dest, rsetup):
         python = python,
         path = path,
         relative_paths_setup = rsetup,
+        initialization=initialization,
         )
     changed = not (os.path.exists(dest) and open(dest).read() == contents)
 
@@ -1138,6 +1141,7 @@ import sys
 sys.path[0:0] = [
   %(path)s,
   ]
+%(initialization)s
 
 _interactive = True
 if len(sys.argv) > 1:
