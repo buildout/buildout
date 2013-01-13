@@ -2718,6 +2718,40 @@ def want_new_zcrecipeegg():
     Error: Bad constraint >=2.0.0a3 zc.recipe.egg<2dev
     """
 
+def macro_inheritance_bug():
+    """
+
+There was a bug preventing a section from using another section as a macro
+if that section was extended with macros, and both sections were listed as
+parts (phew!).  The following contrived example demonstrates that this
+now works.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo bar
+    ... [base]
+    ... recipe = zc.recipe.egg
+    ... [foo]
+    ... <=base
+    ... eggs = zc.buildout
+    ... interpreter = python
+    ... [bar]
+    ... <=foo
+    ... interpreter = py
+    ... ''')
+    >>> print_(system(join('bin', 'buildout')), end='') # doctest: +ELLIPSIS
+    Installing foo.
+    ...
+    Installing bar.
+    ...
+    >>> ls("./bin")
+    -  buildout
+    -  py
+    -  python
+    """
+
+
 
 ######################################################################
 
