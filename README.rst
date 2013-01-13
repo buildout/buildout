@@ -56,15 +56,15 @@ This version of buildout is available from the github project
 download page, not from pypi.
 
 To get the bootstrap.py file for this release of buildout, get
-``https://github.com/downloads/buildout/buildout/bootstrap.py``.
+``http://downloads.buildout.org/2/bootstrap.py``.
 
 For example, using wget:
 
-  wget https://github.com/downloads/buildout/buildout/bootstrap.py
+  wget http://downloads.buildout.org/2/bootstrap.py
 
 Since this is still an alpha release, you'll need to supply the -t
 option to bootstrap.py::
 
   python bootstrap.py -t
 
-This version of buildout support Python 2.6, 2.7, 3.2 and 3.3.
+This version of buildout supports Python 2.6, 2.7, 3.2 and 3.3.
