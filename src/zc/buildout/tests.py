@@ -2297,7 +2297,7 @@ We get an error if we specify anything but true or false:
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     While:
       Initializing.
-    Error: Invalid value for prefer-final option: no
+    Error: Invalid value for 'prefer-final' option: 'no'
     """
 
 def wont_downgrade_due_to_prefer_final():

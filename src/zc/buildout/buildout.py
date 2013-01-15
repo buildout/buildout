@@ -237,8 +237,10 @@ class Buildout(DictMixin):
         self._allow_hosts = tuple([host.strip() for host in allow_hosts
                                    if host.strip() != ''])
         self._logger = logging.getLogger('zc.buildout')
-        self.offline = (buildout_section['offline'] == 'true')
-        self.newest = (buildout_section['newest'] == 'true')
+        self.offline = bool_option(buildout_section, 'offline')
+        self.newest = ((not self.offline) and
+                       bool_option(buildout_section, 'newest')
+                       )
 
         ##################################################################
         ## WARNING!!!
@@ -273,19 +275,6 @@ class Buildout(DictMixin):
         self._setup_logging()
         self._setup_socket_timeout()
 
-        offline = options['offline']
-        if offline not in ('true', 'false'):
-            self._error('Invalid value for offline option: %s', offline)
-        self.offline = (offline == 'true')
-
-        if self.offline:
-            newest = options['newest'] = 'false'
-        else:
-            newest = options['newest']
-            if newest not in ('true', 'false'):
-                self._error('Invalid value for newest option: %s', newest)
-        self.newest = (newest == 'true')
-
         versions = {'zc.recipe.egg': '>=2.0.0a3'}
         self.versions = versions
         versions_section = options.get('versions')
@@ -293,25 +282,12 @@ class Buildout(DictMixin):
             versions.update(dict(self[versions_section]))
         zc.buildout.easy_install.default_versions(versions)
 
-        prefer_final = options['prefer-final']
-        if prefer_final not in ('true', 'false'):
-            self._error('Invalid value for prefer-final option: %s',
-                        prefer_final)
-        zc.buildout.easy_install.prefer_final(prefer_final=='true')
-
-        use_dependency_links = options['use-dependency-links']
-        if use_dependency_links not in ('true', 'false'):
-            self._error('Invalid value for use-dependency-links option: %s',
-                        use_dependency_links)
+        zc.buildout.easy_install.prefer_final(
+            bool_option(options, 'prefer-final'))
         zc.buildout.easy_install.use_dependency_links(
-            use_dependency_links == 'true')
-
-        allow_picked_versions = options['allow-picked-versions']
-        if allow_picked_versions not in ('true', 'false'):
-            self._error('Invalid value for allow-picked-versions option: %s',
-                        allow_picked_versions)
+            bool_option(options, 'use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
-            allow_picked_versions == 'true')
+                bool_option(options, 'allow-picked-versions'))
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -328,12 +304,8 @@ class Buildout(DictMixin):
 
             zc.buildout.easy_install.download_cache(download_cache)
 
-        install_from_cache = options['install-from-cache']
-        if install_from_cache not in ('true', 'false'):
-            self._error('Invalid value for install-from-cache option: %s',
-                        install_from_cache)
         zc.buildout.easy_install.install_from_cache(
-            install_from_cache=='true')
+            bool_option(options, 'install-from-cache'))
 
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
@@ -1334,13 +1306,6 @@ def _save_options(section, options, f):
     for option, value in items:
         _save_option(option, value, f)
 
-def _convert_bool(name, value):
-    if value not in ('true', 'false'):
-        raise zc.buildout.UserError(
-            'Invalid value for %s option: %s' % (name, value))
-    else:
-        return value == 'true'
-
 def _open(base, filename, seen, dl_options, override, downloaded):
     """Open a configuration file and return the result as a dictionary,
 
@@ -1348,7 +1313,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     """
     _update_section(dl_options, override)
     _dl_options = _unannotate_section(dl_options.copy())
-    newest = _convert_bool('newest', _dl_options.get('newest', 'false'))
+    newest = bool_option(_dl_options, 'newest', 'false')
     fallback = newest and not (filename in downloaded)
     download = zc.buildout.download.Download(
         _dl_options, cache=_dl_options.get('extends-cache'),
@@ -1775,3 +1740,14 @@ if sys.version_info[:2] < (2, 4):
         result = list(iterable);
         result.reverse()
         return result
+
+_bool_names = {'true': True, 'false': False, True: True, False: False}
+def bool_option(options, name, default=None):
+    value = options.get(name, default)
+    if value is None:
+        raise KeyError(name)
+    try:
+        return _bool_names[value]
+    except KeyError:
+        raise zc.buildout.UserError(
+            'Invalid value for %r option: %r' % (name, value))
