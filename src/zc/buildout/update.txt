@@ -184,3 +184,51 @@ directory:
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
+
+.. The relative-paths option is honored:
+
+    >>> cd(sample_buildout)
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = show-versions
+    ... develop = showversions
+    ... relative-paths = true
+    ...
+    ... [show-versions]
+    ... recipe = showversions
+    ... """ % dict(new_releases=new_releases))
+
+    >>> print_(system(buildout), end='')
+    Upgraded:
+      zc.buildout version 99.99,
+      distribute version 99.99;
+    restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/showversions'
+    Unused options for buildout: 'relative-paths'.
+    Updating show-versions.
+    zc.buildout 99.99
+    distribute 99.99
+
+    >>> cat('bin', 'buildout')
+    #!/Users/jim/bin/python3.3
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      join(base, 'eggs/zc.buildout-99.99-py3.3.egg'),
+      join(base, 'eggs/distribute-99.99-py3.3.egg'),
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(zc.buildout.buildout.main())

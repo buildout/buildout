@@ -351,9 +351,15 @@ class Buildout(DictMixin):
         # Create buildout script
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
+        options = self['buildout']
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'])
+            self['buildout']['bin-directory'],
+            relative_paths = (
+                bool_option(options, 'relative-paths', False)
+                and options['directory']
+                or ''),
+            )
 
     def _init_config(self, config_file, args):
         print_('Creating %r.' % config_file)
@@ -897,6 +903,10 @@ class Buildout(DictMixin):
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
             self['buildout']['bin-directory'],
+            relative_paths = (
+                bool_option(options, 'relative-paths', False)
+                and options['directory']
+                or ''),
             )
 
         # Restart

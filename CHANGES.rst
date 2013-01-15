@@ -4,6 +4,9 @@ Change History
 2.0.0b1 (2013-01-??)
 ====================
 
+Fixed: relative-paths weren't honored when bootstrapping or upgrading
+       (which is how the buildout script gets generated).
+
 Fixed: initialization code wasn't included in interpeter scripts.
 
 Fixed: macro inheritance bug, https://github.com/buildout/buildout/pull/37

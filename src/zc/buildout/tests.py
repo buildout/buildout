@@ -2751,6 +2751,37 @@ now works.
     -  python
     """
 
+def bootstrap_honors_relative_paths():
+    """
+    >>> working = tmpdir('working')
+    >>> cd(working)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... relative-paths = true
+    ... ''')
+    >>> _ = system(buildout+' bootstrap')
+    >>> cat('bin', 'buildout')
+    #!/Users/jim/bin/python3.3
+    <BLANKLINE>
+    import os
+    <BLANKLINE>
+    join = os.path.join
+    base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+    base = os.path.dirname(base)
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      join(base, 'eggs/distribute-0.6.30-py2.7.egg'),
+      '/Users/jim/p/zc/buildout/2/src',
+      ]
+    <BLANKLINE>
+    import zc.buildout.buildout
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(zc.buildout.buildout.main())
+    """
 
 
 ######################################################################
