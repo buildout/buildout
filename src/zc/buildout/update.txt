@@ -213,8 +213,8 @@ directory:
     zc.buildout 99.99
     distribute 99.99
 
-    >>> cat('bin', 'buildout')
-    #!/Users/jim/bin/python3.3
+    >>> cat('bin', 'buildout') # doctest +ELL
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os
     <BLANKLINE>

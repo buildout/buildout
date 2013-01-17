@@ -777,7 +777,7 @@ You can also pass script initialization code:
 It will be included in interpreters too:
 
     >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-    #!/Users/jim/bin/python3.3
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     <BLANKLINE>

@@ -2765,8 +2765,8 @@ def bootstrap_honors_relative_paths():
     ... relative-paths = true
     ... ''')
     >>> _ = system(buildout+' bootstrap')
-    >>> cat('bin', 'buildout')
-    #!/Users/jim/bin/python3.3
+    >>> cat('bin', 'buildout') # doctest: +ELLIPSIS
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os
     <BLANKLINE>
@@ -2777,7 +2777,7 @@ def bootstrap_honors_relative_paths():
     import sys
     sys.path[0:0] = [
       join(base, 'eggs/distribute-0.6.30-py2.7.egg'),
-      '/Users/jim/p/zc/buildout/2/src',
+      ...
       ]
     <BLANKLINE>
     import zc.buildout.buildout
@@ -3258,6 +3258,7 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.testing.normalize___pycache__,
                 zc.buildout.testing.not_found,
+                normalize_bang,
                 (re.compile(r"Installing 'zc.buildout >=\S+"), 'Installing '),
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile("buildout: Running \S*setup.py"),
