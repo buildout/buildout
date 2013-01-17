@@ -1294,6 +1294,8 @@ class IncompatibleConstraintError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
     """
 
+IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
+
 def bad_constraint(constraint, requirement):
     logger.error("The constraint, %s, is not consistent with the "
                  "requirement, %r.", constraint, str(requirement))
