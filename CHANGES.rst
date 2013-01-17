@@ -18,6 +18,9 @@ Fixed: initialization code wasn't included in interpeter scripts.
 
 Fixed: macro inheritance bug, https://github.com/buildout/buildout/pull/37
 
+Fixed: spaces in version constriants (e.g. ``< 2``) weren't handled
+       correctly.
+
 2.0.0a7 (2013-01-12)
 ====================
 

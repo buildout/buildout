@@ -1299,7 +1299,7 @@ def bad_constraint(constraint, requirement):
                  "requirement, %r.", constraint, str(requirement))
     raise IncompatibleConstraintError("Bad constraint", constraint, requirement)
 
-_parse_constraint = re.compile(r'([<>]=?)(\S+)').match
+_parse_constraint = re.compile(r'([<>]=?)\s*(\S+)').match
 _comparef = {
     '>' : lambda x, y: x >  y,
     '>=': lambda x, y: x >= y,
