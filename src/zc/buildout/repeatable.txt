@@ -100,9 +100,8 @@ the buildout section:
     ... [buildout]
     ... parts = foo
     ... find-links = %s
-    ... versions = release-1
     ...
-    ... [release-1]
+    ... [versions]
     ... spam = 1
     ... eggs = 2.2
     ...
@@ -110,7 +109,7 @@ the buildout section:
     ... recipe = spam
     ... ''' % join('recipe', 'dist'))
 
-Here we created a release-1 section listing the version 1 for the spam
+Here we created a versions section listing the version 1 for the spam
 distribution.  We told the buildout to use it by specifying release-1
 as in the versions option.
 
@@ -172,13 +171,59 @@ versions:
     ... [buildout]
     ... parts = foo
     ... find-links = %s
-    ... versions = release-1
     ... allow-picked-versions = false
     ...
-    ... [release-1]
+    ... [versions]
     ... spam = 1
     ... eggs = 2.2
     ...
     ... [foo]
     ... recipe = spam
     ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    While:
+      Installing.
+      Checking for upgrades.
+      Getting distribution for 'distribute'.
+    Error: Picked: distribute = 0.6.30
+
+We can name a version something else, if we wish, using the versions option:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... versions = release1
+    ...
+    ... [release1]
+    ... spam = 1
+    ... eggs = 2.2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v1
+
+We can also disable checking versions:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... versions =
+    ...
+    ... [versions]
+    ... spam = 1
+    ... eggs = 2.2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Uninstalling foo.
+    Installing foo.
+    recipe v2

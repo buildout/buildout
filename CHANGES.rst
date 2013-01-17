@@ -1,8 +1,15 @@
 Change History
 **************
 
-2.0.0b1 (2013-01-??)
+2.0.0a8 (2013-01-??)
 ====================
+
+- The ``versions`` option now defaults to ``versions`` (if there is a
+  ``versions`` section), so you know longer need to include::
+
+     versions = versions
+
+  in a ``buildout`` section when pinning versions.
 
 Fixed: relative-paths weren't honored when bootstrapping or upgrading
        (which is how the buildout script gets generated).

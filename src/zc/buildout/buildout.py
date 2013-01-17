@@ -277,6 +277,8 @@ class Buildout(DictMixin):
 
         versions = {'zc.recipe.egg': '>=2.0.0a3'}
         self.versions = versions
+        if 'versions' not in options and 'versions' in self:
+            options['versions'] = 'versions'
         versions_section = options.get('versions')
         if versions_section:
             versions.update(dict(self[versions_section]))
