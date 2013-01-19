@@ -32,7 +32,7 @@ the biggest is that Buildout itself supports usage with a system Python.
 This can work if you follow a couple of simple rules.
 
 1. Use the new bootstrap.py (available from
-   https://github.com/buildout/buildout/raw/1.6.x/bootstrap/bootstrap.py).
+   http://svn.zope.org/*checkout*/zc.buildout/trunk/bootstrap/bootstrap.py).
 
 2. Use buildout recipes that have been upgraded to work with zc.buildout 1.5
    and higher.  Specifically, they should use
