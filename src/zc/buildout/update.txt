@@ -107,8 +107,10 @@ will install earlier versions of these packages:
     ... index = %(new_releases)s
     ... parts = show-versions
     ... develop = showversions
-    ... zc.buildout-version = < 99
-    ... distribute-version = < 99
+    ...
+    ... [versions]
+    ... zc.buildout = < 99
+    ... distribute = < 99
     ...
     ... [show-versions]
     ... recipe = showversions

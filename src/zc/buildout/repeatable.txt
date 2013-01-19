@@ -127,7 +127,7 @@ about versions used. If we run the buildout in verbose mode without
 specifying a versions section:
 
     >>> print_(system(buildout+' buildout:versions= -v'), end='')
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6
@@ -149,7 +149,7 @@ that we can fix them in a versions section.
 If we run the buildout with the versions section:
 
     >>> print_(system(buildout+' -v'), end='')
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6

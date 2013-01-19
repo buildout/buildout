@@ -204,10 +204,37 @@ class Buildout(DictMixin):
         # apply command-line options
         _update(data, cloptions)
 
+        # Set up versions section, if necessary
+        if 'versions' not in data['buildout']:
+            data['buildout']['versions'] = 'versions', 'DEFAULT_VALUE'
+            if 'versions' not in data:
+                data['versions'] = {}
+
+        # Default versions:
+        versions_section_name = data['buildout']['versions'][0]
+        if versions_section_name:
+            versions = data[versions_section_name]
+        else:
+            versions = {}
+        versions.update(
+            dict((k, (v, 'DEFAULT_VALUE'))
+                 for (k, v) in (
+                     # Prevent downgrading due to prefer-final:
+                     ('zc.buildout',
+                      '>='+pkg_resources.working_set.find(
+                          pkg_resources.Requirement.parse('zc.buildout')
+                          ).version),
+                     # Use 2, even though not final
+                     ('zc.recipe.egg', '>=2.0.0a3'),
+                     )
+                 if k not in versions
+                 ))
+
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
         self._parts = []
+
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
         # used already (Gottfried Ganssauge)
@@ -275,13 +302,15 @@ class Buildout(DictMixin):
         self._setup_logging()
         self._setup_socket_timeout()
 
-        versions = {'zc.recipe.egg': '>=2.0.0a3'}
+        # finish w versions
+        if versions_section_name:
+            # refetching section name just to avoid a warnin
+            versions = self[versions_section_name]
+        else:
+            # remove annotations
+            versions = dict((k, v[0]) for (k, v) in versions.items())
+        options['versions'] # refetching section name just to avoid a warning
         self.versions = versions
-        if 'versions' not in options and 'versions' in self:
-            options['versions'] = 'versions'
-        versions_section = options.get('versions')
-        if versions_section:
-            versions.update(dict(self[versions_section]))
         zc.buildout.easy_install.default_versions(versions)
 
         zc.buildout.easy_install.prefer_final(
@@ -835,21 +864,8 @@ class Buildout(DictMixin):
         if not self.newest:
             return
 
-        # Prevent downgrading due to prefer-final:
-        options = self['buildout']
-        if not ('zc.buildout-version' in options
-                or
-                'zc.buildout' in self.versions):
-            v = pkg_resources.working_set.find(
-                pkg_resources.Requirement.parse('zc.buildout')
-                ).version
-            options['zc.buildout-version'] = '>=' + v
-
         ws = zc.buildout.easy_install.install(
-            [
-            (spec + ' ' + self['buildout'].get(spec+'-version', '')).strip()
-            for spec in ('zc.buildout', 'distribute')
-            ],
+            ('zc.buildout', 'distribute'),
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
@@ -902,6 +918,7 @@ class Buildout(DictMixin):
 
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
+        options = self['buildout']
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
             self['buildout']['bin-directory'],
@@ -1273,6 +1290,9 @@ class Options(DictMixin):
                 "Attempt to register a created path while not installing",
                 self.name)
         return self._created
+
+    def __repr__(self):
+        return repr(dict(self))
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'

@@ -837,12 +837,20 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     use-dependency-links= true
         DEFAULT_VALUE
+    versions= versions
+        DEFAULT_VALUE
     <BLANKLINE>
     [data-dir]
     path= foo bins
         /sample-buildout/buildout.cfg
     recipe= recipes:mkdir
         /sample-buildout/buildout.cfg
+    <BLANKLINE>
+    [versions]
+    zc.buildout= >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg= >=1.99
+        DEFAULT_VALUE
     <BLANKLINE>
 
 Variable substitutions
@@ -1279,6 +1287,12 @@ operations.
     [part4]
     option= h1 h2
         /sample-buildout/extension1.cfg
+    [versions]
+    zc.buildout= >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg= >=1.99
+        DEFAULT_VALUE
+    <BLANKLINE>
 
 Cleanup.
 
@@ -2326,7 +2340,7 @@ database is shown.
     ... """)
 
     >>> print_(system(buildout+' -vv'), end='') # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout >=1.9a1', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6
@@ -2354,7 +2368,10 @@ database is shown.
     socket-timeout =
     use-dependency-links = true
     verbosity = 20
-    zc.buildout-version = >=1.9a1
+    versions = versions
+    [versions]
+    zc.buildout = >=1.99
+    zc.recipe.egg = >=1.99
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
@@ -2835,9 +2852,9 @@ previous section:
     ... """
     ... import sys
     ... def ext(buildout):
-    ...     sys.stdout.write('%s %s\\n' % ('ext', list(buildout)))
+    ...     sys.stdout.write('%s %s\\n' % ('ext', sorted(buildout)))
     ... def unload(buildout):
-    ...     sys.stdout.write('%s %s\\n' % ('unload', list(buildout)))
+    ...     sys.stdout.write('%s %s\\n' % ('unload', sorted(buildout)))
     ... """)
 
     >>> write(sample_bootstrapped, 'demo', 'setup.py',
@@ -2890,6 +2907,6 @@ We see that our extension is loaded and executed:
 
     >>> print_(system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ...        end='')
-    ext ['buildout']
+    ext ['buildout', 'versions']
     Develop: '/sample-bootstrapped/demo'
-    unload ['buildout']
+    unload ['buildout', 'versions']

@@ -4,12 +4,22 @@ Change History
 2.0.0a8 (2013-01-??)
 ====================
 
-- The ``versions`` option now defaults to ``versions`` (if there is a
-  ``versions`` section), so you know longer need to include::
+- The ``versions`` option now defaults to ``versions``, so you know
+  longer need to include::
 
      versions = versions
 
   in a ``buildout`` section when pinning versions.
+
+  A ``versions`` section is added, if necessary, if a ``versions``
+  option isn't used.
+
+- Buildout-defined default versions are included in the versions
+  section, if there is one.
+
+- The ``buildout:zc.buildout-version`` and
+  ``buildout:distribute-version`` options have been removed in favor
+  of providing version constraints in a versions section.
 
 Fixed: relative-paths weren't honored when bootstrapping or upgrading
        (which is how the buildout script gets generated).

@@ -333,7 +333,7 @@ if we hadn't required sampley ourselves:
 If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6
@@ -530,7 +530,7 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     ...
     [foo]
     bar = 1
@@ -958,7 +958,7 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     ... def print_(*args):
     ...     sys.stdout.write(' '.join(map(str, args)) + '\\n')
     ... def ext(buildout):
-    ...     print_('ext', list(buildout))
+    ...     print_('ext', sorted(buildout))
     ... """)
 
     >>> write('demo', 'setup.py',
@@ -984,7 +984,7 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     ... """)
 
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
-    ext ['buildout']
+    ext ['buildout', 'versions']
 
 
     '''
@@ -1949,7 +1949,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'distribute'.
     Picked: distribute = 0.6
@@ -2230,7 +2230,7 @@ The default is prefer-final = true:
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     ...
     Picked: demo = 0.3
     ...
@@ -2252,7 +2252,7 @@ We get the same behavior if we add prefer-final = true
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     ...
     Picked: demo = 0.3
     ...
@@ -2274,7 +2274,7 @@ distributions:
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout >=1.99', 'distribute'.
+    Installing 'zc.buildout', 'distribute'.
     ...
     Picked: demo = 0.4c1
     ...
@@ -2304,18 +2304,19 @@ def wont_downgrade_due_to_prefer_final():
     r"""
     If we install a non-final buildout version, we don't want to
     downgrade just bcause we prefer-final.  If a buildout version
-    isn't specified, either through buildout-version or a versions
-    entry, then buildout-version gets set to >=CURRENT_VERSION.
+    isn't specified using a versions entry, then buildout's version
+    requirement gets set to >=CURRENT_VERSION.
 
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
     ... parts =
     ... ''')
-    >>> [v] = [l.split('=', 1)[1].strip()
+
+    >>> [v] = [l.split('= >=', 1)[1].strip()
     ...        for l in system(buildout+' -vv').split('\n')
-    ...        if l.startswith('zc.buildout-version = ')]
-    >>> v == '>=' + pkg_resources.working_set.find(
+    ...        if l.startswith('zc.buildout = >=')]
+    >>> v == pkg_resources.working_set.find(
     ...         pkg_resources.Requirement.parse('zc.buildout')
     ...         ).version
     True
@@ -2324,12 +2325,13 @@ def wont_downgrade_due_to_prefer_final():
     ... '''
     ... [buildout]
     ... parts =
-    ... zc.buildout-version = >.1
+    ... [versions]
+    ... zc.buildout = >.1
     ... ''')
-    >>> [str(l.split('=', 1)[1].strip())
+    >>> [str(l.split('= >', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
-    ...        if l.startswith('zc.buildout-version =')]
-    ['>.1']
+    ...        if l.startswith('zc.buildout =')]
+    ['.1']
 
     >>> write('buildout.cfg',
     ... '''
@@ -2339,9 +2341,9 @@ def wont_downgrade_due_to_prefer_final():
     ... [versions]
     ... zc.buildout = 43
     ... ''')
-    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing...
-    Error: Couldn't find a distribution for 'zc.buildout==43'.
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Getting distribution for 'zc.buildout==43'.
+    ...
 
     """
 
@@ -3097,8 +3099,7 @@ def test_suite():
                     zc.buildout.testing.normalize_script,
                     zc.buildout.testing.normalize_egg_py,
                     zc.buildout.testing.not_found,
-                    (re.compile(r'zc.buildout-version = >=\S+'), ''),
-                    (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+                    # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                     (re.compile('__buildout_signature__ = recipes-\S+'),
                      '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                     (re.compile('executable = [\S ]+python\S*', re.I),
@@ -3121,6 +3122,8 @@ def test_suite():
                      ),
                     (re.compile('distribute'), 'setuptools'),
                     (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
+                    (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
+                     'zc.\1 = >=1.99'),
                     ])
                 ) + manuel.capture.Manuel(),
             'buildout.txt',
@@ -3137,9 +3140,9 @@ def test_suite():
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.testing.not_found,
-               (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
-               (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
-                ''),
+               # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+               # (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
+               #  ''),
                (re.compile('__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile('[-d]  distribute-\S+[.]egg'), 'distribute.egg'),
@@ -3193,7 +3196,7 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 normalize_bang,
                 normalize_S,
-                (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
+                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                 (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
                  ''),
                 (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
@@ -3259,7 +3262,6 @@ def test_suite():
                 zc.buildout.testing.normalize___pycache__,
                 zc.buildout.testing.not_found,
                 normalize_bang,
-                (re.compile(r"Installing 'zc.buildout >=\S+"), 'Installing '),
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile("buildout: Running \S*setup.py"),
                  'buildout: Running setup.py'),
