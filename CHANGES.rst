@@ -21,6 +21,12 @@ Change History
   ``buildout:distribute-version`` options have been removed in favor
   of providing version constraints in a versions section.
 
+- Error if install-from-cache and offline are used together, because
+  offline largely means "don't install".
+
+- Provide better error messages when distributions can't be installed
+  because buildout is run in offline mode.
+
 Fixed: relative-paths weren't honored when bootstrapping or upgrading
        (which is how the buildout script gets generated).
 
