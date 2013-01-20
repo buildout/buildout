@@ -3310,6 +3310,7 @@ def test_suite():
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.testing.normalize___pycache__,
                 zc.buildout.testing.not_found,
+                zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 normalize_bang,
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile("buildout: Running \S*setup.py"),
