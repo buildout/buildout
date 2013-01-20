@@ -48,4 +48,4 @@ clean:
 	rm -rf $(BUILD_DIRS)
 
 test:
-	$(HERE)/bin/test -v -1
+	$(HERE)/bin/test -1
