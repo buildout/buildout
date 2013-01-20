@@ -422,8 +422,13 @@ class Installer:
         dist, avail = self._satisfied(requirement)
 
         if dist is None:
-            if self._dest is not None:
-                logger.info(*__doing__)
+            if self._dest is None:
+                raise zc.buildout.UserError(
+                    "We don't have a distribution for %s\n"
+                    "and can't install one in offline (no-install) mode.\n"
+                    % requirement)
+
+            logger.info(*__doing__)
 
             # Retrieve the dist:
             if avail is None:
@@ -615,6 +620,13 @@ class Installer:
             raise zc.buildout.UserError(
                 "Couldn't find a source distribution for %r."
                 % str(requirement))
+
+        if self._dest is None:
+            raise zc.buildout.UserError(
+                "We don't have a distribution for %s\n"
+                "and can't build one in offline (no-install) mode.\n"
+                % requirement
+                )
 
         logger.debug('Building %r', spec)
 

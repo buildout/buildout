@@ -2806,6 +2806,31 @@ def cant_use_install_from_cache_and_offline_together():
     <BLANKLINE>
     """
 
+def error_installing_in_offline_mode_if_dont_have_needed_dist():
+    r"""
+    >>> import zc.buildout.easy_install
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo==0.2'], None,
+    ...     links=[link_server], index=link_server+'index/')
+    Traceback (most recent call last):
+    ...
+    UserError: We don't have a distribution for demo==0.2
+    and can't install one in offline (no-install) mode.
+    <BLANKLINE>
+    """
+
+def error_building_in_offline_mode_if_dont_have_needed_dist():
+    r"""
+    >>> zc.buildout.easy_install.build(
+    ...   'extdemo', None,
+    ...   {}, links=[link_server], index=link_server+'index/')
+    Traceback (most recent call last):
+    ...
+    UserError: We don't have a distribution for extdemo
+    and can't build one in offline (no-install) mode.
+    <BLANKLINE>
+    """
+
 
 ######################################################################
 
