@@ -4,7 +4,7 @@ Change History
 2.0.0a8 (2013-01-??)
 ====================
 
-- The ``versions`` option now defaults to ``versions``, so you know
+- The ``versions`` option now defaults to ``versions``, so you no
   longer need to include::
 
      versions = versions
