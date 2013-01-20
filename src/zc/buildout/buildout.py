@@ -335,8 +335,14 @@ class Buildout(DictMixin):
 
             zc.buildout.easy_install.download_cache(download_cache)
 
-        zc.buildout.easy_install.install_from_cache(
-            bool_option(options, 'install-from-cache'))
+        if bool_option(options, 'install-from-cache'):
+            if self.offline:
+                raise zc.buildout.UserError(
+                    "install-from-cache can't be used with offline mode.\n"
+                    "Nothing is installed, even fromn cache, in offline\n"
+                    "mode, which might better be called 'no-install mode'.\n"
+                    )
+            zc.buildout.easy_install.install_from_cache(True)
 
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:

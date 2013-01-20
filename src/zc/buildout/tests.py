@@ -2788,6 +2788,24 @@ def bootstrap_honors_relative_paths():
         sys.exit(zc.buildout.buildout.main())
     """
 
+def cant_use_install_from_cache_and_offline_together():
+    r"""
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... offline = true
+    ... install-from-cache = true
+    ... ''')
+    >>> print_(system(join('bin', 'buildout')), end='') # doctest: +ELLIPSIS
+    While:
+      Initializing.
+    Error: install-from-cache can't be used with offline mode.
+    Nothing is installed, even fromn cache, in offline
+    mode, which might better be called 'no-install mode'.
+    <BLANKLINE>
+    """
+
 
 ######################################################################
 
