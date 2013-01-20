@@ -1719,9 +1719,12 @@ def main(args=None):
                 _error("Invalid option", '-'+op[0])
         elif '=' in args[0]:
             option, value = args.pop(0).split('=', 1)
-            if len(option.split(':')) != 2:
+            option = option.split(':')
+            if len(option) == 1:
+                option = 'buildout', option[0]
+            elif len(option) != 2:
                 _error('Invalid option:', option)
-            section, option = option.split(':')
+            section, option = option
             options.append((section.strip(), option.strip(), value.strip()))
         else:
             # We've run out of command-line options and option assignnemnts

@@ -1947,6 +1947,14 @@ Assignments are of the form::
 
   section_name:option_name=value
 
+Or::
+
+  option_name=value
+
+which is equivalent to::
+
+  buildout:option_name=value
+
 Options and assignments can be given in any order.
 
 Here's an example:

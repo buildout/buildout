@@ -4,6 +4,14 @@ Change History
 2.0.0a8 (2013-01-??)
 ====================
 
+- buildout options can be given on the command line using the form::
+
+    option_name=value
+
+  as a short-hand for::
+
+    buildout:option_name=value
+
 - The ``versions`` option now defaults to ``versions``, so you no
   longer need to include::
 

@@ -2831,6 +2831,12 @@ def error_building_in_offline_mode_if_dont_have_needed_dist():
     <BLANKLINE>
     """
 
+def test_buildout_section_shorthand_for_command_line_assignments():
+    r"""
+    >>> write('buildout.cfg', '')
+    >>> print_(system(buildout+' parts='), end='') # doctest: +ELLIPSIS
+    """
+
 
 ######################################################################
 
