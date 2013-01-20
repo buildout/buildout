@@ -213,10 +213,7 @@ class Installer:
         # any are newer.  We only do this if we're willing to install
         # something, which is only true if dest is not None:
 
-        if self._dest is not None:
-            best_available = self._obtain(req, source)
-        else:
-            best_available = None
+        best_available = self._obtain(req, source)
 
         if best_available is None:
             # That's a bit odd.  There aren't any distros available.
