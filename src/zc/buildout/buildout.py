@@ -488,7 +488,7 @@ class Buildout(DictMixin):
             sections.sort()
             print_()
             print_('Configuration data:')
-            for section in self._data:
+            for section in sorted(self._data):
                 _save_options(section, self[section], sys.stdout)
             print_()
 
