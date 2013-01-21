@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.0a8 (2013-01-??)
+2.0.0b1 (2013-01-21)
 ====================
 
 - buildout options can be given on the command line using the form::
