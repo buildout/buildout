@@ -3253,6 +3253,7 @@ def test_suite():
                     r'(zc.buildout|distribute)( version)? \d+[.]\d+\S*'),
                  '\\1 V.V'),
                 (re.compile('[-d]  distribute'), '-  distribute'),
+                (re.compile(re.escape(os.path.sep)+'+'), '/'),
                ])
             ),
 
