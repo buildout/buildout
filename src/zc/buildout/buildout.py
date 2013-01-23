@@ -204,6 +204,8 @@ class Buildout(DictMixin):
         # apply command-line options
         _update(data, cloptions)
 
+        # REINOUT: potentially add a lowercase-key-using special kind of dict
+        # for the versions.
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
             data['buildout']['versions'] = 'versions', 'DEFAULT_VALUE'
@@ -229,6 +231,19 @@ class Buildout(DictMixin):
                      )
                  if k not in versions
                  ))
+
+        # REINOUT: add check for python version.
+        # python_version = current_versions.get('python')
+        # if python_version and python_version not in sys.version:
+        #     raise IncompatibleVersionError(
+        #         "python version specified not found in sys.version:",
+        #         python_version
+        #         )
+
+        # REINOUT: look for buildout versions file option.
+        # # record file name, if needed
+        # if 'buildout_versions_file' in buildout['buildout']:
+        #     file_name = buildout['buildout']['buildout_versions_file']
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
@@ -1792,3 +1807,7 @@ def bool_option(options, name, default=None):
     except KeyError:
         raise zc.buildout.UserError(
             'Invalid value for %r option: %r' % (name, value))
+
+# REINOUT: add a new bool_option for allow_picked_versions so that 'show' is
+# also an acceptable value.
+# Or add a nice boolean show_picked_versions option.

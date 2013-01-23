@@ -69,6 +69,10 @@ buildout_and_distribute_path = [
 
 FILE_SCHEME = re.compile('file://', re.I).match
 
+# REINOUT: two new globals.
+# required_by = {}
+# picked_versions = {}  # This one could perhaps be local, on Installer?
+
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
@@ -516,6 +520,9 @@ class Installer:
                 ):
                 logger.debug('Picked: %s = %s',
                              dist.project_name, dist.version)
+                # REINOUT: add the next line.
+                # picked_versions[dist.project_name] = dist.version
+
                 if not self._allow_picked_versions:
                     raise zc.buildout.UserError(
                         'Picked: %s = %s' % (dist.project_name, dist.version)
@@ -546,6 +553,13 @@ class Installer:
 
     def _constrain(self, requirement):
         constraint = self._versions.get(requirement.project_name)
+        # REINOUT: use the line below, with the .lower().
+        # Alternative is perhaps to use a self._versions that always uses
+        # lowercase keys.
+        # Actually, this lower-casing happens in buildout-versions, so we need
+        # to do it too. See buildout.py.
+        # constraint = self._versions.get(requirement.project_name.lower())
+
         if constraint:
             requirement = _constrained_requirement(constraint, requirement)
 
@@ -1234,12 +1248,18 @@ def _log_requirement(ws, req):
         # decrease of run time from 93.411 to 15.068 seconds, about a
         # 6 fold improvement.
         return
+    # REINOUT add extra check for 'allow-picked-versions=show'.
 
     ws = list(ws)
     ws.sort()
     for dist in ws:
         if req in dist.requires():
             logger.debug("  required by %s." % dist)
+            # REINOUT add the following lines.
+            # req_ = str(req)
+            # if req_ not in required_by:
+            #     required_by[req_] = set()
+            # required_by[req_].add(str(dist.as_requirement()))
 
 def _fix_file_links(links):
     for link in links:
