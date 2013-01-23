@@ -245,6 +245,8 @@ class Buildout(DictMixin):
         # if 'buildout_versions_file' in buildout['buildout']:
         #     file_name = buildout['buildout']['buildout_versions_file']
 
+        # REINOUT: add 'update-versions-file' option.
+
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
@@ -646,7 +648,41 @@ class Buildout(DictMixin):
         elif (not installed_parts) and installed_exists:
             os.remove(self['buildout']['installed'])
 
+        # REINOUT Print picked versions here.
+        # self._print_picked_versions()
         self._unload_extensions()
+
+    # def _print_picked_versions(self):
+    #     if picked_versions:
+    #         output = ['[versions]']
+    #         required_output = []
+    #         for dist_, version in sorted(picked_versions.items()):
+    #             if dist_ in required_by:
+    #                 required_output.append('')
+    #                 required_output.append('# Required by:')
+    #                 for req_ in sorted(required_by[dist_]):
+    #                     required_output.append('# '+req_)
+    #                 target = required_output
+    #             else:
+    #                 target = output
+    #             target.append("%s = %s" % (dist_, version))
+
+    #         output.extend(required_output)
+
+    #         print "Versions had to be automatically picked."
+    #         print "The following part definition lists the versions picked:"
+    #         print '\n'.join(output)
+    #         if file_name:
+    #             if os.path.exists(file_name):
+    #                 output[:1] = [
+    #                     '',
+    #                     '# Added by Buildout Versions at %s' % datetime.now(),
+    #                     ]
+    #             output.append('')
+    #             f = open(file_name,'a')
+    #             f.write('\n'.join(output))
+    #             f.close()
+    #             print "This information has been written to %r" % file_name
 
     def _update_installed(self, **buildout_options):
         installed = self['buildout']['installed']
