@@ -208,7 +208,7 @@ class Buildout(DictMixin):
         # for the versions.
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
-            data['buildout']['versions'] = 'versions', 'DEFAULT_VALUE'
+            data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
             if 'versions' not in data:
                 data['versions'] = {}
 
@@ -246,6 +246,7 @@ class Buildout(DictMixin):
         #     file_name = buildout['buildout']['buildout_versions_file']
 
         # REINOUT: add 'update-versions-file' option.
+        # REINOUT: add a nice boolean show_picked_versions option.
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
@@ -1843,7 +1844,3 @@ def bool_option(options, name, default=None):
     except KeyError:
         raise zc.buildout.UserError(
             'Invalid value for %r option: %r' % (name, value))
-
-# REINOUT: add a new bool_option for allow_picked_versions so that 'show' is
-# also an acceptable value.
-# Or add a nice boolean show_picked_versions option.
