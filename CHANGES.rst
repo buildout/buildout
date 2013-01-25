@@ -18,7 +18,7 @@ Change History
 
 - Also from buildout-versions: if a ``python`` version is given in the
   versions, buildout now checks if it is running with that python
-  version. Handy if you know it the buildout only functions with a specific
+  version. Handy if you know if the buildout only functions with a specific
   python version.
 
 
