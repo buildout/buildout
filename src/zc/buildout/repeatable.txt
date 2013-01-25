@@ -260,6 +260,25 @@ versions it picked at the end of its run:
     distribute = 0.6.99
     spam = 2
 
+When everything is pinned, no output is generated:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ... distribute = 0.6.34
+    ... spam = 2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
 
 
 Controlling the python version
