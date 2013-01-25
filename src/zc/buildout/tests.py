@@ -404,6 +404,41 @@ that we can't find. when run in verbose mode
     Error: Couldn't find a distribution for 'demoneeded'.
     """
 
+def show_who_requires_picked_versions():
+    """
+
+The show-picked-versions prints the versions, but it also prints who
+required the picked distributions.
+We do not need to run in verbose mode for that to work:
+
+    >>> make_dist_that_requires(sample_buildout, 'sampley', ['distribute'])
+    >>> make_dist_that_requires(sample_buildout, 'samplea', ['sampleb'])
+    >>> make_dist_that_requires(sample_buildout, 'sampleb',
+    ...                         ['sampley', 'samplea'])
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = eggs
+    ... show-picked-versions = true
+    ... develop = sampley samplea sampleb
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg
+    ... eggs = samplea
+    ... ''')
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Develop: ...
+    Installing eggs.
+    Versions had to be automatically picked.
+    The following part definition lists the versions picked:
+    [versions]
+    <BLANKLINE>
+    # Required by:
+    # sampley==1
+    distribute = 0.6.99
+    """
+
 def test_comparing_saved_options_with_funny_characters():
     """
 If an option has newlines, extra/odd spaces or a %, we need to make sure
@@ -3321,6 +3356,7 @@ def test_suite():
                  'distribute.egg'),
                 (re.compile('zc.buildout-\S+-'),
                  'zc.buildout.egg'),
+                (re.compile('distribute = \S+'), 'distribute = 0.6.99'),
                 (re.compile('File "\S+one.py"'),
                  'File "one.py"'),
                 (re.compile(r'We have a develop egg: (\S+) (\S+)'),
