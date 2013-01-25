@@ -370,6 +370,27 @@ And re-running buildout doesn't report any picked versions anymore:
     Updating foo.
     recipe v2
 
+Because buildout now includes buildout-versions' (and the older
+buildout.dumppickedversions') functionality, it warns if these extensions are
+configured.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = foo
+    ... extensions = buildout-versions
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... """)
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    While:
+      Installing.
+      Loading extensions.
+    Error: The extension buildout-versions is now included in buildout itself.
+    Remove the extension from your configuration and look at the `show-picked-versions`
+    option in buildout's documentation.
+
 
 Controlling the python version
 -------------------------------
