@@ -204,8 +204,6 @@ class Buildout(DictMixin):
         # apply command-line options
         _update(data, cloptions)
 
-        # REINOUT: potentially add a lowercase-key-using special kind of dict
-        # for the versions.
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
             data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
@@ -232,13 +230,12 @@ class Buildout(DictMixin):
                  if k not in versions
                  ))
 
-        # REINOUT: add check for python version.
-        # python_version = current_versions.get('python')
-        # if python_version and python_version not in sys.version:
-        #     raise IncompatibleVersionError(
-        #         "python version specified not found in sys.version:",
-        #         python_version
-        #         )
+        python_version = versions.get('python')
+        if python_version and python_version[0] not in sys.version:
+            raise zc.buildout.easy_install.IncompatibleConstraintError(
+                "python version specified not found in sys.version:",
+                python_version
+                )
 
         # REINOUT: look for buildout versions file option.
         # # record file name, if needed
@@ -322,7 +319,7 @@ class Buildout(DictMixin):
 
         # finish w versions
         if versions_section_name:
-            # refetching section name just to avoid a warnin
+            # refetching section name just to avoid a warning
             versions = self[versions_section_name]
         else:
             # remove annotations
