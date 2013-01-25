@@ -837,6 +837,8 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     socket-timeout=
         DEFAULT_VALUE
+    update-versions-file=
+        DEFAULT_VALUE
     use-dependency-links= true
         DEFAULT_VALUE
     versions= versions
@@ -2377,6 +2379,7 @@ database is shown.
     python = buildout
     show-picked-versions = false
     socket-timeout =
+    update-versions-file =
     use-dependency-links = true
     verbosity = 20
     versions = versions
