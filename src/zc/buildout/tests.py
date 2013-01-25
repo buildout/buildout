@@ -3205,6 +3205,7 @@ def test_suite():
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile('WindowsError'), 'OSError'),
+               (re.compile('distribute = \S+'), 'distribute = 0.6.99'),
                (re.compile(r'\[Error 17\] Cannot create a file '
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
@@ -3391,4 +3392,3 @@ def test_suite():
             ))
 
     return unittest.TestSuite(test_suite)
-

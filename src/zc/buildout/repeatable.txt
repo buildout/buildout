@@ -257,7 +257,7 @@ versions it picked at the end of its run:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
-    distribute = 0.6.34
+    distribute = 0.6.99
     spam = 2
 
 
