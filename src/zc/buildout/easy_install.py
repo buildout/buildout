@@ -171,10 +171,7 @@ class Installer:
         self._index = _get_index(index, links, self._allow_hosts)
 
         if versions is not None:
-            # Normalize all versions to lowercase. PyPI is case-insensitive
-            # and not all distributions are consistent in their own naming.
-            self._versions = dict([(k.lower(), v)
-                                   for (k, v) in versions.items()])
+            self._versions = normalize_versions(versions)
 
     def _satisfied(self, req, source=None):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -688,11 +685,20 @@ class Installer:
             if tmp != self._download_cache:
                 shutil.rmtree(tmp)
 
+
+def normalize_versions(versions):
+    """Return version dict with keys normalized to lowercase.
+
+    PyPI is case-insensitive and not all distributions are consistent in
+    their own naming.
+    """
+    return dict([(k.lower(), v) for (k, v) in versions.items()])
+
+
 def default_versions(versions=None):
     old = Installer._versions
     if versions is not None:
-        Installer._versions = dict([(k.lower(), v)
-                                   for (k, v) in versions.items()])
+        Installer._versions = normalize_versions(versions)
     return old
 
 def download_cache(path=-1):
