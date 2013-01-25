@@ -29,6 +29,7 @@ except ImportError:
 
 import zc.buildout.configparser
 import copy
+import datetime
 import distutils.errors
 import glob
 import itertools
@@ -138,6 +139,7 @@ _buildout_default_options = _annotate_section({
     'python': 'buildout',
     'show-picked-versions': 'false',
     'socket-timeout': '',
+    'update-versions-file': '',
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
@@ -336,6 +338,7 @@ class Buildout(DictMixin):
                 bool_option(options, 'allow-picked-versions'))
         self.show_picked_versions = bool_option(options,
                                                 'show-picked-versions')
+        self.update_versions_file = options['update-versions-file']
         zc.buildout.easy_install.show_picked_versions(
             self.show_picked_versions)
 
@@ -1022,18 +1025,19 @@ class Buildout(DictMixin):
         print_("Versions had to be automatically picked.")
         print_("The following part definition lists the versions picked:")
         print_('\n'.join(output))
-        # REINOUT Print to file
-        # if file_name:
-        #     if os.path.exists(file_name):
-        #         output[:1] = [
-        #             '',
-        #             '# Added by Buildout Versions at %s' % datetime.now(),
-        #             ]
-        #     output.append('')
-        #     f = open(file_name,'a')
-        #     f.write('\n'.join(output))
-        #     f.close()
-        #     print("This information has been written to %r" % file_name)
+        if self.update_versions_file:
+            # Also write to the versions file.
+            if os.path.exists(self.update_versions_file):
+                output[:1] = [
+                    '',
+                    '# Added by buildout at %s' % datetime.datetime.now(),
+                    ]
+            output.append('')
+            f = open(self.update_versions_file, 'a')
+            f.write('\n'.join(output))
+            f.close()
+            print_("This information has been written to " +
+                   self.update_versions_file)
 
     def setup(self, args):
         if not args:

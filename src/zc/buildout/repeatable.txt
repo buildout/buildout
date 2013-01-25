@@ -304,6 +304,72 @@ and case differences won't impact the pinning:
     Updating foo.
     recipe v2
 
+Sometimes it is handy to have a separate file with versions. This is a regular
+buildout file with a single ``[versions]`` section. You include it by
+extending from that versions file:
+
+    >>> write('my_versions.cfg',
+    ... '''
+    ... [versions]
+    ... distribute = 0.6.34
+    ... spam = 2
+    ... ''')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... extends = my_versions.cfg
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
+If not everything is pinned and buildout has to pick versions, you can tell
+buildout to append the versions to your versions file. It simply appends them
+at the end.
+
+    >>> write('my_versions.cfg',
+    ... '''
+    ... [versions]
+    ... distribute = 0.6.34
+    ... ''')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... extends = my_versions.cfg
+    ... update-versions-file = my_versions.cfg
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+    Versions had to be automatically picked.
+    The following part definition lists the versions picked:
+    [versions]
+    spam = 2
+    This information has been written to my_versions.cfg
+
+The versions file now contains the extra pin:
+
+    >>> 'spam = 2' in open('my_versions.cfg').read()
+    True
+
+And re-running buildout doesn't report any picked versions anymore:
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
 
 Controlling the python version
 -------------------------------
