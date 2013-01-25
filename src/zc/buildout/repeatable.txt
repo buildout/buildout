@@ -228,6 +228,40 @@ We can also disable checking versions:
     Installing foo.
     recipe v2
 
+
+Easier reporting and managing of versions (new in buildout 2.0)
+---------------------------------------------------------------
+
+Since buildout 2.0, the functionality of the `buildout-versions
+<http://packages.python.org/buildout-versions/>`_ extension is part of
+buildout itself. This makes reporting and managing versions easier.
+
+If you set the ``show-picked-versions`` option, buildout will print
+versions it picked at the end of its run:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+    Versions had to be automatically picked.
+    The following part definition lists the versions picked:
+    [versions]
+    distribute = 0.6.34
+    spam = 2
+
+
+
 Controlling the python version
 -------------------------------
 

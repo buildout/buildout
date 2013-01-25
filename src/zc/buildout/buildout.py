@@ -136,6 +136,7 @@ _buildout_default_options = _annotate_section({
     'parts-directory': 'parts',
     'prefer-final': 'true',
     'python': 'buildout',
+    'show-picked-versions': 'false',
     'socket-timeout': '',
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
@@ -243,7 +244,6 @@ class Buildout(DictMixin):
         #     file_name = buildout['buildout']['buildout_versions_file']
 
         # REINOUT: add 'update-versions-file' option.
-        # REINOUT: add a nice boolean show_picked_versions option.
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
@@ -334,6 +334,8 @@ class Buildout(DictMixin):
             bool_option(options, 'use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
                 bool_option(options, 'allow-picked-versions'))
+        zc.buildout.easy_install.show_picked_versions(
+                bool_option(options, 'show-picked-versions'))
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -646,41 +648,8 @@ class Buildout(DictMixin):
         elif (not installed_parts) and installed_exists:
             os.remove(self['buildout']['installed'])
 
-        # REINOUT Print picked versions here.
-        # self._print_picked_versions()
+        zc.buildout.easy_install.print_picked_versions()
         self._unload_extensions()
-
-    # def _print_picked_versions(self):
-    #     if picked_versions:
-    #         output = ['[versions]']
-    #         required_output = []
-    #         for dist_, version in sorted(picked_versions.items()):
-    #             if dist_ in required_by:
-    #                 required_output.append('')
-    #                 required_output.append('# Required by:')
-    #                 for req_ in sorted(required_by[dist_]):
-    #                     required_output.append('# '+req_)
-    #                 target = required_output
-    #             else:
-    #                 target = output
-    #             target.append("%s = %s" % (dist_, version))
-
-    #         output.extend(required_output)
-
-    #         print "Versions had to be automatically picked."
-    #         print "The following part definition lists the versions picked:"
-    #         print '\n'.join(output)
-    #         if file_name:
-    #             if os.path.exists(file_name):
-    #                 output[:1] = [
-    #                     '',
-    #                     '# Added by Buildout Versions at %s' % datetime.now(),
-    #                     ]
-    #             output.append('')
-    #             f = open(file_name,'a')
-    #             f.write('\n'.join(output))
-    #             f.close()
-    #             print "This information has been written to %r" % file_name
 
     def _update_installed(self, **buildout_options):
         installed = self['buildout']['installed']

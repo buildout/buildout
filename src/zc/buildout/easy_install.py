@@ -69,9 +69,6 @@ buildout_and_distribute_path = [
 
 FILE_SCHEME = re.compile('file://', re.I).match
 
-# REINOUT: two new globals.
-# required_by = {}
-# picked_versions = {}  # This one could perhaps be local, on Installer?
 
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
@@ -124,11 +121,14 @@ _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 class Installer:
 
     _versions = {}
+    _required_by = {}
+    _picked_versions = {}
     _download_cache = None
     _install_from_cache = False
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
+    _show_picked_versions = False
 
     def __init__(self,
                  dest=None,
@@ -520,8 +520,7 @@ class Installer:
                 ):
                 logger.debug('Picked: %s = %s',
                              dist.project_name, dist.version)
-                # REINOUT: add the next line.
-                # picked_versions[dist.project_name] = dist.version
+                self._picked_versions[dist.project_name] = dist.version
 
                 if not self._allow_picked_versions:
                     raise zc.buildout.UserError(
@@ -731,6 +730,49 @@ def allow_picked_versions(setting=None):
     if setting is not None:
         Installer._allow_picked_versions = bool(setting)
     return old
+
+def show_picked_versions(setting=None):
+    old = Installer._show_picked_versions
+    if setting is not None:
+        Installer._show_picked_versions = bool(setting)
+    return old
+
+def print_picked_versions():
+    if not Installer._show_picked_versions:
+        return
+    if not Installer._picked_versions:
+        # Don't print empty output.
+        return
+    output = ['[versions]']
+    required_output = []
+    for dist_, version in sorted(Installer._picked_versions.items()):
+        if dist_ in Installer._required_by:
+            required_output.append('')
+            required_output.append('# Required by:')
+            for req_ in sorted(Installer._required_by[dist_]):
+                required_output.append('# '+req_)
+            target = required_output
+        else:
+            target = output
+        target.append("%s = %s" % (dist_, version))
+
+    output.extend(required_output)
+
+    print "Versions had to be automatically picked."
+    print "The following part definition lists the versions picked:"
+    print '\n'.join(output)
+    # if file_name:
+    #     if os.path.exists(file_name):
+    #         output[:1] = [
+    #             '',
+    #             '# Added by Buildout Versions at %s' % datetime.now(),
+    #             ]
+    #     output.append('')
+    #     f = open(file_name,'a')
+    #     f.write('\n'.join(output))
+    #     f.close()
+    #     print "This information has been written to %r" % file_name
+
 
 def install(specs, dest,
             links=(), index=None,
@@ -1240,26 +1282,25 @@ class MissingDistribution(zc.buildout.UserError):
         return "Couldn't find a distribution for %r." % str(req)
 
 def _log_requirement(ws, req):
-    if not logger.isEnabledFor(logging.DEBUG):
+    if (not logger.isEnabledFor(logging.DEBUG) and
+        not Installer._show_picked_versions):
         # Sorting the working set and iterating over it's requirements
-        # is expensive, so short cirtuit the work if it won't even be
+        # is expensive, so short circuit the work if it won't even be
         # logged.  When profiling a simple buildout with 10 parts with
         # identical and large working sets, this resulted in a
         # decrease of run time from 93.411 to 15.068 seconds, about a
         # 6 fold improvement.
         return
-    # REINOUT add extra check for 'allow-picked-versions=show'.
 
     ws = list(ws)
     ws.sort()
     for dist in ws:
         if req in dist.requires():
             logger.debug("  required by %s." % dist)
-            # REINOUT add the following lines.
-            # req_ = str(req)
-            # if req_ not in required_by:
-            #     required_by[req_] = set()
-            # required_by[req_].add(str(dist.as_requirement()))
+            req_ = str(req)
+            if req_ not in Installer._required_by:
+                Installer._required_by[req_] = set()
+            Installer._required_by[req_].add(str(dist.as_requirement()))
 
 def _fix_file_links(links):
     for link in links:
