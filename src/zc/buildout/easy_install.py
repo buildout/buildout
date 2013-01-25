@@ -171,7 +171,10 @@ class Installer:
         self._index = _get_index(index, links, self._allow_hosts)
 
         if versions is not None:
-            self._versions = versions
+            # Normalize all versions to lowercase. PyPI is case-insensitive
+            # and not all distributions are consistent in their own naming.
+            self._versions = dict([(k.lower(), v)
+                                   for (k, v) in versions.items()])
 
     def _satisfied(self, req, source=None):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -551,17 +554,9 @@ class Installer:
 
 
     def _constrain(self, requirement):
-        constraint = self._versions.get(requirement.project_name)
-        # REINOUT: use the line below, with the .lower().
-        # Alternative is perhaps to use a self._versions that always uses
-        # lowercase keys.
-        # Actually, this lower-casing happens in buildout-versions, so we need
-        # to do it too. See buildout.py.
-        # constraint = self._versions.get(requirement.project_name.lower())
-
+        constraint = self._versions.get(requirement.project_name.lower())
         if constraint:
             requirement = _constrained_requirement(constraint, requirement)
-
         return requirement
 
     def install(self, specs, working_set=None):
@@ -696,7 +691,8 @@ class Installer:
 def default_versions(versions=None):
     old = Installer._versions
     if versions is not None:
-        Installer._versions = versions
+        Installer._versions = dict([(k.lower(), v)
+                                   for (k, v) in versions.items()])
     return old
 
 def download_cache(path=-1):

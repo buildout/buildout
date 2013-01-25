@@ -280,6 +280,30 @@ When everything is pinned, no output is generated:
     Updating foo.
     recipe v2
 
+The Python package index is case-insensitive. Both
+http://pypi.python.org/simple/Django/ and
+http://pypi.python.org/simple/dJaNgO/ work. And distributions aren't always
+naming themselves consistently case-wise. So all version names are normalized
+and case differences won't impact the pinning:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ... distriBUTE = 0.6.34
+    ... Spam = 2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
 
 Controlling the python version
 -------------------------------
