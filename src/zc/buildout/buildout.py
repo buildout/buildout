@@ -334,8 +334,10 @@ class Buildout(DictMixin):
             bool_option(options, 'use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
                 bool_option(options, 'allow-picked-versions'))
+        self.show_picked_versions = bool_option(options,
+                                                'show-picked-versions')
         zc.buildout.easy_install.show_picked_versions(
-                bool_option(options, 'show-picked-versions'))
+            self.show_picked_versions)
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -648,7 +650,7 @@ class Buildout(DictMixin):
         elif (not installed_parts) and installed_exists:
             os.remove(self['buildout']['installed'])
 
-        zc.buildout.easy_install.print_picked_versions()
+        self._print_picked_versions()
         self._unload_extensions()
 
     def _update_installed(self, **buildout_options):
@@ -994,6 +996,44 @@ class Buildout(DictMixin):
             for ep in pkg_resources.iter_entry_points(
                 'zc.buildout.unloadextension'):
                 ep.load()(self)
+
+    def _print_picked_versions(self):
+        Installer = zc.buildout.easy_install.Installer
+        if not self.show_picked_versions:
+            return
+        if not Installer._picked_versions:
+            # Don't print empty output.
+            return
+        output = ['[versions]']
+        required_output = []
+        for dist_, version in sorted(Installer._picked_versions.items()):
+            if dist_ in Installer._required_by:
+                required_output.append('')
+                required_output.append('# Required by:')
+                for req_ in sorted(Installer._required_by[dist_]):
+                    required_output.append('# '+req_)
+                target = required_output
+            else:
+                target = output
+            target.append("%s = %s" % (dist_, version))
+
+        output.extend(required_output)
+
+        print_("Versions had to be automatically picked.")
+        print_("The following part definition lists the versions picked:")
+        print_('\n'.join(output))
+        # REINOUT Print to file
+        # if file_name:
+        #     if os.path.exists(file_name):
+        #         output[:1] = [
+        #             '',
+        #             '# Added by Buildout Versions at %s' % datetime.now(),
+        #             ]
+        #     output.append('')
+        #     f = open(file_name,'a')
+        #     f.write('\n'.join(output))
+        #     f.close()
+        #     print("This information has been written to %r" % file_name)
 
     def setup(self, args):
         if not args:

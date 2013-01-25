@@ -739,42 +739,6 @@ def show_picked_versions(setting=None):
         Installer._show_picked_versions = bool(setting)
     return old
 
-def print_picked_versions():
-    if not Installer._show_picked_versions:
-        return
-    if not Installer._picked_versions:
-        # Don't print empty output.
-        return
-    output = ['[versions]']
-    required_output = []
-    for dist_, version in sorted(Installer._picked_versions.items()):
-        if dist_ in Installer._required_by:
-            required_output.append('')
-            required_output.append('# Required by:')
-            for req_ in sorted(Installer._required_by[dist_]):
-                required_output.append('# '+req_)
-            target = required_output
-        else:
-            target = output
-        target.append("%s = %s" % (dist_, version))
-
-    output.extend(required_output)
-
-    print("Versions had to be automatically picked.")
-    print("The following part definition lists the versions picked:")
-    print('\n'.join(output))
-    # if file_name:
-    #     if os.path.exists(file_name):
-    #         output[:1] = [
-    #             '',
-    #             '# Added by Buildout Versions at %s' % datetime.now(),
-    #             ]
-    #     output.append('')
-    #     f = open(file_name,'a')
-    #     f.write('\n'.join(output))
-    #     f.close()
-    #     print("This information has been written to %r" % file_name)
-
 
 def install(specs, dest,
             links=(), index=None,
