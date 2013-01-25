@@ -240,13 +240,6 @@ class Buildout(DictMixin):
                 python_version
                 )
 
-        # REINOUT: look for buildout versions file option.
-        # # record file name, if needed
-        # if 'buildout_versions_file' in buildout['buildout']:
-        #     file_name = buildout['buildout']['buildout_versions_file']
-
-        # REINOUT: add 'update-versions-file' option.
-
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
