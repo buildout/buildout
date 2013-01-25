@@ -760,9 +760,9 @@ def print_picked_versions():
 
     output.extend(required_output)
 
-    print "Versions had to be automatically picked."
-    print "The following part definition lists the versions picked:"
-    print '\n'.join(output)
+    print("Versions had to be automatically picked.")
+    print("The following part definition lists the versions picked:")
+    print('\n'.join(output))
     # if file_name:
     #     if os.path.exists(file_name):
     #         output[:1] = [
@@ -773,7 +773,7 @@ def print_picked_versions():
     #     f = open(file_name,'a')
     #     f.write('\n'.join(output))
     #     f.close()
-    #     print "This information has been written to %r" % file_name
+    #     print("This information has been written to %r" % file_name)
 
 
 def install(specs, dest,
