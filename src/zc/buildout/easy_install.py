@@ -1170,7 +1170,9 @@ if len(sys.argv) > 1:
     if _args:
         sys.argv[:] = _args
         __file__ = _args[0]
-        del _options, _args
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        del _options, _args, os
         __file__f = open(__file__)
         exec(compile(__file__f.read(), __file__, "exec"))
         __file__f.close(); del __file__f
