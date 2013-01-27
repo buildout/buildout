@@ -11,8 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
-# The following copied from Python 2 config parser because:
+# Portions Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+# 2010, 2011, 2012 Python Software Foundation; All Rights Reserved
+# See LICENSE-Python.txt in the root directory for the full text of the Python 
+# License
+# 
+# The following code is copied with modifications from Python 2 config parser 
+# in the ConfigParser.py module because:
 # - The py3 configparser isn't backward compatible
 # - Both strip option values in undesireable ways
 # - dict of dicts is a much simpler api
