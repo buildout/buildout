@@ -233,13 +233,6 @@ class Buildout(DictMixin):
                  if k not in versions
                  ))
 
-        python_version = versions.get('python')
-        if python_version and python_version[0] not in sys.version:
-            raise zc.buildout.easy_install.IncompatibleConstraintError(
-                "python version specified not found in sys.version:",
-                python_version
-                )
-
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}

@@ -16,11 +16,6 @@ Change History
   - If ``update-versions-file`` is set to a filename (relative to the buildout
     directory), the ``show-picked-versions`` output is appended to that file.
 
-- Also from buildout-versions: if a ``python`` version is given in the
-  versions, buildout now checks if it is running with that python
-  version. Handy if you know if the buildout only functions with a specific
-  python version.
-
 
 2.0.0b1 (2013-01-21)
 ====================
