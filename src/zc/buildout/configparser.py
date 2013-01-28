@@ -164,7 +164,6 @@ def parse(fp, fpname, exp_globals=None):
                     sections[sectname] = cursect = {}
                 # So sections can't start with a continuation line
                 optname = None
-                # optional header expression
             elif cursect is None:
                 if not line.strip():
                     continue
@@ -172,10 +171,10 @@ def parse(fp, fpname, exp_globals=None):
                 raise MissingSectionHeaderError(fpname, lineno, line)
             else:
                 mo = option_start(line)
-                if not section_condition:
-                    # filter out options of conditionally ignored section
-                    continue
-                elif mo:
+                if mo:
+                    if not section_condition:
+                        # filter out options of conditionally ignored section
+                        continue
                     # option start line
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
