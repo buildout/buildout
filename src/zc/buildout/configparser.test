@@ -158,8 +158,8 @@ called by buildout::
   a = 1
 
   # major and minor python versions, yes even python 3.5 and 3.6 are there , prospectively
-  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , \
-       python31 , python32 , python33 , python34 , python35 , python36]) ] ; comment: this expression "is true" and spans two lines
+  # comment: this expression "is true" and not that long expression cannot span several lines 
+  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , python31 , python32 , python33 , python34 , python35 , python36]) ] 
   b = 1
 
   # common python interpreter types
