@@ -45,7 +45,7 @@ First, an example that illustrates a well-formed configuration::
     {'s1': {'a': '1'},
      's2': {'b    +': '1',
             'c': '1',
-            'empty': '
+            'empty': '',
             'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c',
             'long': 'a\nb\nc'},
      's3': {'x': 'a b'}}
@@ -163,15 +163,15 @@ called by buildout::
   b = 1
 
   # common python interpreter types
-  [s3:cpython or pypy or jython or ironpython]]  # a comment: this expression is likely always true, so this section will be kept
+  [s3:cpython or pypy or jython or ironpython]  # a comment: this expression is likely always true, so this section will be kept
   c = 1 
 
   # common operating systems
-  [s4:linux or windows or cygwin or macosx or solaris or posix or True]]  
+  [s4:linux or windows or cygwin or macosx or solaris or posix or True]  
   d = 1
 
   # common bitness and endianness
-  [s5:bits32 or bits64 or little_endian or big_endian]]  
+  [s5:bits32 or bits64 or little_endian or big_endian]  
   e = 1
 
 .. -> text
@@ -179,7 +179,7 @@ called by buildout::
     >>> try: import StringIO
     ... except ImportError: import io as StringIO
     >>> import pprint, zc.buildout.configparser
-    >>> import zc.buildout.buildout._default_globals
+    >>> import zc.buildout.buildout
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test', zc.buildout.buildout._default_globals))
     {'s1': {'a': '1'},
