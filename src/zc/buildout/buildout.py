@@ -1383,7 +1383,7 @@ def _default_globals():
 
     # major python versions as python2 and python3
     vertu = platform.python_version_tuple()
-    globals_defs.update({'python2': vertu[0] == 2, 'python3': vertu[0] == 3})
+    globals_defs.update({'python2': vertu[0] == '2', 'python3': vertu[0] == '3'})
 
     # minor python versions as python24, python25 ... python36
     pyver = ('24', '25', '26', '27', '30', '31', '32', '33', '34', '35', '36')
@@ -1397,31 +1397,18 @@ def _default_globals():
     ironpython ='iron' in sysver
     # assume CPython, if nothing else.
     cpython = not any((pypy, jython, ironpython,))
-
     globals_defs.update({'cpython': cpython,
                          'pypy': pypy,
                          'jython': jython,
                          'ironpython': ironpython})
-
     # operating system
     sysplat = str(sys.platform).lower()
-
-    # Windows-based system.
-    windows = 'win32' in sysplat
-    cygwin = 'cygwin' in sysplat
-
-    # Standard Linux 2+ system.
-    linux = 'linux' in sysplat
-
-    macosx = 'darwin' in sysplat
-    solaris = 'sunos' in sysplat
-    
-    globals_defs.update({'linux': linux,
-                         'windows': windows,
-                         'cygwin': cygwin,
-                         'solaris': solaris,
-                         'macosx': macosx,
-                         'posix': linux or macosx or solaris})
+    globals_defs.update({'linux': 'linux' in sysplat,
+                         'windows': 'win32' in sysplat,
+                         'cygwin': 'cygwin' in sysplat,
+                         'solaris': 'sunos' in sysplat,
+                         'macosx': 'darwin' in sysplat,
+                         'posix': 'posix' in os.name.lower()})
        
     #bits and endianness
     import struct

@@ -43,10 +43,10 @@ First, an example that illustrates a well-formed configuration::
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test'))
     {'s1': {'a': '1'},
-     's2': {'b    +': '1
-            'c': '1
+     's2': {'b    +': '1',
+            'c': '1',
             'empty': '
-            'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c'
+            'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c',
             'long': 'a\nb\nc'},
      's3': {'x': 'a b'}}
 
@@ -83,7 +83,7 @@ otherwise empty section) is blank.  For example:"
 
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test'))
-    {'buildout': {'parts': 'hello 'versions': 'versions'},
+    {'buildout': {'parts': 'hello', 'versions': 'versions'},
      'hello': {'cmds': 'echo Hello',
                'on_install': 'true',
                'on_update': 'true',
@@ -126,13 +126,13 @@ available to the evaluation  context of the expression. Here we add the
 platform and sys modules to the evaluation context, so we can invoke platform 
 and sys functions and objects in our expressions ::
 
-  [s1: platform.python_version_tuple()[1] in ('2, '3',)] ; this expression is true, the major versions of python are either 2 or 3
+  [s1: platform.python_version_tuple()[0] in ('2', '3',)] ; this expression is true, the major versions of python are either 2 or 3
   a = 1
 
   [s2:sys.version[0] == '0'] ; comment: this expression "is false",  there no major version 0 of Python so this section will be ignored
   long = a
 
-  [s2:len(platform.uname()>0]  # a comment: this expression is likely always true, so this section will be kept
+  [s2:len(platform.uname()) > 0]  # a comment: this expression is likely always true, so this section will be kept
   long = b
 
 .. -> text
@@ -145,8 +145,7 @@ and sys functions and objects in our expressions ::
     >>> globs = lambda: {'platform': platform, 'sys': sys}
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test', exp_globals=globs))
-    {'s1': {'a': '1'},
-     's2': {'long': 'b'}}
+    {'s1': {'a': '1'}, 's2': {'long': 'b'}}
 
 
 Some limited (but hopefully sane and sufficient) default modules and 
@@ -180,11 +179,9 @@ called by buildout::
     >>> try: import StringIO
     ... except ImportError: import io as StringIO
     >>> import pprint, zc.buildout.configparser
-    >>> import zc.buildout
-    >>> import platform
-    >>> import sys
+    >>> import zc.buildout.buildout._default_globals
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test', zc.buildout._default_globals))
+    ...     text), 'test', zc.buildout.buildout._default_globals))
     {'s1': {'a': '1'},
      's2': {'b': '1'},
      's3': {'c': '1'},
