@@ -833,7 +833,11 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     python= buildout
         DEFAULT_VALUE
+    show-picked-versions= false
+        DEFAULT_VALUE
     socket-timeout=
+        DEFAULT_VALUE
+    update-versions-file=
         DEFAULT_VALUE
     use-dependency-links= true
         DEFAULT_VALUE
@@ -2373,7 +2377,9 @@ database is shown.
     parts-directory = /sample-buildout/parts
     prefer-final = true
     python = buildout
+    show-picked-versions = false
     socket-timeout =
+    update-versions-file =
     use-dependency-links = true
     verbosity = 20
     versions = versions

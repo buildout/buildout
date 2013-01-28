@@ -1,10 +1,26 @@
 Change History
 **************
 
+2.0.0b2 (unreleased)
+====================
+
+- Integrated the `buildout-versions
+  <http://packages.python.org/buildout-versions/>`_ extension into buildout
+  itself. For this, a few options were added to buildout:
+
+  - If ``show-picked-versions`` is set to true, all picked versions are
+    printed at the end of the buildout run. This saves you from running
+    buildout in verbose mode and extracting the picked versions from the
+    output.
+
+  - If ``update-versions-file`` is set to a filename (relative to the buildout
+    directory), the ``show-picked-versions`` output is appended to that file.
+
+
 2.0.0b1 (2013-01-21)
 ====================
 
-- buildout options can be given on the command line using the form::
+- Buildout options can be given on the command line using the form::
 
     option_name=value
 
