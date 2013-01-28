@@ -43,10 +43,10 @@ First, an example that illustrates a well-formed configuration::
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test'))
     {'s1': {'a': '1'},
-     's2': {'b    +': '1',
-            'c': '1',
-            'empty': '',
-            'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c',
+     's2': {'b    +': '1
+            'c': '1
+            'empty': '
+            'l2': 'a\n\n\n# not a comment\n\n\nb\n\n  c'
             'long': 'a\nb\nc'},
      's3': {'x': 'a b'}}
 
@@ -83,9 +83,111 @@ otherwise empty section) is blank.  For example:"
 
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test'))
-    {'buildout': {'parts': 'hello', 'versions': 'versions'},
+    {'buildout': {'parts': 'hello 'versions': 'versions'},
      'hello': {'cmds': 'echo Hello',
                'on_install': 'true',
                'on_update': 'true',
                'recipe': 'collective.recipe.cmd'},
      'versions': {}}
+
+
+Sections headers can contain an optional arbitrary Python expression. 
+When the expression evaluates to false the whole section is skipped.
+Several sections can have the same name with different expressions, enabling 
+conditional exclusion of sections::
+
+  [s1: 2 + 2 == 4] ; this expression is true [therefore "this section" _will_ be NOT skipped
+  a = 1
+
+  [   s2 : 2 + 2 == 5  ]         ; comment: this expression is false, so this section will be ignored
+  long = a
+
+  [   s2 : 41 + 1 == 42  ]  # a comment: this expression is true, so this section will be kept
+  long = b
+
+  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] # Complex expressions are [possible!], though they should not be (abused:) 
+  # this section will not be skipped
+  long = c
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'s1': {'a': '1'}, 's2': {'long': 'b'}, 's3': {'long': 'c'}}
+
+
+One of the typical usage is to have buildout parts that are operating system or
+plaform specific.  The configparser.parse function has an optional 
+exp_globals argument.  This is a callable returning a mapping of objects made 
+available to the evaluation  context of the expression. Here we add the 
+platform and sys modules to the evaluation context, so we can invoke platform 
+and sys functions and objects in our expressions ::
+
+  [s1: platform.python_version_tuple()[1] in ('2, '3',)] ; this expression is true, the major versions of python are either 2 or 3
+  a = 1
+
+  [s2:sys.version[0] == '0'] ; comment: this expression "is false",  there no major version 0 of Python so this section will be ignored
+  long = a
+
+  [s2:len(platform.uname()>0]  # a comment: this expression is likely always true, so this section will be kept
+  long = b
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> import platform
+    >>> import sys
+    >>> globs = lambda: {'platform': platform, 'sys': sys}
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test', exp_globals=globs))
+    {'s1': {'a': '1'},
+     's2': {'long': 'b'}}
+
+
+Some limited (but hopefully sane and sufficient) default modules and 
+precomputed common expressions available to an expression when the parser in 
+called by buildout::
+
+
+  #imported modules
+  [s1: sys and re and os and platform] ; this expression is true: these modules are available
+  a = 1
+
+  # major and minor python versions, yes even python 3.5 and 3.6 are there , prospectively
+  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , \
+       python31 , python32 , python33 , python34 , python35 , python36]) ] ; comment: this expression "is true" and spans two lines
+  b = 1
+
+  # common python interpreter types
+  [s3:cpython or pypy or jython or ironpython]]  # a comment: this expression is likely always true, so this section will be kept
+  c = 1 
+
+  # common operating systems
+  [s4:linux or windows or cygwin or macosx or solaris or posix or True]]  
+  d = 1
+
+  # common bitness and endianness
+  [s5:bits32 or bits64 or little_endian or big_endian]]  
+  e = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> import zc.buildout
+    >>> import platform
+    >>> import sys
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test', zc.buildout._default_globals))
+    {'s1': {'a': '1'},
+     's2': {'b': '1'},
+     's3': {'c': '1'},
+     's4': {'d': '1'},
+     's5': {'e': '1'},}
+

@@ -1344,6 +1344,94 @@ def _save_options(section, options, f):
     for option, value in items:
         _save_option(option, value, f)
 
+def _default_globals():
+    """Return a mapping of default and precomputed expressions.
+    These default expressions are convenience defaults available when eveluating
+    section headers expressions.
+    NB: this is wrapped in a function so that the computing of these expressions
+    is lazy and done only if needed (ie if there is at least one section with 
+    an expression) because the computing of some of these expressions can be 
+    expensive. 
+    """
+    # partially derived or inspired from its.py
+    # Copyright (c) 2012, Kenneth Reitz All rights reserved.
+    # Redistribution and use in source and binary forms, with or without modification,
+    # are permitted provided that the following conditions are met:
+    # Redistributions of source code must retain the above copyright notice, this list
+    # of conditions and the following disclaimer. Redistributions in binary form must
+    # reproduce the above copyright notice, this list of conditions and the following
+    # disclaimer in the documentation and/or other materials provided with the
+    # distribution. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+    # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+    # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+    # OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+    # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+    # OF SUCH DAMAGE.
+
+    # default available modules, explicily reimported locally here on purpose
+    import sys
+    import os
+    import platform
+    import re
+
+    globals_defs = {'sys': sys, 'os': os, 'platform': platform, 're': re,}
+
+    # major python versions as python2 and python3
+    vertu = platform.python_version_tuple()
+    globals_defs.update({'python2': vertu[0] == 2, 'python3': vertu[0] == 3})
+
+    # minor python versions as python24, python25 ... python36
+    pyver = ('24', '25', '26', '27', '30', '31', '32', '33', '34', '35', '36')
+    for v in pyver:
+        globals_defs['python' + v] = ''.join(vertu[:2]) == v
+
+    # interpreter type
+    sysver = sys.version.lower()
+    pypy = 'pypy' in sysver
+    jython = 'java' in sysver
+    ironpython ='iron' in sysver
+    # assume CPython, if nothing else.
+    cpython = not any((pypy, jython, ironpython,))
+
+    globals_defs.update({'cpython': cpython,
+                         'pypy': pypy,
+                         'jython': jython,
+                         'ironpython': ironpython})
+
+    # operating system
+    sysplat = str(sys.platform).lower()
+
+    # Windows-based system.
+    windows = 'win32' in sysplat
+    cygwin = 'cygwin' in sysplat
+
+    # Standard Linux 2+ system.
+    linux = 'linux' in sysplat
+
+    macosx = 'darwin' in sysplat
+    solaris = 'sunos' in sysplat
+    
+    globals_defs.update({'linux': linux,
+                         'windows': windows,
+                         'cygwin': cygwin,
+                         'solaris': solaris,
+                         'macosx': macosx,
+                         'posix': linux or macosx or solaris})
+       
+    #bits and endianness
+    import struct
+    void_ptr_size = struct.calcsize('P') * 8
+    globals_defs.update({'bits32': void_ptr_size == 32,
+                         'bits64': void_ptr_size == 64,
+                         'little_endian': sys.byteorder == 'little',
+                         'big_endian': sys.byteorder == 'big'})
+    return globals_defs
+
 def _open(base, filename, seen, dl_options, override, downloaded):
     """Open a configuration file and return the result as a dictionary,
 
@@ -1385,7 +1473,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     root_config_file = not seen
     seen.append(filename)
 
-    result = zc.buildout.configparser.parse(fp, filename)
+    result = zc.buildout.configparser.parse(fp, filename, _default_globals)
     fp.close()
     if is_temp:
         os.remove(path)
