@@ -7,11 +7,11 @@ env:
 
 branches:
   only:
-    - master
+    - conditional_expressions
 
 notifications:
   email:
-    - buildout-development@googlegroups.com
+    - pombredanne@gmail.com
 
 install:
     - deactivate
