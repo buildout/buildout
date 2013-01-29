@@ -1020,6 +1020,8 @@ def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
 
 
 def _distutils_script(path, dest, script_content, initialization, rsetup):
+    if is_win32:
+        dest += '-script.py'
 
     lines = script_content.splitlines(True)
     if not ('#!' in lines[0]) and ('python' in lines[0]):
