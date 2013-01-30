@@ -9,3 +9,7 @@ python*/
 *.egg
 *.egg-info
 dist
+/include
+/lib
+/.project
+/.pydevproject

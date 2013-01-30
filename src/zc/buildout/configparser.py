@@ -19,6 +19,9 @@
 
 import re
 import textwrap
+import logging
+
+logger = logging.getLogger('zc.buildout')
 
 class Error(Exception):
     """Base class for ConfigParser exceptions."""
@@ -72,14 +75,21 @@ class MissingSectionHeaderError(ParsingError):
         self.line = line
 
 section_header = re.compile(
-    r'\[\s*(?P<header>[^\s[\]:{}]+)\s*]\s*([#;].*)?$').match
+    r'\[\s*'                     # opening bracket '[' then optional spaces
+    r'(?P<header>[^\s[\]:{}]+)'  # header named group to capture the section name
+    r'\s*:?\s*'                  # optional ':' separator between name and expression with possible spaces
+    r'(?P<expression>.*)'        # optional expression named group to capture an arbitrary Python expression
+    r'\s*]'                      # optional spaces then closing bracket '[' 
+    r'\s*([#;].*)?$'             # optional comments at end of line, marked by '#' or ';', ignored
+    ).match
+
 option_start = re.compile(
     r'(?P<name>[^\s{}[\]=:]+\s*[-+]?)'
     r'='
     r'(?P<value>.*)$').match
 leading_blank_lines = re.compile(r"^(\s*\n)+")
 
-def parse(fp, fpname):
+def parse(fp, fpname, exp_globals=None):
     """Parse a sectioned setup file.
 
     The sections in setup file contains a title line at the top,
@@ -88,8 +98,18 @@ def parse(fp, fpname):
     Continuations are represented by an embedded newline then
     leading whitespace.  Blank lines, lines beginning with a '#',
     and just about everything else are ignored.
+
+    The title line is in the form [title:expression] where expression is an
+    arbitrary Python expression. Sections with an expression that evaluates to 
+    False are ignored.
+
+    exp_globals is a callable returning a mapping of defaults used as globals 
+    during the evaluation of a section conditional expression.
     """
     sections = {}
+    # the current section condition, possibly updated from a section expression
+    section_condition = True                  
+    context = None
     cursect = None                            # None, or a dictionary
     blockmode = None
     optname = None
@@ -106,6 +126,9 @@ def parse(fp, fpname):
             continue # comment
 
         if line[0].isspace() and cursect is not None and optname:
+            if not section_condition:
+                #skip section based on its expression condition
+                continue
             # continuation line
             if blockmode:
                 line = line.rstrip()
@@ -117,8 +140,24 @@ def parse(fp, fpname):
         else:
             mo = section_header(line)
             if mo:
+                # reset to True when starting a new section
+                section_condition = True 
+
                 # section header
                 sectname = mo.group('header')
+
+                # filter out sections with an expression that eval to false
+                exp = mo.group('expression').strip()
+                if exp:
+                    # lazily cache actual expression globals as needed
+                    if not context:
+                        context = exp_globals() if exp_globals else {}
+                    # ignore section with an expression that eval to false
+                    section_condition = eval(exp, context)
+                    if not section_condition:
+                        logger.debug('Ignoring section with conditional expression: [%(sectname)s:%(exp)s]' % locals())
+                        continue
+
                 if sectname in sections:
                     cursect = sections[sectname]
                 else:
@@ -133,6 +172,9 @@ def parse(fp, fpname):
             else:
                 mo = option_start(line)
                 if mo:
+                    if not section_condition:
+                        # filter out options of conditionally ignored section
+                        continue
                     # option start line
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
