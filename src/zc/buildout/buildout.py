@@ -1417,6 +1417,20 @@ def _default_globals():
                          'bits64': void_ptr_size == 64,
                          'little_endian': sys.byteorder == 'little',
                          'big_endian': sys.byteorder == 'big'})
+
+    #PEP426 environment markers, with _ rather than dots
+    globals_defs.update({    
+        'python_version': '%s.%s' % (sys.version_info[0], sys.version_info[1]),
+        'python_full_version': sys.version.split()[0],
+        #because of the way markers are specified ATM, 
+        #we are overrdding some modules functions with values
+        'os_name' : os.name,
+        'sys_platform' : sys.platform,
+        'platform_version' : platform.version(),
+        'platform_machine' : platform.machine(),
+        # works only on Python 2.6 and up 
+        'platform_python_implementation': platform.python_implementation() })
+
     return globals_defs
 
 def _open(base, filename, seen, dl_options, override, downloaded):
