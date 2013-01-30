@@ -188,24 +188,3 @@ called by buildout::
      's4': {'d': '1'},
      's5': {'e': '1'}}
 
-There is also support for PEP-426 environment markers EXPR expressions as  
-specified in http://www.python.org/dev/peps/pep-0426/#environment-markers::
-
-  # python versions
-  [s1: python_version and python_version] ; this expression is true: these modules are available
-  a = 1
-
-  # os, sys and platform markers
-  [s2: os_name and sys_platform and platform_machine and platform_python_implementation ]
-  b = 1
-
-.. -> text
-
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> import zc.buildout.buildout
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test', zc.buildout.buildout._default_globals))
-    {'s1': {'a': '1'}, 's2': {'b': '1'}}
-
