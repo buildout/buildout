@@ -29,6 +29,7 @@ except ImportError:
 
 import zc.buildout.configparser
 import copy
+import datetime
 import distutils.errors
 import glob
 import itertools
@@ -136,7 +137,9 @@ _buildout_default_options = _annotate_section({
     'parts-directory': 'parts',
     'prefer-final': 'true',
     'python': 'buildout',
+    'show-picked-versions': 'false',
     'socket-timeout': '',
+    'update-versions-file': '',
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
@@ -206,7 +209,7 @@ class Buildout(DictMixin):
 
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
-            data['buildout']['versions'] = 'versions', 'DEFAULT_VALUE'
+            data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
             if 'versions' not in data:
                 data['versions'] = {}
 
@@ -304,7 +307,7 @@ class Buildout(DictMixin):
 
         # finish w versions
         if versions_section_name:
-            # refetching section name just to avoid a warnin
+            # refetching section name just to avoid a warning
             versions = self[versions_section_name]
         else:
             # remove annotations
@@ -319,6 +322,11 @@ class Buildout(DictMixin):
             bool_option(options, 'use-dependency-links'))
         zc.buildout.easy_install.allow_picked_versions(
                 bool_option(options, 'allow-picked-versions'))
+        self.show_picked_versions = bool_option(options,
+                                                'show-picked-versions')
+        self.update_versions_file = options['update-versions-file']
+        zc.buildout.easy_install.show_picked_versions(
+            self.show_picked_versions)
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -631,6 +639,7 @@ class Buildout(DictMixin):
         elif (not installed_parts) and installed_exists:
             os.remove(self['buildout']['installed'])
 
+        self._print_picked_versions()
         self._unload_extensions()
 
     def _update_installed(self, **buildout_options):
@@ -944,6 +953,14 @@ class Buildout(DictMixin):
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
         specs = self['buildout'].get('extensions', '').split()
+        for superceded_extension in ['buildout-versions',
+                                     'buildout.dumppickedversions']:
+            if superceded_extension in specs:
+                msg = ("The extension %s is now included in buildout itself.\n"
+                       "Remove the extension from your configuration and "
+                       "look at the `show-picked-versions`\n"
+                       "option in buildout's documentation.")
+                raise zc.buildout.UserError(msg % superceded_extension)
         if specs:
             path = [self['buildout']['develop-eggs-directory']]
             if self.offline:
@@ -976,6 +993,45 @@ class Buildout(DictMixin):
             for ep in pkg_resources.iter_entry_points(
                 'zc.buildout.unloadextension'):
                 ep.load()(self)
+
+    def _print_picked_versions(self):
+        Installer = zc.buildout.easy_install.Installer
+        if not self.show_picked_versions:
+            return
+        if not Installer._picked_versions:
+            # Don't print empty output.
+            return
+        output = ['[versions]']
+        required_output = []
+        for dist_, version in sorted(Installer._picked_versions.items()):
+            if dist_ in Installer._required_by:
+                required_output.append('')
+                required_output.append('# Required by:')
+                for req_ in sorted(Installer._required_by[dist_]):
+                    required_output.append('# '+req_)
+                target = required_output
+            else:
+                target = output
+            target.append("%s = %s" % (dist_, version))
+
+        output.extend(required_output)
+
+        print_("Versions had to be automatically picked.")
+        print_("The following part definition lists the versions picked:")
+        print_('\n'.join(output))
+        if self.update_versions_file:
+            # Also write to the versions file.
+            if os.path.exists(self.update_versions_file):
+                output[:1] = [
+                    '',
+                    '# Added by buildout at %s' % datetime.datetime.now(),
+                    ]
+            output.append('')
+            f = open(self.update_versions_file, 'a')
+            f.write('\n'.join(output))
+            f.close()
+            print_("This information has been written to " +
+                   self.update_versions_file)
 
     def setup(self, args):
         if not args:

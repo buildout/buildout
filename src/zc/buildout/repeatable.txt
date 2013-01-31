@@ -227,3 +227,166 @@ We can also disable checking versions:
     Uninstalling foo.
     Installing foo.
     recipe v2
+
+
+Easier reporting and managing of versions (new in buildout 2.0)
+---------------------------------------------------------------
+
+Since buildout 2.0, the functionality of the `buildout-versions
+<http://packages.python.org/buildout-versions/>`_ extension is part of
+buildout itself. This makes reporting and managing versions easier.
+
+If you set the ``show-picked-versions`` option, buildout will print
+versions it picked at the end of its run:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+    Versions had to be automatically picked.
+    The following part definition lists the versions picked:
+    [versions]
+    distribute = 0.6.99
+    spam = 2
+
+When everything is pinned, no output is generated:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ... distribute = 0.6.34
+    ... spam = 2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
+The Python package index is case-insensitive. Both
+http://pypi.python.org/simple/Django/ and
+http://pypi.python.org/simple/dJaNgO/ work. And distributions aren't always
+naming themselves consistently case-wise. So all version names are normalized
+and case differences won't impact the pinning:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [versions]
+    ... distriBUTE = 0.6.34
+    ... Spam = 2
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
+Sometimes it is handy to have a separate file with versions. This is a regular
+buildout file with a single ``[versions]`` section. You include it by
+extending from that versions file:
+
+    >>> write('my_versions.cfg',
+    ... '''
+    ... [versions]
+    ... distribute = 0.6.34
+    ... spam = 2
+    ... ''')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... extends = my_versions.cfg
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
+If not everything is pinned and buildout has to pick versions, you can tell
+buildout to append the versions to your versions file. It simply appends them
+at the end.
+
+    >>> write('my_versions.cfg',
+    ... '''
+    ... [versions]
+    ... distribute = 0.6.34
+    ... ''')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... extends = my_versions.cfg
+    ... update-versions-file = my_versions.cfg
+    ... find-links = %s
+    ... show-picked-versions = true
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+    Versions had to be automatically picked.
+    The following part definition lists the versions picked:
+    [versions]
+    spam = 2
+    This information has been written to my_versions.cfg
+
+The versions file now contains the extra pin:
+
+    >>> 'spam = 2' in open('my_versions.cfg').read()
+    True
+
+And re-running buildout doesn't report any picked versions anymore:
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+
+Because buildout now includes buildout-versions' (and the older
+buildout.dumppickedversions') functionality, it warns if these extensions are
+configured.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts = foo
+    ... extensions = buildout-versions
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... """)
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    While:
+      Installing.
+      Loading extensions.
+    Error: The extension buildout-versions is now included in buildout itself.
+    Remove the extension from your configuration and look at the `show-picked-versions`
+    option in buildout's documentation.
