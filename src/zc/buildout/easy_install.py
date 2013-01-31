@@ -33,7 +33,6 @@ import subprocess
 import sys
 import tempfile
 import zc.buildout
-import zipimport
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
 def realpath(path):
@@ -1000,8 +999,6 @@ base = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 """
 
 def _script(module_name, attrs, path, dest, arguments, initialization, rsetup):
-    generated = []
-    script = dest
     if is_win32:
         dest += '-script.py'
 
