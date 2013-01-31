@@ -912,6 +912,18 @@ Buildout also installs those:
     >>> ls(distbin)
     -  distutilsscript
 
+Like for console_scripts, the output is a list of the scripts
+generated. Likewise, on windows two files, an ``.exe`` and a script with
+``-script.py`` appended, are generated:
+
+    >>> import os, sys
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(distbin, 'distutilsscript.exe'),
+    ...                 os.path.join(distbin, 'distutilsscript-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(distbin, 'distutilsscript')]
+    True
+
 It also works for zipped eggs:
 
     >>> distdir2 = tmpdir('distutilsscriptdir2')
