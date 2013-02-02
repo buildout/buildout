@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.0b2 (unreleased)
+2.0.0b2 (2013-02-02)
 ====================
 
 - Integrated the `buildout-versions
