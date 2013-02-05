@@ -56,9 +56,9 @@ This version of buildout is available from the github project
 download page, not from pypi.
 
 To get the bootstrap.py file for this release of buildout, get
-``http://downloads.buildout.org/2/bootstrap.py``.
+http://downloads.buildout.org/2/bootstrap.py.
 
-For example, using wget:
+For example, using wget::
 
   wget http://downloads.buildout.org/2/bootstrap.py
 
