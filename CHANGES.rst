@@ -1,8 +1,73 @@
 Change History
 **************
 
-2.0.0b2 (2013-02-02)
-====================
+2.0.0 (2013-02-10)
+==================
+
+This is a backward incompatible release of buildout that attempts to
+correct mistakes made in buildout 1.
+
+- Buildout no-longer tries to provide full or partial isolation from
+  system Python installations. If you want isolation, use buildout
+  with virtualenv, or use a clean build of Python to begin with.
+
+  Providing isolation was a noble goal, but it's implementation
+  complicated buildouts implementation too much.
+
+- Buildout no-longer support usiong multiple versions of Python in a
+  single buildout.  This too was a noble goal, but added too much
+  complexity to the implementation.
+
+- Changed the configuratiion file format:
+
+  - Relative indentation in option values is retained if the first
+    line is blank. (IOW, if the non-blank text is on the continuation
+    lines.) As in::
+
+       [mysection]
+       tree =
+         /root
+           branch
+
+    In such cases, internal blank lines are also retained.
+
+  - The configuration syntax is more tightly defined, allowing fewer
+    syntax definitions.
+
+    Buildout 1 configuration files were parsed with the Python
+    ConfigParser module. The ConfigParser module's format is poorly
+    documented and wildly flexible. For example:
+
+    - Any characters other than left square brackets were allowed in
+      section names.
+
+    - Arbitrary text was allowed and ignored after the closing bracket on
+      section header lines.
+
+    - Any characters other than equal signs or colons were allowed in an
+      option name.
+
+    - Configuration options could be spelled as RFC 822 mail headers
+      (using a colon, rather than an equal sign).
+
+    - Comments could begin with "rem".
+
+    - Semicolons could be used to start inline comments, but only if
+      preceeded by a whitespace character.
+
+  See `Configuration file syntax`_.
+
+- Buildout now prefers final releases by default
+  (buildout:prefer-final now defaults to true, rather than false.)
+
+  However, if buildout is bootstrapped with a non-final release, it
+  won't downgrade itself to a final release.
+
+- Buildout no-longer installs zipped eggs. (Distribute may still
+  install a zipped egg of itself during the bootstrapping process.)
+
+- Buildout no-longer supports setuptools. It now uses distribute
+  exclusively.
 
 - Integrated the `buildout-versions
   <http://packages.python.org/buildout-versions/>`_ extension into buildout
@@ -15,10 +80,6 @@ Change History
 
   - If ``update-versions-file`` is set to a filename (relative to the buildout
     directory), the ``show-picked-versions`` output is appended to that file.
-
-
-2.0.0b1 (2013-01-21)
-====================
 
 - Buildout options can be given on the command line using the form::
 
@@ -51,88 +112,11 @@ Change History
 - Provide better error messages when distributions can't be installed
   because buildout is run in offline mode.
 
-Fixed: relative-paths weren't honored when bootstrapping or upgrading
-       (which is how the buildout script gets generated).
-
-Fixed: initialization code wasn't included in interpeter scripts.
-
-Fixed: macro inheritance bug, https://github.com/buildout/buildout/pull/37
-
-Fixed: spaces in version constriants (e.g. ``< 2``) weren't handled
-       correctly.
-
-2.0.0a7 (2013-01-12)
-====================
-
-Fixed: Blank lines in buildout configuration file sections before
-       options were treated as errors.
-
-2.0.0a6 (2013-01-11)
-====================
-
-Changed the configuratiion file format:
-
-- Relative indentation in option values is retained if the first
-  line is blank. (IOW, if the non-blank text is on the continuation
-  lines.) As in::
-
-     [mysection]
-     tree =
-       /root
-         branch
-
-  In such cases, internal blank lines are also retained.
-
-- The configuration syntax is more tightly defined, allowing fewer
-  syntax definitions.
-
-  Buildout 1 configuration files were parsed with the Python
-  ConfigParser module. The ConfigParser module's format is poorly
-  documented and wildly flexible. For example:
-
-  - Any characters other than left square brackets were allowed in
-    section names.
-
-  - Arbitrary text was allowed and ignored after the closing bracket on
-    section header lines.
-
-  - Any characters other than equal signs or colons were allowed in an
-    option name.
-
-  - Configuration options could be spelled as RFC 822 mail headers
-    (using a colon, rather than an equal sign).
-
-  - Comments could begin with "rem".
-
-  - Semicolons could be used to start inline comments, but only if
-    preceeded by a whitespace character.
-
-See `Configuration file syntax`_.
-
-2.0.0a5 (2012-12-01)
-====================
-
-- Buildout now prefers final releases by default
-  (buildout:prefer-final now defaults to true, rather than false.)
-
-  However, if buildout is bootstrapped with a non-final release, it
-  won't downgrade itself to a final release.
-
 - Versions in versions sections can now be simple constraints, like
   >=2.0dev in addition to being simple versions.
 
   Buildout 2 leverages this to make sure it uses
   zc.recipe.egg>=2.0.0a3, which mainly matters for Python 3.
-
-2.0.0a4 (2012-11-19)
-====================
-
-Tweaked PyPi page.
-
-2.0.0a3 (2012-11-19)
-====================
-
-New features:
 
 - The buildout init command now accepts distribution requirements and
   paths to set up a custom interpreter part that has the distributions
@@ -145,8 +129,6 @@ New features:
 
 - Distutils-style scripts are also installed now (for instance pyflakes' and
   docutils' scripts).  https://bugs.launchpad.net/zc.buildout/+bug/422724
-
-- Switched development location to github.com/buildout.
 
 - Avoid sorting the working set and requirements when it won't be
   logged.  When profiling a simple buildout with 10 parts with
@@ -165,17 +147,22 @@ New features:
 - Removed any traces of the implementation of ``extended-by``. Raise a
   UserError if the option is encountered instead of ignoring it, though.
 
-Bugs fixed:
+Fixed: relative-paths weren't honored when bootstrapping or upgrading
+       (which is how the buildout script gets generated).
 
-- In the download module, fixed the handling of directories that are pointed
-  to by file-system paths and ``file:`` URLs.
+Fixed: initialization code wasn't included in interpeter scripts.
 
-- if you have a configuration with an extends entry in the [buildout]
-  section which points to a non-existing URL the result is not very
-  user friendly. https://bugs.launchpad.net/zc.buildout/+bug/566167
+Fixed: macro inheritance bug, https://github.com/buildout/buildout/pull/37
 
-- https://bugs.launchpad.net/bugs/697913 : Buildout doesn't honor exit code
-  from scripts. Fixed.
+Fixed: In the download module, fixed the handling of directories that
+       are pointed to by file-system paths and ``file:`` URLs.
+
+Fixed if you have a configuration with an extends entry in the [buildout]
+      section which points to a non-existing URL the result is not very
+      user friendly. https://bugs.launchpad.net/zc.buildout/+bug/566167
+
+Fixed: https://bugs.launchpad.net/bugs/697913 : Buildout doesn't honor exit code
+       from scripts. Fixed.
 
 1.4.4 (2010-08-20)
 ==================
