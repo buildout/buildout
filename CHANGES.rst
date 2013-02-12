@@ -14,7 +14,7 @@ correct mistakes made in buildout 1.
   Providing isolation was a noble goal, but it's implementation
   complicated buildouts implementation too much.
 
-- Buildout no-longer support usiong multiple versions of Python in a
+- Buildout no-longer supports using multiple versions of Python in a
   single buildout.  This too was a noble goal, but added too much
   complexity to the implementation.
 
