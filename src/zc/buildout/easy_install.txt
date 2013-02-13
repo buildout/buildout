@@ -943,6 +943,7 @@ like for the console_scripts:
 
     >>> cat(distbin, 'distutilsscript')
     #!/usr/local/bin/python2.7
+    # -*- coding: utf-8 -*-
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
