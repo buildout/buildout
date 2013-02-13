@@ -46,6 +46,7 @@ default_index_url = os.environ.get(
 logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
+is_source_encoding_line = re.compile('coding[:=]\s*([-\w.]+)').search
 
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
@@ -1046,12 +1047,18 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
     if not ('#!' in lines[0]) and ('python' in lines[0]):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
+    source_encoding_line = ''
     original_content = ''.join(lines[1:])
+    if is_source_encoding_line(lines[1]):
+        # The second line contains a source encoding line. Copy it verbatim.
+        source_encoding_line = lines[1].rstrip()
+        original_content = ''.join(lines[2:])
 
     python = _safe_arg(sys.executable)
 
     contents = distutils_script_template % dict(
         python = python,
+        source_encoding_line = source_encoding_line,
         path = path,
         initialization = initialization,
         relative_paths_setup = rsetup,
@@ -1118,6 +1125,7 @@ if __name__ == '__main__':
 
 distutils_script_template = script_header + '''\
 
+%(source_encoding_line)s
 %(relative_paths_setup)s
 import sys
 sys.path[0:0] = [
