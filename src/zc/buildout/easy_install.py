@@ -915,6 +915,9 @@ def scripts(reqs, working_set, executable, dest=None,
             # /EGG-INFO/scripts/.
             if dist.metadata_isdir('scripts'):
                 for name in dist.metadata_listdir('scripts'):
+                    if dist.metadata_isdir('scripts/' + name):
+                        # Probably Python 3 __pycache__ directory.
+                        continue
                     contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
         else:
