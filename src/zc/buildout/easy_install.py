@@ -129,7 +129,7 @@ class Installer:
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
-    _show_picked_versions = False
+    _store_picked_versions = False
 
     def __init__(self,
                  dest=None,
@@ -734,10 +734,10 @@ def allow_picked_versions(setting=None):
         Installer._allow_picked_versions = bool(setting)
     return old
 
-def show_picked_versions(setting=None):
-    old = Installer._show_picked_versions
+def store_picked_versions(setting=None):
+    old = Installer._store_picked_versions
     if setting is not None:
-        Installer._show_picked_versions = bool(setting)
+        Installer._store_picked_versions = bool(setting)
     return old
 
 
@@ -1260,7 +1260,7 @@ class MissingDistribution(zc.buildout.UserError):
 
 def _log_requirement(ws, req):
     if (not logger.isEnabledFor(logging.DEBUG) and
-        not Installer._show_picked_versions):
+        not Installer._store_picked_versions):
         # Sorting the working set and iterating over it's requirements
         # is expensive, so short circuit the work if it won't even be
         # logged.  When profiling a simple buildout with 10 parts with
