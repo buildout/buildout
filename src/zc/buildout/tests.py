@@ -2899,6 +2899,7 @@ def create_sample_eggs(test, executable=sys.executable):
         write(
             tmp, 'distutilsscript',
             '#!/usr/bin/python\n'
+            '# -*- coding: utf-8 -*-\n'
             'import sys; sys.stdout.write("distutils!\\n")\n'
             )
         write(
