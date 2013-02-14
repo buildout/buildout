@@ -16,7 +16,8 @@ To support repeatable buildouts, a versions section can be created
 with options for each distribution name whos version is to be fixed.
 The section can then be specified via the buildout versions option.
 
-To see how this works, we'll create two versions of a recipe egg:
+To see how this works, we'll create two versions of a recipe egg. Note that we
+give the second a capitalized name to test case-insensitiveness:
 
     >>> mkdir('recipe')
     >>> write('recipe', 'recipe.py',
@@ -62,11 +63,10 @@ To see how this works, we'll create two versions of a recipe egg:
     >>> write('recipe', 'setup.py',
     ... '''
     ... from setuptools import setup
-    ... setup(name='spam', version='2', py_modules=['recipe'],
+    ... setup(name='Spam', version='2', py_modules=['recipe'],
     ...       entry_points={'zc.buildout': ['default = recipe:Recipe']},
     ...       )
     ... ''')
-
 
     >>> print_(system(buildout+' setup recipe bdist_egg')) # doctest: +ELLIPSIS
     Running setup script 'recipe/setup.py'.
@@ -88,7 +88,7 @@ If we run the buildout, it will use version 2:
 
     >>> print_(system(buildout), end='')
     Getting distribution for 'spam'.
-    Got spam 2.
+    Got Spam 2.
     Installing foo.
     recipe v2
 
@@ -259,6 +259,10 @@ versions it picked at the end of its run:
     [versions]
     distribute = 0.6.99
     spam = 2
+
+Note that the ``Spam`` version is reported as ``spam``. The python package
+index is case-insensitive. Keeping everything lowercase makes that clear and
+makes sorting easier.
 
 When everything is pinned, no output is generated:
 

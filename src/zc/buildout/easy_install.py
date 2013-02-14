@@ -519,13 +519,13 @@ class Installer:
                  and
                  requirement.specs[0][0] == '==')
                 ):
-                logger.debug('Picked: %s = %s',
-                             dist.project_name, dist.version)
-                self._picked_versions[dist.project_name] = dist.version
+                name = dist.project_name.lower()
+                logger.debug('Picked: %s = %s', name, dist.version)
+                self._picked_versions[name] = dist.version
 
                 if not self._allow_picked_versions:
                     raise zc.buildout.UserError(
-                        'Picked: %s = %s' % (dist.project_name, dist.version)
+                        'Picked: %s = %s' % (name, dist.version)
                         )
 
         return dists
