@@ -1050,7 +1050,7 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         return []
     source_encoding_line = ''
     original_content = ''.join(lines[1:])
-    if is_source_encoding_line(lines[1]):
+    if (len(lines) > 1) and is_source_encoding_line(lines[1]):
         # The second line contains a source encoding line. Copy it verbatim.
         source_encoding_line = lines[1].rstrip()
         original_content = ''.join(lines[2:])
