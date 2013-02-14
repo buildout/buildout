@@ -370,6 +370,37 @@ And re-running buildout doesn't report any picked versions anymore:
     Updating foo.
     recipe v2
 
+If you've enabled ``update-versions-file`` but not ``show-picked-versions``,
+buildout will append the versions to your versions file anyway (without
+printing them to the console):
+
+    >>> write('my_versions.cfg',
+    ... '''
+    ... [versions]
+    ... distribute = 0.6.34
+    ... ''')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... extends = my_versions.cfg
+    ... update-versions-file = my_versions.cfg
+    ... find-links = %s
+    ... show-picked-versions = false
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... ''' % join('recipe', 'dist'))
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating foo.
+    recipe v2
+    Picked versions have been written to my_versions.cfg
+
+The versions file contains the extra pin:
+
+    >>> 'spam = 2' in open('my_versions.cfg').read()
+    True
+
 Because buildout now includes buildout-versions' (and the older
 buildout.dumppickedversions') functionality, it warns if these extensions are
 configured.
