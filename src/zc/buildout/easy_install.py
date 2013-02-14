@@ -119,7 +119,12 @@ def call_subprocess(args, **kw):
 
 
 def _execute_permission():
-    return 493  # 0755, -rwxr-xr-x
+    current_umask = os.umask(0o022)
+    # os.umask only returns the current umask if you also give it one, so we
+    # have to give it a dummy one and immediately set it back to the real
+    # value...  Distribute does the same.
+    os.umask(current_umask)
+    return 0o777 - current_umask
 
 
 _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
