@@ -1,11 +1,13 @@
 Change History
 **************
 
-Next version
-============
+2.0.1 (2013-02-14)
+==================
 
-- Fix for distutils scripts installation on Python 3, related to
+- Fixe for distutils scripts installation on Python 3, related to
   ``__pycache__`` directories.
+
+- Fixed: encoding data in non-entry-point-based scripts was lost.
 
 
 2.0.0 (2013-02-10)
