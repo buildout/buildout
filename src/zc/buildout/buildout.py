@@ -1030,7 +1030,7 @@ class Buildout(DictMixin):
             f = open(self.update_versions_file, 'a')
             f.write('\n'.join(output))
             f.close()
-            print_("This information has been written to " +
+            print_("Picked versions have been written to " +
                    self.update_versions_file)
 
     def setup(self, args):

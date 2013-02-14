@@ -357,7 +357,7 @@ at the end.
     The following part definition lists the versions picked:
     [versions]
     spam = 2
-    This information has been written to my_versions.cfg
+    Picked versions have been written to my_versions.cfg
 
 The versions file now contains the extra pin:
 
