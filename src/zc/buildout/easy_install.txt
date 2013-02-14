@@ -957,6 +957,20 @@ contain a source encoding hint; buildout retains it.
 Due to the nature of distutils scripts, buildout cannot pass arguments as
 there's no specific method to pass them to.
 
+In some cases, a python 3 ``__pycache__`` directory can end up in an internal
+``EGG-INFO`` metadata directory, next to the script information we're looking
+for. Buildout doesn't crash on that:
+
+    >>> eggname = [name for name in os.listdir(distdir2)
+    ...            if name.endswith('egg')][0]
+    >>> scripts_metadata_dir = os.path.join(
+    ...     distdir2, eggname, 'EGG-INFO', 'scripts')
+    >>> os.mkdir(os.path.join(scripts_metadata_dir, '__dummy__'))
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['du_zipped'], ws, sys.executable, distbin2)
+    >>> ls(distbin2)
+    -  distutilsscript
+
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------

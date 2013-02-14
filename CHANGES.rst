@@ -1,6 +1,13 @@
 Change History
 **************
 
+Next version
+============
+
+- Fix for distutils scripts installation on Python 3, related to
+  ``__pycache__`` directories.
+
+
 2.0.0 (2013-02-10)
 ==================
 
