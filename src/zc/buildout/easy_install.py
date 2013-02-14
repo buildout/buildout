@@ -117,6 +117,11 @@ def call_subprocess(args, **kw):
             "Failed to run command:\n%s"
             % repr(args)[1:-1])
 
+
+def _execute_permission():
+    return 493  # 0755, -rwxr-xr-x
+
+
 _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 
 class Installer:
@@ -1099,7 +1104,7 @@ def _create_script(contents, dest):
             script.endswith('-script.py') and script[:-10] or script)
 
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, _execute_permission())
         except (AttributeError, os.error):
             pass
 
@@ -1167,7 +1172,7 @@ def _pyscript(path, dest, rsetup, initialization=''):
     if changed:
         open(dest, 'w').write(contents)
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, _execute_permission())
         except (AttributeError, os.error):
             pass
         logger.info("Generated interpreter %r.", script)
