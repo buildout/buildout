@@ -47,6 +47,7 @@ logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 is_source_encoding_line = re.compile('coding[:=]\s*([-\w.]+)').search
+# Source encoding regex from http://www.python.org/dev/peps/pep-0263/
 
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
