@@ -6,7 +6,7 @@ Buildout
    :width: 82px
    :height: 13px
    :alt: Travis CI build report
-   :target: https://secure.travis-ci.org/#!/buildout/buildout
+   :target: https://travis-ci.org/buildout/buildout
 
 Buildout is a project designed to solve 2 problems:
 
