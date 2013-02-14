@@ -325,8 +325,8 @@ class Buildout(DictMixin):
         self.show_picked_versions = bool_option(options,
                                                 'show-picked-versions')
         self.update_versions_file = options['update-versions-file']
-        zc.buildout.easy_install.show_picked_versions(
-            self.show_picked_versions)
+        zc.buildout.easy_install.store_picked_versions(
+            self.show_picked_versions or self.update_versions_file)
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -996,8 +996,6 @@ class Buildout(DictMixin):
 
     def _print_picked_versions(self):
         Installer = zc.buildout.easy_install.Installer
-        if not self.show_picked_versions:
-            return
         if not Installer._picked_versions:
             # Don't print empty output.
             return
@@ -1016,11 +1014,13 @@ class Buildout(DictMixin):
 
         output.extend(required_output)
 
-        print_("Versions had to be automatically picked.")
-        print_("The following part definition lists the versions picked:")
-        print_('\n'.join(output))
+        if self.show_picked_versions:
+            print_("Versions had to be automatically picked.")
+            print_("The following part definition lists the versions picked:")
+            print_('\n'.join(output))
+
         if self.update_versions_file:
-            # Also write to the versions file.
+            # Write to the versions file.
             if os.path.exists(self.update_versions_file):
                 output[:1] = [
                     '',
@@ -1030,7 +1030,7 @@ class Buildout(DictMixin):
             f = open(self.update_versions_file, 'a')
             f.write('\n'.join(output))
             f.close()
-            print_("This information has been written to " +
+            print_("Picked versions have been written to " +
                    self.update_versions_file)
 
     def setup(self, args):
