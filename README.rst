@@ -2,11 +2,15 @@
 Buildout
 ********
 
-.. image:: https://secure.travis-ci.org/buildout/buildout.png?branch=master
-   :width: 82px
+.. image:: https://travis-ci.org/pombredanne/buildout.png?branch=header_expressions
+   :width: 95px
    :height: 13px
    :alt: Travis CI build report
-   :target: https://secure.travis-ci.org/#!/buildout/buildout
+   :target: https://travis-ci.org/pombredanne/buildout
+
+This fork of Buildout provides support for conditional sections. See the header_expressions branch for details
+
+
 
 Buildout is a project designed to solve 2 problems:
 
