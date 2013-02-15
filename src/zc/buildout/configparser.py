@@ -19,6 +19,9 @@
 
 import re
 import textwrap
+import logging
+
+logger = logging.getLogger('zc.buildout')
 
 class Error(Exception):
     """Base class for ConfigParser exceptions."""
@@ -71,25 +74,76 @@ class MissingSectionHeaderError(ParsingError):
         self.lineno = lineno
         self.line = line
 
-section_header = re.compile(
-    r'\[\s*(?P<header>[^\s[\]:{}]+)\s*]\s*([#;].*)?$').match
+# This regex captures either plain sections headers with optional trailing 
+# comment separated by a semicolon or a pound sign OR ...
+# new style section headers with an expression and optional trailing comment 
+# that then can be only separated by a pound sign.
+# This second case could require complex parsing as expressions and comments
+# can contain brackets and # signs that would need at least to balance brackets
+# A title line with an expression has the general form:
+#  [section_name: some Python expression] # some comment
+# This regex leverages the fact that the following is a valid Python expression:
+#  [some Python expression] # some comment
+# and that section headers are always delimited by [brackets] which are also 
+# the delimiters for Python [lists]
+# So instead of doing complex parsing to balance brackets, we capture just 
+# enough from a header line to collect then remove the section_name and colon 
+# expression separator keeping only a list-enclosed expression and optional
+# comments. Therefore the parsing and validation of this resulting Python 
+# expression can be entirely delegated to the built-in Python eval compiler. 
+# The result of the evaluated expression is the always returned wrapped in a 
+# list with a single item that contains the original expression
+section_header  = re.compile(
+    r'(?P<head>\[)'            # opening bracket [ starts a section title line
+    r'\s*'
+    r'(?P<name>[^\s[\]:{}]+)'  # section name
+    r'\s*'
+    r'('
+     r']'                      # closing bracket ] 
+     r'\s*'
+     r'([#;].*)?$'             # optional trailing comment marked by '#' or ';'
+    r'|'                       # OR
+     r':'                      # optional ':' separator for expression
+     r'\s*'
+     r'(?P<tail>.*'            # optional arbitrary Python expression
+     r']'                      # closing bracket ] 
+     r'\s*'
+     r'\#?.*)$'                # optional trailing comment marked by '#'
+    r')'
+    ).match
+
 option_start = re.compile(
     r'(?P<name>[^\s{}[\]=:]+\s*[-+]?)'
     r'='
     r'(?P<value>.*)$').match
+
 leading_blank_lines = re.compile(r"^(\s*\n)+")
 
-def parse(fp, fpname):
+def parse(fp, fpname, exp_globals=None):
     """Parse a sectioned setup file.
 
-    The sections in setup file contains a title line at the top,
+    The sections in setup files contain a title line at the top,
     indicated by a name in square brackets (`[]'), plus key/value
     options lines, indicated by `name: value' format lines.
     Continuations are represented by an embedded newline then
     leading whitespace.  Blank lines, lines beginning with a '#',
     and just about everything else are ignored.
+
+    The title line is in the form [name] followed an optional a trailing 
+    comment separated by a semicolon ';' or a pound `#' sign. 
+    
+    Optionally the title line can have the form [name:expression] where 
+    expression is an arbitrary Python expression. Sections with an expression 
+    that evaluates to False are ignored. In this form, the optional trailing 
+    comment can only be marked by a pound # sign (semi-colon ; is not valid)
+
+    exp_globals is a callable returning a mapping of defaults used as globals 
+    during the evaluation of a section conditional expression.
     """
     sections = {}
+    # the current section condition, possibly updated from a section expression
+    section_condition = True
+    context = None
     cursect = None                            # None, or a dictionary
     blockmode = None
     optname = None
@@ -106,6 +160,9 @@ def parse(fp, fpname):
             continue # comment
 
         if line[0].isspace() and cursect is not None and optname:
+            if not section_condition:
+                #skip section based on its expression condition
+                continue
             # continuation line
             if blockmode:
                 line = line.rstrip()
@@ -115,10 +172,32 @@ def parse(fp, fpname):
                     continue
             cursect[optname] = "%s\n%s" % (cursect[optname], line)
         else:
-            mo = section_header(line)
-            if mo:
-                # section header
-                sectname = mo.group('header')
+            header = section_header(line)
+            if header:
+                # reset to True when starting a new section
+                section_condition = True 
+                sectname = header.group('name')
+
+                head = header.group('head') # the starting [
+                tail = header.group('tail') # closing ], expression and comment
+                if tail:
+                    # lazily populate context only expression
+                    if not context:
+                        context = exp_globals() if exp_globals else {}
+
+                    # rebuild a valid Python expression wrapped in a list
+                    expression = head + tail
+
+                    # by design and construction, the evaluated  expression 
+                    # is always the first element of a wrapping list
+                    # so we get the first element 
+                    section_condition = eval(expression, context)[0]
+
+                    # ignore section when an expression evaluates to false
+                    if not section_condition:
+                        logger.debug('Ignoring section %(sectname)r with [expression]: %(expression)r' % locals())
+                        continue
+
                 if sectname in sections:
                     cursect = sections[sectname]
                 else:
@@ -133,6 +212,9 @@ def parse(fp, fpname):
             else:
                 mo = option_start(line)
                 if mo:
+                    if not section_condition:
+                        # filter out options of conditionally ignored section
+                        continue
                     # option start line
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
