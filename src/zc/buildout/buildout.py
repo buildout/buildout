@@ -1373,7 +1373,7 @@ def _default_globals():
     # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
     # OF SUCH DAMAGE.
 
-    # default available modules, explicily reimported locally here on purpose
+    # default available modules, explicitly re-imported locally here on purpose
     import sys
     import os
     import platform
