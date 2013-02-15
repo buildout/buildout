@@ -96,16 +96,16 @@ When the expression evaluates to false the whole section is skipped.
 Several sections can have the same name with different expressions, enabling 
 conditional exclusion of sections::
 
-  [s1: 2 + 2 == 4] ; this expression is true [therefore "this section" _will_ be NOT skipped
+  [s1: 2 + 2 == 4] # this expression is true [therefore "this section" _will_ be NOT skipped
   a = 1
 
-  [   s2 : 2 + 2 == 5  ]         ; comment: this expression is false, so this section will be ignored
+  [   s2 : 2 + 2 == 5  ]         # comment: this expression is false, so this section will be ignored
   long = a
 
   [   s2 : 41 + 1 == 42  ]  # a comment: this expression is true, so this section will be kept
   long = b
 
-  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] # Complex expressions are [possible!], though they should not be (abused:) 
+  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] # Complex expressions are [possible!];, though they should not be (abused:) 
   # this section will not be skipped
   long = c
 
@@ -119,17 +119,103 @@ conditional exclusion of sections::
     {'s1': {'a': '1'}, 's2': {'long': 'b'}, 's3': {'long': 'c'}}
 
 
-One of the typical usage is to have buildout parts that are operating system or
-plaform specific.  The configparser.parse function has an optional 
-exp_globals argument.  This is a callable returning a mapping of objects made 
-available to the evaluation  context of the expression. Here we add the 
-platform and sys modules to the evaluation context, so we can invoke platform 
-and sys functions and objects in our expressions ::
+The title line can contain an optional trailing comment separated by a pound 
+sign. The expression and the comment can contain arbitrary characters, including
+brackets that are also used to mark the end of a section header and  that may be 
+ambiguous to recognize in some cases. For example, valid sections lines include::
 
-  [s1: platform.python_version_tuple()[0] in ('2', '3',)] ; this expression is true, the major versions of python are either 2 or 3
+  [ a ]
+  a=1
+
+  [ b ]  # []
+  b=1
+
+  [ c : True ]  # ]
+  c =1
+
+  [ d :  True]  # []
+  d=1
+
+  [ e ]  # []
+  e = 1
+
+  [ f ]  # ]
+  f = 1
+
+  [g:2 in map(lambda i:i*2, ['''#;)'''] + [i for i in range(10)] + list('#[]][;#'))] # Complex #expressions; ][are [possible!]
+  g = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'},
+     'b': {'b': '1'},
+     'c': {'c': '1'},
+     'd': {'d': '1'},
+     'e': {'e': '1'},
+     'f': {'f': '1'},
+     'g': {'g': '1'}}
+
+
+A title line optional trailing comment may also be separated by a comma 
+-- for backward compatibility -- if and only if the title line does not contain
+an expression. The following are valid::
+
+  [ a ]  ;comma comment are supported for lines without expressions ]
   a = 1
 
-  [s2:sys.version[0] == '0'] ; comment: this expression "is false",  there no major version 0 of Python so this section will be ignored
+  # this comma separated comment is valid because this section does not contain an expression
+  [ b ]  ; []
+  b = 1
+
+  # this comma separated comment is valid because this section does not contain an expression
+  [ c ]  ; ]
+  c = 1
+
+  # this comma separated comment is valid because this section does not contain an expression
+  [ d ]  ; [
+  d = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'}, 'b': {'b': '1'}, 'c': {'c': '1'}, 'd': {'d': '1'}}
+
+
+
+And the following is invalid and will trigger an error::
+
+  [ d: True ]  ;comma comment are not supported for lines with expressions ]
+  d = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import zc.buildout.configparser
+    >>> try: zc.buildout.configparser.parse(StringIO.StringIO(text), 'test')
+    ... except SyntaxError: pass # success
+
+
+One of the typical usage is to have buildout parts that are operating system or
+platform specific.  The configparser.parse function has an optional 
+exp_globals argument.  This is a callable returning a mapping of objects made 
+available to the evaluation context of the expression. Here we add the 
+platform and sys modules to the evaluation context, so we can access platform 
+and sys functions and objects in our expressions ::
+
+  [s1: platform.python_version_tuple()[0] in ('2', '3',)] # this expression is true, the major versions of python are either 2 or 3
+  a = 1
+
+  [s2:sys.version[0] == '0'] # comment: this expression "is false",  there no major version 0 of Python so this section will be ignored
   long = a
 
   [s2:len(platform.uname()) > 0]  # a comment: this expression is likely always true, so this section will be kept
@@ -140,8 +226,7 @@ and sys functions and objects in our expressions ::
     >>> try: import StringIO
     ... except ImportError: import io as StringIO
     >>> import pprint, zc.buildout.configparser
-    >>> import platform
-    >>> import sys
+    >>> import platform, sys
     >>> globs = lambda: {'platform': platform, 'sys': sys}
     >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
     ...     text), 'test', exp_globals=globs))
@@ -149,12 +234,12 @@ and sys functions and objects in our expressions ::
 
 
 Some limited (but hopefully sane and sufficient) default modules and 
-precomputed common expressions available to an expression when the parser in 
+pre-computed common expressions available to an expression when the parser in 
 called by buildout::
 
 
   #imported modules
-  [s1: sys and re and os and platform] ; this expression is true: these modules are available
+  [s1: sys and re and os and platform] # this expression is true: these modules are available
   a = 1
 
   # major and minor python versions, yes even python 3.5 and 3.6 are there , prospectively
