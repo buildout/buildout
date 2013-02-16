@@ -1,8 +1,10 @@
 Change History
 **************
 
-2.0.1 (2013-02-14)
+2.0.1 (2013-02-16)
 ==================
+
+- Fixed: buildout didn't honor umask settings when creating scripts.
 
 - Fix for distutils scripts installation on Python 3, related to
   ``__pycache__`` directories.
