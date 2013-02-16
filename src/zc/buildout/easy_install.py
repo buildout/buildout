@@ -117,6 +117,16 @@ def call_subprocess(args, **kw):
             "Failed to run command:\n%s"
             % repr(args)[1:-1])
 
+
+def _execute_permission():
+    current_umask = os.umask(0o022)
+    # os.umask only returns the current umask if you also give it one, so we
+    # have to give it a dummy one and immediately set it back to the real
+    # value...  Distribute does the same.
+    os.umask(current_umask)
+    return 0o777 - current_umask
+
+
 _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 
 class Installer:
@@ -1099,7 +1109,7 @@ def _create_script(contents, dest):
             script.endswith('-script.py') and script[:-10] or script)
 
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, _execute_permission())
         except (AttributeError, os.error):
             pass
 
@@ -1167,7 +1177,7 @@ def _pyscript(path, dest, rsetup, initialization=''):
     if changed:
         open(dest, 'w').write(contents)
         try:
-            os.chmod(dest, 493) # 0755
+            os.chmod(dest, _execute_permission())
         except (AttributeError, os.error):
             pass
         logger.info("Generated interpreter %r.", script)
