@@ -236,6 +236,13 @@ Since buildout 2.0, the functionality of the `buildout-versions
 <http://packages.python.org/buildout-versions/>`_ extension is part of
 buildout itself. This makes reporting and managing versions easier.
 
+Buildout picks a version for distribute and for the tests, we need to grab the
+version number:
+
+    >>> import pkg_resources
+    >>> req = pkg_resources.Requirement.parse('distribute')
+    >>> distribute_version = pkg_resources.working_set.find(req).version
+
 If you set the ``show-picked-versions`` option, buildout will print
 versions it picked at the end of its run:
 
@@ -270,12 +277,12 @@ When everything is pinned, no output is generated:
     ... show-picked-versions = true
     ...
     ... [versions]
-    ... distribute = 0.6.35
+    ... distribute = %s
     ... spam = 2
     ...
     ... [foo]
     ... recipe = spam
-    ... ''' % join('recipe', 'dist'))
+    ... ''' % (join('recipe', 'dist'), distribute_version))
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Updating foo.
     recipe v2
@@ -294,12 +301,12 @@ and case differences won't impact the pinning:
     ... show-picked-versions = true
     ...
     ... [versions]
-    ... distriBUTE = 0.6.35
+    ... distriBUTE = %s
     ... Spam = 2
     ...
     ... [foo]
     ... recipe = spam
-    ... ''' % join('recipe', 'dist'))
+    ... ''' % (join('recipe', 'dist'), distribute_version))
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Updating foo.
     recipe v2
@@ -311,9 +318,9 @@ extending from that versions file:
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.35
+    ... distribute = %s
     ... spam = 2
-    ... ''')
+    ... ''' % distribute_version)
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -336,8 +343,8 @@ at the end.
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.35
-    ... ''')
+    ... distribute = %s
+    ... ''' % distribute_version)
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -377,8 +384,8 @@ printing them to the console):
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.35
-    ... ''')
+    ... distribute = %s
+    ... ''' % distribute_version)
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
