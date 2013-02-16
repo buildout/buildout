@@ -270,7 +270,7 @@ When everything is pinned, no output is generated:
     ... show-picked-versions = true
     ...
     ... [versions]
-    ... distribute = 0.6.34
+    ... distribute = 0.6.35
     ... spam = 2
     ...
     ... [foo]
@@ -294,7 +294,7 @@ and case differences won't impact the pinning:
     ... show-picked-versions = true
     ...
     ... [versions]
-    ... distriBUTE = 0.6.34
+    ... distriBUTE = 0.6.35
     ... Spam = 2
     ...
     ... [foo]
@@ -311,7 +311,7 @@ extending from that versions file:
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.34
+    ... distribute = 0.6.35
     ... spam = 2
     ... ''')
     >>> write('buildout.cfg',
@@ -336,7 +336,7 @@ at the end.
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.34
+    ... distribute = 0.6.35
     ... ''')
     >>> write('buildout.cfg',
     ... '''
@@ -377,7 +377,7 @@ printing them to the console):
     >>> write('my_versions.cfg',
     ... '''
     ... [versions]
-    ... distribute = 0.6.34
+    ... distribute = 0.6.35
     ... ''')
     >>> write('buildout.cfg',
     ... '''
