@@ -1437,35 +1437,38 @@ def _default_globals():
 
     globals_defs = {'sys': sys, 'os': os, 'platform': platform, 're': re,}
 
-    # major python versions as python2 and python3
-    vertu = platform.python_version_tuple()
-    globals_defs.update({'python2': vertu[0] == '2', 'python3': vertu[0] == '3'})
+    # major python major_python_versions as python2 and python3
+    major_python_versions = platform.python_version_tuple()
+    globals_defs.update({'python2': major_python_versions[0] == '2',
+                         'python3': major_python_versions[0] == '3'})
 
-    # minor python versions as python24, python25 ... python36
-    pyver = ('24', '25', '26', '27', '30', '31', '32', '33', '34', '35', '36')
-    for v in pyver:
-        globals_defs['python' + v] = ''.join(vertu[:2]) == v
+    # minor python major_python_versions as python24, python25 ... python36
+    minor_python_versions = ('24', '25', '26', '27',
+                             '30', '31', '32', '33', '34', '35', '36')
+    for v in minor_python_versions:
+        globals_defs['python' + v] = ''.join(major_python_versions[:2]) == v
 
     # interpreter type
-    sysver = sys.version.lower()
-    pypy = 'pypy' in sysver
-    jython = 'java' in sysver
-    ironpython ='iron' in sysver
+    sys_version = sys.version.lower()
+    pypy = 'pypy' in sys_version
+    jython = 'java' in sys_version
+    ironpython ='iron' in sys_version
     # assume CPython, if nothing else.
     cpython = not any((pypy, jython, ironpython,))
     globals_defs.update({'cpython': cpython,
                          'pypy': pypy,
                          'jython': jython,
                          'ironpython': ironpython})
+
     # operating system
-    sysplat = str(sys.platform).lower()
-    globals_defs.update({'linux': 'linux' in sysplat,
-                         'windows': 'win32' in sysplat,
-                         'cygwin': 'cygwin' in sysplat,
-                         'solaris': 'sunos' in sysplat,
-                         'macosx': 'darwin' in sysplat,
+    sys_platform = str(sys.platform).lower()
+    globals_defs.update({'linux': 'linux' in sys_platform,
+                         'windows': 'win32' in sys_platform,
+                         'cygwin': 'cygwin' in sys_platform,
+                         'solaris': 'sunos' in sys_platform,
+                         'macosx': 'darwin' in sys_platform,
                          'posix': 'posix' in os.name.lower()})
-       
+
     #bits and endianness
     import struct
     void_ptr_size = struct.calcsize('P') * 8
