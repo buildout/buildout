@@ -2872,6 +2872,22 @@ def test_buildout_section_shorthand_for_command_line_assignments():
     >>> print_(system(buildout+' parts='), end='') # doctest: +ELLIPSIS
     """
 
+def buildout_honors_umask():
+    """
+
+    For setting the executable permission, the user's umask is honored:
+
+    >>> orig_umask = os.umask(0o077)  # Only user gets permissions.
+    >>> zc.buildout.easy_install._execute_permission() == 0o700
+    True
+    >>> tmp = os.umask(0o022)  # User can write, the rest not.
+    >>> zc.buildout.easy_install._execute_permission() == 0o755
+    True
+    >>> tmp = os.umask(orig_umask)  # Reset umask to the original value.
+    """
+
+if sys.platform == 'win32':
+    del buildout_honors_umask # umask on dohs is academic
 
 ######################################################################
 

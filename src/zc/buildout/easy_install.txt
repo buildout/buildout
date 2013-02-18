@@ -697,6 +697,15 @@ original script names to new script names.
     >>> print_(system(os.path.join(bin, 'run')), end='')
     3 1
 
+The scripts that are generated are made executable:
+
+    >>> if sys.platform == 'win32':
+    ...     os.access(os.path.join(bin, 'run.exe'), os.X_OK)
+    ... else:
+    ...     os.access(os.path.join(bin, 'run'), os.X_OK)
+    True
+
+
 Including extra paths in scripts
 --------------------------------
 
