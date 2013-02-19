@@ -677,6 +677,21 @@ module:
     >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')
     Error: what does not exist
 
+An interpreter can also be generated without other eggs:
+
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     [], [], sys.executable, bin, interpreter='py')
+    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE
+    #!/usr/local/bin/python2.7
+    <BLANKLINE>
+    import sys
+    <BLANKLINE>
+    sys.path[0:0] = [
+      ]
+    <BLANKLINE>
+    _interactive = True
+    ...
+
 An additional argument can be passed to define which scripts to install
 and to provide script names. The argument is a dictionary mapping
 original script names to new script names.
