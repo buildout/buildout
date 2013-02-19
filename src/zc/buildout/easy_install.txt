@@ -681,15 +681,14 @@ An interpreter can also be generated without other eggs:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...     [], [], sys.executable, bin, interpreter='py')
-    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      ]
     <BLANKLINE>
-    _interactive = True
+      ]
     ...
 
 An additional argument can be passed to define which scripts to install

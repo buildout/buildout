@@ -1157,6 +1157,8 @@ def _pyscript(path, dest, rsetup, initialization=''):
         dest += '-script.py'
 
     python = _safe_arg(sys.executable)
+    if path:
+        path += ','  # Courtesy comma at the end of the list.
 
     contents = py_script_template % dict(
         python = python,
@@ -1191,7 +1193,7 @@ py_script_template = script_header + '''\
 import sys
 
 sys.path[0:0] = [
-  %(path)s,
+  %(path)s
   ]
 %(initialization)s
 
