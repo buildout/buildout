@@ -1,6 +1,13 @@
 Change History
 **************
 
+1.7.1 (2013-02-20)
+==================
+
+Fixed: Constraints intended to prevent upgrading to
+       buildout-2-compatible recipes weren't expressed correctly,
+       leading to unintendional use of zc.recipe.egg-2.0.0a3.
+
 1.7.0 (2013-01-11)
 ==================
 

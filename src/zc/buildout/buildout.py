@@ -276,8 +276,8 @@ class Buildout(UserDict.DictMixin):
         self._setup_logging()
 
         self.versions = {
-            'zc.recipe.egg': '<2',
-            'zc.recipe.testrunner': '<2',
+            'zc.recipe.egg': '<2dev',
+            'zc.recipe.testrunner': '<2dev',
             }
         versions_option = options.get('versions')
         if versions_option:
