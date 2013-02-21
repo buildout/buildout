@@ -408,7 +408,7 @@ The versions file contains the extra pin:
     >>> 'spam = 2' in open('my_versions.cfg').read()
     True
 
-Because buildout now includes buildout-versions' (and the older
+Because buildout now includes buildout-versions' (and part of the older
 buildout.dumppickedversions') functionality, it warns if these extensions are
 configured.
 
@@ -425,6 +425,6 @@ configured.
     While:
       Installing.
       Loading extensions.
-    Error: The extension buildout-versions is now included in buildout itself.
+    Error: The extension 'buildout-versions' is now included in buildout itself.
     Remove the extension from your configuration and look at the `show-picked-versions`
     option in buildout's documentation.
