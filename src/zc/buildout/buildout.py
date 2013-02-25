@@ -157,7 +157,7 @@ class Buildout(DictMixin):
         data = dict(buildout=_buildout_default_options.copy())
         self._buildout_dir = os.getcwd()
 
-        if not _isurl(config_file):
+        if config_file and not _isurl(config_file):
             config_file = os.path.abspath(config_file)
             base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
@@ -762,11 +762,11 @@ class Buildout(DictMixin):
                         for k, v in _spacey_defaults:
                             value = value.replace(k, v)
                         options[option] = value
-                result[section] = Options(self, section, options)
+                result[section] = self.Options(self, section, options)
 
             return result, True
         else:
-            return ({'buildout': Options(self, 'buildout', {'parts': ''})},
+            return ({'buildout': self.Options(self, 'buildout', {'parts': ''})},
                     False,
                     )
 
@@ -829,7 +829,8 @@ class Buildout(DictMixin):
             try:
                 timeout = int(timeout)
                 import socket
-                self._logger.info('Setting socket time out to %d seconds.', timeout)
+                self._logger.info(
+                    'Setting socket time out to %d seconds.', timeout)
                 socket.setdefaulttimeout(timeout)
             except ValueError:
                 self._logger.warning("Default socket timeout is used !\n"
@@ -1062,8 +1063,20 @@ class Buildout(DictMixin):
 
     runsetup = setup # backward compat.
 
-    def annotate(self, args):
+    def annotate(self, args=None):
         _print_annotate(self._annotated)
+
+    def print_options(self):
+        for section in sorted(self._data):
+            if section == 'buildout' or section == self['buildout']['versions']:
+                continue
+            print_('['+section+']')
+            for k, v in sorted(self._data[section].items()):
+                if '\n' in v:
+                    v = '\n  ' + v.replace('\n', '\n  ')
+                else:
+                    v = ' '+v
+                print_("%s =%s" % (k, v))
 
     def __getitem__(self, section):
         __doing__ = 'Getting section %s.', section
@@ -1077,13 +1090,34 @@ class Buildout(DictMixin):
         except KeyError:
             raise MissingSection(section)
 
-        options = Options(self, section, data)
+        options = self.Options(self, section, data)
         self._data[section] = options
         options._initialize()
         return options
 
-    def __setitem__(self, key, value):
-        raise NotImplementedError('__setitem__')
+    def __setitem__(self, name, data):
+        if name in self._raw:
+            raise KeyError("Section already exists", name)
+        self._raw[name] = dict((k, str(v)) for (k, v) in data.items())
+        self[name] # Add to parts
+
+    def parse(self, data):
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from io import StringIO
+        import textwrap
+
+        sections = zc.buildout.configparser.parse(
+            StringIO(textwrap.dedent(data)), '')
+        for name in sections:
+            if name in self._raw:
+                raise KeyError("Section already exists", name)
+            self._raw[name] = dict((k, str(v))
+                                   for (k, v) in sections[name].items())
+
+        for name in sections:
+            self[name] # Add to parts
 
     def __delitem__(self, key):
         raise NotImplementedError('__delitem__')
@@ -1158,20 +1192,20 @@ class Options(DictMixin):
             if '${' in v:
                 self._dosub(k, v)
 
-        if self.name == 'buildout':
+        if name == 'buildout':
             return # buildout section can never be a part
 
-        recipe = self.get('recipe')
-        if not recipe:
-            return
+        if self.get('recipe'):
+            self.initialize()
+            self.buildout._parts.append(name)
 
+    def initialize(self):
         reqs, entry = _recipe(self._data)
         buildout = self.buildout
         recipe_class = _install_and_load(reqs, 'zc.buildout', entry, buildout)
 
-        __doing__ = 'Initializing part %s.', name
+        name = self.name
         self.recipe = recipe_class(buildout, name, self)
-        buildout._parts.append(name)
 
     def _do_extend_raw(self, name, data, doing):
         if name == 'buildout':
@@ -1355,6 +1389,8 @@ class Options(DictMixin):
 
     def __repr__(self):
         return repr(dict(self))
+
+Buildout.Options = Options
 
 _spacey_nl = re.compile('[ \t\r\f\v]*\n[ \t\r\f\v\n]*'
                         '|'

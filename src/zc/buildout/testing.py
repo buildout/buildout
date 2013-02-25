@@ -166,6 +166,19 @@ def wait_until(label, func, *args, **kw):
         time.sleep(0.01)
     raise ValueError('Timed out waiting for: '+label)
 
+class TestOptions(zc.buildout.buildout.Options):
+
+    def initialize(self):
+        pass
+
+class Buildout(zc.buildout.buildout.Buildout):
+
+    def __init__(self):
+        zc.buildout.buildout.Buildout.__init__(
+            self, '', [('buildout', 'directory', os.getcwd())])
+
+    Options = TestOptions
+
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []

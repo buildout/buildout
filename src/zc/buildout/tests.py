@@ -1381,7 +1381,7 @@ def internal_errors():
     While:
       Installing.
       Getting section data-dir.
-      Initializing part data-dir.
+      Initializing section data-dir.
     <BLANKLINE>
     An internal error occured due to a bug in either zc.buildout or in a
     recipe being used:
@@ -3227,7 +3227,7 @@ def test_suite():
                      'zc.\1 = >=1.99'),
                     ])
                 ) + manuel.capture.Manuel(),
-            'buildout.txt',
+            'buildout.txt', 'meta-recipes.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             ),
