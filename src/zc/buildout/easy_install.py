@@ -150,7 +150,7 @@ class Installer:
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
-    _store_picked_versions = False
+    _store_required_by = False
 
     def __init__(self,
                  dest=None,
@@ -755,11 +755,16 @@ def allow_picked_versions(setting=None):
         Installer._allow_picked_versions = bool(setting)
     return old
 
-def store_picked_versions(setting=None):
-    old = Installer._store_picked_versions
+def store_required_by(setting=None):
+    old = Installer._store_required_by
     if setting is not None:
-        Installer._store_picked_versions = bool(setting)
+        Installer._store_required_by = bool(setting)
     return old
+
+def get_picked_versions():
+    picked_versions = sorted(Installer._picked_versions.items())
+    required_by = Installer._required_by
+    return (picked_versions, required_by)
 
 
 def install(specs, dest,
@@ -1283,7 +1288,7 @@ class MissingDistribution(zc.buildout.UserError):
 
 def _log_requirement(ws, req):
     if (not logger.isEnabledFor(logging.DEBUG) and
-        not Installer._store_picked_versions):
+        not Installer._store_required_by):
         # Sorting the working set and iterating over it's requirements
         # is expensive, so short circuit the work if it won't even be
         # logged.  When profiling a simple buildout with 10 parts with
