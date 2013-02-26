@@ -1810,8 +1810,7 @@ def main(args=None):
             logging.shutdown()
             # Make sure we properly propagate an exit code from a restarted
             # buildout process.
-            exit_code = sys.exc_info()[1]
-            sys.exit(exit_code)
+            raise
         except Exception:
             v = sys.exc_info()[1]
             _doing()
