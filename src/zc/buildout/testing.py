@@ -125,8 +125,7 @@ def system(command, input='', with_exit_code=False):
     if with_exit_code:
         # Use the with_exit_code=True parameter when you want to test the exit
         # code of the command you're running.
-        p.wait()  # Sets the return code.
-        output += 'EXIT CODE: %s' % p.returncode
+        output += 'EXIT CODE: %s' % p.wait()
     return output
 
 def get(url):
