@@ -288,32 +288,14 @@ gives us a sys.exit:
     ... recipe = failrecipe
     ... """ % dict(new_releases=new_releases))
 
-Mock the sys.exit:
-
-    >>> import sys
-    >>> orig_exit = sys.exit
-    >>> def sys_exit(code):
-    ...     if code == 'Second exit':
-    ...         print_('Exiting with an error')
-    ...     else:
-    ...         print('Sys.exit with error %s' % code)
-    ...         #raise SystemExit(code)
-    >>> sys.exit = sys_exit
-
 Run the buildout:
 
-    >>> print_(system(buildout), end='')
+    >>> print_(system(buildout, with_exit_code=True), end='')
     Upgraded:
       zc.buildout version 1.4.4;
       distribute version 0.6;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/failrecipe'
-    sys.exit occurred. Exit code: recipe sys-exits
-
-Restore sys.exit:
-
-    >>> sys.exit = orig_exit
-
-    >>> print_("We are still alive")
-    We are still alive
+    recipe sys-exits
+    EXIT CODE: 1

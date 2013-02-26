@@ -107,7 +107,7 @@ def clean_up_pyc(*path):
 ## FIXME - check for other platforms
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
-def system(command, input=''):
+def system(command, input='', with_exit_code=False):
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
@@ -121,7 +121,13 @@ def system(command, input=''):
     result = o.read() + e.read()
     o.close()
     e.close()
-    return result.decode()
+    output = result.decode()
+    if with_exit_code:
+        # Use the with_exit_code=True parameter when you want to test the exit
+        # code of the command you're running.
+        p.wait()  # Sets the return code.
+        output += 'EXIT CODE: %s' % p.returncode
+    return output
 
 def get(url):
     return str(urlopen(url).read().decode())
