@@ -1807,7 +1807,11 @@ def main(args=None):
                                 command, args)
             getattr(buildout, command)(args)
         except SystemExit:
-            pass
+            logging.shutdown()
+            # Make sure we properly propagate an exit code from a restarted
+            # buildout process.
+            exit_code = sys.exc_info()[1]
+            sys.exit(exit_code)
         except Exception:
             v = sys.exc_info()[1]
             _doing()
@@ -1828,9 +1832,9 @@ def main(args=None):
                     traceback.print_exception(*exc_info)
                     sys.exit(1)
 
-
     finally:
         logging.shutdown()
+
 
 if sys.version_info[:2] < (2, 4):
     def reversed(iterable):
