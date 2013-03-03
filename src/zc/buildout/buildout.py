@@ -1601,6 +1601,10 @@ Options:
 
      Print this message and exit.
 
+  --version
+
+     Print buildout version number and exit.
+
   -v
 
      Increase the level of verbosity.  This option can be used multiple times.
@@ -1706,8 +1710,15 @@ Commands:
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
 
 """
+
 def _help():
     print_(_usage)
+    sys.exit(0)
+
+def _version():
+    version = pkg_resources.working_set.find(
+                pkg_resources.Requirement.parse('zc.buildout')).version
+    print_("buildout version %s" % version)
     sys.exit(0)
 
 def main(args=None):
@@ -1772,6 +1783,8 @@ def main(args=None):
             elif op:
                 if orig_op == '--help':
                     _help()
+                elif orig_op == '--version':
+                    _version()
                 _error("Invalid option", '-'+op[0])
         elif '=' in args[0]:
             option, value = args.pop(0).split('=', 1)
