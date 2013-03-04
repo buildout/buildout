@@ -76,6 +76,7 @@ correct mistakes made in buildout 1.
 
 - Buildout no-longer installs zipped eggs. (Distribute may still
   install a zipped egg of itself during the bootstrapping process.)
+  The ``buildout:unzip`` option has been removed.
 
 - Buildout no-longer supports setuptools. It now uses distribute
   exclusively.
