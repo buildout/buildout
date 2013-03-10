@@ -74,42 +74,34 @@ class MissingSectionHeaderError(ParsingError):
         self.lineno = lineno
         self.line = line
 
-# This regex captures either plain sections headers with optional trailing 
-# comment separated by a semicolon or a pound sign OR ...
-# new style section headers with an expression and optional trailing comment 
-# that then can be only separated by a pound sign.
-# This second case could require complex parsing as expressions and comments
-# can contain brackets and # signs that would need at least to balance brackets
+# This regex captures either sections headers with optional trailing comment
+# separated by a semicolon or a hash.  Section headers can have an optional
+# expression. Expressions and comments can contain brackets but no verbatim '#'
+# and ';' : these need to be escaped.
 # A title line with an expression has the general form:
-#  [section_name: some Python expression] # some comment
+#  [section_name: some Python expression] #; some comment
 # This regex leverages the fact that the following is a valid Python expression:
 #  [some Python expression] # some comment
-# and that section headers are always delimited by [brackets] which are also 
-# the delimiters for Python [lists]
-# So instead of doing complex parsing to balance brackets, we capture just 
-# enough from a header line to collect then remove the section_name and colon 
-# expression separator keeping only a list-enclosed expression and optional
-# comments. Therefore the parsing and validation of this resulting Python 
-# expression can be entirely delegated to the built-in Python eval compiler. 
-# The result of the evaluated expression is the always returned wrapped in a 
-# list with a single item that contains the original expression
+# and that section headers are also delimited by [brackets] taht are also [list]
+# delimiters.
+# So instead of doing complex parsing to balance brackets in an expression, we
+# capture just enough from a header line to collect then remove the section_name
+# and colon expression separator keeping only a list-enclosed expression and
+# optional comments. The parsing and validation of this Python expression can be
+# entirely delegated to Python's eval. The result of the evaluated expression is
+# the always returned wrapped in a list with a single item that contains the
+# original expression
+
 section_header  = re.compile(
-    r'(?P<head>\[)'            # opening bracket [ starts a section title line
+    r'(?P<head>\[)'
     r'\s*'
-    r'(?P<name>[^\s[\]:{}]+)'  # section name
+    r'(?P<name>[^\s#[\]:;{}]+)'
     r'\s*'
-    r'('
-     r']'                      # closing bracket ] 
-     r'\s*'
-     r'([#;].*)?$'             # optional trailing comment marked by '#' or ';'
-    r'|'                       # OR
-     r':'                      # optional ':' separator for expression
-     r'\s*'
-     r'(?P<tail>.*'            # optional arbitrary Python expression
-     r']'                      # closing bracket ] 
-     r'\s*'
-     r'\#?.*)$'                # optional trailing comment marked by '#'
-    r')'
+    r'(:(?P<expression>[^#;]*))?'
+    r'\s*'
+    r'(?P<tail>]'
+    r'\s*'
+    r'([#;].*)?$)'
     ).match
 
 option_start = re.compile(
@@ -129,13 +121,13 @@ def parse(fp, fpname, exp_globals=None):
     leading whitespace.  Blank lines, lines beginning with a '#',
     and just about everything else are ignored.
 
-    The title line is in the form [name] followed an optional a trailing 
-    comment separated by a semicolon ';' or a pound `#' sign. 
+    The title line is in the form [name] followed by an optional trailing 
+    comment separated by a semicolon `;' or a hash `#' character. 
     
-    Optionally the title line can have the form [name:expression] where 
+    Optionally the title line can have the form `[name:expression]' where 
     expression is an arbitrary Python expression. Sections with an expression 
-    that evaluates to False are ignored. In this form, the optional trailing 
-    comment can only be marked by a pound # sign (semi-colon ; is not valid)
+    that evaluates to False are ignored. Semicolon `;' an hash `#' characters
+    mustr be string-escaped in expression literals.
 
     exp_globals is a callable returning a mapping of defaults used as globals 
     during the evaluation of a section conditional expression.
@@ -179,21 +171,21 @@ def parse(fp, fpname, exp_globals=None):
                 sectname = header.group('name')
 
                 head = header.group('head') # the starting [
-                tail = header.group('tail') # closing ], expression and comment
-                if tail:
+                expression = header.group('expression')
+                tail = header.group('tail') # closing ]and comment
+                if expression:
+                    # normalize tail comments to Python style
+                    tail = tail.replace(';', '#') if tail else ''
+                    # un-escape literal # and ; . Do not use a string-escape decode
+                    expr = expression.replace(r'\x23','#').replace(r'x3b', ';') 
+                    # rebuild a valid Python expression wrapped in a list
+                    expr = head + expr + tail
                     # lazily populate context only expression
                     if not context:
                         context = exp_globals() if exp_globals else {}
-
-                    # rebuild a valid Python expression wrapped in a list
-                    expression = head + tail
-
-                    # by design and construction, the evaluated  expression 
-                    # is always the first element of a wrapping list
-                    # so we get the first element 
-                    section_condition = eval(expression, context)[0]
-
-                    # ignore section when an expression evaluates to false
+                    # evaluated expression is in list: get first element
+                    section_condition = eval(expr, context)[0]
+                    # finally, ignore section when an expression evaluates to false
                     if not section_condition:
                         logger.debug('Ignoring section %(sectname)r with [expression]: %(expression)r' % locals())
                         continue
