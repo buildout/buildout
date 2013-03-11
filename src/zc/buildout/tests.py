@@ -595,6 +595,15 @@ def test_help():
     ...
     """
 
+def test_version():
+    """
+    >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
+    >>> print_(system(buildout+' --version'))
+    ... # doctest: +ELLIPSIS
+    buildout version ...
+
+    """
+
 def test_bootstrap_with_extension():
     """
 We had a problem running a bootstrap with an extension.  Let's make

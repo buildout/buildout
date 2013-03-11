@@ -23,13 +23,13 @@ correct mistakes made in buildout 1.
   with virtualenv, or use a clean build of Python to begin with.
 
   Providing isolation was a noble goal, but it's implementation
-  complicated buildouts implementation too much.
+  complicated buildout's implementation too much.
 
 - Buildout no-longer supports using multiple versions of Python in a
   single buildout.  This too was a noble goal, but added too much
   complexity to the implementation.
 
-- Changed the configuratiion file format:
+- Changed the configuration file format:
 
   - Relative indentation in option values is retained if the first
     line is blank. (IOW, if the non-blank text is on the continuation
@@ -64,7 +64,7 @@ correct mistakes made in buildout 1.
     - Comments could begin with "rem".
 
     - Semicolons could be used to start inline comments, but only if
-      preceeded by a whitespace character.
+      preceded by a whitespace character.
 
   See `Configuration file syntax`_.
 
@@ -76,6 +76,7 @@ correct mistakes made in buildout 1.
 
 - Buildout no-longer installs zipped eggs. (Distribute may still
   install a zipped egg of itself during the bootstrapping process.)
+  The ``buildout:unzip`` option has been removed.
 
 - Buildout no-longer supports setuptools. It now uses distribute
   exclusively.
@@ -135,7 +136,7 @@ correct mistakes made in buildout 1.
 
      python bootstrap.py init BeautifulSoup
 
-- Added buildout:socket-timout option so that socket timeout can be configured
+- Added buildout:socket-timeout option so that socket timeout can be configured
   both from command line and from config files. (gotcha)
 
 - Distutils-style scripts are also installed now (for instance pyflakes' and
@@ -161,7 +162,7 @@ correct mistakes made in buildout 1.
 Fixed: relative-paths weren't honored when bootstrapping or upgrading
        (which is how the buildout script gets generated).
 
-Fixed: initialization code wasn't included in interpeter scripts.
+Fixed: initialization code wasn't included in interpreter scripts.
 
 Fixed: macro inheritance bug, https://github.com/buildout/buildout/pull/37
 
@@ -337,14 +338,14 @@ Bugs fixed:
 1.1.0 (2008-07-19)
 ==================
 
-- Added a buildout-level unzip option tp change the default policy for
+- Added a buildout-level unzip option to change the default policy for
   unzipping zip-safe eggs.
 
 - Tracebacks are now printed for internal errors (as opposed to user
   errors) even without the -D option.
 
 - pyc and pyo files are regenerated for installed eggs so that the
-  stored path in code objects matches the the install location.
+  stored path in code objects matches the install location.
 
 1.0.6 (2008-06-13)
 ==================
@@ -356,7 +357,7 @@ Bugs fixed:
   Thanks tarek for pointing this out. (seletz)
 
 - fixed the test for the += -= syntax in buildout.txt as the test
-  was actually wronng. The original implementation did a split/join
+  was actually wrong. The original implementation did a split/join
   on whitespace, and later on that was corrected to respect the original
   EOL setting, the test was not updated, though. (seletz)
 
@@ -486,7 +487,7 @@ Feature Changes
 Feature Changes
 ---------------
 
-- Now, final distributions are prefered over non-final versions.  If
+- Now, final distributions are preferred over non-final versions.  If
   both final and non-final versions satisfy a requirement, then the
   final version will be used even if it is older.  The normal way to
   override this for specific packages is to specifically require a
@@ -560,7 +561,7 @@ Feature Changes
 - Except when using the new init command, it is now an error to run
   buildout without a configuration file.
 
-- In verbose mode, when adding distributions to fulful requirements of
+- In verbose mode, when adding distributions to fulfil requirements of
   already-added distributions, we now show why the new distributions
   are being added.
 
@@ -606,7 +607,7 @@ Bugs Fixed
 - 92891: bootstrap crashes with recipe option in buildout section.
 
 - 113085: Buildout exited with a zero exist status when internal errors
-  occured.
+  occurred.
 
 
 1.0.0b23 (2007-03-19)
@@ -668,7 +669,7 @@ Feature Changes
 - The easy_install module install and build functions now accept a
   versions argument that supplied to mapping from project name to
   version numbers.  This can be used to fix version numbers for
-  required distributions and their depenencies.
+  required distributions and their dependencies.
 
   When a version isn't fixed, using either a versions option or using
   a fixed version number in a requirement, then a debug log message is
@@ -776,7 +777,7 @@ Feature Changes
 - A new command-line argument, -U, suppresses reading user defaults.
 
 - You can now suppress use of an installed-part database
-  (e.g. .installed.cfg) by sprifying an empty value for the buildout
+  (e.g. .installed.cfg) by specifying an empty value for the buildout
   installed option.
 
 Bugs Fixed
@@ -847,7 +848,7 @@ Bugs Fixed
 - We treat setuptools as a dependency of any distribution that
   (declares that it) uses namespace packages, whether it declares
   setuptools as a dependency or not.  This wasn't working for eggs
-  intalled by virtue of being dependencies.
+  installed by virtue of being dependencies.
 
 
 1.0.0b12 (2006-10-24)
@@ -890,7 +891,7 @@ Feature Changes
 - Added a recipe update method. Now install is only called when a part
   is installed for the first time, or after an uninstall. Otherwise,
   update is called.  For backward compatibility, recipes that don't
-  define update methiods are still supported.
+  define update methods are still supported.
 
 - If a distribution defines namespace packages but fails to declare
   setuptools as one of its dependencies, we now treat setuptools as an
@@ -906,7 +907,7 @@ Bugs Fixed
   from develop sections.
 
 - Running a non-local buildout command (one not installed in the
-  buildout) ket to a hang if there were new versions of buildout or
+  buildout) led to a hang if there were new versions of buildout or
   setuptools were available.  Now we issue a warning and don't
   upgrade.
 
@@ -993,7 +994,7 @@ support.
   option names.
 
   Substitutions with invalid names were ignored, which caused
-  missleading failures downstream.
+  misleading failures downstream.
 
 - Improved error handling.  No longer show tracebacks for user errors.
 
