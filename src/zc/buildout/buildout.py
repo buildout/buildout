@@ -1453,6 +1453,22 @@ def _open(base, filename, seen, dl_options, override, downloaded):
             'No-longer supported "extended-by" option found in %s.' %
             filename)
 
+    # find and expose _profile_base_location_ and _profile_location_
+    for section, value in result.iteritems():
+        _profile_base_location_ = None
+        _profile_location_ = None
+        for k,v in value.iteritems():
+          if '${:_profile_base_location_}' in v:
+            _profile_base_location_ = base
+          if '${:_profile_location_}' in v:
+            _profile_location_ = filename
+          if _profile_base_location_ is not None and _profile_location_ is not None:
+            break
+        if _profile_base_location_ is not None:
+          value['_profile_base_location_'] = _profile_base_location_
+        if _profile_location_ is not None:
+          value['_profile_location_'] = _profile_location_
+
     result = _annotate(result, filename)
 
     if root_config_file and 'buildout' in result:

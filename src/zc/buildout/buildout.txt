@@ -1000,6 +1000,113 @@ _buildout_section_name_ to get the current section name.
     my_name debug
     recipe recipes:debug
 
+It is possible to have access to profile path and base url from section by
+using ${:_profile_location_} and ${:_profile_base_location_}:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... profile_location = ${:_profile_location_}
+    ... profile_base_location = ${:_profile_base_location_}
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Updating data-dir.
+    Installing debug.
+    _profile_base_location_ /sample-buildout
+    _profile_location_ /sample-buildout/buildout.cfg
+    profile_base_location /sample-buildout
+    profile_location /sample-buildout/buildout.cfg
+    recipe recipes:debug
+
+Keep in mind that in case of sections spaning across multiple profiles,
+the topmost value will be presented:
+
+    >>> write(sample_buildout, 'extended.cfg',
+    ... """
+    ... [debug]
+    ... profile_location = ${:_profile_location_}
+    ... profile_base_location = ${:_profile_base_location_}
+    ... """)
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = extended.cfg
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... profile_location = ${:_profile_location_}
+    ... profile_base_location = ${:_profile_base_location_}
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
+    _profile_base_location_ /sample-buildout
+    _profile_location_ /sample-buildout/buildout.cfg
+    profile_base_location /sample-buildout
+    profile_location /sample-buildout/buildout.cfg
+    recipe recipes:debug
+
+But of course, in case if accessing happens in extended profile's section,
+this profile's location will be exposed:
+
+    >>> write(sample_buildout, 'extended.cfg',
+    ... """
+    ... [debug]
+    ... profile_location = ${:_profile_location_}
+    ... profile_base_location = ${:_profile_base_location_}
+    ... """)
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = extended.cfg
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print system(buildout),
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Updating data-dir.
+    Installing debug.
+    _profile_base_location_ /sample-buildout
+    _profile_location_ /sample-buildout/extended.cfg
+    profile_base_location /sample-buildout
+    profile_location /sample-buildout/extended.cfg
+    recipe recipes:debug
+    >>> remove(sample_buildout, 'extended.cfg')
+
 Automatic part selection and ordering
 -------------------------------------
 
