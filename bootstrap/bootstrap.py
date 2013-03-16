@@ -35,8 +35,8 @@ Bootstraps a buildout-based project.
 Simply run this script in a directory containing a buildout.cfg, using the
 Python that you want bin/buildout to use.
 
-Note that by using --setup-source and --download-base to point to
-local resources, you can keep this script from going over the network.
+Note that by using --find-links to point to local resources, you can keep 
+this script from going over the network.
 '''
 
 parser = OptionParser(usage=usage)
