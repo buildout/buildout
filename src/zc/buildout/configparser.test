@@ -89,3 +89,260 @@ otherwise empty section) is blank.  For example:"
                'on_update': 'true',
                'recipe': 'collective.recipe.cmd'},
      'versions': {}}
+
+
+Sections headers can contain an optional arbitrary Python expression. 
+When the expression evaluates to false the whole section is skipped.
+Several sections can have the same name with different expressions, enabling 
+conditional exclusion of sections::
+
+  [s1: 2 + 2 == 4] # this expression is true [therefore "this section" _will_ be NOT skipped
+  a = 1
+
+  [   s2 : 2 + 2 == 5  ]         # comment: this expression is false, so this section will be ignored]
+  long = a
+
+  [   s2 : 41 + 1 == 42  ]  # a comment: this expression is [true], so this section will be kept
+  long = b
+
+  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] ;# Complex expressions are [possible!];, though they should not be (abused:) 
+  # this section will not be skipped
+  long = c
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'s1': {'a': '1'}, 's2': {'long': 'b'}, 's3': {'long': 'c'}}
+
+
+Title line optional trailing comments are separated by a hash '#' or semicolon
+';' character.  The expression is an arbitrary expression with one restriction: 
+it cannot contain a literal hash '#' or semicolon ';' character: these need to be 
+string-escaped.
+The comment can contain arbitrary characters, including brackets that are also 
+used to mark the end of a section header and may be ambiguous to recognize in 
+some cases. For example, valid sections lines include::
+
+  [ a ]
+  a=1
+
+  [ b ]  # []
+  b=1
+
+  [ c : True ]  # ]
+  c =1
+
+  [ d :  True]  # []
+  d=1
+
+  [ e ]  # []
+  e = 1
+
+  [ f ]  # ]
+  f = 1
+
+  [g:2 in map(lambda i:i*2, ['''\x23\x3b)'''] + [i for i in range(10)] + list('\x23[]][\x3b\x23'))] # Complex #expressions; ][are [possible!] and can us escaped # and ; in literals
+  g = 1
+
+  [ h : True ]  ; ]
+  h =1
+
+  [ i :  True]  ; []
+  i=1
+
+  [j:2 in map(lambda i:i*2, ['''\x23\x3b)'''] + [i for i in range(10)] + list('\x23[]][\x3b\x23'))] ; Complex #expressions; ][are [possible!] and can us escaped # and ; in literals
+  j = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'},
+     'b': {'b': '1'},
+     'c': {'c': '1'},
+     'd': {'d': '1'},
+     'e': {'e': '1'},
+     'f': {'f': '1'},
+     'g': {'g': '1'},
+     'h': {'h': '1'},
+     'i': {'i': '1'},
+     'j': {'j': '1'}}
+
+
+
+A title line optional trailing comment be separated by a hash or semicolon 
+character. The following are valid semicolon-separated comments::
+
+  [ a ]  ;semicolon comment are supported for lines without expressions ]
+  a = 1
+
+  [ b ]  ; []
+  b = 1
+
+  [ c ]  ; ]
+  c = 1
+
+  [ d ]  ; [
+  d = 1
+
+  [ e: True ]  ;semicolon comments are supported for lines with expressions ]
+  e = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'},
+     'b': {'b': '1'},
+     'c': {'c': '1'},
+     'd': {'d': '1'},
+     'e': {'e': '1'}}
+
+
+
+The following sections with hash comment separators are valid too::
+
+  [ a ]  #hash comment ] are supported for lines without expressions ]
+  a = 1
+
+  [ b ]  # []
+  b = 1
+
+  [ c ]  # ]
+  c = 1
+
+  [ d ]  # [
+  d = 1
+
+  [ e: True ]  #hash comments] are supported for lines with expressions ]
+  e = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'},
+     'b': {'b': '1'},
+     'c': {'c': '1'},
+     'd': {'d': '1'},
+     'e': {'e': '1'}}
+
+
+However, explicit semicolon and hash characters are invalid in expressions and 
+must be escaped or this triggers an error. In the rare case where a hash '#' or
+semicolon ';' would be needed in an expression literal, you can use the 
+string-escaped representation of these characters:  use '\x23' for hash '#' and 
+'\x3b' for semicolon ';' to avoid evaluation errors.
+These expressions are valid and use escaped hash and semicolons in literals::
+
+  [a:2 in map(lambda i:i*2, ['''\x23\x3b)'''] + [i for i in range(10)] + list('\x23[]][\x3b\x23'))] # Complex #expressions; ][are [possible!] and can us escaped # and ; in literals
+  a = 1
+
+  [b:2 in map(lambda i:i*2, ['''\x23\x3b)'''] + [i for i in range(10)] + list('\x23[]][\x3b\x23'))] ; Complex #expressions; ][are [possible!] and can us escaped # and ; in literals
+  b = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test'))
+    {'a': {'a': '1'}, 'b': {'b': '1'}}
+
+
+And using unescaped semicolon and hash characters in expressions triggers an error::
+
+  [a:'#' in '#;'] # this is not a supported expression
+  a = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import zc.buildout.configparser
+    >>> try: zc.buildout.configparser.parse(StringIO.StringIO(text), 'test')
+    ... except zc.buildout.configparser.MissingSectionHeaderError: pass # success
+
+
+One of the typical usage of expression is to have buildout parts that are 
+operating system or platform-specific.  The configparser.parse function has an 
+optional exp_globals argument.  This is a callable returning a mapping of 
+objects made available to the evaluation context of the expression. Here we add 
+the platform and sys modules to the evaluation context, so we can access 
+platform and sys modules functions and objects in our expressions ::
+
+  [s1: platform.python_version_tuple()[0] in ('2', '3',)] # this expression is true, the major versions of python are either 2 or 3
+  a = 1
+
+  [s2:sys.version[0] == '0'] # comment: this expression "is false",  there no major version 0 of Python so this section will be ignored
+  long = a
+
+  [s2:len(platform.uname()) > 0]  # a comment: this expression is likely always true, so this section will be kept
+  long = b
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> import platform, sys
+    >>> globs = lambda: {'platform': platform, 'sys': sys}
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test', exp_globals=globs))
+    {'s1': {'a': '1'}, 's2': {'long': 'b'}}
+
+
+Some limited (but hopefully sane and sufficient) default modules and 
+pre-computed common expressions available to an expression when the parser in 
+called by buildout::
+
+
+  #imported modules
+  [s1: sys and re and os and platform] # this expression is true: these modules are available
+  a = 1
+
+  # major and minor python versions, yes even python 3.5 and 3.6 are there , prospectively
+  # comment: this expression "is true" and not that long expression cannot span several lines 
+  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , python31 , python32 , python33 , python34 , python35 , python36]) ] 
+  b = 1
+
+  # common python interpreter types
+  [s3:cpython or pypy or jython or ironpython]  # a comment: this expression is likely always true, so this section will be kept
+  c = 1 
+
+  # common operating systems
+  [s4:linux or windows or cygwin or macosx or solaris or posix or True]  
+  d = 1
+
+  # common bitness and endianness
+  [s5:bits32 or bits64 or little_endian or big_endian]  
+  e = 1
+
+.. -> text
+
+    >>> try: import StringIO
+    ... except ImportError: import io as StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> import zc.buildout.buildout
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    ...     text), 'test', zc.buildout.buildout._default_globals))
+    {'s1': {'a': '1'},
+     's2': {'b': '1'},
+     's3': {'c': '1'},
+     's4': {'d': '1'},
+     's5': {'e': '1'}}
+
