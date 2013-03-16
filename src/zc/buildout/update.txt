@@ -234,3 +234,68 @@ directory:
     <BLANKLINE>
     if __name__ == '__main__':
         sys.exit(zc.buildout.buildout.main())
+
+When buildout restarts and the restarted buildout exits with an error code,
+the original buildout that called the second buildout also exits with that
+error code. Otherwise build scripts can erroneously detect a succesful
+buildout run even if it failed.
+
+Make a recipe that fails:
+
+    >>> mkdir(sample_buildout, 'failrecipe')
+    >>> write(sample_buildout, 'failrecipe', 'failrecipe.py',
+    ... """
+    ... import pkg_resources
+    ... import sys
+    ... print_ = lambda *a: sys.stdout.write(' '.join(map(str, a))+'\\n')
+    ...
+    ... class Recipe:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         sys.exit('recipe sys-exits')
+    ...
+    ...     def install(self):
+    ...         pass
+    ...
+    ...     update = install
+    ... """)
+    >>> write(sample_buildout, 'failrecipe', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "failrecipe",
+    ...     entry_points = {'zc.buildout': ['default = failrecipe:Recipe']},
+    ...     )
+    ... """)
+
+Let's downgrade again, triggering a restart. And use the failing recipe that
+gives us a sys.exit:
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... find-links = %(new_releases)s
+    ... index = %(new_releases)s
+    ... parts = fail
+    ... develop = failrecipe
+    ...
+    ... [versions]
+    ... zc.buildout = < 99
+    ... distribute = < 99
+    ...
+    ... [fail]
+    ... recipe = failrecipe
+    ... """ % dict(new_releases=new_releases))
+
+Run the buildout:
+
+    >>> print_(system(buildout, with_exit_code=True), end='')
+    Upgraded:
+      zc.buildout version 1.4.4;
+      distribute version 0.6;
+    restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/failrecipe'
+    recipe sys-exits
+    EXIT CODE: 1
