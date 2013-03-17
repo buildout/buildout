@@ -111,7 +111,7 @@ option_start = re.compile(
 
 leading_blank_lines = re.compile(r"^(\s*\n)+")
 
-def parse(fp, fpname, exp_globals=None):
+def parse(fp, fpname, exp_globals=dict):
     """Parse a sectioned setup file.
 
     The sections in setup files contain a title line at the top,
@@ -121,15 +121,15 @@ def parse(fp, fpname, exp_globals=None):
     leading whitespace.  Blank lines, lines beginning with a '#',
     and just about everything else are ignored.
 
-    The title line is in the form [name] followed by an optional trailing 
-    comment separated by a semicolon `;' or a hash `#' character. 
-    
-    Optionally the title line can have the form `[name:expression]' where 
-    expression is an arbitrary Python expression. Sections with an expression 
+    The title line is in the form [name] followed by an optional trailing
+    comment separated by a semicolon `;' or a hash `#' character.
+
+    Optionally the title line can have the form `[name:expression]' where
+    expression is an arbitrary Python expression. Sections with an expression
     that evaluates to False are ignored. Semicolon `;' an hash `#' characters
     mustr be string-escaped in expression literals.
 
-    exp_globals is a callable returning a mapping of defaults used as globals 
+    exp_globals is a callable returning a mapping of defaults used as globals
     during the evaluation of a section conditional expression.
     """
     sections = {}
@@ -167,7 +167,7 @@ def parse(fp, fpname, exp_globals=None):
             header = section_header(line)
             if header:
                 # reset to True when starting a new section
-                section_condition = True 
+                section_condition = True
                 sectname = header.group('name')
 
                 head = header.group('head') # the starting [
@@ -176,18 +176,22 @@ def parse(fp, fpname, exp_globals=None):
                 if expression:
                     # normalize tail comments to Python style
                     tail = tail.replace(';', '#') if tail else ''
-                    # un-escape literal # and ; . Do not use a string-escape decode
-                    expr = expression.replace(r'\x23','#').replace(r'x3b', ';') 
+                    # un-escape literal # and ; . Do not use a
+                    # string-escape decode
+                    expr = expression.replace(r'\x23','#').replace(r'x3b', ';')
                     # rebuild a valid Python expression wrapped in a list
                     expr = head + expr + tail
                     # lazily populate context only expression
                     if not context:
-                        context = exp_globals() if exp_globals else {}
+                        context = exp_globals()
                     # evaluated expression is in list: get first element
                     section_condition = eval(expr, context)[0]
-                    # finally, ignore section when an expression evaluates to false
+                    # finally, ignore section when an expression
+                    # evaluates to false
                     if not section_condition:
-                        logger.debug('Ignoring section %(sectname)r with [expression]: %(expression)r' % locals())
+                        logger.debug(
+                            'Ignoring section %(sectname)r with [expression]:'
+                            ' %(expression)r' % locals())
                         continue
 
                 if sectname in sections:
