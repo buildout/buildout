@@ -56,6 +56,17 @@ if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
+# Make sure we're not being run with an older bootstrap.py that gives us
+# setuptools instead of distribute
+has_distribute = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('distribute')) is not None
+has_setuptools = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('setuptools')) is not None
+if has_setuptools and not has_distribute:
+    sys.exit("zc.buildout 2 needs distribute, not setuptools."
+             "  Are you using an outdated bootstrap.py?  Make sure"
+             " you have the latest version downloaded from"
+             " http://downloads.buildout.org/2/bootstrap.py")
 
 distribute_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('distribute')
