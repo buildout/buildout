@@ -956,11 +956,12 @@ class Buildout(DictMixin):
         for superceded_extension in ['buildout-versions',
                                      'buildout.dumppickedversions']:
             if superceded_extension in specs:
-                msg = ("The extension %s is now included in buildout itself.\n"
+                msg = ("Buildout now includes 'buildout-versions' (and part "
+                       "of the older 'buildout.dumppickedversions').\n"
                        "Remove the extension from your configuration and "
-                       "look at the `show-picked-versions`\n"
-                       "option in buildout's documentation.")
-                raise zc.buildout.UserError(msg % superceded_extension)
+                       "look at the 'show-picked-versions' option in "
+                       "buildout's documentation.")
+                raise zc.buildout.UserError(msg)
         if specs:
             path = [self['buildout']['develop-eggs-directory']]
             if self.offline:
