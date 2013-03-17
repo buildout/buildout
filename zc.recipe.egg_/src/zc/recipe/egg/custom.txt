@@ -439,7 +439,7 @@ Controlling develop-egg generation
 If you want to provide custom build options for a develop egg, you can
 use the develop recipe.  The recipe has the following options:
 
-path
+setup
    The path to a setup script or directory containing a startup
    script. This is required.
 
