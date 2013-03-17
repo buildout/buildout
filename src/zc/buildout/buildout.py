@@ -1110,7 +1110,7 @@ class Buildout(DictMixin):
         import textwrap
 
         sections = zc.buildout.configparser.parse(
-            StringIO(textwrap.dedent(data)), '')
+            StringIO(textwrap.dedent(data)), '', _default_globals)
         for name in sections:
             if name in self._raw:
                 raise KeyError("Section already exists", name)

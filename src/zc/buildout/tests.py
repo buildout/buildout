@@ -2895,6 +2895,26 @@ def buildout_honors_umask():
     >>> tmp = os.umask(orig_umask)  # Reset umask to the original value.
     """
 
+def parse_with_section_expr():
+    r"""
+    >>> class Recipe:
+    ...     def __init__(self, buildout, *_):
+    ...         buildout.parse('''
+    ...             [foo : sys.version_info[0] > 0]
+    ...             x = 1
+    ...             ''')
+
+    >>> buildout = zc.buildout.testing.Buildout()
+    >>> buildout.parse('''
+    ...     [foo : sys.version_info[0] > 0]
+    ...     x = 1
+    ...     ''')
+    >>> buildout.print_options()
+    [foo]
+    x = 1
+
+    """
+
 if sys.platform == 'win32':
     del buildout_honors_umask # umask on dohs is academic
 
