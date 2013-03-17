@@ -390,7 +390,7 @@ We'll get a user error, not a traceback.
     While:
       Installing.
       Getting section data-dir.
-      Initializing part data-dir.
+      Initializing section data-dir.
     Error: Invalid Path
 
 

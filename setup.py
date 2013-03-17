@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "2.0.0b2"
+version = "2.0.1"
 
 import os
 from setuptools import setup
@@ -52,6 +52,8 @@ long_description=(
         read('src', 'zc', 'buildout', 'update.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'debugging.txt')
+        + '\n' +
+        read('src', 'zc', 'buildout', 'meta-recipes.txt')
         + '\n' +
         read('src', 'zc', 'buildout', 'testing.txt')
         + '\n' +
