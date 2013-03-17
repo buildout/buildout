@@ -99,9 +99,11 @@ def clean_up_pyc(*path):
         filename += 'c' # .py -> .pyc
     for path in (
         os.path.join(base, filename),
-        os.path.join(base, '__pycache__', filename),
+        os.path.join(base, '__pycache__'),
         ):
-        if os.path.exists(path):
+        if os.path.isdir(path):
+            rmdir(path)
+        elif os.path.exists(path):
             remove(path)
 
 ## FIXME - check for other platforms
