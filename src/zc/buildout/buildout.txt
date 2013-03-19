@@ -1139,14 +1139,24 @@ Conditional sections
 
 Sometimes, you need different configuration in different environments
 (different operating systems, or different versions of Python).  To
-make this easier, you can define, environment-specific options by
+make this easier, you can define environment-specific options by
 providing conditional sections::
+
+    [ctl]
+    suffix =
 
     [ctl:windows]
     suffix = .bat
 
-    [ctl]
-    suffix =
+.. -> conf
+
+    >>> import zc.buildout.configparser
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=True))
+    {'ctl': {'suffix': '.bat'}}
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=False))
+    {'ctl': {'suffix': ''}}
 
 In this tiny example, we've defined a ``ctl:suffix`` option that's
 ``.bat`` on Windows and an empty string elsewhere.
@@ -1154,9 +1164,21 @@ In this tiny example, we've defined a ``ctl:suffix`` option that's
 A conditional section has a colon and then a Python expression after
 the name.  If the Python expression result is true, the section
 options from the section are included.  If the value is false, the
-section is ignored.  In addition to the normal built-ins, the
-expression has access to global variable that make common cases short
-and description as shown above:
+section is ignored.
+
+Some things to note:
+
+- If there is no exception, then options from the section are
+  included.
+
+- Sections and options can be repeated.  If an option is repeated, the
+  last value is used. In the example above, on Windows, the second
+  ``suffix`` option overrides the first.  If the order of the sections
+  was reversed, the conditional section would have no effect.
+
+In addition to the normal built-ins, the expression has access to
+global variable that make common cases short and description as shown
+above:
 
 sys
   the ``sys`` module
@@ -1218,7 +1240,7 @@ cygwin
 solaris
   We're running on solaris
 
-macros
+macos
   We're running on Mac OS
 
 posix
