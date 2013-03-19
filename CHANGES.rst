@@ -4,6 +4,9 @@ Change History
 2.1.0 (2013-??-??)
 ==================
 
+- Removed `data_files` from `setup.py`, which was installing README.rst
+  in current directory during installation
+
 - Added `meta-recipe support`_.
 
 2.0.1 (2013-02-16)
