@@ -696,9 +696,12 @@ section has a section header followed by 0 or more section options.
 files.)
 
 A section header consists of a section name enclosed in square braces.
-A section name consists of one or more non-whitespace characters
-other than square braces ('[', ']'), curly braces ('{', '}'), colons
-(':') or equal signs ('='). Whitespace surrounding section names is ignored.
+A section name consists of one or more non-whitespace characters other
+than square braces ('[', ']'), curly braces ('{', '}'), colons (':')
+or equal signs ('='). Whitespace surrounding section names is ignored.
+
+A section header can optionally have a condition expression separated
+by a colon.  See `Conditional sections`_.
 
 Options consist of option names, followed by optional space or tab
 characters, an optional plus or minus sign and an equal signs and
@@ -1130,6 +1133,133 @@ of the current section allows sections to be used as macros.
 In this example, the debug, with_file1 and with_file2 sections act as
 macros. In particular, the variable substitutions are performed
 relative to the myfiles section.
+
+Conditional sections
+--------------------
+
+Sometimes, you need different configuration in different environments
+(different operating systems, or different versions of Python).  To
+make this easier, you can define environment-specific options by
+providing conditional sections::
+
+    [ctl]
+    suffix =
+
+    [ctl:windows]
+    suffix = .bat
+
+.. -> conf
+
+    >>> import zc.buildout.configparser
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=True))
+    {'ctl': {'suffix': '.bat'}}
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=False))
+    {'ctl': {'suffix': ''}}
+
+In this tiny example, we've defined a ``ctl:suffix`` option that's
+``.bat`` on Windows and an empty string elsewhere.
+
+A conditional section has a colon and then a Python expression after
+the name.  If the Python expression result is true, the section
+options from the section are included.  If the value is false, the
+section is ignored.
+
+Some things to note:
+
+- If there is no exception, then options from the section are
+  included.
+
+- Sections and options can be repeated.  If an option is repeated, the
+  last value is used. In the example above, on Windows, the second
+  ``suffix`` option overrides the first.  If the order of the sections
+  was reversed, the conditional section would have no effect.
+
+In addition to the normal built-ins, the expression has access to
+global variable that make common cases short and description as shown
+above:
+
+sys
+  the ``sys`` module
+
+os
+  the ``os`` module
+
+platform
+  the ``platform`` module
+
+re
+  The ``re`` module
+
+python2
+  We're running Python 2
+
+python3
+  We're running Python 3
+
+python26
+  We're running Python 2.6
+
+python27
+  We're running Python 2.7
+
+python32
+  We're running Python 3.2
+
+python33
+  We're running Python 3.3
+
+sys_version
+  ``sys.version.lower()``
+
+pypy
+  We're running PyPy
+
+jython
+  We're running Jython
+
+iron
+  We're running Iron Python
+
+cpython
+  We're not running PyPy, Jython, or Iron Python
+
+sys_platform
+  ``str(sys.platform).lower()``
+
+linux
+  We're running on linux
+
+windows
+  We're running on Windows
+
+cygwin
+  We're running on cygwin
+
+solaris
+  We're running on solaris
+
+macos
+  We're running on Mac OS
+
+posix
+  We're running on a POSIX-compatible system
+
+bits32
+  We're running on a 32-bit system.
+
+bits64
+  We're running on a 64-bit system.
+
+little_endian
+  We're running on a little-endian system
+
+big_endian
+  We're running on a little-endian system
+
+Expressions must not contain either the ``#`` or the ``;`` character.
+
 
 Adding and removing options
 ---------------------------
