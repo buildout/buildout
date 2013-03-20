@@ -1,10 +1,12 @@
 Change History
 **************
 
-2.1.0 (2013-??-??)
+2.1.0 (2013-03-??)
 ==================
 
-- Added `meta-recipe support`_.
+- `meta-recipe support`_
+
+- `Conditional sections`_
 
 2.0.1 (2013-02-16)
 ==================
