@@ -73,7 +73,7 @@ itself added an entry for the recipe that fixes the recipe version
 at the version used by the buildout.
 
 The zc.recipe.eggs recipe added the eggs option that lists the
-specifoc releases that were assembled.
+specific releases that were assembled.
 
 Finally the buildout.cfg file can be modified to use the
 repeatable.cfg file::
@@ -88,7 +88,7 @@ repeatable.cfg file::
          eek
 
 When the buildout is run, the options in repeatable.cfg will override
-the onces in buildout.cfg, providing a repeatable buildout
+the ones in buildout.cfg, providing a repeatable buildout
 
 Python API
 ----------

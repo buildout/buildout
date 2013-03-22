@@ -345,7 +345,7 @@ class Buildout(DictMixin):
             if self.offline:
                 raise zc.buildout.UserError(
                     "install-from-cache can't be used with offline mode.\n"
-                    "Nothing is installed, even fromn cache, in offline\n"
+                    "Nothing is installed, even from cache, in offline\n"
                     "mode, which might better be called 'no-install mode'.\n"
                     )
             zc.buildout.easy_install.install_from_cache(True)
@@ -449,7 +449,7 @@ class Buildout(DictMixin):
         # for eggs:
         sys.path.insert(0, self['buildout']['develop-eggs-directory'])
 
-        # Check for updates. This could cause the process to be rstarted
+        # Check for updates. This could cause the process to be restarted
         self._maybe_upgrade()
 
         # load installed data
@@ -649,11 +649,11 @@ class Buildout(DictMixin):
         f.close()
 
     def _uninstall_part(self, part, installed_part_options):
-        # ununstall part
+        # uninstall part
         __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
 
-        # run uinstall recipe
+        # run uuinstall recipe
         recipe, entry = _recipe(installed_part_options[part])
         try:
             uninstaller = _install_and_load(
@@ -786,7 +786,7 @@ class Buildout(DictMixin):
                          ==
                          realpath(f)
                          )
-                        # Sigh. This is the exectable used to run the buildout
+                        # Sigh. This is the executable used to run the buildout
                         # and, of course, it's in use. Leave it.
                         ):
                         raise
@@ -1685,7 +1685,7 @@ def _error(*message):
     sys.exit(1)
 
 _internal_error_template = """
-An internal error occured due to a bug in either zc.buildout or in a
+An internal error occurred due to a bug in either zc.buildout or in a
 recipe being used:
 """
 
@@ -1899,7 +1899,7 @@ def main(args=None):
             section, option = option
             options.append((section.strip(), option.strip(), value.strip()))
         else:
-            # We've run out of command-line options and option assignnemnts
+            # We've run out of command-line options and option assignments
             # The rest should be commands, so we'll stop here
             break
 

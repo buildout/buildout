@@ -709,7 +709,7 @@ Feature Changes
   this option.
 
 - Adjusted the output for verbosity levels.  Using a single -v option
-  no longer causes voluminous setuptools output.  Uisng -vv and -vvv
+  no longer causes voluminous setuptools output.  Using -vv and -vvv
   now triggers extra setuptools output.
 
 - Added a remove testing helper function that removes files or directories.
@@ -728,7 +728,7 @@ Feature Changes
 
 - Added a *newest* keyword parameter to the
   zc.buildout.easy_install.install and zc.buildout.easy_install.build
-  functions to control whether the newest distributions that meed
+  functions to control whether the newest distributions that need
   given requirements should be sought.  If a false value is provided
   for this parameter and already installed eggs meet the given
   requirements, then no attempt will be made to search for newer

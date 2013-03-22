@@ -146,7 +146,7 @@ It is an error to create a variable-reference cycle:
       Getting option buildout:x.
     Error: Circular reference in substitutions.
 
-It is an error to use funny characters in variable refereces:
+It is an error to use funny characters in variable references:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
@@ -222,7 +222,7 @@ and too have too many or too few colons:
     Error: The substitution, ${buildout:y:z},
     has too many colons.
 
-Al parts have to have a section:
+All parts have to have a section:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
@@ -745,13 +745,13 @@ All gone
 
 def add_distribute_to_dependencies_when_namespace_packages():
     '''
-Often, a package depends on distribute soley by virtue of using
+Often, a package depends on distribute solely by virtue of using
 namespace packages. In this situation, package authors often forget to
 declare distribute as a dependency. This is a mistake, but,
 unfortunately, a common one that we need to work around.  If an egg
-uses namespace packages and does not include distribute as a depenency,
+uses namespace packages and does not include distribute as a dependency,
 we will still include distribute in the working set.  If we see this for
-a devlop egg, we will also generate a warning.
+a develop egg, we will also generate a warning.
 
     >>> mkdir('foo')
     >>> mkdir('foo', 'src')
@@ -832,7 +832,7 @@ We do not get a warning, but we do get distribute included in the working set:
 
     >>> print_(handler, end='')
 
-We get the same behavior if the it is a depedency that uses a
+We get the same behavior if the it is a dependency that uses a
 namespace package.
 
 
@@ -1392,7 +1392,7 @@ def internal_errors():
       Getting section data-dir.
       Initializing section data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ...
@@ -1844,7 +1844,7 @@ if sys.version_info > (2, 4):
           Initializing section x.
           Loading zc.buildout recipe entry zc.buildout.testexit:default.
         <BLANKLINE>
-        An internal error occured due to a bug in either zc.buildout or in a
+        An internal error occurred due to a bug in either zc.buildout or in a
         recipe being used:
         Traceback (most recent call last):
         ...
@@ -2084,7 +2084,7 @@ directory and then use the wacky extension to load the demo package
 def distributions_from_local_find_links_make_it_to_download_cache():
     """
 
-If we specify a local directory in find links, distors found there
+If we specify a local directory in find links, distros found there
 need to make it to the download cache.
 
     >>> mkdir('test')
@@ -2699,7 +2699,7 @@ def increment_on_command_line():
 
 def test_constrained_requirement():
     """
-    zc.buildout.easy_install._constrained_requirement(constraint, requitement)
+    zc.buildout.easy_install._constrained_requirement(constraint, requirement)
 
     Transforms an environment by applying a constraint.
 
