@@ -146,12 +146,10 @@ _buildout_default_options = _annotate_section({
 class Buildout(DictMixin):
 
     def __init__(self, config_file, cloptions,
-                 user_defaults=True, windows_restart=False,
+                 user_defaults=True,
                  command=None, args=()):
 
         __doing__ = 'Initializing.'
-
-        self.__windows_restart = windows_restart
 
         # default options
         data = dict(buildout=_buildout_default_options.copy())
@@ -915,14 +913,6 @@ class Buildout(DictMixin):
                               "buildout command.")
             return
 
-        if sys.platform == 'win32' and not self.__windows_restart:
-            args = list(map(zc.buildout.easy_install._safe_arg, sys.argv))
-            args.insert(1, '-W')
-            if not __debug__:
-                args.insert(0, '-O')
-            args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-            os.execv(sys.executable, args)
-
         self._logger.info("Upgraded:\n  %s;\nrestarting.",
                           ",\n  ".join([("%s version %s"
                                        % (dist.project_name, dist.version)
@@ -1475,7 +1465,7 @@ def _default_globals():
     globals_defs = {'sys': sys, 'os': os, 'platform': platform, 're': re,}
 
     # major python major_python_versions as python2 and python3
-    major_python_versions = platform.python_version_tuple()
+    major_python_versions = map(str, platform.python_version_tuple())
     globals_defs.update({'python2': major_python_versions[0] == '2',
                          'python3': major_python_versions[0] == '3'})
 
@@ -1844,7 +1834,6 @@ def main(args=None):
     config_file = 'buildout.cfg'
     verbosity = 0
     options = []
-    windows_restart = False
     user_defaults = True
     debug = False
     while args:
@@ -1856,8 +1845,6 @@ def main(args=None):
                     verbosity += 10
                 elif op[0] == 'q':
                     verbosity -= 10
-                elif op[0] == 'W':
-                    windows_restart = True
                 elif op[0] == 'U':
                     user_defaults = False
                 elif op[0] == 'o':
@@ -1932,8 +1919,7 @@ def main(args=None):
     try:
         try:
             buildout = Buildout(config_file, options,
-                                user_defaults, windows_restart,
-                                command, args)
+                                user_defaults, command, args)
             getattr(buildout, command)(args)
         except SystemExit:
             logging.shutdown()
