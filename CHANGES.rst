@@ -1,12 +1,34 @@
 Change History
 **************
 
-2.1.0 (2013-03-??)
+2.1.0 (2013-03-23)
 ==================
 
 - `meta-recipe support`_
 
 - `Conditional sections`_
+
+- Buildout now accepts a ``--version`` command-line option to print
+  its version.
+
+Fixed: Builout didn't exit with a non-zero exit status if there was a
+       failure in combination with an upgrade.
+
+Fixed: We now fail with an informative error when an old bootstrap
+       script causes buildout 2 to be used with setuptools.
+
+Fixed: An error incorrectly suggested that buildout 2 implemented all
+       of the functionality of dumppickedversions.
+
+Fixed: Buildout generated bad scripts when no eggs needed to be added
+       to ``sys.path``.
+
+Fixed: Buildout didn't honour Unix umask when generating scripts.
+       https://bugs.launchpad.net/zc.buildout/+bug/180705
+
+Fixed: ``update-versions-file`` didn't work unless
+       ``show-picked-versions`` was also set.
+       https://github.com/buildout/buildout/issues/71
 
 2.0.1 (2013-02-16)
 ==================
