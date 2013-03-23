@@ -1465,7 +1465,7 @@ def _default_globals():
     globals_defs = {'sys': sys, 'os': os, 'platform': platform, 're': re,}
 
     # major python major_python_versions as python2 and python3
-    major_python_versions = map(str, platform.python_version_tuple())
+    major_python_versions = tuple(map(str, platform.python_version_tuple()))
     globals_defs.update({'python2': major_python_versions[0] == '2',
                          'python3': major_python_versions[0] == '3'})
 
