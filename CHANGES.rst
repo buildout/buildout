@@ -4,7 +4,7 @@ Change History
 2.1.0 (2013-03-23)
 ==================
 
-- `meta-recipe support`_
+- `Meta-recipe support`_
 
 - `Conditional sections`_
 
