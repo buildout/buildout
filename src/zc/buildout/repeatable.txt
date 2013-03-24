@@ -7,13 +7,13 @@ configuration files for a project into a version control system and
 later use the checked in files to get the same buildout, subject to
 changes in the environment outside the buildout.
 
-An advantage of using Python eggs is that depenencies of eggs used are
+An advantage of using Python eggs is that dependencies of eggs used are
 automatically determined and used.  The automatic inclusion of
-depenent distributions is at odds with the goal of repeatable
+dependent distributions is at odds with the goal of repeatable
 buildouts.
 
 To support repeatable buildouts, a versions section can be created
-with options for each distribution name whos version is to be fixed.
+with options for each distribution name who's version is to be fixed.
 The section can then be specified via the buildout versions option.
 
 To see how this works, we'll create two versions of a recipe egg:

@@ -153,7 +153,7 @@ under any particular circumstances.
   been specified by the user's default configuration, the project's root
   config file must be available, be it from disk or from the net.
 
-- Offline mode turned on by the ``-o`` command line option is honoured from
+- Offline mode turned on by the ``-o`` command line option is honored from
   the beginning even though command line options are applied to the
   configuration last. If offline mode is not requested by the command line, it
   may be switched on by either the user's or the project's config root.
@@ -383,12 +383,12 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Installing.
   Checking for upgrades.
-An internal error occured ...
+An internal error occurred ...
 ValueError: install_from_cache set to true with no download cache
 
 >>> rmdir('home', '.buildout')
 
-Newest and non-newest behaviour for extends cache
+Newest and non-newest behavior for extends cache
 -------------------------------------------------
 
 While offline mode forbids network access completely, 'newest' mode determines
@@ -467,7 +467,7 @@ used:
 Unused options for buildout: 'bar' 'foo'.
 
 (XXX We patch download utility's API to produce readable output for the test;
-a better solution would utilise the logging already done by the utility.)
+a better solution would re-use the logging already done by the utility.)
 
 >>> import zc.buildout
 >>> old_download = zc.buildout.download.Download.download
@@ -489,7 +489,7 @@ Unused options for buildout: 'bar' 'foo'.
 The deprecated ``extended-by`` option
 -------------------------------------
 
-The ``buildout`` section used to recognise an option named ``extended-by``
+The ``buildout`` section used to recognize an option named ``extended-by``
 that was deprecated at some point and removed in the 1.5 line. Since ignoring
 this option silently was considered harmful as a matter of principle, a
 UserError is raised if that option is encountered now:
