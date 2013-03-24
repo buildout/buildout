@@ -237,7 +237,7 @@ directory:
 
 When buildout restarts and the restarted buildout exits with an error code,
 the original buildout that called the second buildout also exits with that
-error code. Otherwise build scripts can erroneously detect a succesful
+error code. Otherwise build scripts can erroneously detect a successful
 buildout run even if it failed.
 
 Make a recipe that fails:

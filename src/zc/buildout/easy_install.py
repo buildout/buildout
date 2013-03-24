@@ -318,7 +318,7 @@ class Installer:
 
             if exit_code:
                 logger.error(
-                    "An error occured when trying to install %s. "
+                    "An error occurred when trying to install %s. "
                     "Look above this message for any errors that "
                     "were output by easy_install.",
                     dist)
@@ -1384,7 +1384,7 @@ def _constrained_requirement_constraint(constraint, requirement):
 
     # Simple cases:
 
-    # No specs tp merge with:
+    # No specs to merge with:
     if not requirement.specs:
         if not constraint[0] in '<=>':
             constraint = '==' + constraint
@@ -1422,8 +1422,8 @@ def _constrained_requirement_constraint(constraint, requirement):
 
     cop0 = cop[0]
 
-    # Normalize specs by splitting >= and <= specs. We meed tp do this
-    # becaise these have really weird semantics. Also cache parsed
+    # Normalize specs by splitting >= and <= specs. We need to do this
+    # because these have really weird semantics. Also cache parsed
     # versions, which we'll need for comparisons:
     specs = []
     for op, v in requirement.specs:
