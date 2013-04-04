@@ -2845,7 +2845,7 @@ def cant_use_install_from_cache_and_offline_together():
     While:
       Initializing.
     Error: install-from-cache can't be used with offline mode.
-    Nothing is installed, even fromn cache, in offline
+    Nothing is installed, even from cache, in offline
     mode, which might better be called 'no-install mode'.
     <BLANKLINE>
     """
