@@ -1072,7 +1072,7 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
     lines = lines[1:]  # Strip off the first hashbang line.
-    line_with_first_import = None
+    line_with_first_import = len(lines)
     for line_number, line in enumerate(lines):
         if not 'import' in line:
             continue
@@ -1081,12 +1081,10 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         if '__future__' in line:
             continue
         line_with_first_import = line_number
-    if line_with_first_import is None:
-        before = ''.join(lines)
-        after = ''
-    else:
-        before = ''.join(lines[:line_with_first_import])
-        after = ''.join(lines[line_with_first_import:])
+        break
+
+    before = ''.join(lines[:line_with_first_import])
+    after = ''.join(lines[line_with_first_import:])
 
     python = _safe_arg(sys.executable)
 
