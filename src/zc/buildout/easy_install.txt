@@ -977,6 +977,7 @@ like for the console_scripts.
       ]
     <BLANKLINE>
     <BLANKLINE>
+    import os
     import sys; sys.stdout.write("distutils!\n")
 
 Note that there are several items that need to come first in such a script

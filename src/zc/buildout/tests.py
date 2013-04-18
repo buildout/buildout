@@ -2947,6 +2947,7 @@ def create_sample_eggs(test, executable=sys.executable):
             '# -*- coding: utf-8 -*-\n'
             '"""Module docstring."""\n'
             'from __future__ import print_statement\n'
+            'import os\n'
             'import sys; sys.stdout.write("distutils!\\n")\n'
             )
         write(
