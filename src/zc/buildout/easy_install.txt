@@ -962,12 +962,14 @@ It also works for zipped eggs:
 Distutils copies the script files verbatim, apart from a line at the top that
 looks like ``#!/usr/bin/python``, which gets replaced by the actual python
 interpreter. Buildout does the same, but additionally also adds the sys.path
-like for the console_scripts. Note that the second line in the scripts can
-contain a source encoding hint; buildout retains it.
+like for the console_scripts.
 
     >>> cat(distbin, 'distutilsscript')
     #!/usr/local/bin/python2.7
     # -*- coding: utf-8 -*-
+    """Module docstring."""
+    from __future__ import print_statement
+    <BLANKLINE>
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
@@ -976,6 +978,12 @@ contain a source encoding hint; buildout retains it.
     <BLANKLINE>
     <BLANKLINE>
     import sys; sys.stdout.write("distutils!\n")
+
+Note that there are several items that need to come first in such a script
+*before* buildout's ``sys.path`` statements: a source encoding hint, a module
+docstring and ``__future__`` imports. Buildout retains them in their proper
+place by looking at the first non-future import and placing its ``sys.path``
+statement before that.
 
 Due to the nature of distutils scripts, buildout cannot pass arguments as
 there's no specific method to pass them to.
