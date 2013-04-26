@@ -3293,7 +3293,9 @@ def test_suite():
                 ),
                (re.compile('executable = %s' % re.escape(sys.executable)),
                 'executable = python'),
-               ])
+               (re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}'),
+                'YYYY-MM-DD hh:mm:ss.dddddd'),
+               ]),
             ),
         doctest.DocFileSuite(
             'debugging.txt',

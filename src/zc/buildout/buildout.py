@@ -135,7 +135,7 @@ def _format_picked_versions(picked_versions, required_by):
             target = output
         target.append("%s = %s" % (dist_, version))
     output.extend(required_output)
-    return '\n'.join(output)
+    return output
 
 
 _buildout_default_options = _annotate_section({
@@ -1017,16 +1017,18 @@ class Buildout(DictMixin):
         if self.show_picked_versions:
             print_("Versions had to be automatically picked.")
             print_("The following part definition lists the versions picked:")
-            print_(output)
+            print_('\n'.join(output))
 
         if self.update_versions_file:
             # Write to the versions file.
             if os.path.exists(self.update_versions_file):
-                output += ('\n# Added by buildout at %s' %
-                           datetime.datetime.now())
-            output += '\n'
+                output[:1] = [
+                    '',
+                    '# Added by buildout at %s' % datetime.datetime.now()
+                ]
+            output.append('')
             f = open(self.update_versions_file, 'a')
-            f.write(output)
+            f.write(('\n'.join(output)))
             f.close()
             print_("Picked versions have been written to " +
                    self.update_versions_file)
