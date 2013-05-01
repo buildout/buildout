@@ -14,7 +14,7 @@
 
 # The following copied from Python 2 config parser because:
 # - The py3 configparser isn't backward compatible
-# - Both strip option values in undesireable ways
+# - Both strip option values in undesirable ways
 # - dict of dicts is a much simpler api
 
 import re
@@ -82,7 +82,7 @@ class MissingSectionHeaderError(ParsingError):
 #  [section_name: some Python expression] #; some comment
 # This regex leverages the fact that the following is a valid Python expression:
 #  [some Python expression] # some comment
-# and that section headers are also delimited by [brackets] taht are also [list]
+# and that section headers are also delimited by [brackets] that are also [list]
 # delimiters.
 # So instead of doing complex parsing to balance brackets in an expression, we
 # capture just enough from a header line to collect then remove the section_name
@@ -127,7 +127,7 @@ def parse(fp, fpname, exp_globals=dict):
     Optionally the title line can have the form `[name:expression]' where
     expression is an arbitrary Python expression. Sections with an expression
     that evaluates to False are ignored. Semicolon `;' an hash `#' characters
-    mustr be string-escaped in expression literals.
+    must be string-escaped in expression literals.
 
     exp_globals is a callable returning a mapping of defaults used as globals
     during the evaluation of a section conditional expression.

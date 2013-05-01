@@ -146,12 +146,10 @@ _buildout_default_options = _annotate_section({
 class Buildout(DictMixin):
 
     def __init__(self, config_file, cloptions,
-                 user_defaults=True, windows_restart=False,
+                 user_defaults=True,
                  command=None, args=()):
 
         __doing__ = 'Initializing.'
-
-        self.__windows_restart = windows_restart
 
         # default options
         data = dict(buildout=_buildout_default_options.copy())
@@ -347,7 +345,7 @@ class Buildout(DictMixin):
             if self.offline:
                 raise zc.buildout.UserError(
                     "install-from-cache can't be used with offline mode.\n"
-                    "Nothing is installed, even fromn cache, in offline\n"
+                    "Nothing is installed, even from cache, in offline\n"
                     "mode, which might better be called 'no-install mode'.\n"
                     )
             zc.buildout.easy_install.install_from_cache(True)
@@ -451,7 +449,7 @@ class Buildout(DictMixin):
         # for eggs:
         sys.path.insert(0, self['buildout']['develop-eggs-directory'])
 
-        # Check for updates. This could cause the process to be rstarted
+        # Check for updates. This could cause the process to be restarted
         self._maybe_upgrade()
 
         # load installed data
@@ -651,11 +649,11 @@ class Buildout(DictMixin):
         f.close()
 
     def _uninstall_part(self, part, installed_part_options):
-        # ununstall part
+        # uninstall part
         __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
 
-        # run uinstall recipe
+        # run uuinstall recipe
         recipe, entry = _recipe(installed_part_options[part])
         try:
             uninstaller = _install_and_load(
@@ -788,7 +786,7 @@ class Buildout(DictMixin):
                          ==
                          realpath(f)
                          )
-                        # Sigh. This is the exectable used to run the buildout
+                        # Sigh. This is the executable used to run the buildout
                         # and, of course, it's in use. Leave it.
                         ):
                         raise
@@ -914,14 +912,6 @@ class Buildout(DictMixin):
             self._logger.warn("Not upgrading because not running a local "
                               "buildout command.")
             return
-
-        if sys.platform == 'win32' and not self.__windows_restart:
-            args = list(map(zc.buildout.easy_install._safe_arg, sys.argv))
-            args.insert(1, '-W')
-            if not __debug__:
-                args.insert(0, '-O')
-            args.insert(0, zc.buildout.easy_install._safe_arg (sys.executable))
-            os.execv(sys.executable, args)
 
         self._logger.info("Upgraded:\n  %s;\nrestarting.",
                           ",\n  ".join([("%s version %s"
@@ -1475,7 +1465,7 @@ def _default_globals():
     globals_defs = {'sys': sys, 'os': os, 'platform': platform, 're': re,}
 
     # major python major_python_versions as python2 and python3
-    major_python_versions = platform.python_version_tuple()
+    major_python_versions = tuple(map(str, platform.python_version_tuple()))
     globals_defs.update({'python2': major_python_versions[0] == '2',
                          'python3': major_python_versions[0] == '3'})
 
@@ -1695,7 +1685,7 @@ def _error(*message):
     sys.exit(1)
 
 _internal_error_template = """
-An internal error occured due to a bug in either zc.buildout or in a
+An internal error occurred due to a bug in either zc.buildout or in a
 recipe being used:
 """
 
@@ -1844,7 +1834,6 @@ def main(args=None):
     config_file = 'buildout.cfg'
     verbosity = 0
     options = []
-    windows_restart = False
     user_defaults = True
     debug = False
     while args:
@@ -1856,8 +1845,6 @@ def main(args=None):
                     verbosity += 10
                 elif op[0] == 'q':
                     verbosity -= 10
-                elif op[0] == 'W':
-                    windows_restart = True
                 elif op[0] == 'U':
                     user_defaults = False
                 elif op[0] == 'o':
@@ -1912,7 +1899,7 @@ def main(args=None):
             section, option = option
             options.append((section.strip(), option.strip(), value.strip()))
         else:
-            # We've run out of command-line options and option assignnemnts
+            # We've run out of command-line options and option assignments
             # The rest should be commands, so we'll stop here
             break
 
@@ -1932,8 +1919,7 @@ def main(args=None):
     try:
         try:
             buildout = Buildout(config_file, options,
-                                user_defaults, windows_restart,
-                                command, args)
+                                user_defaults, command, args)
             getattr(buildout, command)(args)
         except SystemExit:
             logging.shutdown()

@@ -462,7 +462,7 @@ leave previously created paths in place:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ... exists...
@@ -493,7 +493,7 @@ If we fix the typo:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ... exists...
@@ -580,7 +580,7 @@ When we rerun the buildout:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ... exists...
@@ -655,7 +655,7 @@ directories will be created:
     While:
       Installing data-dir.
     <BLANKLINE>
-    An internal error occured due to a bug in either zc.buildout or in a
+    An internal error occurred due to a bug in either zc.buildout or in a
     recipe being used:
     Traceback (most recent call last):
     ... exists...
@@ -696,9 +696,12 @@ section has a section header followed by 0 or more section options.
 files.)
 
 A section header consists of a section name enclosed in square braces.
-A section name consists of one or more non-whitespace characters
-other than square braces ('[', ']'), curly braces ('{', '}'), colons
-(':') or equal signs ('='). Whitespace surrounding section names is ignored.
+A section name consists of one or more non-whitespace characters other
+than square braces ('[', ']'), curly braces ('{', '}'), colons (':')
+or equal signs ('='). Whitespace surrounding section names is ignored.
+
+A section header can optionally have a condition expression separated
+by a colon.  See `Conditional sections`_.
 
 Options consist of option names, followed by optional space or tab
 characters, an optional plus or minus sign and an equal signs and
@@ -714,7 +717,7 @@ Option values have extra whitespace stripped.  How this is done
 depends on whether the value has non-whitespace characterts on the
 first line.  If an option value has non-whitespace characters on the
 first line, then each line is stripped and blank lines are removed.
-For exampe, in::
+For example, in::
 
   [foo]
   bar = 1
@@ -765,7 +768,7 @@ Buildout configuration data are Python strings, which are bytes in
 Python 2 and unicode in Python 3.
 
 Sections and options within sections may be repeated.  Multiple
-occurrences of of a section are treated as if they were concantinated.
+occurrences of of a section are treated as if they were concatenated.
 The last option value for a given name in a section overrides previous
 values.
 
@@ -968,7 +971,7 @@ Section and option names in variable substitutions are only allowed to
 contain alphanumeric characters, hyphens, periods and spaces. This
 restriction might be relaxed in future releases.
 
-We can ommit the section name in a variable substitution to refer to
+We can omit the section name in a variable substitution to refer to
 the current section.  We can also use the special option,
 _buildout_section_name_ to get the current section name.
 
@@ -1130,6 +1133,133 @@ of the current section allows sections to be used as macros.
 In this example, the debug, with_file1 and with_file2 sections act as
 macros. In particular, the variable substitutions are performed
 relative to the myfiles section.
+
+Conditional sections
+--------------------
+
+Sometimes, you need different configuration in different environments
+(different operating systems, or different versions of Python).  To
+make this easier, you can define environment-specific options by
+providing conditional sections::
+
+    [ctl]
+    suffix =
+
+    [ctl:windows]
+    suffix = .bat
+
+.. -> conf
+
+    >>> import zc.buildout.configparser
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=True))
+    {'ctl': {'suffix': '.bat'}}
+    >>> zc.buildout.configparser.parse(
+    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=False))
+    {'ctl': {'suffix': ''}}
+
+In this tiny example, we've defined a ``ctl:suffix`` option that's
+``.bat`` on Windows and an empty string elsewhere.
+
+A conditional section has a colon and then a Python expression after
+the name.  If the Python expression result is true, the section
+options from the section are included.  If the value is false, the
+section is ignored.
+
+Some things to note:
+
+- If there is no exception, then options from the section are
+  included.
+
+- Sections and options can be repeated.  If an option is repeated, the
+  last value is used. In the example above, on Windows, the second
+  ``suffix`` option overrides the first.  If the order of the sections
+  was reversed, the conditional section would have no effect.
+
+In addition to the normal built-ins, the expression has access to
+global variable that make common cases short and description as shown
+above:
+
+sys
+  the ``sys`` module
+
+os
+  the ``os`` module
+
+platform
+  the ``platform`` module
+
+re
+  The ``re`` module
+
+python2
+  We're running Python 2
+
+python3
+  We're running Python 3
+
+python26
+  We're running Python 2.6
+
+python27
+  We're running Python 2.7
+
+python32
+  We're running Python 3.2
+
+python33
+  We're running Python 3.3
+
+sys_version
+  ``sys.version.lower()``
+
+pypy
+  We're running PyPy
+
+jython
+  We're running Jython
+
+iron
+  We're running Iron Python
+
+cpython
+  We're not running PyPy, Jython, or Iron Python
+
+sys_platform
+  ``str(sys.platform).lower()``
+
+linux
+  We're running on linux
+
+windows
+  We're running on Windows
+
+cygwin
+  We're running on cygwin
+
+solaris
+  We're running on solaris
+
+macos
+  We're running on Mac OS
+
+posix
+  We're running on a POSIX-compatible system
+
+bits32
+  We're running on a 32-bit system.
+
+bits64
+  We're running on a 64-bit system.
+
+little_endian
+  We're running on a little-endian system
+
+big_endian
+  We're running on a little-endian system
+
+Expressions must not contain either the ``#`` or the ``;`` character.
+
 
 Adding and removing options
 ---------------------------
@@ -2703,12 +2833,12 @@ interpreter with the given requirements or paths:
     extra-paths =
       ./src
 
-Passing requirements or paths causes the the builout to be run as part
+Passing requirements or paths causes the the buildout to be run as part
 of initialization.  In the example above, we got a number of
 distributions installed and 2 scripts generated.  The first, ``demo``,
 was defined by the ``demo`` project. The second, ``py`` was defined by
 the generated configuration.  It's a "custom interpreter" that behaves
-like a standard Python interpeter, except that includes the specified
+like a standard Python interpreter, except that includes the specified
 eggs and extra paths in it's Python path.
 
 We specified a source directory that didn't exist. Buildout created it

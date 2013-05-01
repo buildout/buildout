@@ -49,7 +49,7 @@ number of names to the test namespace:
     will be automatically removed at the end of the test.  The path of
     the created directory is returned.
 
-    Further, if the the normalize_path normlaizing substitution (see
+    Further, if the the normalize_path normalizing substitution (see
     below) is used, then any paths starting with this path will be
     normalized to::
 
@@ -111,7 +111,7 @@ number of names to the test namespace:
 ``sdist(setup, dest)``
     Create a source distribution by running the given setup file and
     placing the result in the given destination directory.  If the
-    setup argument is a directory, the thge setup.py file in that
+    setup argument is a directory, the setup.py file in that
     directory is used.
 
 ``bdist_egg(setup, dest)``

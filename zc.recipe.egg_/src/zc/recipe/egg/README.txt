@@ -182,7 +182,7 @@ Let's add an interpreter option:
     ... interpreter = py-demo
     ... """ % dict(server=link_server))
 
-Note that we ommitted the entry point name from the recipe
+Note that we omitted the entry point name from the recipe
 specification. We were able to do this because the scripts recipe is
 the default entry point for the zc.recipe.egg egg.
 
@@ -483,11 +483,11 @@ each individual script section:
     if __name__ == '__main__':
         sys.exit(eggrecipedemo.main())
 
-Specifying initialialization code and arguments
+Specifying initialization code and arguments
 -----------------------------------------------
 
 Sometimes, we need to do more than just calling entry points.  We can
-use the initialialization and arguments options to specify extra code
+use the initialization and arguments options to specify extra code
 to be included in generated scripts:
 
 

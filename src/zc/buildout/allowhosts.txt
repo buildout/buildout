@@ -37,7 +37,7 @@ Let's create a develop egg in our buildout that specifies
     ... ''')
 
 Now let's configure the buildout to use the develop egg,
-together with some rules that disallow any website but PyPI and
+together with some rules that disallow any web site but PyPI and
 local files::
 
     >>> write(sample_buildout, 'buildout.cfg',

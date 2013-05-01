@@ -25,17 +25,17 @@ define
    define.
 
 undef
-   A comman separated list of names of C preprocessor variables to
+   A comma-separated list of names of C preprocessor variables to
    undefine.
 
 libraries
    The name of an additional library to link with.  Due to limitations
-   in distutils and desprite the option name, only a single library
+   in distutils and despite the option name, only a single library
    can be specified.
 
 link-objects
    The name of an link object to link against.  Due to limitations
-   in distutils and desprite the option name, only a single link object
+   in distutils and despite the option name, only a single link object
    can be specified.
 
 debug
@@ -286,7 +286,7 @@ Controlling environment variables
 To set additional environment variables, the `environment` option is used.
 
 Let's create a recipe which prints out environment variables. We need this to
-make sure the set envirionment variables are removed after the egg:custom
+make sure the set environment variables are removed after the egg:custom
 recipe was run.
 
     >>> mkdir(sample_buildout, 'recipes')
@@ -372,7 +372,7 @@ the original value will be restored:
 
 
 Sometimes it is required to prepend or append to an existing environment
-variable, for instance for adding something to the PATH. Therefor all variables
+variable, for instance for adding something to the PATH. Therefore all variables
 are interpolated with os.environ before the're set:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -460,17 +460,17 @@ define
    define.
 
 undef
-   A comman separated list of names of C preprocessor variables to
+   A comma-separated list of names of C preprocessor variables to
    undefine.
 
 libraries
    The name of an additional library to link with.  Due to limitations
-   in distutils and desprite the option name, only a single library
+   in distutils and despite the option name, only a single library
    can be specified.
 
 link-objects
    The name of an link object to link against.  Due to limitations
-   in distutils and desprite the option name, only a single link object
+   in distutils and despite the option name, only a single link object
    can be specified.
 
 debug
