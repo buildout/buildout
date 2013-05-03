@@ -4,6 +4,9 @@ Change History
 2.1.1dev (unreleased)
 =====================
 
+- Handle both addition and subtraction of elements (+= and -=) on the same key
+  in the same section. This is a fix forward-ported from buildout 1.6.
+
 2.1.0 (2013-03-23)
 ==================
 
