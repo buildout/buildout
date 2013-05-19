@@ -26,6 +26,7 @@ import pkg_resources
 import py_compile
 import re
 import setuptools.archive_util
+import setuptools.command.easy_install
 import setuptools.command.setopt
 import setuptools.package_index
 import shutil
