@@ -1104,7 +1104,11 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
-        new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        try:
+            new_data = setuptools.command.easy_install.get_win_launcher('cli')
+        except AttributeError:
+            # fall back for compatibility with older Distribute versions
+            new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
         if (not os.path.exists(win32_exe) or
             (open(win32_exe, 'rb').read() != new_data)
             ):
