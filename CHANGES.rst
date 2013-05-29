@@ -4,6 +4,9 @@ Change History
 2.1.1dev (unreleased)
 =====================
 
+- Suppress the useless ``Link to <URL> ***BLOCKED*** by --allow-hosts``
+  error message being emitted by distribute / setuptools.
+
 2.1.0 (2013-03-23)
 ==================
 
