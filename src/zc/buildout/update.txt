@@ -2,13 +2,13 @@ Automatic Buildout Updates
 ==========================
 
 When a buildout is run, one of the first steps performed is to check for
-updates to either zc.buildout or distribute.  To
+updates to either zc.buildout or setuptools.  To
 demonstrate this, we've created some "new releases" of buildout and
-distribute in a new_releases folder:
+setuptools in a new_releases folder:
 
     >>> ls(new_releases)
-    d  distribute
-    -  distribute-99.99-py2.4.egg
+    d  setuptools
+    -  setuptools-99.99-py2.4.egg
     d  zc.buildout
     -  zc.buildout-99.99-py2.4.egg
 
@@ -26,7 +26,7 @@ Let's update the sample buildout.cfg to look in this area:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-We'll also include a recipe that echos the versions of distribute and
+We'll also include a recipe that echos the versions of setuptools and
 zc.buildout used:
 
     >>> mkdir(sample_buildout, 'showversions')
@@ -43,7 +43,7 @@ zc.buildout used:
     ...         pass
     ...
     ...     def install(self):
-    ...         for project in 'zc.buildout', 'distribute':
+    ...         for project in 'zc.buildout', 'setuptools':
     ...             req = pkg_resources.Requirement.parse(project)
     ...             print_(project, pkg_resources.working_set.find(req).version)
     ...         return ()
@@ -68,17 +68,17 @@ new versions found in new releases:
     >>> print_(system(buildout), end='')
     Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.
-    Getting distribution for 'distribute'.
-    Got distribute 99.99.
+    Getting distribution for 'setuptools'.
+    Got setuptools 99.99.
     Upgraded:
       zc.buildout version 99.99,
-      distribute version 99.99;
+      setuptools version 99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
     zc.buildout 99.99
-    distribute 99.99
+    setuptools 99.99
 
 Our buildout script has been updated to use the new eggs:
 
@@ -88,7 +88,7 @@ Our buildout script has been updated to use the new eggs:
     import sys
     sys.path[0:0] = [
       '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
-      '/sample-buildout/eggs/distribute-99.99-py2.4.egg',
+      '/sample-buildout/eggs/setuptools-99.99-py2.4.egg',
       ]
     <BLANKLINE>
     import zc.buildout.buildout
@@ -97,7 +97,7 @@ Our buildout script has been updated to use the new eggs:
         sys.exit(zc.buildout.buildout.main())
 
 Now, let's recreate the sample buildout. If we specify constraints on
-the versions of zc.buildout and distribute to use, running the buildout
+the versions of zc.buildout and setuptools to use, running the buildout
 will install earlier versions of these packages:
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -110,7 +110,7 @@ will install earlier versions of these packages:
     ...
     ... [versions]
     ... zc.buildout = < 99
-    ... distribute = < 99
+    ... setuptools = < 99
     ...
     ... [show-versions]
     ... recipe = showversions
@@ -121,13 +121,13 @@ Now we can see that we actually "upgrade" to an earlier version.
     >>> print_(system(buildout), end='')
     Upgraded:
       zc.buildout version 1.4.4;
-      distribute version 0.6;
+      setuptools version 0.6;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
-    distribute 0.6
+    setuptools 0.6
 
 There are a number of cases, described below, in which the updates
 don't happen.
@@ -150,7 +150,7 @@ We won't upgrade in offline mode:
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
-    distribute 0.6
+    setuptools 0.6
 
 Or in non-newest mode:
 
@@ -158,7 +158,7 @@ Or in non-newest mode:
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.0.0
-    distribute 0.6
+    setuptools 0.6
 
 We also won't upgrade if the buildout script being run isn't in the
 buildouts bin directory.  To see this we'll create a new buildout
@@ -181,8 +181,8 @@ directory:
     Creating directory '/sample_buildout2/develop-eggs'.
     Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.
-    Getting distribution for 'distribute'.
-    Got distribute 99.99.
+    Getting distribution for 'setuptools'.
+    Got setuptools 99.99.
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
@@ -206,14 +206,14 @@ directory:
     >>> print_(system(buildout), end='')
     Upgraded:
       zc.buildout version 99.99,
-      distribute version 99.99;
+      setuptools version 99.99;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Unused options for buildout: 'relative-paths'.
     Updating show-versions.
     zc.buildout 99.99
-    distribute 99.99
+    setuptools 99.99
 
     >>> cat('bin', 'buildout') # doctest +ELL
     #!/usr/local/bin/python2.7
@@ -227,7 +227,7 @@ directory:
     import sys
     sys.path[0:0] = [
       join(base, 'eggs/zc.buildout-99.99-py3.3.egg'),
-      join(base, 'eggs/distribute-99.99-py3.3.egg'),
+      join(base, 'eggs/setuptools-99.99-py3.3.egg'),
       ]
     <BLANKLINE>
     import zc.buildout.buildout
@@ -282,7 +282,7 @@ gives us a sys.exit:
     ...
     ... [versions]
     ... zc.buildout = < 99
-    ... distribute = < 99
+    ... setuptools = < 99
     ...
     ... [fail]
     ... recipe = failrecipe
@@ -293,7 +293,7 @@ Run the buildout:
     >>> print_(system(buildout, with_exit_code=True), end='')
     Upgraded:
       zc.buildout version 1.4.4;
-      distribute version 0.6;
+      setuptools version 0.6;
     restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/failrecipe'

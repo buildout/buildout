@@ -46,8 +46,8 @@ print_ = zc.buildout.buildout.print_
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
-distribute_location = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('distribute')).location
+setuptools_location = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('setuptools')).location
 
 def cat(dir, *names):
     path = os.path.join(dir, *names)
@@ -143,7 +143,7 @@ def _runsetup(setup, *args):
         os.chdir(os.path.dirname(setup))
         zc.buildout.easy_install.call_subprocess(
             [sys.executable, setup] + args,
-            env=dict(os.environ, PYTHONPATH=distribute_location))
+            env=dict(os.environ, PYTHONPATH=setuptools_location))
         if os.path.exists('build'):
             rmtree('build')
     finally:
@@ -524,6 +524,9 @@ normalize_exception_type_for_python_2_and_3 = (
     '\2')
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
+
+adding_find_link = (re.compile(r"Adding find link '[^']+'"
+                               r" from setuptools 0.7/\r?\n"), '')
 
 ignore_not_upgrading = (
     re.compile(

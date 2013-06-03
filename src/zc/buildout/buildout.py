@@ -56,7 +56,7 @@ def print_(*args, **kw):
 realpath = zc.buildout.easy_install.realpath
 
 pkg_resources_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('distribute')).location
+    pkg_resources.Requirement.parse('setuptools')).location
 
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
@@ -371,9 +371,9 @@ class Buildout(DictMixin):
 
         self._setup_directories()
 
-        # Now copy buildout and distribute eggs, and record destination eggs:
+        # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
-        for name in 'distribute', 'zc.buildout':
+        for name in 'setuptools', 'zc.buildout':
             r = pkg_resources.Requirement.parse(name)
             dist = pkg_resources.working_set.find(r)
             if dist.precedence == pkg_resources.DEVELOP_DIST:
@@ -871,7 +871,7 @@ class Buildout(DictMixin):
         self._log_level = level
 
     def _maybe_upgrade(self):
-        # See if buildout or distribute need to be upgraded.
+        # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
 
@@ -879,7 +879,7 @@ class Buildout(DictMixin):
             return
 
         ws = zc.buildout.easy_install.install(
-            ('zc.buildout', 'distribute'),
+            ('zc.buildout', 'setuptools'),
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
@@ -888,7 +888,7 @@ class Buildout(DictMixin):
             )
 
         upgraded = []
-        for project in 'zc.buildout', 'distribute':
+        for project in 'zc.buildout', 'setuptools':
             req = pkg_resources.Requirement.parse(project)
             project_location = pkg_resources.working_set.find(req).location
             if ws.find(req).location != project_location:
@@ -1041,7 +1041,7 @@ class Buildout(DictMixin):
         fd, tsetup = tempfile.mkstemp()
         try:
             os.write(fd, (zc.buildout.easy_install.runsetup_template % dict(
-                distribute=pkg_resources_loc,
+                setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
@@ -1789,7 +1789,7 @@ Commands:
   bootstrap
 
     Create a new buildout in the current working directory, copying
-    the buildout and distribute eggs and, creating a basic directory
+    the buildout and setuptools eggs and, creating a basic directory
     structure and a buildout-local buildout script.
 
   init
@@ -1800,9 +1800,9 @@ Commands:
 
   setup script [setup command and options]
 
-    Run a given setup script arranging that distribute is in the
+    Run a given setup script arranging that setuptools is in the
     script's path and and that it has been imported so that
-    distribute-provided commands (like bdist_egg) can be used even if
+    setuptools-provided commands (like bdist_egg) can be used even if
     the setup script doesn't import setuptools.
 
     The script can be given either as a script path or a path to a

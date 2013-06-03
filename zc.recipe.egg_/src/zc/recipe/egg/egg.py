@@ -145,11 +145,11 @@ class Scripts(Eggs):
 
             if get_bool(options, 'dependent-scripts'):
                 # Generate scripts for all packages in the working set,
-                # except distribute.
+                # except setuptools.
                 reqs = list(reqs)
                 for dist in ws:
                     name = dist.project_name
-                    if name != 'distribute' and name not in reqs:
+                    if name != 'setuptools' and name not in reqs:
                         reqs.append(name)
 
             return zc.buildout.easy_install.scripts(

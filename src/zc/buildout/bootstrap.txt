@@ -55,7 +55,7 @@ By default it gets the latest version:
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/distribute-...egg',
+      '/sample/eggs/setuptools-...egg',
       '/sample/eggs/zc.buildout-22.0.0...egg',
       ]...
 
@@ -86,6 +86,6 @@ Let's make sure the generated `buildout` script uses it::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/distribute-...egg',
+      '/sample/eggs/setuptools-...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...

@@ -51,7 +51,7 @@ def test_suite():
                zc.buildout.testing.not_found,
                (re.compile('[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('[d-]  distribute-[^-]+-'), 'distribute-X-'),
+               (re.compile('[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])
@@ -66,7 +66,7 @@ def test_suite():
                (re.compile('__buildout_signature__ = '
                            'sample-\S+\s+'
                            'zc.recipe.egg-\S+\s+'
-                           'distribute-\S+\s+'
+                           'setuptools-\S+\s+'
                            'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-'),
