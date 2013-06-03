@@ -14,7 +14,7 @@
 """Python easy_install API
 
 This module provides a high-level Python API for installing packages.
-It doesn't install scripts.  It uses distribute and requires it to be
+It doesn't install scripts.  It uses setuptools and requires it to be
 installed.
 """
 
@@ -57,24 +57,24 @@ if is_jython:
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
 # Make sure we're not being run with an older bootstrap.py that gives us
-# setuptools instead of distribute
+# setuptools instead of setuptools
 has_distribute = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('distribute')) is not None
 has_setuptools = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('setuptools')) is not None
-if has_setuptools and not has_distribute:
-    sys.exit("zc.buildout 2 needs distribute, not setuptools."
+if has_distribute and not has_setuptools:
+    sys.exit("zc.buildout 2 needs setuptools, not distribute."
              "  Are you using an outdated bootstrap.py?  Make sure"
              " you have the latest version downloaded from"
              " http://downloads.buildout.org/2/bootstrap.py")
 
-distribute_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('distribute')
+setuptools_loc = pkg_resources.working_set.find(
+    pkg_resources.Requirement.parse('setuptools')
     ).location
 
-# Include buildout and distribute eggs in paths
-buildout_and_distribute_path = [
-    distribute_loc,
+# Include buildout and setuptools eggs in paths
+buildout_and_setuptools_path = [
+    setuptools_loc,
     pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('zc.buildout')).location,
     ]
@@ -182,7 +182,7 @@ class Installer:
             links.insert(0, self._download_cache)
 
         self._index_url = index
-        path = (path and path[:] or []) + buildout_and_distribute_path
+        path = (path and path[:] or []) + buildout_and_setuptools_path
         if dest is not None and dest not in path:
             path.insert(0, dest)
         self._path = path
@@ -290,7 +290,7 @@ class Installer:
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = distribute_loc
+            path = setuptools_loc
 
             args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
             level = logger.getEffectiveLevel()
@@ -432,7 +432,7 @@ class Installer:
             and (realpath(new_location) == realpath(dist.location))
             and os.path.isfile(new_location)
             ):
-            # distribute avoids making extra copies, but we want to copy
+            # setuptools avoids making extra copies, but we want to copy
             # to the download cache
             shutil.copy2(new_location, tmp)
             new_location = os.path.join(tmp, os.path.basename(new_location))
@@ -551,21 +551,21 @@ class Installer:
 
         return dists
 
-    def _maybe_add_distribute(self, ws, dist):
+    def _maybe_add_setuptools(self, ws, dist):
         if dist.has_metadata('namespace_packages.txt'):
             for r in dist.requires():
-                if r.project_name in ('setuptools', 'distribute'):
+                if r.project_name in ('setuptools', 'setuptools'):
                     break
             else:
-                # We have a namespace package but no requirement for distribute
+                # We have a namespace package but no requirement for setuptools
                 if dist.precedence == pkg_resources.DEVELOP_DIST:
                     logger.warn(
                         "Develop distribution: %s\n"
                         "uses namespace packages but the distribution "
-                        "does not require distribute.",
+                        "does not require setuptools.",
                         dist)
                 requirement = self._constrain(
-                    pkg_resources.Requirement.parse('distribute')
+                    pkg_resources.Requirement.parse('setuptools')
                     )
                 if ws.find(requirement) is None:
                     for dist in self._get_dist(requirement, ws):
@@ -600,7 +600,7 @@ class Installer:
         for requirement in requirements:
             for dist in self._get_dist(requirement, ws):
                 ws.add(dist)
-                self._maybe_add_distribute(ws, dist)
+                self._maybe_add_setuptools(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
         # set, but they may have unmet requirements.  We'll simply keep
@@ -625,7 +625,7 @@ class Installer:
 
                 for dist in self._get_dist(requirement, ws):
                     ws.add(dist)
-                    self._maybe_add_distribute(ws, dist)
+                    self._maybe_add_setuptools(ws, dist)
             except pkg_resources.VersionConflict:
                 err = sys.exc_info()[1]
                 raise VersionConflict(err, ws)
@@ -848,7 +848,7 @@ def develop(setup, dest,
         undo.append(lambda: os.close(fd))
 
         os.write(fd, (runsetup_template % dict(
-            distribute=distribute_loc,
+            setuptools=setuptools_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
@@ -1239,7 +1239,7 @@ if _interactive:
 runsetup_template = """
 import sys
 sys.path.insert(0, %(setupdir)r)
-sys.path.insert(0, %(distribute)r)
+sys.path.insert(0, %(setuptools)r)
 
 import os, setuptools
 

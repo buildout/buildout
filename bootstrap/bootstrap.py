@@ -61,15 +61,12 @@ parser.add_option("-f", "--find-links",
 options, args = parser.parse_args()
 
 ######################################################################
-# load/install distribute
+# load/install setuptools
 
 to_reload = False
 try:
     import pkg_resources
     import setuptools
-    if not hasattr(pkg_resources, '_distribute'):
-        to_reload = True
-        raise ImportError
 except ImportError:
     ez = {}
 
@@ -78,7 +75,7 @@ except ImportError:
     except ImportError:
         from urllib2 import urlopen
 
-    exec(urlopen('http://python-distribute.org/distribute_setup.py').read(), 
+    exec(urlopen('http://dist.repoze.org/ez_setup-0.7.py').read(), 
          ez)
     setup_args = dict(to_dir=tmpeggs, download_delay=0, no_fake=True)
     ez['use_setuptools'](**setup_args)
@@ -110,8 +107,8 @@ find_links = os.environ.get(
 if find_links:
     cmd.extend(['-f', find_links])
 
-distribute_path = ws.find(
-    pkg_resources.Requirement.parse('distribute')).location
+setuptools_path = ws.find(
+    pkg_resources.Requirement.parse('setuptools')).location
 
 requirement = 'zc.buildout'
 version = options.version
@@ -126,7 +123,7 @@ if version is None and not options.accept_buildout_test_releases:
                 return False
         return True
     index = setuptools.package_index.PackageIndex(
-        search_path=[distribute_path])
+        search_path=[setuptools_path])
     if find_links:
         index.add_find_links((find_links,))
     req = pkg_resources.Requirement.parse(requirement)
@@ -149,7 +146,7 @@ if version:
 cmd.append(requirement)
 
 import subprocess
-if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=distribute_path)) != 0:
+if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=setuptools_path)) != 0:
     raise Exception(
         "Failed to execute command:\n%s",
         repr(cmd)[1:-1])

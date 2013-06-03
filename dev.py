@@ -46,7 +46,7 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
-exec(urlopen('http://python-distribute.org/distribute_setup.py').read(), ez)
+exec(urlopen('http://dist.repoze.org/ez_setup-0.7.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
 import pkg_resources
