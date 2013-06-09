@@ -525,8 +525,9 @@ normalize_exception_type_for_python_2_and_3 = (
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
 
+# Setuptools now pulls in dependencies when installed.
 adding_find_link = (re.compile(r"Adding find link '[^']+'"
-                               r" from setuptools 0.7/\r?\n"), '')
+                               r" from setuptools .*\r?\n"), '')
 
 ignore_not_upgrading = (
     re.compile(
