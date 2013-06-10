@@ -816,8 +816,8 @@ On the other hand, if we have a regular egg, rather than a develop egg:
     -  zc.recipe.egg.egg-link
 
     >>> ls('eggs') # doctest: +ELLIPSIS
-    -  setuptools.eggpyN.N.egg
     -  foox-0.0.0-py2.4.egg
+    -  setuptools.eggpyN.N.egg
     ...
 
 We do not get a warning, but we do get setuptools included in the working set:

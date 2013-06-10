@@ -61,8 +61,7 @@ def cat(dir, *names):
 def ls(dir, *subs):
     if subs:
         dir = os.path.join(dir, *subs)
-    names = os.listdir(dir)
-    names.sort()
+    names = sorted(os.listdir(dir))
     for name in names:
         if os.path.isdir(os.path.join(dir, name)):
             print_('d ', end=' ')
@@ -366,8 +365,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         if os.path.isdir(path):
             out = ['<html><body>\n']
-            names = os.listdir(path)
-            names.sort()
+            names = sorted(os.listdir(path))
             for name in names:
                 if os.path.isdir(os.path.join(path, name)):
                     name += '/'
