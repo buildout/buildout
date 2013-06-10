@@ -1614,8 +1614,12 @@ def _dir_hash(dir):
     return dir_hash
 
 def _dists_sig(dists):
+    seen = set()
     result = []
     for dist in dists:
+        if dist in seen:
+            continue
+        seen.add(dist)
         location = dist.location
         if dist.precedence == pkg_resources.DEVELOP_DIST:
             result.append(dist.project_name + '-' + _dir_hash(location))
