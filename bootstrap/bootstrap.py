@@ -78,7 +78,7 @@ except ImportError:
     # XXX use a more permanent ez_setup.py URL when available.
     exec(urlopen('https://bitbucket.org/pypa/setuptools/raw/0.7.2/ez_setup.py'
                 ).read(), ez)
-    setup_args = dict(to_dir=tmpeggs, download_delay=0, no_fake=True)
+    setup_args = dict(to_dir=tmpeggs, download_delay=0)
     ez['use_setuptools'](**setup_args)
 
     if to_reload:
