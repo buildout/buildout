@@ -301,7 +301,7 @@ and case differences won't impact the pinning:
     ... show-picked-versions = true
     ...
     ... [versions]
-    ... distriBUTE = %s
+    ... setuptools = %s
     ... Spam = 2
     ...
     ... [foo]
