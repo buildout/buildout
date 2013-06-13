@@ -1,8 +1,10 @@
 Change History
 **************
 
-2.1.1dev (unreleased)
+2.2.0dev (unreleased)
 =====================
+
+- Switch dependency from ``distribute 0.6.x`` to ``setuptools 0.7.x``.
 
 2.1.0 (2013-03-23)
 ==================
