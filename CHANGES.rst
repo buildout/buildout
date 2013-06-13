@@ -4,6 +4,8 @@ Change History
 2.2.0dev (unreleased)
 =====================
 
+- Refactored picked versions logic to make it easier to use for plugins.
+
 - Use ``get_win_launcher`` API to find Windows launcher (falling back to
   ``resource_string`` for ``cli.exe``).
 
