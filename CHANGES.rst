@@ -4,6 +4,9 @@ Change History
 2.2.0dev (unreleased)
 =====================
 
+- Use ``get_win_launcher`` API to find Windows launcher (falling back to
+  ``resource_string`` for ``cli.exe``).
+
 - Remove ``data_files`` from ``setup.py``:  it was installing ``README.txt``
   in current directory during installation (merged from 1.x branch).
 
