@@ -120,6 +120,24 @@ def _unannotate(data):
         data[key] = _unannotate_section(data[key])
     return data
 
+
+def _format_picked_versions(picked_versions, required_by):
+    output = ['[versions]']
+    required_output = []
+    for dist_, version in picked_versions:
+        if dist_ in required_by:
+            required_output.append('')
+            required_output.append('# Required by:')
+            for req_ in sorted(required_by[dist_]):
+                required_output.append('# '+req_)
+            target = required_output
+        else:
+            target = output
+        target.append("%s = %s" % (dist_, version))
+    output.extend(required_output)
+    return output
+
+
 _buildout_default_options = _annotate_section({
     'allow-hosts': '*',
     'allow-picked-versions': 'true',
@@ -323,8 +341,8 @@ class Buildout(DictMixin):
         self.show_picked_versions = bool_option(options,
                                                 'show-picked-versions')
         self.update_versions_file = options['update-versions-file']
-        zc.buildout.easy_install.store_picked_versions(
-            self.show_picked_versions or self.update_versions_file)
+        zc.buildout.easy_install.store_required_by(self.show_picked_versions or
+                                                   self.update_versions_file)
 
         download_cache = options.get('download-cache')
         if download_cache:
@@ -637,7 +655,8 @@ class Buildout(DictMixin):
         elif (not installed_parts) and installed_exists:
             os.remove(self['buildout']['installed'])
 
-        self._print_picked_versions()
+        if self.show_picked_versions or self.update_versions_file:
+            self._print_picked_versions()
         self._unload_extensions()
 
     def _update_installed(self, **buildout_options):
@@ -987,24 +1006,13 @@ class Buildout(DictMixin):
                 ep.load()(self)
 
     def _print_picked_versions(self):
-        Installer = zc.buildout.easy_install.Installer
-        if not Installer._picked_versions:
+        picked_versions, required_by = (zc.buildout.easy_install
+                                        .get_picked_versions())
+        if not picked_versions:
             # Don't print empty output.
             return
-        output = ['[versions]']
-        required_output = []
-        for dist_, version in sorted(Installer._picked_versions.items()):
-            if dist_ in Installer._required_by:
-                required_output.append('')
-                required_output.append('# Required by:')
-                for req_ in sorted(Installer._required_by[dist_]):
-                    required_output.append('# '+req_)
-                target = required_output
-            else:
-                target = output
-            target.append("%s = %s" % (dist_, version))
 
-        output.extend(required_output)
+        output = _format_picked_versions(picked_versions, required_by)
 
         if self.show_picked_versions:
             print_("Versions had to be automatically picked.")
@@ -1016,11 +1024,11 @@ class Buildout(DictMixin):
             if os.path.exists(self.update_versions_file):
                 output[:1] = [
                     '',
-                    '# Added by buildout at %s' % datetime.datetime.now(),
-                    ]
+                    '# Added by buildout at %s' % datetime.datetime.now()
+                ]
             output.append('')
             f = open(self.update_versions_file, 'a')
-            f.write('\n'.join(output))
+            f.write(('\n'.join(output)))
             f.close()
             print_("Picked versions have been written to " +
                    self.update_versions_file)
