@@ -4,6 +4,9 @@ Change History
 2.2.0dev (unreleased)
 =====================
 
+- Remove ``data_files`` from ``setup.py``:  it was installing ``README.txt``
+  in current directory during installation (merged from 1.x branch).
+
 - Switch dependency from ``distribute 0.6.x`` to ``setuptools 0.7.x``.
 
 2.1.0 (2013-03-23)
