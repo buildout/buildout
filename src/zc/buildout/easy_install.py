@@ -1078,22 +1078,30 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
     if not ('#!' in lines[0]) and ('python' in lines[0]):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
-    source_encoding_line = ''
-    original_content = ''.join(lines[1:])
-    if (len(lines) > 1) and is_source_encoding_line(lines[1]):
-        # The second line contains a source encoding line. Copy it verbatim.
-        source_encoding_line = lines[1].rstrip()
-        original_content = ''.join(lines[2:])
+    lines = lines[1:]  # Strip off the first hashbang line.
+    line_with_first_import = len(lines)
+    for line_number, line in enumerate(lines):
+        if not 'import' in line:
+            continue
+        if not line.startswith('import') or line.startswith('from'):
+            continue
+        if '__future__' in line:
+            continue
+        line_with_first_import = line_number
+        break
+
+    before = ''.join(lines[:line_with_first_import])
+    after = ''.join(lines[line_with_first_import:])
 
     python = _safe_arg(sys.executable)
 
     contents = distutils_script_template % dict(
         python = python,
-        source_encoding_line = source_encoding_line,
         path = path,
         initialization = initialization,
         relative_paths_setup = rsetup,
-        original_content = original_content
+        before = before,
+        after = after
         )
     return _create_script(contents, dest)
 
@@ -1158,9 +1166,8 @@ if __name__ == '__main__':
     sys.exit(%(module_name)s.%(attrs)s(%(arguments)s))
 '''
 
-distutils_script_template = script_header + '''\
-
-%(source_encoding_line)s
+distutils_script_template = script_header + '''
+%(before)s
 %(relative_paths_setup)s
 import sys
 sys.path[0:0] = [
@@ -1168,7 +1175,7 @@ sys.path[0:0] = [
   ]
 %(initialization)s
 
-%(original_content)s'''
+%(after)s'''
 
 
 def _pyscript(path, dest, rsetup, initialization=''):
