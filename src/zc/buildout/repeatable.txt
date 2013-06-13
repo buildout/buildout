@@ -368,8 +368,13 @@ at the end.
 
 The versions file now contains the extra pin:
 
-    >>> 'spam = 2' in open('my_versions.cfg').read()
-    True
+    >>> print_(open('my_versions.cfg').read()) # doctest: +ELLIPSIS
+    <BLANKLINE>
+    ...
+    <BLANKLINE>
+    # Added by buildout at YYYY-MM-DD hh:mm:ss.dddddd
+    spam = 2
+    <BLANKLINE>
 
 And re-running buildout doesn't report any picked versions anymore:
 
@@ -405,8 +410,13 @@ printing them to the console):
 
 The versions file contains the extra pin:
 
-    >>> 'spam = 2' in open('my_versions.cfg').read()
-    True
+    >>> print_(open('my_versions.cfg').read()) # doctest: +ELLIPSIS
+    <BLANKLINE>
+    ...
+    <BLANKLINE>
+    # Added by buildout at YYYY-MM-DD hh:mm:ss.dddddd
+    spam = 2
+    <BLANKLINE>
 
 Because buildout now includes buildout-versions' (and part of the older
 buildout.dumppickedversions') functionality, it warns if these extensions are
