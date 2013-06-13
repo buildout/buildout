@@ -4,6 +4,9 @@ Change History
 2.2.0dev (unreleased)
 =====================
 
+- Suppress the useless ``Link to <URL> ***BLOCKED*** by --allow-hosts``
+  error message being emitted by distribute / setuptools.
+
 - Extend distutils script generation to support module docstrings and
   __future__ imports.
 

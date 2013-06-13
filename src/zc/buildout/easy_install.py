@@ -82,6 +82,25 @@ buildout_and_setuptools_path = [
 
 FILE_SCHEME = re.compile('file://', re.I).match
 
+class _Monkey(object):
+    def __init__(self, module, **kw):
+        mdict = self._mdict = module.__dict__
+        self._before = mdict.copy()
+        self._overrides = kw
+
+    def __enter__(self):
+        self._mdict.update(self._overrides)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._mdict.clear()
+        self._mdict.update(self._before)
+
+class _NoWarn(object):
+    def warn(self, *args, **kw):
+        pass
+
+_no_warn = _NoWarn()
 
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
@@ -91,7 +110,12 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     def url_ok(self, url, fatal=False):
         if FILE_SCHEME(url):
             return True
-        return setuptools.package_index.PackageIndex.url_ok(self, url, False)
+        # distutils has its own logging, which can't be hooked / suppressed,
+        # so we monkey-patch the 'log' submodule to suppress the stupid
+        # "Link to <URL> ***BLOCKED*** by --allow-hosts" message.
+        with _Monkey(setuptools.package_index, log=_no_warn):
+            return setuptools.package_index.PackageIndex.url_ok(
+                                                self, url, False)
 
 
 _indexes = {}
