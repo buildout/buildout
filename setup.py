@@ -84,8 +84,6 @@ setup(
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://buildout.org',
-
-    data_files = [('.', ['README.rst'])],
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
