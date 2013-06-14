@@ -1289,8 +1289,8 @@ This is illustrated below; first we define a base configuration.
     ... [part4]
     ... recipe =
     ... option = d2
- 	...     d3
- 	...     d5
+    ...     d3
+    ...     d5
     ...
     ... """)
 
