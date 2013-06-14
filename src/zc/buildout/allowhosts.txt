@@ -58,7 +58,6 @@ Now we can run the buildout and make sure all attempts to dist.plone.org fails::
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
     Installing eggs...
-    Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
     ...
     While:
       Installing eggs.
@@ -90,7 +89,6 @@ Now we can run the buildout and make sure all attempts to dist.plone.org fails::
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/allowdemo'
     Installing eggs...
-    Link to http://dist.plone.org ***BLOCKED*** by --allow-hosts
     ...
     While:
       Installing eggs.
