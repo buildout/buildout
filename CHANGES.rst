@@ -4,6 +4,9 @@ Change History
 2.2.0dev (unreleased)
 =====================
 
+- Handle both addition and subtraction of elements (+= and -=) on the same key
+  in the same section. Forward-ported from buildout 1.6.
+
 - Suppress the useless ``Link to <URL> ***BLOCKED*** by --allow-hosts``
   error message being emitted by distribute / setuptools.
 
