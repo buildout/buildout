@@ -1391,7 +1391,7 @@ Verify option values.
     ... """)
 
     >>> print_(system(os.path.join('bin', 'buildout')), end='')
-    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2'
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
@@ -1430,6 +1430,7 @@ operations.
     recipe=
         /sample-buildout/base.cfg
     <BLANKLINE>
+    [part4]
     option= d2
     d3
     d1
