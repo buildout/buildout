@@ -1240,8 +1240,8 @@ cygwin
 solaris
   We're running on solaris
 
-macos
-  We're running on Mac OS
+macosx
+  We're running on Mac OS X
 
 posix
   We're running on a POSIX-compatible system
