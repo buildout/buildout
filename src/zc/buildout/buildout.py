@@ -220,13 +220,11 @@ class Buildout(DictMixin):
         versions.update(
             dict((k, (v, 'DEFAULT_VALUE'))
                  for (k, v) in (
-                     # Prevent downgrading due to prefer-final:
-                     ('zc.buildout',
-                      '>='+pkg_resources.working_set.find(
-                          pkg_resources.Requirement.parse('zc.buildout')
-                          ).version),
-                     # Use 2, even though not final
-                     ('zc.recipe.egg', '>=2.0.0a3'),
+                     # Prevent upgrading either distribute or
+                     # buildout to avoid fallout from distribute/setuptools
+                     # merge.
+                     ('distribute', '<0.7dev'),
+                     ('zc.buildout', '<2.2dev'),
                      )
                  if k not in versions
                  ))
