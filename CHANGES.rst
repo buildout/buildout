@@ -1,6 +1,13 @@
 Change History
 **************
 
+2.1.1 (2013-06-26)
+==================
+
+This release prevents automatic upgrade past distribute 0.6 and buildout 2.1,
+because the change from distribute to the merged distribute+setuptools
+is too severe to be handled by buildout's normal upgrade mechanism.
+
 2.1.0 (2013-03-23)
 ==================
 
