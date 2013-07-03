@@ -2596,10 +2596,6 @@ eggs-directory
    *never* be modified.  This can be a relative path, which is
    interpreted relative to the directory option.
 
-executable
-   The Python executable used to run the buildout.  See the python
-   option below.
-
 find-links
     You can specify more locations to search for distributions using the
     `find-links` option. All locations specified will be searched for
@@ -2698,16 +2694,6 @@ prefer-final
     In buildout version 2, final releases will be preferred by default.
     You will then need to use a false value for prefer-final to get the
     newest releases.
-
-python
-   The name of a section containing information about the default
-   Python interpreter.  Recipes that need a installation
-   typically have options to tell them which Python installation to
-   use.  By convention, if a section-specific option isn't used, the
-   option is looked for in the buildout section.  The option must
-   point to a section with an executable option giving the path to a
-   Python executable.  By default, the buildout section defines the
-   default Python as the Python used to run the buildout.
 
 use-dependency-links
     By default buildout will obey the setuptools dependency_links metadata
