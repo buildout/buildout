@@ -1,8 +1,8 @@
 Change History
 **************
 
-2.2.0b1 (2013-06-14)
-====================
+2.2.0 (2013-07-05)
+==================
 
 - Handle both addition and subtraction of elements (+= and -=) on the same key
   in the same section. Forward-ported from buildout 1.6.
