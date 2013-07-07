@@ -817,7 +817,7 @@ On the other hand, if we have a regular egg, rather than a develop egg:
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     -  foox-0.0.0-py2.4.egg
-    -  setuptools.eggpyN.N.egg
+    d  setuptools.eggpyN.N.egg
     ...
 
 We do not get a warning, but we do get setuptools included in the working set:
@@ -3421,6 +3421,7 @@ def test_suite():
                  r'We have a develop egg: \1 V'),
                 (re.compile('Picked: setuptools = \S+'),
                  'Picked: setuptools = V'),
+                (re.compile('[-d]  setuptools'), '-  setuptools'),
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile(
                     '-q develop -mxN -d "/sample-buildout/develop-eggs'),
