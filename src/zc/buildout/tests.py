@@ -2747,6 +2747,77 @@ def test_constrained_requirement():
     ...         print_('failed', o, c, g, '!=', e)
     """
 
+def test_distutils_scripts_using_import_are_properly_parsed():
+    """
+    zc.buildout.easy_install._distutils_script(path, dest, script_content, initialization, rsetup):
+
+    Creates a script for a distutils based project. In this example for a
+    hypothetical code quality checker called 'pyflint' that uses an import
+    statement to import its code.
+
+    >>> pyflint_script = '''#!/path/to/bin/python
+    ... import pyflint.do_something
+    ... pyflint.do_something()
+    ... '''
+    >>> import sys
+    >>> original_executable = sys.executable
+    >>> sys.executable = 'python'
+
+    >>> from zc.buildout.easy_install import _distutils_script
+    >>> _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
+    ['bin/pyflint']
+    >>> cat('bin/pyflint')
+    #!python
+    <BLANKLINE>
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/path/test/',
+      ]
+    <BLANKLINE>
+    <BLANKLINE>
+    import pyflint.do_something
+    pyflint.do_something()
+
+    >>> sys.executable = original_executable
+    """
+
+def test_distutils_scripts_using_from_are_properly_parsed():
+    """
+    zc.buildout.easy_install._distutils_script(path, dest, script_content, initialization, rsetup):
+
+    Creates a script for a distutils based project. In this example for a
+    hypothetical code quality checker called 'pyflint' that uses a from
+    statement to import its code.
+
+    >>> pyflint_script = '''#!/path/to/bin/python
+    ... from pyflint import do_something
+    ... do_something()
+    ... '''
+    >>> import sys
+    >>> original_executable = sys.executable
+    >>> sys.executable = 'python'
+
+    >>> from zc.buildout.easy_install import _distutils_script
+    >>> _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
+    ['bin/pyflint']
+    >>> cat('bin/pyflint')
+    #!python
+    <BLANKLINE>
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '/path/test/',
+      ]
+    <BLANKLINE>
+    <BLANKLINE>
+    from pyflint import do_something
+    do_something()
+
+    >>> sys.executable = original_executable
+    """
+
+
 def want_new_zcrecipeegg():
     """
     >>> write('buildout.cfg',

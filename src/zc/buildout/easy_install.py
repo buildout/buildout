@@ -1107,7 +1107,7 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
     for line_number, line in enumerate(lines):
         if not 'import' in line:
             continue
-        if not line.startswith('import') or line.startswith('from'):
+        if not (line.startswith('import') or line.startswith('from')):
             continue
         if '__future__' in line:
             continue
