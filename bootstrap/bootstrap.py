@@ -56,30 +56,37 @@ parser.add_option("-c", "--config-file",
                         "file to be used."))
 parser.add_option("-f", "--find-links",
                   help=("Specify a URL to search for buildout releases"))
+parser.add_option("-i", "--ignore-site-packages",
+                  action="store_true", default=False,
+                  help=("Ignore any setuptools / distribute in "
+                        "'site-packages'"))
 
 
 options, args = parser.parse_args()
 
 ######################################################################
 # load/install setuptools
+def _download_setuptools():
+    ez = {}
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
+    exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
+                ).read(), ez)
+    setup_args = dict(to_dir=tmpeggs, download_delay=0)
+    ez['use_setuptools'](**setup_args)
+
+if options.ignore_site_packages:
+    sys.path[:] = [x for x in sys.path if 'site-packages' not in x]
+    _download_setuptools()
 
 to_reload = False
 try:
     import pkg_resources
     import setuptools
 except ImportError:
-    ez = {}
-
-    try:
-        from urllib.request import urlopen
-    except ImportError:
-        from urllib2 import urlopen
-
-    # XXX use a more permanent ez_setup.py URL when available.
-    exec(urlopen('https://bitbucket.org/pypa/setuptools/raw/0.7.2/ez_setup.py'
-                ).read(), ez)
-    setup_args = dict(to_dir=tmpeggs, download_delay=0)
-    ez['use_setuptools'](**setup_args)
+    _download_setuptools()
 
     if to_reload:
         reload(pkg_resources)
