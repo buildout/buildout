@@ -497,10 +497,6 @@ class Installer:
             try:
                 dist = self._fetch(avail, tmp, self._download_cache)
 
-                if dist is None:
-                    raise zc.buildout.UserError(
-                        "Couln't download distribution %s." % avail)
-
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
 
