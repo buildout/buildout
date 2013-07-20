@@ -63,32 +63,35 @@ options, args = parser.parse_args()
 ######################################################################
 # load/install setuptools
 
-to_reload = False
 try:
-    import pkg_resources
-    import setuptools
+    from urllib.request import urlopen
 except ImportError:
-    ez = {}
+    from urllib2 import urlopen
 
-    try:
-        from urllib.request import urlopen
-    except ImportError:
-        from urllib2 import urlopen
+ez = {}
+# XXX use a more permanent ez_setup.py URL when available.
+exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
+            ).read(), ez)
+setup_args = dict(to_dir=tmpeggs, download_delay=0)
+ez['use_setuptools'](**setup_args)
+import setuptools
+# ez_setup imports site, which adds site packages
 
-    # XXX use a more permanent ez_setup.py URL when available.
-    exec(urlopen('https://bitbucket.org/pypa/setuptools/raw/0.7.2/ez_setup.py'
-                ).read(), ez)
-    setup_args = dict(to_dir=tmpeggs, download_delay=0)
-    ez['use_setuptools'](**setup_args)
+# this will remove them to ensure that incompataible versions 
+# of setuptools are not installed
+import site
+# inside a virtualenv, there is no 'getsitepackages'. 
+# We can't remove these reliably
+if hasattr(site, 'getsitepackages'):
+    for sitepackage_path in site.getsitepackages():
+        sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
-    if to_reload:
-        reload(pkg_resources)
-    import pkg_resources
-    # This does not (always?) update the default working set.  We will
-    # do it.
-    for path in sys.path:
-        if path not in pkg_resources.working_set.entries:
-            pkg_resources.working_set.add_entry(path)
+import pkg_resources
+# This does not (always?) update the default working set.  We will
+# do it.
+for path in sys.path:
+    if path not in pkg_resources.working_set.entries:
+        pkg_resources.working_set.add_entry(path)
 
 ######################################################################
 # Install buildout
