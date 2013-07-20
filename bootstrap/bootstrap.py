@@ -56,6 +56,9 @@ parser.add_option("-c", "--config-file",
                         "file to be used."))
 parser.add_option("-f", "--find-links",
                   help=("Specify a URL to search for buildout releases"))
+parser.add_option("--allow-site-packages",
+                  action="store_true", default=False,
+                  help=("Let bootstrap.py use existing site packages"))
 
 
 options, args = parser.parse_args()
@@ -64,6 +67,9 @@ options, args = parser.parse_args()
 # load/install setuptools
 
 try:
+    if options.allow_site_packages:
+        import setuptools
+        import pkg_resources
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
@@ -71,15 +77,16 @@ except ImportError:
 ez = {}
 exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
             ).read(), ez)
-# ez_setup imports site, which adds site packages
-# this will remove them from the path to ensure that incompatible versions 
-# of setuptools are not in the path
-import site
-# inside a virtualenv, there is no 'getsitepackages'. 
-# We can't remove these reliably
-if hasattr(site, 'getsitepackages'):
-    for sitepackage_path in site.getsitepackages():
-        sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
+if not options.allow_site_packages:
+    # ez_setup imports site, which adds site packages
+    # this will remove them from the path to ensure that incompatible versions 
+    # of setuptools are not in the path
+    import site
+    # inside a virtualenv, there is no 'getsitepackages'. 
+    # We can't remove these reliably
+    if hasattr(site, 'getsitepackages'):
+        for sitepackage_path in site.getsitepackages():
+            sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
 ez['use_setuptools'](**setup_args)
