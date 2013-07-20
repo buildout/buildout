@@ -69,7 +69,6 @@ except ImportError:
     from urllib2 import urlopen
 
 ez = {}
-# XXX use a more permanent ez_setup.py URL when available.
 exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
             ).read(), ez)
 # ez_setup imports site, which adds site packages
