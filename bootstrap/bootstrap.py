@@ -72,21 +72,24 @@ ez = {}
 # XXX use a more permanent ez_setup.py URL when available.
 exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
             ).read(), ez)
-setup_args = dict(to_dir=tmpeggs, download_delay=0)
-ez['use_setuptools'](**setup_args)
-import setuptools
 # ez_setup imports site, which adds site packages
-
 # this will remove them to ensure that incompataible versions 
 # of setuptools are not installed
 import site
-# inside a virtualenv, there is no 'getsitepackages'. 
-# We can't remove these reliably
 if hasattr(site, 'getsitepackages'):
     for sitepackage_path in site.getsitepackages():
         sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
+setup_args = dict(to_dir=tmpeggs, download_delay=0)
+ez['use_setuptools'](**setup_args)
+import setuptools
 import pkg_resources
+
+# inside a virtualenv, there is no 'getsitepackages'. 
+# We can't remove these reliably
+#if hasattr(site, 'getsitepackages'):
+#    for sitepackage_path in site.getsitepackages():
+#        sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 # This does not (always?) update the default working set.  We will
 # do it.
 for path in sys.path:
