@@ -73,9 +73,11 @@ ez = {}
 exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
             ).read(), ez)
 # ez_setup imports site, which adds site packages
-# this will remove them to ensure that incompataible versions 
-# of setuptools are not installed
+# this will remove them from the path to ensure that incompatible versions 
+# of setuptools are not in the path
 import site
+# inside a virtualenv, there is no 'getsitepackages'. 
+# We can't remove these reliably
 if hasattr(site, 'getsitepackages'):
     for sitepackage_path in site.getsitepackages():
         sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
@@ -85,11 +87,6 @@ ez['use_setuptools'](**setup_args)
 import setuptools
 import pkg_resources
 
-# inside a virtualenv, there is no 'getsitepackages'. 
-# We can't remove these reliably
-#if hasattr(site, 'getsitepackages'):
-#    for sitepackage_path in site.getsitepackages():
-#        sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 # This does not (always?) update the default working set.  We will
 # do it.
 for path in sys.path:
