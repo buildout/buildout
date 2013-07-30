@@ -25,7 +25,7 @@ Buildout is a project designed to solve 2 problems:
 
    Buildout might be confused with build tools like make or ant, but
    it is a little higher level and might invoke systems like make or
-   ant to get it's work done.
+   ant to get its work done.
 
    Buildout might be confused with systems like puppet or chef, but it
    is more application focused.  Systems like puppet or chef might
