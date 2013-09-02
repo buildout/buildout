@@ -4,6 +4,11 @@ Change History
 Unreleased
 ==========
 
+- Add an ``--allow-site-packges`` option to ``bootstrap.py``, defaulting
+  to False.  If the value is false, strip any "site packages" (as defined by
+  the ``site`` module) from ``sys.path`` before attempting to import
+  ``setuptools`` / ``pkg_resources``.
+
 - Updated the URL used to fetch ``ez_setup.py`` to the official, non-version-
   pinned version.
 
