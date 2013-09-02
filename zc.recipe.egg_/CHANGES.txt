@@ -1,6 +1,10 @@
 Change History
 **************
 
+Unreleased
+==========
+
+- Accomodate 'zc.bulidout' swtich to post-merge setuptools.
 
 2.0.0 (2013-04-02)
 ==================
