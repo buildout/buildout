@@ -1,6 +1,32 @@
 Change History
 **************
 
+
+2.0.0 (2013-04-02)
+==================
+
+- Enabled 'prefer-final' option by default.
+
+2.0.0a3 (2012-11-19)
+====================
+
+- Added support for Python 3.2 / 3.3.
+
+- Added 'MANIFEST.in'.
+
+- Support non-entry-point-based scripts.
+
+- Honor exit codes from scripts (https://bugs.launchpad.net/bugs/697913).
+
+2.0.0a2 (2012-05-03)
+====================
+
+- Always unzip installed eggs.
+
+- Switched from using 'setuptools' to 'distribute'.
+
+- Removed multi-python support.
+
 1.3.2 (2010-08-23)
 ==================
 
