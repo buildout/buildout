@@ -1,6 +1,12 @@
 Change History
 **************
 
+Unreleased
+==========
+
+- Updated the URL used to fetch ``ez_setup.py`` to the official, non-version-
+  pinned version.
+
 2.2.0 (2013-07-05)
 ==================
 
