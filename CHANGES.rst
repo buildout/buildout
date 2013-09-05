@@ -4,6 +4,9 @@ Change History
 Unreleased
 ==========
 
+- ``distutils`` scripts: correct order of operations on 'from ... import'
+  lines (see https://github.com/buildout/buildout/issues/134).
+
 - Add an ``--allow-site-packges`` option to ``bootstrap.py``, defaulting
   to False.  If the value is false, strip any "site packages" (as defined by
   the ``site`` module) from ``sys.path`` before attempting to import
