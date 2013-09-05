@@ -1,10 +1,10 @@
 Change History
 **************
 
-Unreleased
-==========
+2.2.1 (2013-09-05)
+==================
 
-- ``distutils`` scripts: correct order of operations on 'from ... import'
+- ``distutils`` scripts: correct order of operations on ``from ... import``
   lines (see https://github.com/buildout/buildout/issues/134).
 
 - Add an ``--allow-site-packges`` option to ``bootstrap.py``, defaulting
