@@ -4,7 +4,7 @@ Change History
 2.0.1 (2013-09-05)
 ==================
 
-- Accomodate ``zc.bulidout`` swtich to post-merge ``setuptools``.
+- Accomodate ``zc.buildout`` switch to post-merge ``setuptools``.
 
 2.0.0 (2013-04-02)
 ==================
