@@ -58,26 +58,57 @@ parser.add_option("-f", "--find-links",
                   help=("Specify a URL to search for buildout releases"))
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
-                  help=("Let bootstrap.py use existing site packages"))
+                  help=("Use existing installed site packages, such as a"\
+                        " preinstalled setuptools. Use this option and install"\
+                        " setuptools before bootstraping to avoid installing"\
+                        " setuptools from the network."))
 
 
 options, args = parser.parse_args()
 
 ######################################################################
+# get links to search for a local ez_setup.py
+find_links = os.environ.get(
+    'bootstrap-testing-find-links',
+    options.find_links or
+    ('http://downloads.buildout.org/'
+     if options.accept_buildout_test_releases else None)
+    )
+
+######################################################################
 # load/install setuptools
 
-try:
-    if options.allow_site_packages:
-        import setuptools
-        import pkg_resources
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
 
-ez = {}
-exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
-            ).read(), ez)
-if not options.allow_site_packages:
+def install_setuptools():
+    '''Install setuptools either from an ez_setup.py found in find-links
+    or from a remote URL'''
+    ez = {}
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
+    ezurls = []
+
+    if find_links:
+        if not any([find_links.startswith(s) for s 
+                    in 'http: https: ftp: file:'.split()]):
+            ez_url =  'file:' + find_links
+        else:
+            ez_url = find_links
+        if not ez_url.endswith('ez_setup.py'):
+            ez_url = ez_url.rstrip('/').rstrip('\\') + '/ez_setup.py'
+        ezurls.append(ez_url)
+    ezurls.append('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py')
+
+    for ezu in ezurls:
+        try:
+            exec(urlopen(ezu).read(), ez)
+            break
+        except:
+            pass
+    if not ez:
+        raise
+
     # ez_setup imports site, which adds site packages
     # this will remove them from the path to ensure that incompatible versions 
     # of setuptools are not in the path
@@ -87,17 +118,26 @@ if not options.allow_site_packages:
     if hasattr(site, 'getsitepackages'):
         for sitepackage_path in site.getsitepackages():
             sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
+    setup_args = dict(to_dir=tmpeggs, download_delay=0)
+    ez['use_setuptools'](**setup_args)
 
-setup_args = dict(to_dir=tmpeggs, download_delay=0)
-ez['use_setuptools'](**setup_args)
+if options.allow_site_packages:
+    try:
+        import setuptools
+        import pkg_resources
+    except ImportError:
+        install_setuptools()
+else:
+    install_setuptools()
+
 import setuptools
 import pkg_resources
-
 # This does not (always?) update the default working set.  We will
 # do it.
 for path in sys.path:
     if path not in pkg_resources.working_set.entries:
         pkg_resources.working_set.add_entry(path)
+
 
 ######################################################################
 # Install buildout
@@ -108,12 +148,6 @@ cmd = [sys.executable, '-c',
        'from setuptools.command.easy_install import main; main()',
        '-mZqNxd', tmpeggs]
 
-find_links = os.environ.get(
-    'bootstrap-testing-find-links',
-    options.find_links or
-    ('http://downloads.buildout.org/'
-     if options.accept_buildout_test_releases else None)
-    )
 if find_links:
     cmd.extend(['-f', find_links])
 
