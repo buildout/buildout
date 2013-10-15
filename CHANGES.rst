@@ -4,7 +4,8 @@ Change History
 Unreleased
 ==========
 
-- TBD
+- Add BUILDOUT_HOME as an alternate way to control how the user default
+  configuration is found.
 
 2.2.1 (2013-09-05)
 ==================

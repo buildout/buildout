@@ -1725,7 +1725,54 @@ user defaults:
     op5 b3base 5
     recipe recipes:debug
 
+If the environment variable BUILDOUT_HOME is non-empty, that is used to
+locate default.cfg instead of looking in ~/.buildout/.  Let's set up a
+configuration file in an alternate directory and verify that we get the
+appropriate set of defaults:
+
+    >>> alterhome = tmpdir('alterhome')
+    >>> write(alterhome, 'default.cfg',
+    ... """
+    ... [debug]
+    ... op1 = 1'
+    ... op7 = 7'
+    ... op8 = eight!
+    ... """)
+
+    >>> os.environ['BUILDOUT_HOME'] = alterhome
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    op7 7'
+    op8 eight!
+    recipe recipes:debug
+
+The -U argument still suppresses reading of the default.cfg file from
+BUILDOUT_HOME:
+
+    >>> print_(system(buildout + ' -U'), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
     >>> os.environ['HOME'] = old_home
+    >>> del os.environ['BUILDOUT_HOME']
 
 Log level
 ---------
