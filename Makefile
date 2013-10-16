@@ -31,9 +31,9 @@ $(PYTHON_PATH):
 	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
 ifeq ($(PYTHON_VER),2.6)
 	cd $(PYTHON_PATH) && \
-	curl --progress-bar https://raw.github.com/collective/buildout.python/master/src/issue12012-sslv2-py26.txt > ssl.txt
+	curl --progress-bar https://raw.github.com/collective/buildout.python/ad45adb78bfa37542d62a394392d5146fce5af34/src/issue12012-sslv2-py26.patch > ssl.patch
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	patch -p0 < ../ssl.txt
+	patch -p0 < ../ssl.patch
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
 	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
