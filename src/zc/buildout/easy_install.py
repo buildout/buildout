@@ -1268,9 +1268,8 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        __file__f = open(__file__)
-        exec(compile(__file__f.read(), __file__, "exec"))
-        __file__f.close(); del __file__f
+        with open(__file__, 'U') as __file__f:
+            exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
@@ -1289,7 +1288,8 @@ __file__ = %(__file__)r
 os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
 
-exec(compile(open(%(setup)r).read(), %(setup)r, 'exec'))
+with open(%(setup)r, 'U') as f:
+    exec(compile(f.read(), %(setup)r, 'exec'))
 """
 
 
