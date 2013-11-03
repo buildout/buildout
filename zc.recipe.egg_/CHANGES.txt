@@ -49,7 +49,7 @@ Change History
   zc.buildout 1.5.0.
 
 1.2.3b1 (2010-04-29)
-==================
+====================
 
 - Refactored to be used with z3c.recipe.scripts and zc.buildout 1.5.0.
   No new user-visible features.
