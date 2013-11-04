@@ -91,11 +91,11 @@ def install_setuptools():
 
     if find_links:
         if not find_links.startswith(('http:', 'https:', 'ftp:', 'file:',)):
-            ez_url =  'file:' + find_links
+            ez_url =  u'file:' + find_links
         else:
             ez_url = find_links
         if not ez_url.endswith('ez_setup.py'):
-            ez_url = ez_url.rstrip('/\\') + '/ez_setup.py'
+            ez_url = ez_url.rstrip(u'/\\') + u'/ez_setup.py'
         ezurls.append(ez_url)
     ezurls.append('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py')
 
