@@ -55,11 +55,11 @@ parser.add_option("-c", "--config-file",
                   help=("Specify the path to the buildout configuration "
                         "file to be used."))
 parser.add_option("-f", "--find-links",
-                  help=("Specify a URL to search for buildout releases"))
+                  help=("Specify a URL to search for buildout or ez_setup releases"))
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Use existing installed site packages, such as a"\
-                        " preinstalled setuptools. Use this option and install"\
+                        " pre-installed setuptools. Use this option and install"\
                         " setuptools before bootstraping to avoid installing"\
                         " setuptools from the network."))
 
@@ -90,13 +90,12 @@ def install_setuptools():
     ezurls = []
 
     if find_links:
-        if not any([find_links.startswith(s) for s 
-                    in 'http: https: ftp: file:'.split()]):
+        if not find_links.startswith(('http:', 'https:', 'ftp:', 'file:',)):
             ez_url =  'file:' + find_links
         else:
             ez_url = find_links
         if not ez_url.endswith('ez_setup.py'):
-            ez_url = ez_url.rstrip('/').rstrip('\\') + '/ez_setup.py'
+            ez_url = ez_url.rstrip('/\\') + '/ez_setup.py'
         ezurls.append(ez_url)
     ezurls.append('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py')
 
@@ -106,8 +105,10 @@ def install_setuptools():
             break
         except:
             pass
+
     if not ez:
-        raise
+        raise Exception("Failed to install setuptools from urls:\n%s" % 
+                        '\n'.join(ezurls))
 
     # ez_setup imports site, which adds site packages
     # this will remove them from the path to ensure that incompatible versions 

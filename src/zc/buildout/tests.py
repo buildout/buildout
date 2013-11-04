@@ -3279,6 +3279,10 @@ def bootstrapSetup(test):
     os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
     test.globs['bootstrap_py'] = bootstrap_py
 
+def bootstrap_ezSetup(test):
+    buildout_txt_setup(test)
+    test.globs['bootstrap_py'] = bootstrap_py
+
 normalize_bang = (
     re.compile(re.escape('#!'+
                          zc.buildout.easy_install._safe_arg(sys.executable))),
@@ -3541,22 +3545,30 @@ def test_suite():
             'testing_bugfix.txt'),
     ]
 
-    # adding bootstrap.txt doctest to the suite
+    # adding bootstrap doctests to the suite
     # only if bootstrap.py is present
     if os.path.exists(bootstrap_py):
+        bootstrap_checkers = renormalizing.RENormalizing([
+                   zc.buildout.testing.normalize_path,
+                   zc.buildout.testing.normalize_endings,
+                   zc.buildout.testing.normalize_script,
+                   zc.buildout.testing.not_found,
+                   normalize_bang,
+                   zc.buildout.testing.adding_find_link,
+                   (re.compile('Downloading.*setuptools.*egg\n'), ''),
+                   ])
         test_suite.append(doctest.DocFileSuite(
             'bootstrap.txt', 'bootstrap_cl_settings.test',
             setUp=bootstrapSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
-            checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.not_found,
-               normalize_bang,
-               zc.buildout.testing.adding_find_link,
-               (re.compile('Downloading.*setuptools.*egg\n'), ''),
-               ]),
+            checker=bootstrap_checkers,
+            ))
+
+        test_suite.append(doctest.DocFileSuite(
+            'bootstrap_ezsetup.txt',
+            setUp=bootstrap_ezSetup,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            checker=bootstrap_checkers,
             ))
 
     return unittest.TestSuite(test_suite)
