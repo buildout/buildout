@@ -614,7 +614,7 @@ run other scripts with the path set on the working set:
 The py script simply runs the Python interactive interpreter with
 the path set:
 
-    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bin, 'py') # doctest: +NORMALIZE_WHITESPACE +REPORT_NDIFF
     #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
@@ -643,9 +643,8 @@ the path set:
             sys.argv[:] = _args
             __file__ = _args[0]
             del _options, _args
-            __file__f = open(__file__)
-            exec(compile(__file__f.read(), __file__, "exec"))
-            __file__f.close(); del __file__f
+            with open(__file__, 'U') as __file__f:
+                exec(compile(__file__f.read(), __file__, "exec"))
     <BLANKLINE>
     if _interactive:
         del _interactive
@@ -872,7 +871,7 @@ Of course, running the script works:
 
 We specified an interpreter and its paths are adjusted too:
 
-    >>> cat(bo, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE
+    >>> cat(bo, 'bin', 'py') # doctest: +NORMALIZE_WHITESPACE +REPORT_NDIFF
     #!/usr/local/bin/python2.7
     <BLANKLINE>
     import os
@@ -909,9 +908,8 @@ We specified an interpreter and its paths are adjusted too:
             sys.argv[:] = _args
             __file__ = _args[0]
             del _options, _args
-            __file__f = open(__file__)
-            exec(compile(__file__f.read(), __file__, "exec"))
-            __file__f.close(); del __file__f
+            with open(__file__, 'U') as __file__f:
+                exec(compile(__file__f.read(), __file__, "exec"))
     <BLANKLINE>
     if _interactive:
         del _interactive
