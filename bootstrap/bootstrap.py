@@ -77,8 +77,6 @@ find_links = os.environ.get(
 
 ######################################################################
 # load/install setuptools
-
-
 def install_setuptools():
     '''Install setuptools either from an ez_setup.py found in find-links
     or from a remote URL'''
