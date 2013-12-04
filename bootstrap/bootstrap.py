@@ -18,6 +18,12 @@ The script accepts buildout command-line options, so you can
 use the -c option to specify an alternate configuration file.
 """
 
+######################################################################
+# Download URLs/Constants
+
+VIRTUALENV_URL = "https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz"
+EZSETUP_URL = "https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py"
+
 import os
 import shutil
 import sys
@@ -59,9 +65,15 @@ parser.add_option("-f", "--find-links",
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Let bootstrap.py use existing site packages"))
+parser.add_option("--virtualenv", action="store_true", default=False,
+                  help=("Use virtualenv to sandbox buildout"))
 
 
 options, args = parser.parse_args()
+
+
+    
+    
 
 ######################################################################
 # load/install setuptools
@@ -74,9 +86,21 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
+
+def _setup_virtualenv():
+    """ Setup and install virtualenv """
+    print "Downloading virtualenv..."
+    import gzip, tarfile, io, tempfile, shutil
+    tf = tarfile.open(fileobj=io.BytesIO(urlopen(VIRTUALENV_URL).read()))
+    temp_folder = tempfile.mkdtemp()
+    tf.extractall(temp_folder)
+    print "Calling virtualenv..."
+    subprocess.call([sys.executable, os.path.join(temp_folder, 'virtualenv-1.10', 'virtualenv.py'), 
+                     '--no-setuptools', '--no-pip', '--no-site-packages', os.curdir])
+    shutil.rmtree(temp_folder)
+
 ez = {}
-exec(urlopen('https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
-            ).read(), ez)
+exec(urlopen(EZSETUP_URL).read(), ez)
 if not options.allow_site_packages:
     # ez_setup imports site, which adds site packages
     # this will remove them from the path to ensure that incompatible versions 
@@ -103,6 +127,14 @@ for path in sys.path:
 # Install buildout
 
 ws = pkg_resources.working_set
+
+python_executable = sys.executable
+
+if options.virtualenv and not os.path.exists(os.curdir, 'bin', 'python'):
+    python_executable = os.path.join(os.curdir, 'bin', 'python')
+    if not os.path.exists(python_executable):
+        _setup_virtualenv()
+    
 
 cmd = [sys.executable, '-c',
        'from setuptools.command.easy_install import main; main()',
