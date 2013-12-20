@@ -7,7 +7,7 @@ Unreleased
 - Open files for ``exec()`` in universal newlines mode.  See 
   https://github.com/buildout/buildout/issues/130
 
-- Add BUILDOUT_HOME as an alternate way to control how the user default
+- Add ``BUILDOUT_HOME`` as an alternate way to control how the user default
   configuration is found.
 
 2.2.1 (2013-09-05)
