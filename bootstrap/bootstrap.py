@@ -91,12 +91,12 @@ except ImportError:
 
 def _setup_virtualenv():
     """ Setup and install virtualenv """
-    print "Downloading virtualenv..."
+    print("Downloading virtualenv...")
     import gzip, tarfile, io, tempfile, shutil
     tf = tarfile.open(fileobj=io.BytesIO(urlopen(VIRTUALENV_URL).read()))
     temp_folder = tempfile.mkdtemp()
     tf.extractall(temp_folder)
-    print "Calling virtualenv..."
+    print("Calling virtualenv...")
     subprocess.call([sys.executable, os.path.join(temp_folder, 'virtualenv-1.10', 'virtualenv.py'), 
                      '--no-setuptools', '--no-pip', '--no-site-packages', os.path.join(os.curdir, 'venv')])
     shutil.rmtree(temp_folder)
@@ -106,7 +106,7 @@ def _run_with_different_python(executable):
     """ Run bootstrap.py with a different python executable """
     args = [arg for arg in sys.argv if arg != VIRTUALENV_OPTION]
     args.insert(0, executable)
-    print "Running bootstrap.py with {0}".format(executable)
+    print("Running bootstrap.py with {0}".format(executable))
     exit(subprocess.call(args))
 
 
