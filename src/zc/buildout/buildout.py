@@ -1235,7 +1235,7 @@ class Options(DictMixin):
             result =_annotate_section(result, "")
             data = _annotate_section(data.copy(), "")
             _update_section(result, data)
-            result = _unannotate_section(anno_result)
+            result = _unannotate_section(result)
             result.pop('<', None)
             return result
         finally:
