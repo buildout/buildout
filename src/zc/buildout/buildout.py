@@ -1946,7 +1946,6 @@ def main(args=None):
         try:
             buildout = Buildout(config_file, options,
                                 user_defaults, command, args)
-            print command, args
             getattr(buildout, command)(args)
         except SystemExit:
             logging.shutdown()
