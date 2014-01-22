@@ -1232,7 +1232,10 @@ class Options(DictMixin):
                     raise zc.buildout.UserError("No section named %r" % iname)
                 result.update(self._do_extend_raw(iname, raw, doing))
 
-            result.update(data)
+            result =_annotate_section(result, "")
+            data = _annotate_section(data.copy(), "")
+            _update_section(result, data)
+            result = _unannotate_section(anno_result)
             result.pop('<', None)
             return result
         finally:
@@ -1943,6 +1946,7 @@ def main(args=None):
         try:
             buildout = Buildout(config_file, options,
                                 user_defaults, command, args)
+            print command, args
             getattr(buildout, command)(args)
         except SystemExit:
             logging.shutdown()
