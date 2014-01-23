@@ -1134,6 +1134,90 @@ In this example, the debug, with_file1 and with_file2 sections act as
 macros. In particular, the variable substitutions are performed
 relative to the myfiles section.
 
+Extending sections (macros) - Adding and removing options
+----------------------------------------------------
+We can also add and remove options in extended sections.
+
+This is illustrated below; first we define a base configuration.
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... parts = part1 part2 part3
+    ...
+    ... [part1]
+    ... recipe =
+    ... option = a1 
+    ...          a2 
+    ...     
+    ... [part2]
+    ... <= part1
+    ... option -= a1    
+    ... option += c3 c4
+    ...
+    ... [part3]
+    ... <= part2
+    ... option += d2
+    ...            c5 d1 d6
+    ... option -= a2
+    ... """)
+
+To verify that the options are adjusted correctly, we'll set up an
+extension that prints out the options.
+
+    >>> mkdir(sample_buildout, 'demo')
+    >>> write(sample_buildout, 'demo', 'demo.py',
+    ... """
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write(str(
+    ...         [part['option'] for name, part in sorted(buildout.items())
+    ...          if name.startswith('part')])+'\\n')
+    ... """)
+
+    >>> write(sample_buildout, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name="demo",
+    ...     entry_points={'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+Set up a buildout configuration for this extension.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts =
+    ... """)
+
+    >>> os.chdir(sample_buildout)
+    >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='') # doctest: +ELLIPSIS
+    Develop: '/sample-buildout/demo'
+    ....
+ 
+Verify option values.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... extends = base.cfg
+    ... """)
+
+    >>> print_(system(os.path.join('bin', 'buildout')), end='')
+    ['a1/na2', 'a2/nc3 c4', 'c3 c4/nd2/nc5 d1 d6']
+    Develop: '/sample-buildout/demo'
+
+Cleanup.
+
+    >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
+    >>> rmdir(sample_buildout, 'demo')
+
 Conditional sections
 --------------------
 
