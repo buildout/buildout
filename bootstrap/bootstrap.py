@@ -41,6 +41,9 @@ this script from going over the network.
 
 parser = OptionParser(usage=usage)
 parser.add_option("-v", "--version", help="use a specific zc.buildout version")
+parser.add_option("--setuptools-version",
+                  dest="setuptools_version", metavar='VERSION',
+                  help="use a specific setuptools version")
 
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
@@ -89,6 +92,8 @@ if not options.allow_site_packages:
             sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
+if options.setuptools_version:
+    setup_args['version'] = options.setuptools_version
 ez['use_setuptools'](**setup_args)
 import setuptools
 import pkg_resources
