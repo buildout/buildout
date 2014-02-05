@@ -1,0 +1,61 @@
+Make sure the bootstrap script actually works locally and can use a 
+locally available ez_setup script found in find-links::
+
+    >>> import os, sys
+    >>> from os.path import dirname, join
+    >>> try:
+    ...     from urllib.request import urlopen
+    ... except ImportError:
+    ...     from urllib2 import urlopen
+    >>> import zc.buildout
+    >>> bootstrap_py = join(
+    ...    dirname(
+    ...     dirname(
+    ...      dirname(
+    ...       dirname(zc.buildout.__file__)
+    ...        )
+    ...      )
+    ...    ),
+    ...   'bootstrap', 'bootstrap.py')
+    >>> sample_buildout = tmpdir('local_bootstrap')
+    >>> links_dir = join(sample_buildout, 'local_links')
+    >>> mkdir(links_dir)
+    >>> ez_url  = 'https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py'
+    >>> os.chdir(links_dir)
+    >>> write('ez_setup.py', urlopen(ez_url).read())
+    >>> os.chdir(sample_buildout)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... ''')
+    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> print_('X'); print_(system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable) + ' ' +
+    ...     'bootstrap.py' + ' --find-links ' +
+    ...      links_dir)); print_('X') # doctest: +ELLIPSIS
+    X...
+    Creating directory '/local_bootstrap/bin'.
+    Creating directory '/local_bootstrap/parts'.
+    Creating directory '/local_bootstrap/eggs'.
+    Creating directory '/local_bootstrap/develop-eggs'.
+    Generated script '/local_bootstrap/bin/buildout'.
+    ...
+
+    >>> ls(sample_buildout)
+    d  bin
+    -  bootstrap.py
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  local_links
+    d  parts
+
+
+    >>> ls(sample_buildout, 'bin')
+    -  buildout
+
+    >>> print_('X'); ls(sample_buildout, 'eggs') # doctest: +ELLIPSIS
+    X...
+    d  zc.buildout-...egg
+
