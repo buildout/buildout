@@ -215,6 +215,14 @@ def parse(fp, fpname, exp_globals=dict):
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
                     optval = optval.strip()
+                    if optname.endswith('+'):
+                        optname = optname.rstrip(' +')
+                        optval = ' '.join((cursect.get(optname, ''), optval))
+                    if optname.endswith('-'):
+                        optname = optname.rstrip(' -')
+                        optval = ' '.join(
+                            [val for val in cursect.get(optname, '').split()
+                                if val not in optval.split()])
                     cursect[optname] = optval
                     blockmode = not optval
                 elif not (optname or line.strip()):
