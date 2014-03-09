@@ -10,6 +10,14 @@ Unreleased
 - Add ``BUILDOUT_HOME`` as an alternate way to control how the user default
   configuration is found.
 
+- Treat ``download-cache`` and ``eggs-directory`` in a special manner:
+
+  a) they can be relative paths, relative to the location of the configuration
+     file that defines them
+
+  b) the can be in the form ``~/subdir``, with the usual convention that the
+     ``~`` char means the home directory of the user executing the buildout
+
 2.2.1 (2013-09-05)
 ==================
 

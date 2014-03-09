@@ -810,7 +810,7 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     directory= /sample-buildout
         COMPUTED_VALUE
-    eggs-directory= eggs
+    eggs-directory= /sample-buildout/eggs
         DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
