@@ -139,3 +139,23 @@ install-from-cache option set to true:
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.1.
     Generated script '/sample-buildout/bin/demo'.
+
+Auto-creation of download cache directory
+-----------------------------------------
+
+With zc.buildout version 2.2.2 or higher the cache directory is automatically
+created, provided it is within an already existing directory::
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... download-cache = %(cache)s/newdir
+    ... ''' % globals())
+
+    >>> print_(system(buildout), end='')
+    Uninstalling eggs.
+
+    >>> ls(cache)
+    d  dist
+    d  newdir
