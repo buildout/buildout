@@ -163,9 +163,9 @@ created, provided it is within an already existing directory::
 Using relative paths
 --------------------
 
-You can use a relative path for ``download-cache`` (the same logic is applied
-to ``eggs-directory`` too) and in such case it is considered relative to the
-location of the configuration file that sets its value.
+You can use a relative path for ``download-cache`` (the same logic is applied to
+``eggs-directory`` and to ``extends-cache`` too) and in such case it is considered
+relative to the location of the configuration file that sets its value.
 
 As an example, we create a ``base.cfg`` configuration in a different directory::
 

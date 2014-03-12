@@ -257,7 +257,7 @@ class Buildout(DictMixin):
         # and considering the location of the configuration file that generated
         # the setting as the base path, falling back to the main configuration
         # file location
-        for name in ('download-cache', 'eggs-directory'):
+        for name in ('download-cache', 'eggs-directory', 'extends-cache'):
             if name in data['buildout']:
                 origdir, src = data['buildout'][name]
                 if '${' in origdir:
