@@ -85,7 +85,15 @@ if not options.allow_site_packages:
     # inside a virtualenv, there is no 'getsitepackages'. 
     # We can't remove these reliably
     if hasattr(site, 'getsitepackages'):
-        for sitepackage_path in site.getsitepackages():
+        site_packages = site.getsitepackages()
+
+        # On Windows, site.py adds sys.prefix to the list of site packages,
+        # but we need sys.prefix on the path so that parts of the standard
+        # library don't get removed.
+        if sys.prefix in site_packages:
+            site_packages.remove(sys.prefix)
+
+        for sitepackage_path in site_packages:
             sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
