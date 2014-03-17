@@ -2671,6 +2671,45 @@ def increment_buildout_with_multiple_extended_files_421022():
       recipe='zc.buildout:debug'
     """
 
+def increment_buildout_with_multiple_extended_without_base_equals():
+    r"""
+
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = base1.cfg base2.cfg
+    ... parts += foo
+    ... [foo]
+    ... recipe = zc.buildout:debug
+    ... [base1]
+    ... recipe = zc.buildout:debug
+    ... [base2]
+    ... recipe = zc.buildout:debug
+    ... ''')
+    >>> write('base1.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base1
+    ... ''')
+    >>> write('base2.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base2
+    ... ''')
+    >>> write('base3.cfg', '''
+    ... [buildout]
+    ... ''')
+
+    >>> print_(system(buildout), end='')
+    Installing base1.
+      recipe='zc.buildout:debug'
+    Installing base2.
+      recipe='zc.buildout:debug'
+    Installing foo.
+      recipe='zc.buildout:debug'
+    """
+
+
+
 def increment_on_command_line():
     r"""
     >>> write('buildout.cfg', '''

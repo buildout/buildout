@@ -227,6 +227,16 @@ class Buildout(DictMixin):
         # apply command-line options
         _update(data, cloptions)
 
+        # convert any remaining += to =
+        for sectionname in data:
+            section = data[sectionname]
+            s2 = section.copy()
+            for k, v in s2.items():
+                if k.endswith('+'):
+                    key = k.rstrip(' +')
+                    section[key] = v
+                    del section[k]
+
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
             data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
@@ -1644,6 +1654,7 @@ def _update_section(s1, s2):
     # in section 2 overriding those in section 1. If there are += or -=
     # operators in section 2, process these to add or substract items (delimited
     # by newlines) from the preexisting values.
+#    print "=%s +=%s -> =%s +=%s" % (s2.get('parts',''), s2.get('parts +',''), s1.get('parts',''), s1.get('parts +',''))
     s2 = s2.copy() # avoid mutating the second argument, which is unexpected
     # Sort on key, then on the addition or substraction operator (+ comes first)
     for k, v in sorted(s2.items(), key=lambda x: (x[0].rstrip(' +'), x[0][-1])):
@@ -1651,11 +1662,18 @@ def _update_section(s1, s2):
         if k.endswith('+'):
             key = k.rstrip(' +')
             # Find v1 in s2 first; it may have been defined locally too.
-            v1, note1 = s2.get(key, s1.get(key, ("", "")))
+            v1, note1 = s2.get(key, s1.get(key, s1.get(k, ("", ""))))
+            if v1 == '':
+                #CASE: turning a += into a = prematurely can result in values disappearing
+                key = key + " +"
+            elif k in s1:
+                key = key + " +"
+                del s1[k]
+            else:
+                del s2[k]
             newnote = ' [+] '.join((note1, note2)).strip()
             s2[key] = "\n".join((v1).split('\n') +
                 v2.split('\n')), newnote
-            del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
             # Find v1 in s2 first; it may have been set by a += operation first
@@ -1667,6 +1685,7 @@ def _update_section(s1, s2):
             del s2[k]
 
     s1.update(s2)
+#    print "=%s +=%s" % (s1.get('parts',''), s1.get('parts +',''))
     return s1
 
 def _update(d1, d2):
