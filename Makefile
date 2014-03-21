@@ -28,7 +28,7 @@ $(PYTHON_PATH):
 	@echo "Installing Python"
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
-	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
+	curl --progress-bar --location $(PYTHON_DOWNLOAD) | tar -zx
 ifeq ($(PYTHON_VER),2.6)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar https://raw.github.com/collective/buildout.python/ad45adb78bfa37542d62a394392d5146fce5af34/src/issue12012-sslv2-py26.patch > ssl.patch
