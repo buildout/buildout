@@ -16,7 +16,7 @@ ifeq ($(PYTHON_VER),3.3)
 endif
 
 PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
-PYTHON_DOWNLOAD = http://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
+PYTHON_DOWNLOAD = https://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
 PYTHON_EXE = python$(PYTHON_VER)
 
 .PHONY: all build test
