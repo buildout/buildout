@@ -16,7 +16,7 @@ ifeq ($(PYTHON_VER),3.3)
 endif
 
 PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
-PYTHON_DOWNLOAD = http://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
+PYTHON_DOWNLOAD = https://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
 PYTHON_EXE = python$(PYTHON_VER)
 
 .PHONY: all build test
@@ -28,7 +28,7 @@ $(PYTHON_PATH):
 	@echo "Installing Python"
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
-	curl --progress-bar $(PYTHON_DOWNLOAD) | tar -zx
+	curl --progress-bar --location $(PYTHON_DOWNLOAD) | tar -zx
 ifeq ($(PYTHON_VER),2.6)
 	cd $(PYTHON_PATH) && \
 	curl --progress-bar https://raw.github.com/collective/buildout.python/ad45adb78bfa37542d62a394392d5146fce5af34/src/issue12012-sslv2-py26.patch > ssl.patch
