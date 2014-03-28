@@ -10,6 +10,9 @@ Unreleased
 - Add ``BUILDOUT_HOME`` as an alternate way to control how the user default
   configuration is found.
 
+- Fix edgecase where using multiple inheritance and increments can result in
+  some increments not being included in the final value
+
 2.2.1 (2013-09-05)
 ==================
 

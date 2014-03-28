@@ -227,6 +227,16 @@ class Buildout(DictMixin):
         # apply command-line options
         _update(data, cloptions)
 
+        # convert any remaining += to =
+        for sectionname in data:
+            section = data[sectionname]
+            s2 = section.copy()
+            for k, v in s2.items():
+                if k.endswith('+'):
+                    key = k.rstrip(' +')
+                    section[key] = v
+                    del section[k]
+
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
             data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
@@ -1651,11 +1661,20 @@ def _update_section(s1, s2):
         if k.endswith('+'):
             key = k.rstrip(' +')
             # Find v1 in s2 first; it may have been defined locally too.
-            v1, note1 = s2.get(key, s1.get(key, ("", "")))
+            v1, note1 = s2.get(key, s1.get(key, s1.get(k, ("", ""))))
+            if v1 == '':
+                # merging += in nothing. Keep as +=
+                key = key + " +"
+            elif k in s1:
+                # merging += into +=. keep as +=
+                key = key + " +"
+                del s1[k]
+            else:
+                # merging += into =. convert to =
+                del s2[k]
             newnote = ' [+] '.join((note1, note2)).strip()
             s2[key] = "\n".join((v1).split('\n') +
                 v2.split('\n')), newnote
-            del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
             # Find v1 in s2 first; it may have been set by a += operation first
