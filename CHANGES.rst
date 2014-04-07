@@ -4,11 +4,14 @@ Change History
 Unreleased
 ==========
 
-- Open files for ``exec()`` in universal newlines mode.  See 
+- Open files for ``exec()`` in universal newlines mode.  See
   https://github.com/buildout/buildout/issues/130
 
 - Add ``BUILDOUT_HOME`` as an alternate way to control how the user default
   configuration is found.
+
+- Close various files when finished writing to them. This avoids
+  ResourceWarnings on Python 3, and better supports doctests under PyPy.
 
 2.2.1 (2013-09-05)
 ==================
