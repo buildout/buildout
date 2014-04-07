@@ -19,6 +19,7 @@ installed.
 """
 
 import distutils.errors
+import errno
 import glob
 import logging
 import os
@@ -1130,15 +1131,21 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         )
     return _create_script(contents, dest)
 
+def _file_changed(filename, old_contents, mode='r'):
+    try:
+        with open(filename, mode) as f:
+            return f.read() != old_contents
+    except EnvironmentError as e:
+        if e.errno == errno.ENOENT:
+            return True
+        else:
+            raise
 
 def _create_script(contents, dest):
     generated = []
     script = dest
 
-    changed = True
-    if os.path.exists(dest):
-        with open(dest) as f:
-            changed = f.read() != contents
+    changed = _file_changed(dest, contents)
 
     if is_win32:
         # generate exe file and give the script a magic name:
@@ -1151,11 +1158,8 @@ def _create_script(contents, dest):
         except AttributeError:
             # fall back for compatibility with older Distribute versions
             new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
-        win32_changed = True
-        if os.path.exists(win32_exe):
-            with open(win32_exe, 'rb') as f:
-                win32_changed = f.read() != new_data
-        if win32_changed:
+
+        if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
             with open(win32_exe, 'wb') as f:
                 f.write(new_data)
@@ -1226,10 +1230,7 @@ def _pyscript(path, dest, rsetup, initialization=''):
         relative_paths_setup = rsetup,
         initialization=initialization,
         )
-    changed = True
-    if os.path.exists(dest):
-        with open(dest) as f:
-            changed = f.read() != contents
+    changed = _file_changed(dest, contents)
 
     if is_win32:
         # generate exe file and give the script a magic name:
