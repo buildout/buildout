@@ -242,7 +242,7 @@ def buildoutSetUp(test):
 
     # Create a basic buildout.cfg to avoid a warning from buildout:
     with open('buildout.cfg', 'w') as f:
-	    f.write("[buildout]\nparts =\n")
+        f.write("[buildout]\nparts =\n")
 
     # Use the buildout bootstrap command to create a buildout
     zc.buildout.buildout.Buildout(
@@ -473,7 +473,7 @@ def install(project, destination):
     else:
         # copy link
         with open(os.path.join(destination, project+'.egg-link'), 'w') as f:
-		    f.write(dist.location)
+            f.write(dist.location)
 
 def install_develop(project, destination):
     if not isinstance(destination, str):
@@ -483,7 +483,7 @@ def install_develop(project, destination):
     dist = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse(project))
     with open(os.path.join(destination, project+'.egg-link'), 'w') as f:
-	    f.write(dist.location)
+        f.write(dist.location)
 
 def _normalize_path(match):
     path = match.group(1)

@@ -1154,10 +1154,11 @@ def _create_script(contents, dest):
         win32_changed = True
         if os.path.exists(win32_exe):
             with open(win32_exe, 'rb') as f:
-                win32_changed = f.reod() != new_data
+                win32_changed = f.read() != new_data
         if win32_changed:
             # Only write it if it's different.
-            open(win32_exe, 'wb').write(new_data)
+            with open(win32_exe, 'wb') as f:
+                f.write(new_data)
         generated.append(win32_exe)
 
     if changed:
@@ -1234,7 +1235,7 @@ def _pyscript(path, dest, rsetup, initialization=''):
         # generate exe file and give the script a magic name:
         exe = script + '.exe'
         with open(exe, 'wb') as f:
-			f.write(
+            f.write(
                 pkg_resources.resource_string('setuptools', 'cli.exe')
             )
         generated.append(exe)
