@@ -56,7 +56,8 @@ def cat(dir, *names):
         and os.path.exists(path+'-script.py')
         ):
         path = path+'-script.py'
-    print_(open(path).read(), end='')
+    with open(path) as f:
+        print_(f.read(), end='')
 
 def ls(dir, *subs):
     if subs:
@@ -240,9 +241,8 @@ def buildoutSetUp(test):
     os.chdir(sample)
 
     # Create a basic buildout.cfg to avoid a warning from buildout:
-    open('buildout.cfg', 'w').write(
-        "[buildout]\nparts =\n"
-        )
+    with open('buildout.cfg', 'w') as f:
+        f.write("[buildout]\nparts =\n")
 
     # Use the buildout bootstrap command to create a buildout
     zc.buildout.buildout.Buildout(
@@ -375,7 +375,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(out)))
             self.send_header('Content-Type', 'text/html')
         else:
-            out = open(path, 'rb').read()
+            with open(path, 'rb') as f:
+                out = f.read()
             self.send_header('Content-Length', len(out))
             if path.endswith('.egg'):
                 self.send_header('Content-Type', 'application/zip')
@@ -471,8 +472,8 @@ def install(project, destination):
             shutil.copyfile(dist.location, destination)
     else:
         # copy link
-        open(os.path.join(destination, project+'.egg-link'), 'w'
-             ).write(dist.location)
+        with open(os.path.join(destination, project+'.egg-link'), 'w') as f:
+            f.write(dist.location)
 
 def install_develop(project, destination):
     if not isinstance(destination, str):
@@ -481,8 +482,8 @@ def install_develop(project, destination):
 
     dist = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse(project))
-    open(os.path.join(destination, project+'.egg-link'), 'w'
-         ).write(dist.location)
+    with open(os.path.join(destination, project+'.egg-link'), 'w') as f:
+        f.write(dist.location)
 
 def _normalize_path(match):
     path = match.group(1)
