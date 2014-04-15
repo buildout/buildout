@@ -966,6 +966,7 @@ class Buildout(DictMixin):
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
+        extension_order = self['buildout'].get('extension_order', '').split()
         specs = self['buildout'].get('extensions', '').split()
         for superceded_extension in ['buildout-versions',
                                      'buildout.dumppickedversions']:
@@ -998,7 +999,18 @@ class Buildout(DictMixin):
             # couldn't read before.
             zc.buildout.easy_install.clear_index_cache()
 
-            for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
+            ordered_entry_points = []
+            entry_points = list(pkg_resources.iter_entry_points('zc.buildout.extension'))
+            for item in extension_order:
+                for ep in entry_points:
+                    if ep.dist.key == item:
+                        ordered_entry_points.append(ep)
+
+            for ep in entry_points:
+                if ep not in ordered_entry_points:
+                    ordered_entry_points.append(ep)
+
+            for ep in ordered_entry_points:
                 ep.load()(self)
 
     def _unload_extensions(self):
