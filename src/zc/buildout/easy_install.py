@@ -19,6 +19,7 @@ installed.
 """
 
 import distutils.errors
+import errno
 import glob
 import logging
 import os
@@ -868,7 +869,8 @@ def develop(setup, dest,
                     os.rename(setup_cfg+'-develop-aside', setup_cfg)
                 undo.append(restore_old_setup)
             else:
-                open(setup_cfg, 'w')
+                f = open(setup_cfg, 'w')
+                f.close()
                 undo.append(lambda: os.remove(setup_cfg))
             setuptools.command.setopt.edit_config(
                 setup_cfg, dict(build_ext=build_ext))
@@ -1107,7 +1109,7 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
     for line_number, line in enumerate(lines):
         if not 'import' in line:
             continue
-        if not line.startswith('import') or line.startswith('from'):
+        if not (line.startswith('import') or line.startswith('from')):
             continue
         if '__future__' in line:
             continue
@@ -1129,12 +1131,21 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         )
     return _create_script(contents, dest)
 
+def _file_changed(filename, old_contents, mode='r'):
+    try:
+        with open(filename, mode) as f:
+            return f.read() != old_contents
+    except EnvironmentError as e:
+        if e.errno == errno.ENOENT:
+            return True
+        else:
+            raise
 
 def _create_script(contents, dest):
     generated = []
     script = dest
 
-    changed = not (os.path.exists(dest) and open(dest).read() == contents)
+    changed = _file_changed(dest, contents)
 
     if is_win32:
         # generate exe file and give the script a magic name:
@@ -1147,15 +1158,16 @@ def _create_script(contents, dest):
         except AttributeError:
             # fall back for compatibility with older Distribute versions
             new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
-        if (not os.path.exists(win32_exe) or
-            (open(win32_exe, 'rb').read() != new_data)
-            ):
+
+        if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
-            open(win32_exe, 'wb').write(new_data)
+            with open(win32_exe, 'wb') as f:
+                f.write(new_data)
         generated.append(win32_exe)
 
     if changed:
-        open(dest, 'w').write(contents)
+        with open(dest, 'w') as f:
+            f.write(contents)
         logger.info(
             "Generated script %r.",
             # Normalize for windows
@@ -1218,18 +1230,20 @@ def _pyscript(path, dest, rsetup, initialization=''):
         relative_paths_setup = rsetup,
         initialization=initialization,
         )
-    changed = not (os.path.exists(dest) and open(dest).read() == contents)
+    changed = _file_changed(dest, contents)
 
     if is_win32:
         # generate exe file and give the script a magic name:
         exe = script + '.exe'
-        open(exe, 'wb').write(
-            pkg_resources.resource_string('setuptools', 'cli.exe')
+        with open(exe, 'wb') as f:
+            f.write(
+                pkg_resources.resource_string('setuptools', 'cli.exe')
             )
         generated.append(exe)
 
     if changed:
-        open(dest, 'w').write(contents)
+        with open(dest, 'w') as f:
+            f.write(contents)
         try:
             os.chmod(dest, _execute_permission())
         except (AttributeError, os.error):
@@ -1268,9 +1282,8 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        __file__f = open(__file__)
-        exec(compile(__file__f.read(), __file__, "exec"))
-        __file__f.close(); del __file__f
+        with open(__file__, 'U') as __file__f:
+            exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
@@ -1289,7 +1302,8 @@ __file__ = %(__file__)r
 os.chdir(%(setupdir)r)
 sys.argv[0] = %(setup)r
 
-exec(compile(open(%(setup)r).read(), %(setup)r, 'exec'))
+with open(%(setup)r, 'U') as f:
+    exec(compile(f.read(), %(setup)r, 'exec'))
 """
 
 

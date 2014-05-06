@@ -208,8 +208,12 @@ class Buildout(DictMixin):
 
         # load user defaults, which override defaults
         if user_defaults:
-            user_config = os.path.join(os.path.expanduser('~'),
-                                       '.buildout', 'default.cfg')
+            if os.environ.get('BUILDOUT_HOME'):
+                buildout_home = os.environ['BUILDOUT_HOME']
+            else:
+                buildout_home = os.path.join(
+                    os.path.expanduser('~'), '.buildout')
+            user_config = os.path.join(buildout_home, 'default.cfg')
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
                                     [], data['buildout'].copy(), override,
