@@ -158,8 +158,7 @@ cmd.append(requirement)
 import subprocess
 if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=setuptools_path)) != 0:
     raise Exception(
-        "Failed to execute command:\n%s",
-        repr(cmd)[1:-1])
+        "Failed to execute command:\n%s" % repr(cmd)[1:-1])
 
 ######################################################################
 # Import and run buildout
