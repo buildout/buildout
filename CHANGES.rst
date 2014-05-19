@@ -1,6 +1,12 @@
 Change History
 **************
 
+2.3.0-alpha3 (unreleased)
+=========================
+
+- Nothing changed yet.
+
+
 2.3.0-alpha2 (2014-05-19)
 =========================
 
