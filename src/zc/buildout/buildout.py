@@ -219,13 +219,13 @@ class Buildout(DictMixin):
             if os.path.exists(user_config):
                 _update(data, _open(os.path.dirname(user_config), user_config,
                                     [], data['buildout'].copy(), override,
-                                    set()), extends_vars)
+                                    set(), extends_vars))
 
         # load configuration files
         if config_file:
             _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data['buildout'].copy(), override, set()),
-                                extends_vars)
+                                data['buildout'].copy(), override, set(),
+                                extends_vars))
 
         # apply command-line options
         _update(data, cloptions)
