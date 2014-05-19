@@ -1,8 +1,10 @@
 Change History
 **************
 
-Unreleased
-==========
+2.3.0-alpha (2014-05-19)
+========================
+
+- Allow expansion of variables in extends (with extends_vars section)
 
 - Open files for ``exec()`` in universal newlines mode.  See
   https://github.com/buildout/buildout/issues/130
