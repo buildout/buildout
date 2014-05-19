@@ -349,6 +349,8 @@ class Buildout(DictMixin):
             )
         override = copy.deepcopy(cloptions.get('buildout', {}))
 
+        extends_vars = {}
+
         # load user defaults, which override defaults
         if user_defaults:
             if os.environ.get('BUILDOUT_HOME'):
@@ -361,13 +363,14 @@ class Buildout(DictMixin):
                 data_buildout_copy = copy.deepcopy(data['buildout'])
                 _update(data, _open(os.path.dirname(user_config), user_config,
                                     [], data_buildout_copy, override,
-                                    set()))
+                                    set()), extends_vars)
 
         # load configuration files
         if config_file:
             data_buildout_copy = copy.deepcopy(data['buildout'])
             _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data_buildout_copy, override, set()))
+                                data_buildout_copy, override, set()),
+                                extends_vars)
 
         # apply command-line options
         _update(data, cloptions)
@@ -1751,7 +1754,7 @@ def _default_globals():
 
     return globals_defs
 
-def _open(base, filename, seen, dl_options, override, downloaded):
+def _open(base, filename, seen, dl_options, override, downloaded, extends_vars):
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
@@ -1817,19 +1820,18 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     if root_config_file and 'buildout' in result:
         dl_options = _update_section(dl_options, result['buildout'])
 
-    extends_variables = {}
     if extends:
         extends = extends.split()
         first_name = extends.pop(0)
-        eresult = _open(base, first_name.format(**extends_variables), seen, dl_options, override,
-                        downloaded)
-        update_extends_variables(eresult, extends_variables)
+        eresult = _open(base, first_name.format(**extends_vars), seen, dl_options, override,
+                        downloaded, extends_vars)
+        update_extends_vars(eresult, extends_vars)
         for fname in extends:
-            expanded_name = fname.format(**extends_variables)
+            expanded_name = fname.format(**extends_vars)
             print expanded_name
             last_result = _open(base, expanded_name, seen, dl_options, override,
-                    downloaded)
-            update_extends_variables(last_result, extends_variables)
+                    downloaded, extends_vars)
+            update_extends_vars(last_result, extends_vars)
             _update(eresult, last_result)
 
         result = _update(eresult, result)
@@ -1838,13 +1840,15 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     return result
 
 
-def update_extends_variables(eresult, extends_variables):
-    if 'extends' in eresult:
-        if extends_variables:
+EXTENDS_VARS = 'extends_vars'
+
+def update_extends_vars(eresult, extends_vars):
+    if EXTENDS_VARS in eresult:
+        if extends_vars:
             raise ValueError('Cannot load extends section twice')
         else:
-            variables = _unannotate_section(copy.deepcopy(eresult['extends']))
-            extends_variables.update(variables)
+            variables = _unannotate_section(copy.deepcopy(eresult[EXTENDS_VARS]))
+            extends_vars.update(variables)
 
 
 
