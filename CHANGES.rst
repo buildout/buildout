@@ -4,7 +4,7 @@ Change History
 2.13.4 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Allow expansion of variables in extends (with extends_vars section)
 
 
 2.13.3 (2020-02-11)
