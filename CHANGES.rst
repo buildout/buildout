@@ -1,16 +1,16 @@
 Change History
 **************
 
-2.3.0-alpha3 (unreleased)
+2.3.0-alpha3 (2014-05-19)
 =========================
 
-- Nothing changed yet.
+- Better error message for broken expansion.
 
 
 2.3.0-alpha2 (2014-05-19)
 =========================
 
-- Nothing changed yet.
+- Fix silly error in method call.
 
 
 2.3.0-alpha (2014-05-19)
