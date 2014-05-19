@@ -363,14 +363,14 @@ class Buildout(DictMixin):
                 data_buildout_copy = copy.deepcopy(data['buildout'])
                 _update(data, _open(os.path.dirname(user_config), user_config,
                                     [], data_buildout_copy, override,
-                                    set()), extends_vars)
+                                    set(), extends_vars))
 
         # load configuration files
         if config_file:
             data_buildout_copy = copy.deepcopy(data['buildout'])
             _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data_buildout_copy, override, set()),
-                                extends_vars)
+                                data_buildout_copy, override, set(),
+                                extends_vars))
 
         # apply command-line options
         _update(data, cloptions)
