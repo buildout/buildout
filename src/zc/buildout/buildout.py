@@ -1822,14 +1822,13 @@ def _open(base, filename, seen, dl_options, override, downloaded, extends_vars):
 
     if extends:
         extends = extends.split()
-        first_name = extends.pop(0)
-        eresult = _open(base, first_name.format(**extends_vars), seen, dl_options, override,
+        expanded = expand_extends_vars(extends.pop(0), extends_vars)
+        eresult = _open(base, expanded, seen, dl_options, override,
                         downloaded, extends_vars)
         update_extends_vars(eresult, extends_vars)
         for fname in extends:
-            expanded_name = fname.format(**extends_vars)
-            print expanded_name
-            last_result = _open(base, expanded_name, seen, dl_options, override,
+            expanded = expand_extends_vars(fname, extends_vars)
+            last_result = _open(base, expanded, seen, dl_options, override,
                     downloaded, extends_vars)
             update_extends_vars(last_result, extends_vars)
             _update(eresult, last_result)
@@ -1850,6 +1849,18 @@ def update_extends_vars(eresult, extends_vars):
             variables = _unannotate_section(copy.deepcopy(eresult[EXTENDS_VARS]))
             extends_vars.update(variables)
 
+
+def expand_extends_vars(fname, extends_vars):
+    try:
+        return fname.format(**extends_vars)
+    except KeyError, e:
+        key = e.args[0]
+        msg = ("Key '{key}' is missing in extends_vars "
+              "section {extends_vars}.".format(
+            key=key,
+            extends_vars=extends_vars,
+        ))
+        raise ValueError(msg)
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__'
