@@ -1817,17 +1817,35 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     if root_config_file and 'buildout' in result:
         dl_options = _update_section(dl_options, result['buildout'])
 
+    extends_variables = {}
     if extends:
         extends = extends.split()
-        eresult = _open(base, extends.pop(0), seen, dl_options, override,
+        first_name = extends.pop(0)
+        eresult = _open(base, first_name.format(**extends_variables), seen, dl_options, override,
                         downloaded)
+        update_extends_variables(eresult, extends_variables)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override,
-                    downloaded))
+            expanded_name = fname.format(**extends_variables)
+            print expanded_name
+            last_result = _open(base, expanded_name, seen, dl_options, override,
+                    downloaded)
+            update_extends_variables(last_result, extends_variables)
+            _update(eresult, last_result)
+
         result = _update(eresult, result)
 
     seen.pop()
     return result
+
+
+def update_extends_variables(eresult, extends_variables):
+    if 'extends' in eresult:
+        if extends_variables:
+            raise ValueError('Cannot load extends section twice')
+        else:
+            variables = _unannotate_section(copy.deepcopy(eresult['extends']))
+            extends_variables.update(variables)
+
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__'
