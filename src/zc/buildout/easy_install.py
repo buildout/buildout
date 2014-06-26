@@ -1101,9 +1101,12 @@ def _distutils_script(path, dest, script_content, initialization, rsetup):
         dest += '-script.py'
 
     lines = script_content.splitlines(True)
-    if not ('#!' in lines[0]) and ('python' in lines[0]):
+    if not (lines[0].startswith('#!')):
         # The script doesn't follow distutil's rules.  Ignore it.
         return []
+    elif not ('python' in lines[0]):
+        # The script start by #! but not is a python script
+        return _create_script(script_content, dest)
     lines = lines[1:]  # Strip off the first hashbang line.
     line_with_first_import = len(lines)
     for line_number, line in enumerate(lines):
