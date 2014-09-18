@@ -1257,6 +1257,7 @@ py_script_template = script_header + '''\
 
 %(relative_paths_setup)s
 import sys
+import os
 
 sys.path[0:0] = [
   %(path)s
@@ -1287,25 +1288,10 @@ if len(sys.argv) > 1:
 
 if _interactive:
     del _interactive
-    if sys.platform.startswith('linux'):
-        try:
-            import readline
-        except ImportError:
-            print "Module readline not available."
-        else:
-            import rlcompleter
-            readline.parse_and_bind("tab: complete")
-    elif sys.platform.startswith('darwin'):
-        import readline
-        import rlcompleter
-        readline.parse_and_bind("bind ^I rl_complete")
-    elif sys.platform.startswith('win32'):
-        try:
-            import readline
-        except ImportError:
-            print "Install pyreadline package"
-            import rlcompleter
-            readline.parse_and_bind("tab: complete")
+    filename = os.environ.get('PYTHONSTARTUP')
+    if filename and os.path.isfile(filename):
+        exec(open(filename).read())
+
     __import__("code").interact(banner="", local=globals())
 '''
 
