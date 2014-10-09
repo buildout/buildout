@@ -609,14 +609,12 @@ class Installer:
         logger.debug('Installing %s.', repr(specs)[1:-1])
 
         path = self._path
-        destination = self._dest
-        if destination is not None and destination not in path:
-            path.insert(0, destination)
+        dest = self._dest
+        if dest is not None and dest not in path:
+            path.insert(0, dest)
 
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
-
-
 
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
@@ -658,7 +656,7 @@ class Installer:
                     except pkg_resources.VersionConflict, err:
                         raise VersionConflict(err, ws)
                     if dist is None:
-                        if destination:
+                        if dest:
                             logger.debug('Getting required %r', str(req))
                         else:
                             logger.debug('Adding required %r', str(req))
