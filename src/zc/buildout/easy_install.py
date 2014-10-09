@@ -672,8 +672,6 @@ class Installer:
                     pkg_resources.VersionConflict(dist, req), ws)
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
-            # if dist.location in self._site_packages:
-            #     logger.debug('Egg from site-packages: %s', dist)
         return ws
 
     def build(self, spec, build_ext):
