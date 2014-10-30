@@ -1,8 +1,8 @@
 Change History
 **************
 
-Unreleased
-==========
+2.2.2 (2014-10-30)
+==================
 
 - Open files for ``exec()`` in universal newlines mode.  See
   https://github.com/buildout/buildout/issues/130
