@@ -653,7 +653,7 @@ class Installer:
                 if dist is None:
                     try:
                         dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict, err:
+                    except pkg_resources.VersionConflict as err:
                         raise VersionConflict(err, ws)
                     if dist is None:
                         if dest:
