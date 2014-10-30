@@ -13,6 +13,9 @@ Unreleased
 - Close various files when finished writing to them. This avoids
   ResourceWarnings on Python 3, and better supports doctests under PyPy.
 
+- Introduce improved easy_install Install.install function. This is present
+  in 1.5.X and 1.7X but was never merged into 2.X somehow.
+
 2.2.1 (2013-09-05)
 ==================
 
