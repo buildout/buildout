@@ -656,13 +656,12 @@ class Installer:
                         "Version conflict while processing requirement %s "
                         "(constrained to %s)",
                         current_requirement, req)
-                    if req.key in ['zc.buildout', 'setuptools']:
-                        # We're bootstrapping zc.buildout with a different
-                        # version than the one we specified in our versions
-                        # list. Ignore the error it and we'll grab the right
-                        # one below.
-                        dist = None
-                    else:
+                    # When bootstrapping zc.buildout, we might be doing it
+                    # with a different version than the one we specified in
+                    # our versions list. Reason: the bootstrap grabs the
+                    # latest buildout. Same with setuptools.
+                    # So ignore the version conflict for those two packages.
+                    if req.key not in ['zc.buildout', 'setuptools']:
                         raise VersionConflict(err, ws)
             if dist is None:
                 if dest:
