@@ -646,6 +646,7 @@ class Installer:
             if req in processed:
                 # Ignore cyclic or redundant dependencies.
                 continue
+            logger.debug("Processing requirement %s", req)
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map.
