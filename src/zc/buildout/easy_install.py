@@ -650,20 +650,20 @@ class Installer:
             if dist is None:
                 # Find the best distribution and add it to the map.
                 dist = ws.by_key.get(req.key)
-                if dist is None:
-                    try:
-                        dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict as err:
-                        raise VersionConflict(err, ws)
-                    if dist is None:
-                        if dest:
-                            logger.debug('Getting required %r', str(req))
-                        else:
-                            logger.debug('Adding required %r', str(req))
-                        _log_requirement(ws, req)
-                        for dist in self._get_dist(req, ws,):
-                            ws.add(dist)
-                            self._maybe_add_setuptools(ws, dist)
+            if dist is None:
+                try:
+                    dist = best[req.key] = env.best_match(req, ws)
+                except pkg_resources.VersionConflict as err:
+                    raise VersionConflict(err, ws)
+            if dist is None:
+                if dest:
+                    logger.debug('Getting required %r', str(req))
+                else:
+                    logger.debug('Adding required %r', str(req))
+                _log_requirement(ws, req)
+                for dist in self._get_dist(req, ws,):
+                    ws.add(dist)
+                    self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
                 raise VersionConflict(
