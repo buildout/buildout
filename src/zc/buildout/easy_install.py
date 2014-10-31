@@ -653,7 +653,7 @@ class Installer:
                 dist = ws.by_key.get(req.key)
             if dist is None:
                 try:
-                    dist = best[req.key] = env.best_match(req, ws)
+                    dist = env.best_match(req, ws)
                 except pkg_resources.VersionConflict as err:
                     raise VersionConflict(err, ws)
             if dist is None:
@@ -669,6 +669,8 @@ class Installer:
                 # Oops, the "best" so far conflicts with a dependency.
                 raise VersionConflict(
                     pkg_resources.VersionConflict(dist, req), ws)
+
+            best[req.key] = dist
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
         return ws
