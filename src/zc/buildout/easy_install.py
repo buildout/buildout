@@ -647,13 +647,15 @@ class Installer:
             if req in processed:
                 # Ignore cyclic or redundant dependencies.
                 continue
-            logger.debug("Processing requirement %s (constrained to %s)",
-                         current_requirement, req)
             dist = best.get(req.key)
             if dist is None:
                 try:
                     dist = env.best_match(req, ws)
                 except pkg_resources.VersionConflict as err:
+                    logger.debug(
+                        "Version conflict while processing requirement %s "
+                        "(constrained to %s)",
+                        current_requirement, req)
                     if req.key in ['zc.buildout', 'setuptools']:
                         # We're bootstrapping zc.buildout with a different
                         # version than the one we specified in our versions
