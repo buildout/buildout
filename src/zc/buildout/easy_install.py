@@ -651,13 +651,17 @@ class Installer:
                          current_requirement, req)
             dist = best.get(req.key)
             if dist is None:
-                # Find the best distribution and add it to the map.
-                dist = ws.by_key.get(req.key)
-            if dist is None:
                 try:
                     dist = env.best_match(req, ws)
                 except pkg_resources.VersionConflict as err:
-                    raise VersionConflict(err, ws)
+                    if req.key in ['zc.buildout', 'setuptools']:
+                        # We're bootstrapping zc.buildout with a different
+                        # version than the one we specified in our versions
+                        # list. Ignore the error it and we'll grab the right
+                        # one below.
+                        dist = None
+                    else:
+                        raise VersionConflict(err, ws)
             if dist is None:
                 if dest:
                     logger.debug('Getting required %r', str(req))
