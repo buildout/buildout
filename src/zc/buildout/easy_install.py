@@ -635,7 +635,7 @@ class Installer:
         # zc.buildout.tests).
         requirements.reverse() # Set up the stack.
         processed = {}  # This is a set of processed requirements.
-        best = {}  # This is a mapping of key -> dist.
+        best = {}  # This is a mapping of package name -> dist.
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
