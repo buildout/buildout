@@ -642,11 +642,13 @@ class Installer:
         env = pkg_resources.Environment(ws.entries)
         while requirements:
             # Process dependencies breadth-first.
-            req = self._constrain(requirements.pop(0))
+            current_requirement = requirements.pop(0)
+            req = self._constrain(current_requirement)
             if req in processed:
                 # Ignore cyclic or redundant dependencies.
                 continue
-            logger.debug("Processing requirement %s", req)
+            logger.debug("Processing requirement %s (constrained to %s)",
+                         current_requirement, req)
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map.
