@@ -1,6 +1,15 @@
 Change History
 **************
 
+2.2. (unreleased)
+==================
+
+- Fix for #198: buildout 2.2.3 caused a version conflict when bootstrapping a
+  buildout with a version pinned to an earlier one. Same version conflict
+  could occur with system-wide installed packages that were newer than the
+  pinned version.
+  [reinout]
+
 2.2.3 (2014-10-30)
 ==================
 

@@ -635,39 +635,49 @@ class Installer:
         # zc.buildout.tests).
         requirements.reverse() # Set up the stack.
         processed = {}  # This is a set of processed requirements.
-        best = {}  # This is a mapping of key -> dist.
+        best = {}  # This is a mapping of package name -> dist.
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
         env = pkg_resources.Environment(ws.entries)
         while requirements:
             # Process dependencies breadth-first.
-            req = self._constrain(requirements.pop(0))
+            current_requirement = requirements.pop(0)
+            req = self._constrain(current_requirement)
             if req in processed:
                 # Ignore cyclic or redundant dependencies.
                 continue
             dist = best.get(req.key)
             if dist is None:
-                # Find the best distribution and add it to the map.
-                dist = ws.by_key.get(req.key)
-                if dist is None:
-                    try:
-                        dist = best[req.key] = env.best_match(req, ws)
-                    except pkg_resources.VersionConflict as err:
+                try:
+                    dist = env.best_match(req, ws)
+                except pkg_resources.VersionConflict as err:
+                    logger.debug(
+                        "Version conflict while processing requirement %s "
+                        "(constrained to %s)",
+                        current_requirement, req)
+                    # When bootstrapping zc.buildout, we might be doing it
+                    # with a different version than the one we specified in
+                    # our versions list. Reason: the bootstrap grabs the
+                    # latest buildout. Same with setuptools.
+                    # So ignore the version conflict for those two packages.
+                    if req.key not in ['zc.buildout', 'setuptools']:
                         raise VersionConflict(err, ws)
-                    if dist is None:
-                        if dest:
-                            logger.debug('Getting required %r', str(req))
-                        else:
-                            logger.debug('Adding required %r', str(req))
-                        _log_requirement(ws, req)
-                        for dist in self._get_dist(req, ws,):
-                            ws.add(dist)
-                            self._maybe_add_setuptools(ws, dist)
+            if dist is None:
+                if dest:
+                    logger.debug('Getting required %r', str(req))
+                else:
+                    logger.debug('Adding required %r', str(req))
+                _log_requirement(ws, req)
+                for dist in self._get_dist(req, ws,):
+                    ws.add(dist)
+                    self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
                 raise VersionConflict(
                     pkg_resources.VersionConflict(dist, req), ws)
+
+            best[req.key] = dist
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
         return ws
