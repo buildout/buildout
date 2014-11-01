@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.2. (unreleased)
+2.2.4 (2014-11-01)
 ==================
 
 - Fix for #198: buildout 2.2.3 caused a version conflict when bootstrapping a
