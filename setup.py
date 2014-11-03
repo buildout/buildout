@@ -88,7 +88,7 @@ setup(
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
     install_requires = [
-        'setuptools>=0.7',
+        'setuptools>=3.3',
     ],
     include_package_data = True,
     entry_points = entry_points,
@@ -108,4 +108,3 @@ setup(
        'Topic :: Software Development :: Libraries :: Python Modules',
        ],
     )
-
