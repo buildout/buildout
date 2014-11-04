@@ -1,6 +1,24 @@
 Change History
 **************
 
+2.2.5 (unreleased)
+==================
+
+- Improved fix for #198: when bootstrapping with an extension, buildout was
+  too strict on itself, resulting in an inability to upgrade or downgrade its
+  own version.
+  [reinout]
+
+- Setuptools must be at 3.3 or higher now. If you use the latest bootstrap
+  from http://downloads.buildout.org/2/bootstrap.py you're all set.
+  [reinout]
+
+- Installing *recipes* that themselves have dependencies used to fail with a
+  VersionConflict if such a dependency was installed globally with a lower
+  version. Buildout now ignores the version conflict in those cases and simply
+  installs the correct version.
+  [reinout]
+
 2.2.4 (2014-11-01)
 ==================
 
