@@ -3504,6 +3504,8 @@ def test_suite():
                 # bootstrap_crashes_with_egg_recipe_in_buildout_section
                 (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
                  "Unused options for buildout: 'scripts' 'eggs'."),
+                # Python 3.4 changed the wording of NameErrors
+                (re.compile('NameError: global name'), 'NameError: name'),
                 ]),
             ),
         zc.buildout.rmtree.test_suite(),
