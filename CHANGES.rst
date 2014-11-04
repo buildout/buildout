@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.2.5 (unreleased)
+2.2.5 (2014-11-04)
 ==================
 
 - Improved fix for #198: when bootstrapping with an extension, buildout was
