@@ -1,18 +1,22 @@
 HERE = $(shell pwd)
 PYTHON_VER ?= 2.7
-PYTHON_MINOR ?= 2.7.3
 PYTHON_PATH = $(HERE)/python$(PYTHON_VER)
 
 ifeq ($(PYTHON_VER),2.6)
-	PYTHON_MINOR = 2.6.8
+	PYTHON_MINOR ?= 2.6.8
+endif
+ifeq ($(PYTHON_VER),2.7)
+	PYTHON_MINOR ?= 2.7.3
 endif
 ifeq ($(PYTHON_VER),3.2)
-	PYTHON_MINOR = 3.2.3
+	PYTHON_MINOR ?= 3.2.3
+endif
+ifeq ($(PYTHON_VER),3.3)
+	PYTHON_MINOR ?= 3.3.0
 endif
 
-ifeq ($(PYTHON_VER),3.3)
-	PYTHON_MINOR = 3.3.0
-	PYTHON_ARCHIVE = Python-3.3.0
+ifndef PYTHON_MINOR
+    $(error Please specify desired PYTHON_MINOR for Python $(PYTHON_VER))
 endif
 
 PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
