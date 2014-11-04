@@ -465,8 +465,7 @@ class Installer:
 
         return dist.clone(location=new_location)
 
-    def _get_dist(self, requirement, ws):
-
+    def _get_dist(self, requirement, ws, for_buildout_run=False):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
@@ -513,8 +512,6 @@ class Installer:
                         # obtained locally.  Just copy it.
                         shutil.copytree(dist.location, newloc)
                     else:
-
-
                         setuptools.archive_util.unpack_archive(
                             dist.location, newloc)
 
@@ -532,6 +529,13 @@ class Installer:
                         dist.location, ws, self._dest, dist)
                     for dist in dists:
                         redo_pyc(dist.location)
+                        if for_buildout_run:
+                            # ws is the global working set and we're
+                            # installing buildout, setuptools, extensions or
+                            # recipes. Make sure that whatever correct version
+                            # we've just installed is the active version,
+                            # hence the ``replace=True``.
+                            ws.add(dist, replace=True)
 
             finally:
                 if tmp != self._download_cache:
@@ -608,6 +612,7 @@ class Installer:
 
         logger.debug('Installing %s.', repr(specs)[1:-1])
 
+        for_buildout_run = bool(working_set)
         path = self._path
         dest = self._dest
         if dest is not None and dest not in path:
@@ -622,7 +627,8 @@ class Installer:
             ws = working_set
 
         for requirement in requirements:
-            for dist in self._get_dist(requirement, ws):
+            for dist in self._get_dist(requirement, ws,
+                                       for_buildout_run=for_buildout_run):
                 ws.add(dist)
                 self._maybe_add_setuptools(ws, dist)
 
@@ -640,6 +646,7 @@ class Installer:
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
         env = pkg_resources.Environment(ws.entries)
+
         while requirements:
             # Process dependencies breadth-first.
             current_requirement = requirements.pop(0)
@@ -656,12 +663,13 @@ class Installer:
                         "Version conflict while processing requirement %s "
                         "(constrained to %s)",
                         current_requirement, req)
-                    # When bootstrapping zc.buildout, we might be doing it
-                    # with a different version than the one we specified in
-                    # our versions list. Reason: the bootstrap grabs the
-                    # latest buildout. Same with setuptools.
-                    # So ignore the version conflict for those two packages.
-                    if req.key not in ['zc.buildout', 'setuptools']:
+                    # Installing buildout itself and its extensions and
+                    # recipes requires the global
+                    # ``pkg_resources.working_set`` to be active, which also
+                    # includes all system packages. So there might be
+                    # conflicts, which are fine to ignore. We'll grab the
+                    # correct version a few lines down.
+                    if not for_buildout_run:
                         raise VersionConflict(err, ws)
             if dist is None:
                 if dest:
@@ -669,7 +677,8 @@ class Installer:
                 else:
                     logger.debug('Adding required %r', str(req))
                 _log_requirement(ws, req)
-                for dist in self._get_dist(req, ws,):
+                for dist in self._get_dist(req, ws,
+                                           for_buildout_run=for_buildout_run):
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
