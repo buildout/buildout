@@ -14,6 +14,10 @@ endif
 ifeq ($(PYTHON_VER),3.3)
 	PYTHON_MINOR ?= 3.3.0
 endif
+ifeq ($(PYTHON_VER),3.4)
+	PYTHON_MINOR ?= 3.4.2
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
 
 ifndef PYTHON_MINOR
     $(error Please specify desired PYTHON_MINOR for Python $(PYTHON_VER))
@@ -40,7 +44,7 @@ ifeq ($(PYTHON_VER),2.6)
 	patch -p0 < ../ssl.patch
 endif
 	cd $(PYTHON_PATH)/$(PYTHON_ARCHIVE) && \
-	./configure --prefix $(PYTHON_PATH) >/dev/null 2>&1 && \
+	./configure --prefix $(PYTHON_PATH) $(PYTHON_CONFIGURE_ARGS) >/dev/null 2>&1 && \
 	make >/dev/null 2>&1 && \
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
