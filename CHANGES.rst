@@ -1,6 +1,14 @@
 Change History
 **************
 
+2.2.6 (unreleased)
+==================
+
+- Added a version number to the bootstrap.py script.
+  There's no way to see it without looking at the script sources because
+  bootstrap.py already uses --version for a different purpose.
+  Closes #30.
+
 2.2.5 (2014-11-04)
 ==================
 
