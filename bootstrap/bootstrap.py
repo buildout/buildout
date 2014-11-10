@@ -91,7 +91,7 @@ if not options.allow_site_packages:
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
 
-if not options.setuptools_version is None:
+if options.setuptools_version is not None:
     setup_args['version'] = options.setuptools_version
 
 ez['use_setuptools'](**setup_args)
