@@ -3204,10 +3204,10 @@ def makeNewRelease(project, ws, dest, version='99.99'):
         zip = zipfile.ZipFile(dest, 'a')
         zip.writestr(
             'EGG-INFO/PKG-INFO',
-            ((zip.read('EGG-INFO/PKG-INFO').decode()
+            ((zip.read('EGG-INFO/PKG-INFO').decode('ISO-8859-1')
               ).replace("Version: %s" % oldver,
                         "Version: %s" % version)
-             ).encode()
+             ).encode('ISO-8859-1')
             )
         zip.close()
     else:

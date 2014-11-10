@@ -9,3 +9,4 @@ python*/
 *.egg
 *.egg-info
 dist
+.tox
