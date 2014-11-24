@@ -1,6 +1,14 @@
 Change History
 **************
 
+2.2.6 (unreleased)
+==================
+
+- Fix for #212. For certain kinds of conflict errors you'd get an UnpackError
+  when rendering the error message. Instead of a nicely formatted version
+  conflict message.
+  [reinout]
+
 2.2.5 (2014-11-04)
 ==================
 
