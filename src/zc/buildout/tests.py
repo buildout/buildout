@@ -362,7 +362,9 @@ If we use the verbose switch, we can see where requirements are coming from:
     """
 
 def version_conflict_rendering():
-    """We use the arguments passed by pkg_resources.VersionConflict to construct a
+    """
+
+We use the arguments passed by pkg_resources.VersionConflict to construct a
 nice error message:
 
     >>> error = pkg_resources.VersionConflict('pkg1 2.1', 'pkg1 1.0')
