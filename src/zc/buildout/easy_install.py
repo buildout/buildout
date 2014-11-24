@@ -1346,13 +1346,16 @@ class VersionConflict(zc.buildout.UserError):
         self.err, self.ws = err, ws
 
     def __str__(self):
-        existing_dist, req = self.err.args
-        result = ["There is a version conflict.",
-                  "We already have: %s" % existing_dist,
-                  ]
-        for dist in self.ws:
-            if req in dist.requires():
-                result.append("but %s requires %r." % (dist, str(req)))
+        result = ["There is a version conflict."]
+        if len(self.err.args) == 2:
+            existing_dist, req = self.err.args
+            result.append("We already have: %s" % existing_dist)
+            for dist in self.ws:
+                if req in dist.requires():
+                    result.append("but %s requires %r." % (dist, str(req)))
+        else:
+            # The error argument is already a nice error string.
+            result.append(self.err.args[0])
         return '\n'.join(result)
 
 
