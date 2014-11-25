@@ -59,6 +59,7 @@ parser.add_option("-f", "--find-links",
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Let bootstrap.py use existing site packages"))
+parser.add_option("--setuptools-version", help="use a specific setuptools version")
 
 
 options, args = parser.parse_args()
@@ -89,6 +90,10 @@ if not options.allow_site_packages:
             sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
+
+if options.setuptools_version is not None:
+    setup_args['version'] = options.setuptools_version
+
 ez['use_setuptools'](**setup_args)
 import setuptools
 import pkg_resources

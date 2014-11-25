@@ -89,3 +89,41 @@ Let's make sure the generated `buildout` script uses it::
       '/sample/eggs/setuptools-...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
+
+Now trying the `--setuptools-version` option, that let you define a version for
+`setuptools`.
+
+Now let's try with `5.3`, which happens to exist::
+
+    >>> print_('X'); print_(system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --setuptools-version 5.3')); print_('X')
+    ... # doctest: +ELLIPSIS
+    X...Generated script '/sample/bin/buildout'...X
+
+Let's make sure the generated `buildout` script uses it::
+
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    #...
+    sys.path[0:0] = [
+      '/sample/eggs/setuptools-5.3...egg',
+      '/sample/eggs/zc.buildout-...egg',
+      ]...
+
+Now let's try specifying both `zc.buildout` and `setuptools` to versions
+which happens to exist::
+
+    >>> print_('X'); print_(system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --setuptools-version 5.3 --version 2.0.0')); print_('X')
+    ... # doctest: +ELLIPSIS
+    X...Generated script '/sample/bin/buildout'...X
+
+Let's make sure the generated `buildout` script uses it::
+
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    #...
+    sys.path[0:0] = [
+      '/sample/eggs/setuptools-5.3...egg',
+      '/sample/eggs/zc.buildout-2.0.0...egg',
+      ]...
