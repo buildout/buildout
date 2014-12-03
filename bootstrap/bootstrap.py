@@ -25,7 +25,9 @@ import tempfile
 
 from optparse import OptionParser
 
-tmpeggs = tempfile.mkdtemp()
+__version__ = '2.2.6'  # of bootstrap.py itself
+
+tmpeggs = tempfile.mkdtemp(prefix='bootstrap-')
 
 usage = '''\
 [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
