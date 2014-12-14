@@ -1,6 +1,11 @@
 Change History
 **************
 
+2.3.0 (2014-12-14)
+==================
+
+- Buildout is now compatible with (and requires) setuptools 8.
+
 2.2.5 (2014-11-04)
 ==================
 

@@ -47,8 +47,7 @@ except ImportError:
     from urllib2 import urlopen
 
 # XXX use a more permanent ez_setup.py URL when available.
-exec(urlopen('https://bitbucket.org/pypa/setuptools/raw/0.7.2/ez_setup.py'
-            ).read(), ez)
+exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
 import pkg_resources
