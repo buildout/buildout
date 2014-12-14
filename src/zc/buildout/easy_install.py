@@ -1400,7 +1400,6 @@ def _fix_file_links(links):
                 link += '/'
         yield link
 
-_final_parts = '*final-', '*final'
 def _final_version(parsed_version):
     return not parsed_version.is_prerelease
 
