@@ -78,20 +78,18 @@ locally in your project.
 
 The bootstrap script for buildout version 2 is at:
 
-  http://downloads.buildout.org/2/bootstrap.py
+  https://bootstrap.pypa.io/bootstrap-buildout.py
 
 So, for example, to install buildout 2 in a project, you might::
 
-  wget http://downloads.buildout.org/2/bootstrap.py
-  python bootstrap.py
+  wget https://bootstrap.pypa.io/bootstrap-buildout.py
+  python bootstrap-buildout.py
 
 Then to build your project, you can just run::
 
   bin/buildout
 
 from the project directory.
-
-The bootstrap script is often checked into version control.
 
 buildout 2 is somewhat backward-incompatible with version 1.  Most
 projects will probably work fine with either.  If you need to keep
