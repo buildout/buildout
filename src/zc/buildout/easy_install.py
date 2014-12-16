@@ -35,6 +35,10 @@ import subprocess
 import sys
 import tempfile
 import zc.buildout
+import warnings
+
+warnings.filterwarnings(
+    'ignore', '.+is being parsed as a legacy, non PEP 440, version')
 
 _oprp = getattr(os.path, 'realpath', lambda path: path)
 def realpath(path):
