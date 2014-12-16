@@ -1,10 +1,15 @@
 Change History
 **************
 
+2.3.1 (2014-12-16)
+==================
+
 - Fixed: Buildout merged single-version requirements with
   version-range requirements in a way that caused it to think there
   wasn't a single-version requirement.  IOW, buildout throught that
   versions were being picked when they weren't.
+
+- Suppress spurios (and possibly non-spurious) version-parsing warnings.
 
 2.3.0 (2014-12-14)
 ==================
