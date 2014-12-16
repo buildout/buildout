@@ -1,6 +1,11 @@
 Change History
 **************
 
+- Fixed: Buildout merged single-version requirements with
+  version-range requirements in a way that caused it to think there
+  wasn't a single-version requirement.  IOW, buildout throught that
+  versions were being picked when they weren't.
+
 2.3.0 (2014-12-14)
 ==================
 

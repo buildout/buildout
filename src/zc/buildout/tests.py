@@ -2709,7 +2709,7 @@ def test_constrained_requirement():
     >>> examples = [
     ... # original, constraint, transformed
     ... ('x',        '1',        'x==1'),
-    ... ('x>1',      '2',        'x>1,==2'),
+    ... ('x>1',      '2',        'x==2'),
     ... ('x>3',      '2',        IncompatibleConstraintError),
     ... ('x>1',      '>2',       'x>1,>2'),
     ... ]

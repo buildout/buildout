@@ -1444,7 +1444,13 @@ def _constrained_requirement(constraint, requirement):
             constraint = constraint[2:]
         if constraint not in requirement:
             bad_constraint(constraint, requirement)
-        constraint = '==' + constraint
+
+        # Sigh, copied from Requirement.__str__
+        extras = ','.join(requirement.extras)
+        if extras:
+            extras = '[%s]' % extras
+        return pkg_resources.Requirement.parse(
+            "%s%s==%s" % (requirement.project_name, extras, constraint))
 
     if requirement.specs:
         return pkg_resources.Requirement.parse(
