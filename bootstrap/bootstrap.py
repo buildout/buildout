@@ -110,7 +110,12 @@ for path in sys.path:
 
 ws = pkg_resources.working_set
 
+setuptools_path = ws.find(
+    pkg_resources.Requirement.parse('setuptools')).location
+
+# Fix sys.path here as easy_install.pth added before PYTHONPATH
 cmd = [sys.executable, '-c',
+       'import sys; sys.path[0:0] = [%r]; ' % setuptools_path +
        'from setuptools.command.easy_install import main; main()',
        '-mZqNxd', tmpeggs]
 
@@ -122,9 +127,6 @@ find_links = os.environ.get(
     )
 if find_links:
     cmd.extend(['-f', find_links])
-
-setuptools_path = ws.find(
-    pkg_resources.Requirement.parse('setuptools')).location
 
 requirement = 'zc.buildout'
 version = options.version
@@ -167,7 +169,7 @@ if version:
 cmd.append(requirement)
 
 import subprocess
-if subprocess.call(cmd, env=dict(os.environ, PYTHONPATH=setuptools_path)) != 0:
+if subprocess.call(cmd) != 0:
     raise Exception(
         "Failed to execute command:\n%s" % repr(cmd)[1:-1])
 
