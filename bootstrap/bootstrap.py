@@ -61,7 +61,10 @@ parser.add_option("--allow-site-packages",
                   help=("Let bootstrap.py use existing site packages"))
 parser.add_option("--setuptools-version",
                   help="use a specific setuptools version")
-
+parser.add_option("-i", "--index-url",
+                  help="use a specific index_url", default="https://pypi.python.org/simple/")
+parser.add_option("-e", "--ez-location",
+                  help=("use a specific setuptools version"), default="https://bootstrap.pypa.io/ez_setup.py")
 
 options, args = parser.parse_args()
 
@@ -77,7 +80,11 @@ except ImportError:
     from urllib2 import urlopen
 
 ez = {}
-exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
+if options.ez_location.startswith('http://'):
+    setuptools_content = urlopen(options.ez_location).read()
+else:
+    setuptools_content = open(options.ez_location).read()
+exec (setuptools_content, ez)
 
 if not options.allow_site_packages:
     # ez_setup imports site, which adds site packages
@@ -112,7 +119,8 @@ ws = pkg_resources.working_set
 
 cmd = [sys.executable, '-c',
        'from setuptools.command.easy_install import main; main()',
-       '-mZqNxd', tmpeggs]
+       '-mZqNxd', tmpeggs,
+       '-i', options.index_url]
 
 find_links = os.environ.get(
     'bootstrap-testing-find-links',
@@ -144,6 +152,7 @@ if version is None and not options.accept_buildout_test_releases:
             return True
 
     index = setuptools.package_index.PackageIndex(
+        index_url=options.index_url,
         search_path=[setuptools_path])
     if find_links:
         index.add_find_links((find_links,))
