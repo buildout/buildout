@@ -80,7 +80,7 @@ except ImportError:
     from urllib2 import urlopen
 
 ez = {}
-if options.ez_location.startswith('http://'):
+if options.ez_location.startswith('http'):
     setuptools_content = urlopen(options.ez_location).read()
 else:
     setuptools_content = open(options.ez_location).read()
