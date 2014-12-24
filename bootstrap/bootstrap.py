@@ -62,9 +62,11 @@ parser.add_option("--allow-site-packages",
 parser.add_option("--setuptools-version",
                   help="use a specific setuptools version")
 parser.add_option("-i", "--index-url",
-                  help="use a specific index_url", default="https://pypi.python.org/simple/")
+                  help="use a specific index_url",
+                  default="https://pypi.python.org/simple/")
 parser.add_option("-e", "--ez-location",
-                  help="use a specific ez_location, from http or local", default="https://bootstrap.pypa.io/ez_setup.py")
+                  help="use a specific ez_location, from http or local",
+                  default="https://bootstrap.pypa.io/ez_setup.py")
 
 options, args = parser.parse_args()
 
