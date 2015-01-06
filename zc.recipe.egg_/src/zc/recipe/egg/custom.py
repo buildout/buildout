@@ -13,13 +13,11 @@
 ##############################################################################
 """Install packages as eggs
 """
-
 import logging
 import os
-import re
 import sys
+
 import zc.buildout.easy_install
-import zipfile
 
 logger = logging.getLogger(__name__)
 
