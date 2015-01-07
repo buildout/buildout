@@ -130,7 +130,7 @@ class Develop(Base):
 
 def build_ext(buildout, options):
     result = {}
-    for be_option in ('include-dirs', 'library-dirs', 'rpath'):
+    for be_option in ('include-dirs', 'library-dirs'):
         value = options.get(be_option)
         if value is None:
             continue
@@ -144,6 +144,25 @@ def build_ext(buildout, options):
         ]
         result[be_option] = os.pathsep.join(value)
         options[be_option] = os.pathsep.join(value)
+
+    # rpath has special symbolic dirnames which must not be prefixed
+    # with the buildout dir.  See:
+    # http://man7.org/linux/man-pages/man8/ld.so.8.html
+    RPATH_SPECIAL = [
+        '$ORIGIN', '$LIB', '$PLATFORM', '${ORIGIN}', '${LIB}', '${PLATFORM}']
+    def _prefix_non_special(x):
+        x = x.strip()
+        for special in RPATH_SPECIAL:
+            if x.startswith(special):
+                return x
+        return os.path.join( buildout['buildout']['directory'], x)
+
+    value = options.get('rpath')
+    if value is not None:
+        values = [_prefix_non_special(v)
+                    for v in value.strip().split('\n') if v.strip()]
+        result['rpath'] = os.pathsep.join(value)
+        options['rpath'] = os.pathsep.join(value)
 
     swig = options.get('swig')
     if swig:
