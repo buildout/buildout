@@ -2671,6 +2671,96 @@ def increment_buildout_with_multiple_extended_files_421022():
       recipe='zc.buildout:debug'
     """
 
+def increment_buildout_with_multiple_extended_without_base_equals_github_176():
+    r"""
+    foo is overridden in the top-level file
+    bar is added and subtracted all the way through
+    baz is defined in the lowest level file, previous entries to be overwritten
+    qux is not defined in the lowest level file
+    
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = base1.cfg base2.cfg
+    ... parts += base0
+    ... foo = base0
+    ... bar += base0
+    ... baz += base0
+    ... qux -= base2
+    ... [base0]
+    ... recipe = zc.buildout:debug
+    ... foo = ${buildout:foo}
+    ... bar = ${buildout:bar}
+    ... baz = ${buildout:baz}
+    ... qux = ${buildout:qux}
+    ... [base1]
+    ... recipe = zc.buildout:debug
+    ... [base2]
+    ... recipe = zc.buildout:debug
+    ... [base3]
+    ... recipe = zc.buildout:debug
+    ... [base4]
+    ... recipe = zc.buildout:debug
+    ... ''')
+    >>> write('base1.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base1
+    ... foo += base1
+    ... bar += base1
+    ... baz += base1
+    ... qux += base1
+    ... ''')
+    >>> write('base2.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base2
+    ... foo += base2
+    ... bar += base2
+    ... baz += base2
+    ... qux += base2
+    ... ''')
+    >>> write('base3.cfg', '''
+    ... [buildout]
+    ... extends = base4.cfg
+    ... parts += base3
+    ... foo -= base4a
+    ... bar -= base4a
+    ... bar += base3
+    ... baz += base3
+    ... baz -= base4a
+    ... qux += base3
+    ... ''')
+    >>> write('base4.cfg', '''
+    ... [buildout]
+    ... parts += base4
+    ... foo +=
+    ...    base4a
+    ...    base4b
+    ... bar +=
+    ...    base4a
+    ...    base4b
+    ... baz =
+    ...    base4a
+    ...    base4b
+    ... ''')
+
+    >>> print_(system(buildout), end='')
+    Installing base4.
+      recipe='zc.buildout:debug'
+    Installing base3.
+      recipe='zc.buildout:debug'
+    Installing base1.
+      recipe='zc.buildout:debug'
+    Installing base2.
+      recipe='zc.buildout:debug'
+    Installing base0.
+      bar='\nbase4b\nbase3\nbase1\nbase4b\nbase3\nbase2\nbase0'
+      baz='base4b\nbase3\nbase2\nbase0'
+      foo='base0'
+      qux='\nbase3\nbase1\nbase3'
+      recipe='zc.buildout:debug'
+    """
+
 def increment_on_command_line():
     r"""
     >>> write('buildout.cfg', '''

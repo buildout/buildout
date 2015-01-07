@@ -1576,18 +1576,30 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     if root_config_file and 'buildout' in result:
         dl_options = _update_section(dl_options, result['buildout'])
 
+    eresults = []
     if extends:
         extends = extends.split()
-        eresult = _open(base, extends.pop(0), seen, dl_options, override,
-                        downloaded)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override,
-                    downloaded))
-        result = _update(eresult, result)
-
+            eresults.extend(
+                _open(
+                    base, 
+                    fname, 
+                    seen, 
+                    dl_options, 
+                    override, 
+                    downloaded
+                    )
+                )
+    eresults.append(result)
     seen.pop()
-    return result
 
+    if root_config_file:
+        final_result = {}
+        for eresult in eresults:
+            _update(final_result, eresult)
+        return final_result
+    else:
+        return eresults
 
 ignore_directories = '.svn', 'CVS', '__pycache__'
 _dir_hashes = {}
@@ -1665,7 +1677,13 @@ def _update_section(s1, s2):
                 [v for v in v1.split('\n')
                    if v not in v2.split('\n')]), newnote)
             del s2[k]
-
+        elif k in s1:
+            # If overwriting a value, don't lose any prior annotations
+            v1, note1 = s1[k]
+            if note1.strip():
+                newnote =  '   '.join((note1, note2)).strip()
+            s2[k] = (v2, newnote)
+            
     s1.update(s2)
     return s1
 
@@ -1674,7 +1692,7 @@ def _update(d1, d2):
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
         else:
-            d1[section] = d2[section]
+            d1[section] = _update_section({}, d2[section])
     return d1
 
 def _recipe(options):
