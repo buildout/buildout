@@ -1,6 +1,11 @@
 Change History
 **************
 
+- Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath`` support, don't
+  assume path elements are buildout-relative if they start with one of the
+  "special" tokens (e.g., ``$ORIGIN``).  See:
+  https://github.com/buildout/buildout/issues/225.
+
 - Fixed: Buildout merged single-version requirements with
   version-range requirements in a way that caused it to think there
   wasn't a single-version requirement.  IOW, buildout throught that
