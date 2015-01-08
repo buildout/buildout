@@ -1292,6 +1292,7 @@ py_script_template = script_header + '''\
 
 %(relative_paths_setup)s
 import sys
+import os
 
 sys.path[0:0] = [
   %(path)s
@@ -1322,6 +1323,10 @@ if len(sys.argv) > 1:
 
 if _interactive:
     del _interactive
+    filename = os.environ.get('PYTHONSTARTUP')
+    if filename and os.path.isfile(filename):
+        exec(open(filename).read())
+
     __import__("code").interact(banner="", local=globals())
 '''
 
