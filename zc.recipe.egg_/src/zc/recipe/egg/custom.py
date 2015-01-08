@@ -161,8 +161,8 @@ def build_ext(buildout, options):
     if value is not None:
         values = [_prefix_non_special(v)
                     for v in value.strip().split('\n') if v.strip()]
-        result['rpath'] = os.pathsep.join(value)
-        options['rpath'] = os.pathsep.join(value)
+        result['rpath'] = os.pathsep.join(values)
+        options['rpath'] = os.pathsep.join(values)
 
     swig = options.get('swig')
     if swig:
