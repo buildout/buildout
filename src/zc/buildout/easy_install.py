@@ -1324,9 +1324,12 @@ if len(sys.argv) > 1:
 if _interactive:
     del _interactive
 
-    filename = os.environ.get('PYTHONSTARTUP')
-    if filename and os.path.isfile(filename):
-        exec(open(filename).read())
+    _py_startup = os.environ.get('PYTHONSTARTUP')
+    if _py_startup and os.path.isfile(_py_startup):
+        with open(_py_startup, 'U') as _f:
+            exec(compile(_f.read(), _py_startup, "exec"))
+
+    del _py_startup
 
     __import__("code").interact(banner="", local=globals())
 '''
