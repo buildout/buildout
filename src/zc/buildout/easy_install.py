@@ -323,6 +323,10 @@ class Installer:
             path = setuptools_loc
 
             args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
+            if self._index_url:
+                # pass the index_url to the easy_install_cmd to improve
+                # setup_requires behavior a bit.
+                args.extend( ('-i', self._index_url) )
             level = logger.getEffectiveLevel()
             if level > 0:
                 args.append('-q')
