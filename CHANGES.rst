@@ -1,6 +1,17 @@
 Change History
 **************
 
+Unreleased
+==========
+
+- Undo breakage on Windows machines where ``sys.prefix`` can also be a
+  ``site-packages`` directory:  don't remove it from ``sys.path``.  See
+  https://github.com/buildout/buildout/issues/217
+
+- Remove assumption that ``pkg_resources`` is a module (untrue since 
+  release of `setuptools 8.3``).  See
+  https://github.com/buildout/buildout/issues/227
+
 2.3.1 (2014-12-16)
 ==================
 
