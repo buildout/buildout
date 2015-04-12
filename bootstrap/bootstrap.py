@@ -88,7 +88,11 @@ if not options.allow_site_packages:
     # We can't remove these reliably
     if hasattr(site, 'getsitepackages'):
         for sitepackage_path in site.getsitepackages():
-            sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
+            # Strip all site-packages directories from sys.path that
+            # are not sys.prefix; this is because on Windows
+            # sys.prefix is a site-package directory.
+            if sitepackage_path != sys.prefix:
+                sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
 
