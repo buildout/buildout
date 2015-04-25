@@ -1329,7 +1329,7 @@ if _interactive:
         with open(_py_startup, 'U') as _f:
             exec(compile(_f.read(), _py_startup, "exec"))
 
-    del _f
+        del _f
     del _py_startup
 
     __import__("code").interact(banner="", local=globals())
