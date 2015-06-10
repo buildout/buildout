@@ -17,6 +17,10 @@ Unreleased
   conflict message.
   [reinout]
 
+- Making sure we use the correct easy_install when setuptools is installed
+  globally. See https://github.com/buildout/buildout/pull/232
+  [lrowe]
+
 
 2.3.1 (2014-12-16)
 ==================
