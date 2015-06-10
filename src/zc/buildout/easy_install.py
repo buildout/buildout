@@ -322,7 +322,9 @@ class Installer:
         try:
             path = setuptools_loc
 
-            args = [sys.executable, '-c', _easy_install_cmd, '-mZUNxd', tmp]
+            args = [sys.executable, '-c',
+                    ('import sys; sys.path[0:0] = [%r]; ' % path) +
+                    _easy_install_cmd, '-mZUNxd', tmp]
             level = logger.getEffectiveLevel()
             if level > 0:
                 args.append('-q')
@@ -337,9 +339,7 @@ class Installer:
 
             sys.stdout.flush() # We want any pending output first
 
-            exit_code = subprocess.call(
-                list(args),
-                env=dict(os.environ, PYTHONPATH=path))
+            exit_code = subprocess.call(list(args))
 
             dists = []
             env = pkg_resources.Environment([tmp])
