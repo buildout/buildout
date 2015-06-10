@@ -18,7 +18,8 @@ Unreleased
   [reinout]
 
 - Making sure we use the correct easy_install when setuptools is installed
-  globally. See https://github.com/buildout/buildout/pull/232
+  globally. See https://github.com/buildout/buildout/pull/232 and
+  https://github.com/buildout/buildout/pull/222
   [lrowe]
 
 
