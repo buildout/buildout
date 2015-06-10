@@ -8,9 +8,15 @@ Unreleased
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
   https://github.com/buildout/buildout/issues/217
 
-- Remove assumption that ``pkg_resources`` is a module (untrue since 
+- Remove assumption that ``pkg_resources`` is a module (untrue since
   release of `setuptools 8.3``).  See
   https://github.com/buildout/buildout/issues/227
+
+- Fix for #212. For certain kinds of conflict errors you'd get an UnpackError
+  when rendering the error message. Instead of a nicely formatted version
+  conflict message.
+  [reinout]
+
 
 2.3.1 (2014-12-16)
 ==================

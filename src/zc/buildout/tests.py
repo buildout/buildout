@@ -361,6 +361,30 @@ If we use the verbose switch, we can see where requirements are coming from:
     but sampley 1 requires 'demoneeded==1.0'.
     """
 
+def version_conflict_rendering():
+    """
+
+We use the arguments passed by pkg_resources.VersionConflict to construct a
+nice error message:
+
+    >>> error = pkg_resources.VersionConflict('pkg1 2.1', 'pkg1 1.0')
+    >>> ws = []  # Not relevant for this test
+    >>> print_(zc.buildout.easy_install.VersionConflict(
+    ...     error, ws)) # doctest: +ELLIPSIS
+    There is a version conflict...
+
+But sometimes pkg_resources passes a nicely formatted string itself already.
+Extracting the original arguments fails in that case, so we just show the string.
+
+    >>> error = pkg_resources.VersionConflict('pkg1 2.1 is simply wrong')
+    >>> ws = []  # Not relevant for this test
+    >>> print_(zc.buildout.easy_install.VersionConflict(
+    ...     error, ws)) # doctest: +ELLIPSIS
+    There is a version conflict.
+    pkg1 2.1 is simply wrong
+
+    """
+
 def show_who_requires_missing_distributions():
     """
 
