@@ -503,7 +503,7 @@ class Installer:
 
                 if dist is None:
                     raise zc.buildout.UserError(
-                        "Couln't download distribution %s." % avail)
+                        "Couldn't download distribution %s." % avail)
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
