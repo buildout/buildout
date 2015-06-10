@@ -163,6 +163,34 @@ We won't get output for the spam distribution, which we didn't pick,
 but we will get output for setuptools, which we didn't specify
 versions for.
 
+.. Edge case: version applied to range requirement:
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = foo
+    ... find-links = %s
+    ...
+    ... [versions]
+    ... spam = 1
+    ... eggs = 2.2
+    ...
+    ... [foo]
+    ... recipe = spam >0
+    ... ''' % join('recipe', 'dist'))
+
+    >>> print_(system(buildout+' -v'), end='')
+    Installing 'zc.buildout', 'setuptools'.
+    We have a develop egg: zc.buildout 1.0.0.
+    We have the best distribution that satisfies 'setuptools'.
+    Picked: setuptools = 0.6
+    Installing 'spam >0'.
+    We have the distribution that satisfies 'spam==1'.
+    Uninstalling foo.
+    Installing foo.
+    recipe v1
+
+
 You can request buildout to generate an error if it picks any
 versions:
 
@@ -204,7 +232,8 @@ We can name a version something else, if we wish, using the versions option:
     ... recipe = spam
     ... ''' % join('recipe', 'dist'))
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    Updating foo.
+    Uninstalling foo.
+    Installing foo.
     recipe v1
 
 We can also disable checking versions:

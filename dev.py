@@ -47,18 +47,18 @@ except ImportError:
     from urllib2 import urlopen
 
 # XXX use a more permanent ez_setup.py URL when available.
-exec(urlopen('https://bitbucket.org/pypa/setuptools/raw/0.7.2/ez_setup.py'
-            ).read(), ez)
+exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
 ez['use_setuptools'](to_dir='eggs', download_delay=0)
 
-import pkg_resources
+import pkg_resources, setuptools
+setuptools_path = os.path.dirname(os.path.dirname(setuptools.__file__))
 
 ######################################################################
 # Install buildout
 if subprocess.call(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env=dict(os.environ, PYTHONPATH=os.path.dirname(pkg_resources.__file__))):
+    env=dict(os.environ, PYTHONPATH=setuptools_path)):
     raise RuntimeError("buildout build failed.")
 
 pkg_resources.working_set.add_entry('src')

@@ -1,13 +1,37 @@
 Change History
 **************
 
-2.2.6 (unreleased)
-==================
+Unreleased
+==========
+
+- Undo breakage on Windows machines where ``sys.prefix`` can also be a
+  ``site-packages`` directory:  don't remove it from ``sys.path``.  See
+  https://github.com/buildout/buildout/issues/217
+
+- Remove assumption that ``pkg_resources`` is a module (untrue since
+  release of `setuptools 8.3``).  See
+  https://github.com/buildout/buildout/issues/227
 
 - Fix for #212. For certain kinds of conflict errors you'd get an UnpackError
   when rendering the error message. Instead of a nicely formatted version
   conflict message.
   [reinout]
+
+
+2.3.1 (2014-12-16)
+==================
+
+- Fixed: Buildout merged single-version requirements with
+  version-range requirements in a way that caused it to think there
+  wasn't a single-version requirement.  IOW, buildout throught that
+  versions were being picked when they weren't.
+
+- Suppress spurios (and possibly non-spurious) version-parsing warnings.
+
+2.3.0 (2014-12-14)
+==================
+
+- Buildout is now compatible with (and requires) setuptools 8.
 
 2.2.5 (2014-11-04)
 ==================
