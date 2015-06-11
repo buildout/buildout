@@ -32,7 +32,7 @@ BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
 all: build
 
-$(PYTHON_PATH):
+$(PYTHON_PATH)/bin/$(PYTHON_EXE):
 	@echo "Installing Python"
 	mkdir -p $(PYTHON_PATH)
 	cd $(PYTHON_PATH) && \
@@ -49,7 +49,7 @@ endif
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
-build: $(PYTHON_PATH)
+build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 
 clean:
