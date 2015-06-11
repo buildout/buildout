@@ -10,8 +10,8 @@ sudo: false
 cache:
   directories:
   - pythons
-# Note on these cache directories: "make build" downloads and installs a fresh
-# python in those directories.
+# Note on this cache directories: "make build" downloads pythons elsewhere,
+# but installs the compiled bin/lib/share in pythons/pythonx.y/ .
 
 notifications:
   email:
