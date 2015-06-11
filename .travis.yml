@@ -6,6 +6,11 @@ env:
     - PYTHON_VER=3.3
     - PYTHON_VER=3.4
 
+sudo: false
+cache:
+  directories:
+  - python$PYTHON_VER
+
 notifications:
   email:
     - buildout-development@googlegroups.com
