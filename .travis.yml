@@ -9,7 +9,11 @@ env:
 sudo: false
 cache:
   directories:
-  - python$PYTHON_VER
+  - python2.6
+  - python2.7
+  - python3.2
+  - python3.3
+  - python3.4
 
 notifications:
   email:
