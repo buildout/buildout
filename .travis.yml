@@ -22,6 +22,8 @@ notifications:
     - buildout-development@googlegroups.com
 
 install:
+    - ls -al python*
+    - ls -al python*/bin/
     - deactivate
     - make build
 
