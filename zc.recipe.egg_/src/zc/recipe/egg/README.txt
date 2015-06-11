@@ -31,10 +31,10 @@ We have a link server that has a number of distributions:
     <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
     <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
     <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
-    <a href="demo-0.4c1-py2.3.egg">demo-0.4c1-py2.3.egg</a><br>
+    <a href="demo-0.4rc1-py2.3.egg">demo-0.4rc1-py2.3.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
+    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>

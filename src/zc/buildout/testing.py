@@ -453,7 +453,7 @@ def wait(port, up):
         if up:
             raise
         else:
-            raise SystemError("Couln't stop server")
+            raise SystemError("Couldn't stop server")
 
 def install(project, destination):
     if not isinstance(destination, str):

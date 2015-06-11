@@ -127,3 +127,35 @@ Let's make sure the generated `buildout` script uses it::
       '/sample/eggs/setuptools-8.0...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
+
+For a completely offline install we want to avoid downloading ez_setup.py,
+specify the setuptools version, and to reuse the setuptools zipfile.
+
+    >>> try:
+    ...     from urllib.request import urlopen
+    ... except ImportError:
+    ...     from urllib2 import urlopen
+    >>> ez_setup = urlopen('https://bootstrap.pypa.io/ez_setup.py').read()
+    >>> write('ez_setup.py',
+    ... '''print("Using local ez_setup.py")
+    ... ''' + ez_setup.decode('ascii'))
+
+    >>> os.path.exists('setuptools-14.3.zip')
+    False
+
+    >>> print_('X'); print_(system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --setuptools-version 14.3 --version 2.0.0 '+
+    ...     '--setuptools-to-dir .')); print_('X')
+    ... # doctest: +ELLIPSIS
+    X...Using local ez_setup.py...Generated script '/sample/bin/buildout'...X
+
+    >>> os.path.exists('setuptools-14.3.zip')
+    True
+
+    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    #...
+    sys.path[0:0] = [
+      '/sample/eggs/setuptools-14.3...egg',
+      '/sample/eggs/zc.buildout-2.0.0...egg',
+      ]...

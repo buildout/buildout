@@ -97,10 +97,10 @@ We have a link server that has a number of eggs:
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4c1-py2.4.egg">demo-0.4c1-py2.4.egg</a><br>
+    <a href="demo-0.4rc1-py2.4.egg">demo-0.4rc1-py2.4.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
+    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
@@ -168,15 +168,15 @@ The old setting is returned.
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
     >>> for dist in ws:
     ...     print_(dist)
-    demo 0.4c1
-    demoneeded 1.2c1
+    demo 0.4rc1
+    demoneeded 1.2rc1
 
     >>> ls(dest)
     d  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
-    d  demo-0.4c1-py2.4.egg
+    d  demo-0.4rc1-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
-    d  demoneeded-1.2c1-py2.4.egg
+    d  demoneeded-1.2rc1-py2.4.egg
 
 Let's put the setting back to the default.
 
@@ -200,10 +200,10 @@ dependencies.  We might do this to specify a specific version.
     >>> ls(dest)
     d  demo-0.2-py2.4.egg
     d  demo-0.3-py2.4.egg
-    d  demo-0.4c1-py2.4.egg
+    d  demo-0.4rc1-py2.4.egg
     d  demoneeded-1.0-py2.4.egg
     d  demoneeded-1.1-py2.4.egg
-    d  demoneeded-1.2c1-py2.4.egg
+    d  demoneeded-1.2rc1-py2.4.egg
     d  other-1.0-py2.4.egg
 
     >>> rmdir(dest)
@@ -1117,10 +1117,10 @@ Let's update our link server with a new version of extdemo:
     <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
     <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
     <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4c1-py2.4.egg">demo-0.4c1-py2.4.egg</a><br>
+    <a href="demo-0.4rc1-py2.4.egg">demo-0.4rc1-py2.4.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2c1.zip">demoneeded-1.2c1.zip</a><br>
+    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>

@@ -361,6 +361,30 @@ If we use the verbose switch, we can see where requirements are coming from:
     but sampley 1 requires 'demoneeded==1.0'.
     """
 
+def version_conflict_rendering():
+    """
+
+We use the arguments passed by pkg_resources.VersionConflict to construct a
+nice error message:
+
+    >>> error = pkg_resources.VersionConflict('pkg1 2.1', 'pkg1 1.0')
+    >>> ws = []  # Not relevant for this test
+    >>> print_(zc.buildout.easy_install.VersionConflict(
+    ...     error, ws)) # doctest: +ELLIPSIS
+    There is a version conflict...
+
+But sometimes pkg_resources passes a nicely formatted string itself already.
+Extracting the original arguments fails in that case, so we just show the string.
+
+    >>> error = pkg_resources.VersionConflict('pkg1 2.1 is simply wrong')
+    >>> ws = []  # Not relevant for this test
+    >>> print_(zc.buildout.easy_install.VersionConflict(
+    ...     error, ws)) # doctest: +ELLIPSIS
+    There is a version conflict.
+    pkg1 2.1 is simply wrong
+
+    """
+
 def show_who_requires_missing_distributions():
     """
 
@@ -2320,9 +2344,9 @@ distributions:
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'setuptools'.
     ...
-    Picked: demo = 0.4c1
+    Picked: demo = 0.4rc1
     ...
-    Picked: demoneeded = 1.2c1
+    Picked: demoneeded = 1.2rc1
 
 We get an error if we specify anything but true or false:
 
@@ -2981,14 +3005,14 @@ def create_sample_eggs(test, executable=sys.executable):
 
         for i in (0, 1, 2):
             write(tmp, 'eggrecipedemoneeded.py', 'y=%s\ndef f():\n  pass' % i)
-            c1 = i==2 and 'c1' or ''
+            rc1 = i==2 and 'rc1' or ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
                 "setup(name='demoneeded', py_modules=['eggrecipedemoneeded'],"
                 " zip_safe=True, version='1.%s%s', author='bob', url='bob', "
                 "author_email='bob')\n"
-                % (i, c1)
+                % (i, rc1)
                 )
             zc.buildout.testing.sdist(tmp, dest)
 
@@ -3032,7 +3056,7 @@ def create_sample_eggs(test, executable=sys.executable):
                 'def main():\n'
                 '   print_(x, eggrecipedemoneeded.y)\n'
                 % i)
-            c1 = i==4 and 'c1' or ''
+            rc1 = i==4 and 'rc1' or ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
@@ -3040,7 +3064,7 @@ def create_sample_eggs(test, executable=sys.executable):
                 " install_requires = 'demoneeded',"
                 " entry_points={'console_scripts': "
                      "['demo = eggrecipedemo:main']},"
-                " zip_safe=True, version='0.%s%s')\n" % (i, c1)
+                " zip_safe=True, version='0.%s%s')\n" % (i, rc1)
                 )
             zc.buildout.testing.bdist_egg(tmp, dest)
 
