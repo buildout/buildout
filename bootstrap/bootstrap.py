@@ -61,7 +61,9 @@ parser.add_option("--allow-site-packages",
                   help=("Let bootstrap.py use existing site packages"))
 parser.add_option("--setuptools-version",
                   help="use a specific setuptools version")
-
+parser.add_option("--setuptools-to-dir",
+                  help=("allow for re-use of existing directory of "
+                        "setuptools versions"))
 
 options, args = parser.parse_args()
 
@@ -77,7 +79,10 @@ except ImportError:
     from urllib2 import urlopen
 
 ez = {}
-exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
+if os.path.exists('ez_setup.py'):
+    exec(open('ez_setup.py').read(), ez)
+else:
+    exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
 
 if not options.allow_site_packages:
     # ez_setup imports site, which adds site packages
@@ -98,6 +103,8 @@ setup_args = dict(to_dir=tmpeggs, download_delay=0)
 
 if options.setuptools_version is not None:
     setup_args['version'] = options.setuptools_version
+if options.setuptools_to_dir is not None:
+    setup_args['to_dir'] = options.setuptools_to_dir
 
 ez['use_setuptools'](**setup_args)
 import setuptools
