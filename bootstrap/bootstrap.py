@@ -72,12 +72,15 @@ options, args = parser.parse_args()
 # load/install setuptools
 
 try:
-    if options.allow_site_packages:
-        import setuptools
-        import pkg_resources
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
+if options.allow_site_packages:
+    try:
+        import setuptools
+        import pkg_resources
+    except ImportError:
+        pass
 
 ez = {}
 if os.path.exists('ez_setup.py'):
