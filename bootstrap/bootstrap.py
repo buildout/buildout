@@ -40,8 +40,9 @@ this script from going over the network.
 '''
 
 parser = OptionParser(usage=usage)
-parser.add_option("-v", "--version", help="use a specific zc.buildout version")
-
+parser.add_option("-v",
+                  "--version",
+                  help="Use a specific zc.buildout version")
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
                   action="store_true", default=False,
@@ -60,9 +61,9 @@ parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Let bootstrap.py use existing site packages"))
 parser.add_option("--setuptools-version",
-                  help="use a specific setuptools version")
+                  help="Use a specific setuptools version")
 parser.add_option("--setuptools-to-dir",
-                  help=("allow for re-use of existing directory of "
+                  help=("Allow for re-use of existing directory of "
                         "setuptools versions"))
 
 options, args = parser.parse_args()
