@@ -95,7 +95,8 @@ if not options.allow_site_packages:
             # are not sys.prefix; this is because on Windows
             # sys.prefix is a site-package directory.
             if sitepackage_path != sys.prefix:
-                sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
+                sys.path[:] = [x for x in sys.path
+                               if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
 
