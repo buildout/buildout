@@ -29,6 +29,11 @@ Unreleased
   higher for this functionality.
   [lrowe]
 
+- When bootstrapping, the ``develop-eggs/`` directory is first removed. This
+  prevents old left-over ``.egg-link`` files from breaking buildout's careful
+  package collection mechanism.
+  [reinout]
+
 2.3.1 (2014-12-16)
 ==================
 
