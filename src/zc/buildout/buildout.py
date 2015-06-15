@@ -391,6 +391,12 @@ class Buildout(DictMixin):
     def bootstrap(self, args):
         __doing__ = 'Bootstrapping.'
 
+        if os.path.exists(self['buildout']['develop-eggs-directory']):
+            if os.path.isdir(self['buildout']['develop-eggs-directory']):
+                rmtree(self['buildout']['develop-eggs-directory'])
+                self._logger.debug(
+                    "Removed existing develop-eggs directory")
+
         self._setup_directories()
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
@@ -1444,9 +1450,9 @@ def _default_globals():
     These default expressions are convenience defaults available when eveluating
     section headers expressions.
     NB: this is wrapped in a function so that the computing of these expressions
-    is lazy and done only if needed (ie if there is at least one section with 
-    an expression) because the computing of some of these expressions can be 
-    expensive. 
+    is lazy and done only if needed (ie if there is at least one section with
+    an expression) because the computing of some of these expressions can be
+    expensive.
     """
     # partially derived or inspired from its.py
     # Copyright (c) 2012, Kenneth Reitz All rights reserved.
