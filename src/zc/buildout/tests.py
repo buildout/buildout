@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2004-2009 Zope Foundation and Contributors.
@@ -1153,6 +1154,20 @@ because of the missing target file.
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
     Develop: '/sample-buildout/recipe'
     Updating foo.
+
+    """
+
+def unicode_filename_doesnt_break_hash():
+    """
+Buildout's _dir_hash() used to break on non-ascii filenames.
+
+    >>> mkdir('héhé')
+    >>> write('héhé', 'héhé.py',
+    ... '''
+    ... print('Example filename from pyramid tests')
+    ... ''')
+    >>> from zc.buildout.buildout import _dir_hash
+    >>> _dir_hash('héhé')
 
     """
 
