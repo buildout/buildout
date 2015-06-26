@@ -1159,7 +1159,7 @@ because of the missing target file.
 
 def unicode_filename_doesnt_break_hash():
     """
-Buildout's _dir_hash() used to break on non-ascii filenames.
+Buildout's _dir_hash() used to break on non-ascii filenames on python 2.
 
     >>> mkdir('héhé')
     >>> write('héhé', 'héhé.py',
@@ -1167,7 +1167,7 @@ Buildout's _dir_hash() used to break on non-ascii filenames.
     ... print('Example filename from pyramid tests')
     ... ''')
     >>> from zc.buildout.buildout import _dir_hash
-    >>> _dir_hash('héhé')
+    >>> dont_care = _dir_hash('héhé')
 
     """
 
