@@ -29,6 +29,11 @@ Unreleased
   higher for this functionality.
   [lrowe]
 
+- Buildout no longer breaks on packages that contain a file with a non-ascii
+  filename. Fixes #89 and #148.
+  [reinout]
+
+
 2.3.1 (2014-12-16)
 ==================
 
