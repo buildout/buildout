@@ -1602,7 +1602,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     return result
 
 
-ignore_directories = u'.svn', u'CVS', u'__pycache__'
+ignore_directories = '.svn', 'CVS', '__pycache__'
 _dir_hashes = {}
 def _dir_hash(dir):
     dir = fs_to_text(dir)
@@ -1613,13 +1613,13 @@ def _dir_hash(dir):
         return dir_hash
     hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
-        dirnames = [fs_to_text(dirname) for dirname in dirnames]
-        filenames = [fs_to_text(filename) for filename in filenames]
+        dirnames[:] = [fs_to_text(dirname) for dirname in dirnames]
+        filenames[:] = [fs_to_text(filename) for filename in filenames]
         dirnames[:] = sorted(n for n in dirnames if n not in ignore_directories)
         filenames[:] = sorted(f for f in filenames
                               if (not (f.endswith('pyc') or f.endswith('pyo'))
                                   and os.path.exists(os.path.join(dirpath, f)))
-                              )
+                          )
         hash.update(' '.join(dirnames).encode('utf-8'))
         hash.update(' '.join(filenames).encode('utf-8'))
         for name in filenames:
