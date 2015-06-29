@@ -44,6 +44,19 @@ import tempfile
 import zc.buildout
 import zc.buildout.download
 
+PY3 = sys.version_info[0] == 3
+if PY3:
+    text_type = str
+else:
+    text_type = unicode
+
+def fs_to_text(fs_name):
+    """Return filesystem name always as unicode(2)/str(3)."""
+    if not isinstance(fs_name, text_type):
+        fs_name = fs_name.decode(sys.getfilesystemencoding(),
+                                 'surrogateescape')
+    return fs_name
+
 def _print_options(sep=' ', end='\n', file=None):
     return sep, end, file
 
@@ -1444,9 +1457,9 @@ def _default_globals():
     These default expressions are convenience defaults available when eveluating
     section headers expressions.
     NB: this is wrapped in a function so that the computing of these expressions
-    is lazy and done only if needed (ie if there is at least one section with 
-    an expression) because the computing of some of these expressions can be 
-    expensive. 
+    is lazy and done only if needed (ie if there is at least one section with
+    an expression) because the computing of some of these expressions can be
+    expensive.
     """
     # partially derived or inspired from its.py
     # Copyright (c) 2012, Kenneth Reitz All rights reserved.
@@ -1589,21 +1602,26 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     return result
 
 
-ignore_directories = '.svn', 'CVS', '__pycache__'
+ignore_directories = u'.svn', u'CVS', u'__pycache__'
 _dir_hashes = {}
 def _dir_hash(dir):
+    dir = fs_to_text(dir)
+    # ^^^ fs_to_text ensures unicode, needed for os.walk() on python2 to work
+    # well with non-ascii filenames.
     dir_hash = _dir_hashes.get(dir, None)
     if dir_hash is not None:
         return dir_hash
     hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
+        dirnames = [fs_to_text(dirname) for dirname in dirnames]
+        filenames = [fs_to_text(filename) for filename in filenames]
         dirnames[:] = sorted(n for n in dirnames if n not in ignore_directories)
         filenames[:] = sorted(f for f in filenames
                               if (not (f.endswith('pyc') or f.endswith('pyo'))
                                   and os.path.exists(os.path.join(dirpath, f)))
                               )
-        hash.update(' '.join(dirnames).encode())
-        hash.update(' '.join(filenames).encode())
+        hash.update(' '.join(dirnames).encode('utf-8'))
+        hash.update(' '.join(filenames).encode('utf-8'))
         for name in filenames:
             path = os.path.join(dirpath, name)
             if name == 'entry_points.txt':
