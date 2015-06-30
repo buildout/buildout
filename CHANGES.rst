@@ -29,6 +29,10 @@ Unreleased
   higher for this functionality.
   [lrowe]
 
+- The bootstrap script now uses ``--buildout-version`` instead of
+  ``--version`` to pick a specific buildout version.
+  [reinout]
+
 - Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
   configuration so that tests run much quicker so that buildout is easier and
   quicker to develop.

@@ -40,8 +40,7 @@ this script from going over the network.
 '''
 
 parser = OptionParser(usage=usage)
-parser.add_option("-v",
-                  "--version",
+parser.add_option("--buildout-version",
                   help="Use a specific zc.buildout version")
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
@@ -139,7 +138,7 @@ if find_links:
     cmd.extend(['-f', find_links])
 
 requirement = 'zc.buildout'
-version = options.version
+version = options.buildout_version
 if version is None and not options.accept_buildout_test_releases:
     # Figure out the most recent final version of zc.buildout.
     import setuptools.package_index
