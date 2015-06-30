@@ -72,7 +72,7 @@ if has_distribute and not has_setuptools:
     sys.exit("zc.buildout 2 needs setuptools, not distribute."
              "  Are you using an outdated bootstrap.py?  Make sure"
              " you have the latest version downloaded from"
-             " http://downloads.buildout.org/2/bootstrap.py")
+             " https://bootstrap.pypa.io/bootstrap-buildout.py")
 
 setuptools_loc = pkg_resources.working_set.find(
     pkg_resources.Requirement.parse('setuptools')
