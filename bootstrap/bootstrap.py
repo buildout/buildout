@@ -25,6 +25,9 @@ import tempfile
 
 from optparse import OptionParser
 
+__version__ = '2015-07-01'
+# See zc.buildout's changelog if this version is up to date.
+
 tmpeggs = tempfile.mkdtemp(prefix='bootstrap-')
 
 usage = '''\
@@ -40,8 +43,9 @@ this script from going over the network.
 '''
 
 parser = OptionParser(usage=usage)
-parser.add_option("--buildout-version",
-                  help="Use a specific zc.buildout version")
+parser.add_option("--version",
+                  action="store_true", default=False,
+                  help=("Return bootstrap.py version."))
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
                   action="store_true", default=False,
@@ -59,6 +63,8 @@ parser.add_option("-f", "--find-links",
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Let bootstrap.py use existing site packages"))
+parser.add_option("--buildout-version",
+                  help="Use a specific zc.buildout version")
 parser.add_option("--setuptools-version",
                   help="Use a specific setuptools version")
 parser.add_option("--setuptools-to-dir",
@@ -66,6 +72,9 @@ parser.add_option("--setuptools-to-dir",
                         "setuptools versions"))
 
 options, args = parser.parse_args()
+if options.version:
+    print("bootstrap.py version %s" % __version__)
+
 
 ######################################################################
 # load/install setuptools

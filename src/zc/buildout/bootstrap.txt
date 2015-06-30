@@ -159,3 +159,16 @@ specify the setuptools version, and to reuse the setuptools zipfile.
       '/sample/eggs/setuptools-14.3...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
+
+You can ask bootstrap.py for its version. This is really the day the last
+change was made. A date leads to less confusion than a version number separate
+from buildout's own version number. Similarly, tracking buildout's version
+number leads to bootstraps with a new version number but without changes or to
+bootstraps with version number from an already-older buildout. So: a date is
+best.
+
+    >>> print_('X'); print_(system(
+    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...     'bootstrap.py --version')); print_('X')
+    ... # doctest: +ELLIPSIS
+    X...2015...X

@@ -22,6 +22,18 @@ Unreleased
   https://github.com/buildout/buildout/pull/222 .
   [lrowe]
 
+- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
+  configuration so that tests run much quicker so that buildout is easier and
+  quicker to develop.
+  [reinout]
+
+- A new boostrap.py file is released (version 2015-07-01).
+
+- When bootstrapping, the ``develop-eggs/`` directory is first removed. This
+  prevents old left-over ``.egg-link`` files from breaking buildout's careful
+  package collection mechanism.
+  [reinout]
+
 - Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
   already available there, it is reused. This can be used to bootstrap
   buildout without internet access. Similarly, a local ``ez_setup.py`` is used
@@ -33,14 +45,10 @@ Unreleased
   ``--version`` to pick a specific buildout version.
   [reinout]
 
-- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
-  configuration so that tests run much quicker so that buildout is easier and
-  quicker to develop.
-  [reinout]
-
-- When bootstrapping, the ``develop-eggs/`` directory is first removed. This
-  prevents old left-over ``.egg-link`` files from breaking buildout's careful
-  package collection mechanism.
+- The bootstrap script now accepts ``--version`` which prints the bootstrap
+  version. This version is the date the bootstrap.py was last changed. A date
+  is handier or less confusing than either tracking zc.buildout's version or
+  having a separate bootstrap version number.
   [reinout]
 
 2.3.1 (2014-12-16)
