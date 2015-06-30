@@ -29,6 +29,11 @@ Unreleased
   higher for this functionality.
   [lrowe]
 
+- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
+  configuration so that tests run much quicker so that buildout is easier and
+  quicker to develop.
+  [reinout]
+
 - When bootstrapping, the ``develop-eggs/`` directory is first removed. This
   prevents old left-over ``.egg-link`` files from breaking buildout's careful
   package collection mechanism.

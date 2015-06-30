@@ -6,11 +6,19 @@ env:
     - PYTHON_VER=3.3
     - PYTHON_VER=3.4
 
+sudo: false
+cache:
+  directories:
+  - pythons
+# Note on this cache directories: "make build" downloads pythons elsewhere,
+# but installs the compiled bin/lib/share in pythons/pythonx.y/ .
+
 notifications:
   email:
     - buildout-development@googlegroups.com
 
 install:
+    - ls -al pythons
     - deactivate
     - make build
 
