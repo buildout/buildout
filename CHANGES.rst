@@ -22,6 +22,13 @@ Unreleased
   https://github.com/buildout/buildout/pull/222 .
   [lrowe]
 
+- Note: zc.recipe.egg has also been updated to 2.0.2 together with this
+  zc.buildout release. Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath``
+  support, don't assume path elements are buildout-relative if they start with
+  one of the "special" tokens (e.g., ``$ORIGIN``).  See:
+  https://github.com/buildout/buildout/issues/225.
+  [tseaver]
+
 - Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
   already available there, it is reused. This can be used to bootstrap
   buildout without internet access. Similarly, a local ``ez_setup.py`` is used

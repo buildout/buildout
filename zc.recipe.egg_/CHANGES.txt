@@ -1,6 +1,15 @@
 Change History
 **************
 
+2.0.2 (unreleased)
+==================
+
+- Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath`` support, don't
+  assume path elements are buildout-relative if they start with one of the
+  "special" tokens (e.g., ``$ORIGIN``).  See:
+  https://github.com/buildout/buildout/issues/225.
+  [tseaver]
+
 2.0.1 (2013-09-05)
 ==================
 
@@ -129,7 +138,7 @@ Feature Changes
 
   - Cause develop eggs to be created after other parts.
 
-- The develop and build recipes now return the paths created, so that 
+- The develop and build recipes now return the paths created, so that
   created eggs or egg links are removed when a part is removed (or
   changed).
 
