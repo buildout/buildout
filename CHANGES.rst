@@ -22,9 +22,10 @@ Unreleased
   https://github.com/buildout/buildout/pull/222 .
   [lrowe]
 
-- Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath`` support, don't
-  assume path elements are buildout-relative if they start with one of the
-  "special" tokens (e.g., ``$ORIGIN``).  See:
+- Note: zc.recipe.egg has also been updated to 2.0.2 together with this
+  zc.buildout release. Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath``
+  support, don't assume path elements are buildout-relative if they start with
+  one of the "special" tokens (e.g., ``$ORIGIN``).  See:
   https://github.com/buildout/buildout/issues/225.
   [tseaver]
 
