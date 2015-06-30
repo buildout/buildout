@@ -50,3 +50,7 @@ the bootstrap-release branch, too.
 The http://downloads.buildout.org/2/bootstrap.py location doesn't need to be
 updated manually: it is a redirect now, to
 https://bootstrap.pypa.io/bootstrap-buildout.py .
+
+If there are changes to bootstrap.py, be sure to update the date in the
+``__version__`` attribute and to record the bootstrap change (including the
+new date/version) in zc.buildout's changelog.
