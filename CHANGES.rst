@@ -6,11 +6,11 @@ Unreleased
 
 - Undo breakage on Windows machines where ``sys.prefix`` can also be a
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
-  https://github.com/buildout/buildout/issues/217
+  https://github.com/buildout/buildout/issues/217 .
 
 - Remove assumption that ``pkg_resources`` is a module (untrue since
   release of `setuptools 8.3``).  See
-  https://github.com/buildout/buildout/issues/227
+  https://github.com/buildout/buildout/issues/227 .
 
 - Fix for #212. For certain kinds of conflict errors you'd get an UnpackError
   when rendering the error message. Instead of a nicely formatted version
@@ -19,13 +19,19 @@ Unreleased
 
 - Making sure we use the correct easy_install when setuptools is installed
   globally. See https://github.com/buildout/buildout/pull/232 and
-  https://github.com/buildout/buildout/pull/222
+  https://github.com/buildout/buildout/pull/222 .
+  [lrowe]
+
+- Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
+  already available there, it is reused. This can be used to bootstrap
+  buildout without internet access. Similarly, a local ``ez_setup.py`` is used
+  when available instead of it being downloaded. You need setuptools 14.0 or
+  higher for this functionality.
   [lrowe]
 
 - Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
   configuration so that tests run much quicker so that buildout is easier and
   quicker to develop.
-  [reinout]
 
 2.3.1 (2014-12-16)
 ==================
