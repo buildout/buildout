@@ -383,6 +383,7 @@ class Buildout(DictMixin):
             download_cache = os.path.join(options['directory'], download_cache)
             if not os.path.exists(download_cache):
                 os.mkdir(download_cache)
+            # Actually, we want to use a subdirectory in there called 'dist'.
             download_cache = os.path.join(download_cache, 'dist')
             if not os.path.isdir(download_cache):
                 os.mkdir(download_cache)
@@ -1470,9 +1471,9 @@ def _default_globals():
     These default expressions are convenience defaults available when eveluating
     section headers expressions.
     NB: this is wrapped in a function so that the computing of these expressions
-    is lazy and done only if needed (ie if there is at least one section with 
-    an expression) because the computing of some of these expressions can be 
-    expensive. 
+    is lazy and done only if needed (ie if there is at least one section with
+    an expression) because the computing of some of these expressions can be
+    expensive.
     """
     # partially derived or inspired from its.py
     # Copyright (c) 2012, Kenneth Reitz All rights reserved.
