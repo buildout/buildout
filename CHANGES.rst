@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.0 (unreleased)
+2.4.0 (2015-07-01)
 ==================
 
 - Buildout no longer breaks on packages that contain a file with a non-ascii
