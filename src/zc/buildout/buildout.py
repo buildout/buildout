@@ -379,22 +379,23 @@ class Buildout(DictMixin):
                                                    self.update_versions_file)
 
         download_cache = options.get('download-cache')
+        extends_cache = options.get('extends-cache')
+        eggs_cache = options.get('eggs-directory')
+        for cache in [download_cache, extends_cache, eggs_cache]:
+            if cache:
+                cache = os.path.join(options['directory'], cache)
+                if not os.path.exists(cache):
+                    # Note: os.mkdir only creates the dir if the parent
+                    # exists. This is the way we want it.
+                    self._logger.info('Creating directory %r.', cache)
+                    os.mkdir(cache)
+
         if download_cache:
-            download_cache = os.path.join(options['directory'], download_cache)
-            if not os.path.exists(download_cache):
-                os.mkdir(download_cache)
             # Actually, we want to use a subdirectory in there called 'dist'.
             download_cache = os.path.join(download_cache, 'dist')
             if not os.path.exists(download_cache):
                 os.mkdir(download_cache)
-
             zc.buildout.easy_install.download_cache(download_cache)
-
-        extends_cache = options.get('extends-cache')
-        if extends_cache:
-            extends_cache = os.path.join(options['directory'], extends_cache)
-            if not os.path.exists(extends_cache):
-                os.mkdir(extends_cache)
 
         if bool_option(options, 'install-from-cache'):
             if self.offline:
@@ -1011,9 +1012,6 @@ class Buildout(DictMixin):
                 path.append(self['buildout']['eggs-directory'])
             else:
                 dest = self['buildout']['eggs-directory']
-                if not os.path.exists(dest):
-                    self._logger.info('Creating directory %r.', dest)
-                    os.mkdir(dest)
 
             zc.buildout.easy_install.install(
                 specs, dest, path=path,
