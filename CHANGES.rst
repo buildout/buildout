@@ -4,6 +4,10 @@ Change History
 2.4.0 (unreleased)
 ==================
 
+- Buildout no longer breaks on packages that contain a file with a non-ascii
+  filename. Fixes #89 and #148.
+  [reinout]
+
 - Undo breakage on Windows machines where ``sys.prefix`` can also be a
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
   https://github.com/buildout/buildout/issues/217 .
@@ -22,27 +26,17 @@ Change History
   https://github.com/buildout/buildout/pull/222 .
   [lrowe]
 
+- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
+  configuration so that tests run much quicker so that buildout is easier and
+  quicker to develop.
+  [reinout]
+
 - Note: zc.recipe.egg has also been updated to 2.0.2 together with this
   zc.buildout release. Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath``
   support, don't assume path elements are buildout-relative if they start with
   one of the "special" tokens (e.g., ``$ORIGIN``).  See:
   https://github.com/buildout/buildout/issues/225.
   [tseaver]
-
-- Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
-  already available there, it is reused. This can be used to bootstrap
-  buildout without internet access. Similarly, a local ``ez_setup.py`` is used
-  when available instead of it being downloaded. You need setuptools 14.0 or
-  higher for this functionality.
-  [lrowe]
-
-- Buildout no longer breaks on packages that contain a file with a non-ascii
-  filename. Fixes #89 and #148.
-  [reinout]
-
-- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
-  configuration so that tests run much quicker so that buildout is easier and
-  quicker to develop.
 
 - ``download-cache``, ``eggs-directory`` and ``extends-cache`` are now
   automatically created if their parent directory exists. Also they can be
@@ -51,6 +45,30 @@ Change History
   usual convention that the ``~`` char means the home directory of the user
   running buildout.
   [lelit]
+
+- A new boostrap.py file is released (version 2015-07-01).
+
+- When bootstrapping, the ``develop-eggs/`` directory is first removed. This
+  prevents old left-over ``.egg-link`` files from breaking buildout's careful
+  package collection mechanism.
+  [reinout]
+
+- The bootstrap script now accepts ``--to-dir``. Setuptools is installed
+  there. If already available there, it is reused. This can be used to
+  bootstrap buildout without internet access. Similarly, a local
+  ``ez_setup.py`` is used when available instead of it being downloaded. You
+  need setuptools 14.0 or higher for this functionality.
+  [lrowe]
+
+- The bootstrap script now uses ``--buildout-version`` instead of
+  ``--version`` to pick a specific buildout version.
+  [reinout]
+
+- The bootstrap script now accepts ``--version`` which prints the bootstrap
+  version. This version is the date the bootstrap.py was last changed. A date
+  is handier or less confusing than either tracking zc.buildout's version or
+  having a separate bootstrap version number.
+  [reinout]
 
 2.3.1 (2014-12-16)
 ==================

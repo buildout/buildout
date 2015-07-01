@@ -29,3 +29,32 @@ with them do::
 
 The actual Python compilation is only done once and then re-used. So on
 subsequent builds, only the development buildout itself needs to be redone.
+
+
+Releases: zc.buildout, zc.recipe.egg and bootstrap.py
+-----------------------------------------------------
+
+Buildout consists of two python packages that are released separately:
+zc.buildout and zc.recipe.egg. zc.recipe.egg is changed much less often than
+zc.buildout.
+
+zc.buildout's setup.py and changelog is in the same directory as this
+``DEVELOPERS.txt`` and the code is in ``src/zc/buildout``.
+
+zc.recipe.egg, including setup.py and a separate changelog, is in the
+``zc.recipe.egg_`` subdirectory.
+
+A third item is the bootstrap.py file in ``bootstrap/bootstrap.py``. The
+canonical location is at https://bootstrap.pypa.io/bootstrap-buildout.py,
+(though it is unfortunate that it isn't named just ``bootstrap.py``). This
+file is pulled automatically every 15 minutes from the bootstrap-release
+branch. When a new buildout release is made, **the releaser** should update
+the bootstrap-release branch, too.
+
+The http://downloads.buildout.org/2/bootstrap.py location doesn't need to be
+updated manually: it is a redirect now, to
+https://bootstrap.pypa.io/bootstrap-buildout.py .
+
+If there are changes to bootstrap.py, be sure to update the date in the
+``__version__`` attribute and to record the bootstrap change (including the
+new date/version) in zc.buildout's changelog.

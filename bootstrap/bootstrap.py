@@ -25,7 +25,10 @@ import tempfile
 
 from optparse import OptionParser
 
-tmpeggs = tempfile.mkdtemp()
+__version__ = '2015-07-01'
+# See zc.buildout's changelog if this version is up to date.
+
+tmpeggs = tempfile.mkdtemp(prefix='bootstrap-')
 
 usage = '''\
 [DESIRED PYTHON FOR BUILDOUT] bootstrap.py [options]
@@ -40,8 +43,9 @@ this script from going over the network.
 '''
 
 parser = OptionParser(usage=usage)
-parser.add_option("-v", "--version", help="use a specific zc.buildout version")
-
+parser.add_option("--version",
+                  action="store_true", default=False,
+                  help=("Return bootstrap.py version."))
 parser.add_option("-t", "--accept-buildout-test-releases",
                   dest='accept_buildout_test_releases',
                   action="store_true", default=False,
@@ -59,21 +63,24 @@ parser.add_option("-f", "--find-links",
 parser.add_option("--allow-site-packages",
                   action="store_true", default=False,
                   help=("Let bootstrap.py use existing site packages"))
+parser.add_option("--buildout-version",
+                  help="Use a specific zc.buildout version")
 parser.add_option("--setuptools-version",
-                  help="use a specific setuptools version")
+                  help="Use a specific setuptools version")
 parser.add_option("--setuptools-to-dir",
-                  help=("allow for re-use of existing directory of "
+                  help=("Allow for re-use of existing directory of "
                         "setuptools versions"))
 
 options, args = parser.parse_args()
+if options.version:
+    print("bootstrap.py version %s" % __version__)
+    sys.exit(0)
+
 
 ######################################################################
 # load/install setuptools
 
 try:
-    if options.allow_site_packages:
-        import setuptools
-        import pkg_resources
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen
@@ -97,7 +104,8 @@ if not options.allow_site_packages:
             # are not sys.prefix; this is because on Windows
             # sys.prefix is a site-package directory.
             if sitepackage_path != sys.prefix:
-                sys.path[:] = [x for x in sys.path if sitepackage_path not in x]
+                sys.path[:] = [x for x in sys.path
+                               if sitepackage_path not in x]
 
 setup_args = dict(to_dir=tmpeggs, download_delay=0)
 
@@ -140,7 +148,7 @@ if find_links:
     cmd.extend(['-f', find_links])
 
 requirement = 'zc.buildout'
-version = options.version
+version = options.buildout_version
 if version is None and not options.accept_buildout_test_releases:
     # Figure out the most recent final version of zc.buildout.
     import setuptools.package_index

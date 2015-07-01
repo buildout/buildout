@@ -434,6 +434,12 @@ class Buildout(DictMixin):
     def bootstrap(self, args):
         __doing__ = 'Bootstrapping.'
 
+        if os.path.exists(self['buildout']['develop-eggs-directory']):
+            if os.path.isdir(self['buildout']['develop-eggs-directory']):
+                rmtree(self['buildout']['develop-eggs-directory'])
+                self._logger.debug(
+                    "Removed existing develop-eggs directory")
+
         self._setup_directories()
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
