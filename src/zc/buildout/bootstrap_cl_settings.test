@@ -27,9 +27,9 @@ Some people pass buildout settings to bootstrap.
     ...     ' -c'+join('buildout', 'buildout.cfg')
     ...    )); print_('X') # doctest: +ELLIPSIS
     X...
+    Creating directory '/top/eggs'.
     Creating directory '/top/bin'.
     Creating directory '/top/parts'.
-    Creating directory '/top/eggs'.
     Creating directory '/top/develop-eggs'.
     Generated script '/top/bin/buildout'.
     ...
@@ -52,9 +52,9 @@ They might do it with init, but no worries:
     ...    )); print_('X') # doctest: +ELLIPSIS
     X...
     Creating '/top/buildout/buildout.cfg'.
+    Creating directory '/top/eggs'.
     Creating directory '/top/bin'.
     Creating directory '/top/parts'.
-    Creating directory '/top/eggs'.
     Creating directory '/top/develop-eggs'.
     Generated script '/top/bin/buildout'.
     ...

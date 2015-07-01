@@ -810,7 +810,7 @@ COMMAND_LINE_VALUE).
         DEFAULT_VALUE
     directory= /sample-buildout
         COMPUTED_VALUE
-    eggs-directory= eggs
+    eggs-directory= /sample-buildout/eggs
         DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
@@ -2446,9 +2446,9 @@ provide alternate locations, and even names for these directories.
     ... ))
 
     >>> print_(system(buildout), end='')
+    Creating directory '/sample-alt/basket'.
     Creating directory '/sample-alt/scripts'.
     Creating directory '/sample-alt/work'.
-    Creating directory '/sample-alt/basket'.
     Creating directory '/sample-alt/developbasket'.
     Develop: '/sample-buildout/recipes'
     Uninstalling d4.
@@ -2482,9 +2482,9 @@ You can also specify an alternate buildout directory:
     ...    ))
 
     >>> print_(system(buildout), end='')
+    Creating directory '/sample-alt/eggs'.
     Creating directory '/sample-alt/bin'.
     Creating directory '/sample-alt/parts'.
-    Creating directory '/sample-alt/eggs'.
     Creating directory '/sample-alt/develop-eggs'.
     Develop: '/sample-buildout/recipes'
 
@@ -2772,9 +2772,9 @@ local buildout scripts.
     ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
     ...              +' init'), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
+    Creating directory '/sample-bootstrapped/eggs'.
     Creating directory '/sample-bootstrapped/bin'.
     Creating directory '/sample-bootstrapped/parts'.
-    Creating directory '/sample-bootstrapped/eggs'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Generated script '/sample-bootstrapped/bin/buildout'.
 
@@ -2833,9 +2833,9 @@ if there isn't a configuration file:
     >>> print_(system(buildout
     ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
     ...              +' bootstrap'), end='')
+    Creating directory '/sample-bootstrapped2/eggs'.
     Creating directory '/sample-bootstrapped2/bin'.
     Creating directory '/sample-bootstrapped2/parts'.
-    Creating directory '/sample-bootstrapped2/eggs'.
     Creating directory '/sample-bootstrapped2/develop-eggs'.
     Generated script '/sample-bootstrapped2/bin/buildout'.
 

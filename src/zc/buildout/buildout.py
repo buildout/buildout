@@ -44,6 +44,19 @@ import tempfile
 import zc.buildout
 import zc.buildout.download
 
+PY3 = sys.version_info[0] == 3
+if PY3:
+    text_type = str
+else:
+    text_type = unicode
+
+def fs_to_text(fs_name):
+    """Return filesystem name always as unicode(2)/str(3)."""
+    if not isinstance(fs_name, text_type):
+        fs_name = fs_name.decode(sys.getfilesystemencoding(),
+                                 'surrogateescape')
+    return fs_name
+
 def _print_options(sep=' ', end='\n', file=None):
     return sep, end, file
 
@@ -253,6 +266,37 @@ class Buildout(DictMixin):
                  if k not in versions
                  ))
 
+        # Absolutize some particular directory, handling also the ~/foo form,
+        # and considering the location of the configuration file that generated
+        # the setting as the base path, falling back to the main configuration
+        # file location
+        for name in ('download-cache', 'eggs-directory', 'extends-cache'):
+            if name in data['buildout']:
+                origdir, src = data['buildout'][name]
+                if '${' in origdir:
+                    continue
+                if not os.path.isabs(origdir):
+                    if src in ('DEFAULT_VALUE',
+                               'COMPUTED_VALUE',
+                               'COMMAND_LINE_VALUE'):
+                        if 'directory' in data['buildout']:
+                            basedir = data['buildout']['directory'][0]
+                        else:
+                            basedir = self._buildout_dir
+                    else:
+                        if _isurl(src):
+                            raise zc.buildout.UserError(
+                                'Setting "%s" to a non absolute location ("%s") '
+                                'within a\n'
+                                'remote configuration file ("%s") is ambiguous.' % (
+                                    name, origdir, src))
+                        basedir = os.path.dirname(src)
+                    absdir = os.path.expanduser(origdir)
+                    if not os.path.isabs(absdir):
+                        absdir = os.path.join(basedir, absdir)
+                    absdir = os.path.abspath(absdir)
+                    data['buildout'][name] = (absdir, src)
+
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
@@ -349,18 +393,22 @@ class Buildout(DictMixin):
                                                    self.update_versions_file)
 
         download_cache = options.get('download-cache')
-        if download_cache:
-            download_cache = os.path.join(options['directory'], download_cache)
-            if not os.path.isdir(download_cache):
-                raise zc.buildout.UserError(
-                    'The specified download cache:\n'
-                    '%r\n'
-                    "Doesn't exist.\n"
-                    % download_cache)
-            download_cache = os.path.join(download_cache, 'dist')
-            if not os.path.isdir(download_cache):
-                os.mkdir(download_cache)
+        extends_cache = options.get('extends-cache')
+        eggs_cache = options.get('eggs-directory')
+        for cache in [download_cache, extends_cache, eggs_cache]:
+            if cache:
+                cache = os.path.join(options['directory'], cache)
+                if not os.path.exists(cache):
+                    # Note: os.mkdir only creates the dir if the parent
+                    # exists. This is the way we want it.
+                    self._logger.info('Creating directory %r.', cache)
+                    os.mkdir(cache)
 
+        if download_cache:
+            # Actually, we want to use a subdirectory in there called 'dist'.
+            download_cache = os.path.join(download_cache, 'dist')
+            if not os.path.exists(download_cache):
+                os.mkdir(download_cache)
             zc.buildout.easy_install.download_cache(download_cache)
 
         if bool_option(options, 'install-from-cache'):
@@ -375,11 +423,6 @@ class Buildout(DictMixin):
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]
-
-        # Do the same for extends-cache which is not among the defaults but
-        # wasn't recognized as having been used since it was used before
-        # tracking was turned on.
-        options.get('extends-cache')
 
         os.chdir(options['directory'])
 
@@ -989,9 +1032,6 @@ class Buildout(DictMixin):
                 path.append(self['buildout']['eggs-directory'])
             else:
                 dest = self['buildout']['eggs-directory']
-                if not os.path.exists(dest):
-                    self._logger.info('Creating directory %r.', dest)
-                    os.mkdir(dest)
 
             zc.buildout.easy_install.install(
                 specs, dest, path=path,
@@ -1598,18 +1638,23 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 ignore_directories = '.svn', 'CVS', '__pycache__'
 _dir_hashes = {}
 def _dir_hash(dir):
+    dir = fs_to_text(dir)
+    # ^^^ fs_to_text ensures unicode, needed for os.walk() on python2 to work
+    # well with non-ascii filenames.
     dir_hash = _dir_hashes.get(dir, None)
     if dir_hash is not None:
         return dir_hash
     hash = md5()
     for (dirpath, dirnames, filenames) in os.walk(dir):
+        dirnames[:] = [fs_to_text(dirname) for dirname in dirnames]
+        filenames[:] = [fs_to_text(filename) for filename in filenames]
         dirnames[:] = sorted(n for n in dirnames if n not in ignore_directories)
         filenames[:] = sorted(f for f in filenames
                               if (not (f.endswith('pyc') or f.endswith('pyo'))
                                   and os.path.exists(os.path.join(dirpath, f)))
-                              )
-        hash.update(' '.join(dirnames).encode())
-        hash.update(' '.join(filenames).encode())
+                          )
+        hash.update(' '.join(dirnames).encode('utf-8'))
+        hash.update(' '.join(filenames).encode('utf-8'))
         for name in filenames:
             path = os.path.join(dirpath, name)
             if name == 'entry_points.txt':

@@ -1,8 +1,12 @@
 Change History
 **************
 
-Unreleased
-==========
+2.4.0 (unreleased)
+==================
+
+- Buildout no longer breaks on packages that contain a file with a non-ascii
+  filename. Fixes #89 and #148.
+  [reinout]
 
 - Undo breakage on Windows machines where ``sys.prefix`` can also be a
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
@@ -27,6 +31,21 @@ Unreleased
   quicker to develop.
   [reinout]
 
+- Note: zc.recipe.egg has also been updated to 2.0.2 together with this
+  zc.buildout release. Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath``
+  support, don't assume path elements are buildout-relative if they start with
+  one of the "special" tokens (e.g., ``$ORIGIN``).  See:
+  https://github.com/buildout/buildout/issues/225.
+  [tseaver]
+
+- ``download-cache``, ``eggs-directory`` and ``extends-cache`` are now
+  automatically created if their parent directory exists. Also they can be
+  relative directories (relative to the location of the buildout config file
+  that defines them). Also they can now be in the form ``~/subdir``, with the
+  usual convention that the ``~`` char means the home directory of the user
+  running buildout.
+  [lelit]
+
 - A new boostrap.py file is released (version 2015-07-01).
 
 - When bootstrapping, the ``develop-eggs/`` directory is first removed. This
@@ -34,11 +53,11 @@ Unreleased
   package collection mechanism.
   [reinout]
 
-- Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
-  already available there, it is reused. This can be used to bootstrap
-  buildout without internet access. Similarly, a local ``ez_setup.py`` is used
-  when available instead of it being downloaded. You need setuptools 14.0 or
-  higher for this functionality.
+- The bootstrap script now accepts ``--to-dir``. Setuptools is installed
+  there. If already available there, it is reused. This can be used to
+  bootstrap buildout without internet access. Similarly, a local
+  ``ez_setup.py`` is used when available instead of it being downloaded. You
+  need setuptools 14.0 or higher for this functionality.
   [lrowe]
 
 - The bootstrap script now uses ``--buildout-version`` instead of

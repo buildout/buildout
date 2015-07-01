@@ -24,9 +24,9 @@ Make sure the bootstrap script actually works::
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py')); print_('X') # doctest: +ELLIPSIS
     X...
+    Creating directory '/sample/eggs'.
     Creating directory '/sample/bin'.
     Creating directory '/sample/parts'.
-    Creating directory '/sample/eggs'.
     Creating directory '/sample/develop-eggs'.
     Generated script '/sample/bin/buildout'.
     ...

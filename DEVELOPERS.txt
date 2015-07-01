@@ -7,6 +7,10 @@ When you're developing buildout itself, you need to know two things:
   will find your already-installed setuptools, leading to test differences
   when setuptools' presence is explicitly tested.
 
+- Also the presence of ``~/.buildout/default.cfg`` may interfere with the
+  tests so you may want to temporarily rename it so that it does not get in
+  the way.
+
 - Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
   dev.py``.
 

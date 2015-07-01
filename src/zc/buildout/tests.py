@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2004-2009 Zope Foundation and Contributors.
@@ -646,9 +647,9 @@ bootstrapping.
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
+    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
-    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/develop-eggs'.
     Generated script '/sample-bootstrap/bin/buildout'.
     """
@@ -673,9 +674,9 @@ def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
+    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
-    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/develop-eggs'.
     Generated script '/sample-bootstrap/bin/buildout'.
 
@@ -1153,6 +1154,20 @@ because of the missing target file.
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
     Develop: '/sample-buildout/recipe'
     Updating foo.
+
+    """
+
+def unicode_filename_doesnt_break_hash():
+    """
+Buildout's _dir_hash() used to break on non-ascii filenames on python 2.
+
+    >>> mkdir('héhé')
+    >>> write('héhé', 'héhé.py',
+    ... '''
+    ... print('Example filename from pyramid tests')
+    ... ''')
+    >>> from zc.buildout.buildout import _dir_hash
+    >>> dont_care = _dir_hash('héhé')
 
     """
 
