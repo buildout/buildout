@@ -40,13 +40,13 @@ Change History
   configuration so that tests run much quicker so that buildout is easier and
   quicker to develop.
 
-- Treat ``download-cache`` and ``eggs-directory`` in a special manner:
-
-  a) they can be relative paths, relative to the location of the configuration
-     file that defines them
-
-  b) the can be in the form ``~/subdir``, with the usual convention that the
-     ``~`` char means the home directory of the user executing the buildout
+- ``download-cache``, ``eggs-directory`` and ``extends-cache`` are now
+  automatically created if their parent directory exists. Also they can be
+  relative directories (relative to the location of the buildout config file
+  that defines them). Also they can now be in the form ``~/subdir``, with the
+  usual convention that the ``~`` char means the home directory of the user
+  running buildout.
+  [lelit]
 
 2.3.1 (2014-12-16)
 ==================
