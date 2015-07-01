@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.2 (unreleased)
+2.0.2 (2015-07-01)
 ==================
 
 - Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath`` support, don't
