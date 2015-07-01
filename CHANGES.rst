@@ -40,6 +40,14 @@ Change History
   configuration so that tests run much quicker so that buildout is easier and
   quicker to develop.
 
+- Treat ``download-cache`` and ``eggs-directory`` in a special manner:
+
+  a) they can be relative paths, relative to the location of the configuration
+     file that defines them
+
+  b) the can be in the form ``~/subdir``, with the usual convention that the
+     ``~`` char means the home directory of the user executing the buildout
+
 2.3.1 (2014-12-16)
 ==================
 

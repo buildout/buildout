@@ -46,7 +46,7 @@ download:
     <a href="index/">index/</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
-    
+
 
 We'll enable logging on the link server so we can see what's going on:
 
@@ -87,7 +87,7 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
     >>> for  f in os.listdir('eggs'):
     ...     if f.startswith('demo'):
     ...         remove('eggs', f)
-   
+
     >>> print_(system(buildout), end='')
     GET 200 /
     Updating eggs.
@@ -139,3 +139,78 @@ install-from-cache option set to true:
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.1.
     Generated script '/sample-buildout/bin/demo'.
+
+Auto-creation of download cache directory
+-----------------------------------------
+
+With zc.buildout version 2.2.2 or higher the cache directory is automatically
+created, provided it is within an already existing directory::
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... download-cache = %(cache)s/newdir
+    ... ''' % globals())
+
+    >>> print_(system(buildout), end='')
+    Uninstalling eggs.
+
+    >>> ls(cache)
+    d  dist
+    d  newdir
+
+Using relative paths
+--------------------
+
+You can use a relative path for ``download-cache`` (the same logic is applied to
+``eggs-directory`` and to ``extends-cache`` too) and in such case it is considered
+relative to the location of the configuration file that sets its value.
+
+As an example, we create a ``base.cfg`` configuration in a different directory::
+
+    >>> basedir = tmpdir('basecfg')
+    >>> write(basedir, 'base.cfg',
+    ... '''
+    ... [buildout]
+    ... download-cache = cache
+    ... ''')
+
+and a ``buildout.cfg`` that extends from there::
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... extends = %(basedir)s/base.cfg
+    ... parts =
+    ... ''' % globals())
+
+    >>> dummy = system(buildout)
+    >>> ls(basedir)
+    -  base.cfg
+    d  cache
+
+Of course this cannot be used when the base configuration is not on the local
+filesystem because it wouldn't make any sense having a remote cache::
+
+    >>> server_data = tmpdir('server_data')
+    >>> server_url = start_server(server_data)
+    >>> cd(sample_buildout)
+
+    >>> write(server_data, 'base.cfg', """\
+    ... [buildout]
+    ... download-cache = cache
+    ... """)
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... extends = %(server_url)s/base.cfg
+    ... parts =
+    ... ''' % globals())
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    While:
+      Initializing.
+    Error: Setting "download-cache" to a non absolute location ("cache") within a
+    remote configuration file...

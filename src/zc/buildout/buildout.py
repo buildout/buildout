@@ -253,6 +253,36 @@ class Buildout(DictMixin):
                  if k not in versions
                  ))
 
+        # Absolutize some particular directory, handling also the ~/foo form,
+        # and considering the location of the configuration file that generated
+        # the setting as the base path, falling back to the main configuration
+        # file location
+        for name in ('download-cache', 'eggs-directory', 'extends-cache'):
+            if name in data['buildout']:
+                origdir, src = data['buildout'][name]
+                if '${' in origdir:
+                    continue
+                if not os.path.isabs(origdir):
+                    if src in ('DEFAULT_VALUE',
+                               'COMPUTED_VALUE',
+                               'COMMAND_LINE_VALUE'):
+                        if 'directory' in data['buildout']:
+                            basedir = data['buildout']['directory'][0]
+                        else:
+                            basedir = self._buildout_dir
+                    else:
+                        if _isurl(src):
+                            raise zc.buildout.UserError(
+                                'Setting "%s" to a non absolute location ("%s") '
+                                'within a\n'
+                                'remote configuration file ("%s") is ambiguous.' % (
+                                    name, origdir, src))
+                        basedir = os.path.dirname(src)
+                    absdir = os.path.expanduser(origdir)
+                    if not os.path.isabs(absdir):
+                        absdir = os.path.join(basedir, absdir)
+                    data['buildout'][name] = (absdir, src)
+
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
@@ -351,12 +381,8 @@ class Buildout(DictMixin):
         download_cache = options.get('download-cache')
         if download_cache:
             download_cache = os.path.join(options['directory'], download_cache)
-            if not os.path.isdir(download_cache):
-                raise zc.buildout.UserError(
-                    'The specified download cache:\n'
-                    '%r\n'
-                    "Doesn't exist.\n"
-                    % download_cache)
+            if not os.path.exists(download_cache):
+                os.mkdir(download_cache)
             download_cache = os.path.join(download_cache, 'dist')
             if not os.path.isdir(download_cache):
                 os.mkdir(download_cache)
