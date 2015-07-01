@@ -281,6 +281,7 @@ class Buildout(DictMixin):
                     absdir = os.path.expanduser(origdir)
                     if not os.path.isabs(absdir):
                         absdir = os.path.join(basedir, absdir)
+                    absdir = os.path.abspath(absdir)
                     data['buildout'][name] = (absdir, src)
 
         self._annotated = copy.deepcopy(data)

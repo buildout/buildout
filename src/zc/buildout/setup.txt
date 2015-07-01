@@ -30,7 +30,7 @@ We'll use the buildout script from our sample buildout:
 
     >>> print_(system(buildout+' setup'), end='')
     ... # doctest: +NORMALIZE_WHITESPACE
-    Creating directory '././././eggs'.
+    Creating directory '/sample-buildout/test/eggs'.
     Error: The setup command requires the path to a setup script or
     directory containing a setup script, and its arguments.
 
