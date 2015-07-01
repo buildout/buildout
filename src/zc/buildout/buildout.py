@@ -385,7 +385,7 @@ class Buildout(DictMixin):
                 os.mkdir(download_cache)
             # Actually, we want to use a subdirectory in there called 'dist'.
             download_cache = os.path.join(download_cache, 'dist')
-            if not os.path.isdir(download_cache):
+            if not os.path.exists(download_cache):
                 os.mkdir(download_cache)
 
             zc.buildout.easy_install.download_cache(download_cache)
