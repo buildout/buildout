@@ -266,6 +266,37 @@ class Buildout(DictMixin):
                  if k not in versions
                  ))
 
+        # Absolutize some particular directory, handling also the ~/foo form,
+        # and considering the location of the configuration file that generated
+        # the setting as the base path, falling back to the main configuration
+        # file location
+        for name in ('download-cache', 'eggs-directory', 'extends-cache'):
+            if name in data['buildout']:
+                origdir, src = data['buildout'][name]
+                if '${' in origdir:
+                    continue
+                if not os.path.isabs(origdir):
+                    if src in ('DEFAULT_VALUE',
+                               'COMPUTED_VALUE',
+                               'COMMAND_LINE_VALUE'):
+                        if 'directory' in data['buildout']:
+                            basedir = data['buildout']['directory'][0]
+                        else:
+                            basedir = self._buildout_dir
+                    else:
+                        if _isurl(src):
+                            raise zc.buildout.UserError(
+                                'Setting "%s" to a non absolute location ("%s") '
+                                'within a\n'
+                                'remote configuration file ("%s") is ambiguous.' % (
+                                    name, origdir, src))
+                        basedir = os.path.dirname(src)
+                    absdir = os.path.expanduser(origdir)
+                    if not os.path.isabs(absdir):
+                        absdir = os.path.join(basedir, absdir)
+                    absdir = os.path.abspath(absdir)
+                    data['buildout'][name] = (absdir, src)
+
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
         self._data = {}
@@ -362,18 +393,22 @@ class Buildout(DictMixin):
                                                    self.update_versions_file)
 
         download_cache = options.get('download-cache')
-        if download_cache:
-            download_cache = os.path.join(options['directory'], download_cache)
-            if not os.path.isdir(download_cache):
-                raise zc.buildout.UserError(
-                    'The specified download cache:\n'
-                    '%r\n'
-                    "Doesn't exist.\n"
-                    % download_cache)
-            download_cache = os.path.join(download_cache, 'dist')
-            if not os.path.isdir(download_cache):
-                os.mkdir(download_cache)
+        extends_cache = options.get('extends-cache')
+        eggs_cache = options.get('eggs-directory')
+        for cache in [download_cache, extends_cache, eggs_cache]:
+            if cache:
+                cache = os.path.join(options['directory'], cache)
+                if not os.path.exists(cache):
+                    # Note: os.mkdir only creates the dir if the parent
+                    # exists. This is the way we want it.
+                    self._logger.info('Creating directory %r.', cache)
+                    os.mkdir(cache)
 
+        if download_cache:
+            # Actually, we want to use a subdirectory in there called 'dist'.
+            download_cache = os.path.join(download_cache, 'dist')
+            if not os.path.exists(download_cache):
+                os.mkdir(download_cache)
             zc.buildout.easy_install.download_cache(download_cache)
 
         if bool_option(options, 'install-from-cache'):
@@ -388,11 +423,6 @@ class Buildout(DictMixin):
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]
-
-        # Do the same for extends-cache which is not among the defaults but
-        # wasn't recognized as having been used since it was used before
-        # tracking was turned on.
-        options.get('extends-cache')
 
         os.chdir(options['directory'])
 
@@ -996,9 +1026,6 @@ class Buildout(DictMixin):
                 path.append(self['buildout']['eggs-directory'])
             else:
                 dest = self['buildout']['eggs-directory']
-                if not os.path.exists(dest):
-                    self._logger.info('Creating directory %r.', dest)
-                    os.mkdir(dest)
 
             zc.buildout.easy_install.install(
                 specs, dest, path=path,

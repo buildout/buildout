@@ -647,9 +647,9 @@ bootstrapping.
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
+    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
-    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/develop-eggs'.
     Generated script '/sample-bootstrap/bin/buildout'.
     """
@@ -674,9 +674,9 @@ def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
+    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
-    Creating directory '/sample-bootstrap/eggs'.
     Creating directory '/sample-bootstrap/develop-eggs'.
     Generated script '/sample-bootstrap/bin/buildout'.
 

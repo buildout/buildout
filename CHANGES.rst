@@ -1,8 +1,8 @@
 Change History
 **************
 
-Unreleased
-==========
+2.4.0 (unreleased)
+==================
 
 - Undo breakage on Windows machines where ``sys.prefix`` can also be a
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
@@ -22,6 +22,13 @@ Unreleased
   https://github.com/buildout/buildout/pull/222 .
   [lrowe]
 
+- Note: zc.recipe.egg has also been updated to 2.0.2 together with this
+  zc.buildout release. Fixed: In ``zc.recipe.egg#custom`` recipe's ``rpath``
+  support, don't assume path elements are buildout-relative if they start with
+  one of the "special" tokens (e.g., ``$ORIGIN``).  See:
+  https://github.com/buildout/buildout/issues/225.
+  [tseaver]
+
 - Bootstrap script now accepts ``--to-dir``. Setuptools is installed there. If
   already available there, it is reused. This can be used to bootstrap
   buildout without internet access. Similarly, a local ``ez_setup.py`` is used
@@ -33,6 +40,17 @@ Unreleased
   filename. Fixes #89 and #148.
   [reinout]
 
+- Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
+  configuration so that tests run much quicker so that buildout is easier and
+  quicker to develop.
+
+- ``download-cache``, ``eggs-directory`` and ``extends-cache`` are now
+  automatically created if their parent directory exists. Also they can be
+  relative directories (relative to the location of the buildout config file
+  that defines them). Also they can now be in the form ``~/subdir``, with the
+  usual convention that the ``~`` char means the home directory of the user
+  running buildout.
+  [lelit]
 
 2.3.1 (2014-12-16)
 ==================
