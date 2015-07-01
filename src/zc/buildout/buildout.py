@@ -390,6 +390,12 @@ class Buildout(DictMixin):
 
             zc.buildout.easy_install.download_cache(download_cache)
 
+        extends_cache = options.get('extends-cache')
+        if extends_cache:
+            extends_cache = os.path.join(options['directory'], extends_cache)
+            if not os.path.exists(extends_cache):
+                os.mkdir(extends_cache)
+
         if bool_option(options, 'install-from-cache'):
             if self.offline:
                 raise zc.buildout.UserError(
@@ -402,11 +408,6 @@ class Buildout(DictMixin):
         # "Use" each of the defaults so they aren't reported as unused options.
         for name in _buildout_default_options:
             options[name]
-
-        # Do the same for extends-cache which is not among the defaults but
-        # wasn't recognized as having been used since it was used before
-        # tracking was turned on.
-        options.get('extends-cache')
 
         os.chdir(options['directory'])
 
