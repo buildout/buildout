@@ -74,6 +74,7 @@ parser.add_option("--setuptools-to-dir",
 options, args = parser.parse_args()
 if options.version:
     print("bootstrap.py version %s" % __version__)
+    sys.exit(0)
 
 
 ######################################################################
