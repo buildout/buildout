@@ -36,6 +36,10 @@ Change History
   higher for this functionality.
   [lrowe]
 
+- Buildout no longer breaks on packages that contain a file with a non-ascii
+  filename. Fixes #89 and #148.
+  [reinout]
+
 - Updated buildout's `travis-ci <https://travis-ci.org/buildout/buildout>`_
   configuration so that tests run much quicker so that buildout is easier and
   quicker to develop.
