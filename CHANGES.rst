@@ -1,8 +1,8 @@
 Change History
 **************
 
-Unreleased
-==========
+2.4.0 (unreleased)
+==================
 
 - Undo breakage on Windows machines where ``sys.prefix`` can also be a
   ``site-packages`` directory:  don't remove it from ``sys.path``.  See
