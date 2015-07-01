@@ -175,9 +175,9 @@ directory:
 
     >>> cd(sample_buildout2)
     >>> print_(system(buildout), end='')
+    Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
-    Creating directory '/sample_buildout2/eggs'.
     Creating directory '/sample_buildout2/develop-eggs'.
     Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.

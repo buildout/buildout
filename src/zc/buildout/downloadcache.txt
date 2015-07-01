@@ -154,6 +154,7 @@ created, provided it is within an already existing directory::
     ... ''' % globals())
 
     >>> print_(system(buildout), end='')
+    Creating directory '/cache/newdir'.
     Uninstalling eggs.
 
     >>> ls(cache)
