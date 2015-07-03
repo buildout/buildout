@@ -1287,7 +1287,13 @@ if len(sys.argv) > 1:
 
 if _interactive:
     del _interactive
-    __import__("code").interact(banner="", local=globals())
+    try:
+        # Check for IPython, launch IPython interpreter
+        __import__("IPython").start_ipython(display_banner=False,
+                                            user_ns=globals())
+    except ImportError:
+        # IPython not found, using regular python interpreter
+        __import__("code").interact(banner="", local=globals())
 '''
 
 runsetup_template = """
