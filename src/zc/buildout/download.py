@@ -22,17 +22,26 @@ try:
     # Python 3
     from urllib.request import FancyURLopener, URLopener, urlretrieve
     from urllib.parse import urlparse
-    from urllib import request as urllib # for monkey patch below :(
+    from urllib import request
+
+    class URLOpener(FancyURLopener):
+        http_error_default = URLopener.http_error_default
+
+    request._urlopener = URLOpener()  # Ook! Monkey patch!
+
 except ImportError:
     # Python 2
-    from urllib import FancyURLopener, URLopener, urlretrieve
     from urlparse import urlparse
-    import urllib
 
-class URLOpener(FancyURLopener):
-    http_error_default = URLopener.http_error_default
+    import urllib2
 
-urllib._urlopener = URLOpener() # Ook! Monkey patch!
+    def urlretrieve(url, path):
+        """Work around Python issue 24599
+        """
+        url_obj = urllib2.urlopen(url)
+        with open(path, 'wb') as fp:
+            fp.write(url_obj.read())
+        return path, url_obj.info()
 
 
 from zc.buildout.easy_install import realpath
@@ -44,6 +53,7 @@ import shutil
 import sys
 import tempfile
 import zc.buildout
+
 
 class ChecksumError(zc.buildout.UserError):
     pass
