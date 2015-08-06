@@ -4,7 +4,9 @@ Change History
 2.4.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Check the ``use-dependency-links`` option earlier.  This can give
+  a small speed increase.
+  [maurits]
 
 
 2.4.0 (2015-07-01)
