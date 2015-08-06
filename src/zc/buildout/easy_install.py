@@ -552,18 +552,18 @@ class Installer:
         else:
             dists = [dist]
 
-        for dist in dists:
-            if (dist.has_metadata('dependency_links.txt')
-                and not self._install_from_cache
-                and self._use_dependency_links
-                ):
-                for link in dist.get_metadata_lines('dependency_links.txt'):
-                    link = link.strip()
-                    if link not in self._links:
-                        logger.debug('Adding find link %r from %s', link, dist)
-                        self._links.append(link)
-                        self._index = _get_index(self._index_url, self._links,
-                                                 self._allow_hosts)
+        if not self._install_from_cache and self._use_dependency_links:
+            for dist in dists:
+                if dist.has_metadata('dependency_links.txt'):
+                    for link in dist.get_metadata_lines('dependency_links.txt'):
+                        link = link.strip()
+                        if link not in self._links:
+                            logger.debug('Adding find link %r from %s',
+                                         link, dist)
+                            self._links.append(link)
+                            self._index = _get_index(self._index_url,
+                                                     self._links,
+                                                     self._allow_hosts)
 
         for dist in dists:
             # Check whether we picked a version and, if we did, report it:
