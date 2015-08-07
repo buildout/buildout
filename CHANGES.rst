@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.1 (unreleased)
+2.4.1 (2015-08-08)
 ==================
 
 - Check the ``use-dependency-links`` option earlier.  This can give
