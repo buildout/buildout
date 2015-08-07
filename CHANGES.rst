@@ -8,6 +8,9 @@ Change History
   a small speed increase.
   [maurits]
 
+- When using python 2, enable downloading behind a proxy by using urllib2.
+  [stefano-m]
+
 
 2.4.0 (2015-07-01)
 ==================
