@@ -2782,9 +2782,16 @@ def test_distutils_scripts_using_import_are_properly_parsed():
     >>> sys.executable = 'python'
 
     >>> from zc.buildout.easy_install import _distutils_script
-    >>> _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
-    ['bin/pyflint']
-    >>> cat('bin/pyflint')
+    >>> generated = _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
+    >>> if sys.platform == 'win32':
+    ...     generated == ['bin/pyflint.exe', 'bin/pyflint-script.py']
+    ... else:
+    ...     generated == ['bin/pyflint']
+    True
+    >>> if sys.platform == 'win32':
+    ...     cat('bin/pyflint-script.py')
+    ... else:
+    ...     cat('bin/pyflint')
     #!python
     <BLANKLINE>
     <BLANKLINE>
@@ -2817,9 +2824,16 @@ def test_distutils_scripts_using_from_are_properly_parsed():
     >>> sys.executable = 'python'
 
     >>> from zc.buildout.easy_install import _distutils_script
-    >>> _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
-    ['bin/pyflint']
-    >>> cat('bin/pyflint')
+    >>> generated = _distutils_script('\\'/path/test/\\'', 'bin/pyflint', pyflint_script, '', '')
+    >>> if sys.platform == 'win32':
+    ...     generated == ['bin/pyflint.exe', 'bin/pyflint-script.py']
+    ... else:
+    ...     generated == ['bin/pyflint']
+    True
+    >>> if sys.platform == 'win32':
+    ...     cat('bin/pyflint-script.py')
+    ... else:
+    ...     cat('bin/pyflint')
     #!python
     <BLANKLINE>
     <BLANKLINE>
