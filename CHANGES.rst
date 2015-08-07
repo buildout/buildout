@@ -8,7 +8,8 @@ Change History
   a small speed increase.
   [maurits]
 
-- When using python 2, enable downloading behind a proxy by using urllib2.
+- When using python 2, urllib2 is used to work around Python issue 24599, which
+  affects downloading from behind a proxy.
   [stefano-m]
 
 
