@@ -24,10 +24,10 @@ try:
     from urllib.parse import urlparse
     from urllib import request
 
-    class URLOpener(FancyURLopener):
+    class PatchedURLopener(FancyURLopener):
         http_error_default = URLopener.http_error_default
 
-    request._urlopener = URLOpener()  # Ook! Monkey patch!
+    request._urlopener = PatchedURLopener()  # Ook! Monkey patch!
 
 except ImportError:
     # Python 2
