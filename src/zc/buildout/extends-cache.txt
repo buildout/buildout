@@ -523,8 +523,7 @@ accidentally gzip-encoded download and so on.
 >>> print_(system(buildout))
 While:
   Initializing.
-...
-MissingSectionHeaderError: File contains no section headers.
+... File contains no section headers.
 file: http://localhost/faulty.cfg (cached at ...), line: 1
 'This is definitively not\n'
 
