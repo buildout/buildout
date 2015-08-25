@@ -267,7 +267,7 @@ Clean up:
 >>> rmdir('cache')
 
 Offline mode and installation from cache
-----------------------------~~~~~~~~~~~~
+----------------------------------------
 
 If we run buildout in offline mode now, it will fail because it cannot get at
 the remote configuration file needed by the user's defaults:
@@ -503,6 +503,30 @@ UserError is raised if that option is encountered now:
 While:
   Initializing.
 Error: No-longer supported "extended-by" option found in http://localhost/base.cfg.
+
+
+Reporting cached locations for downloads of faulty config files
+---------------------------------------------------------------
+
+A downloaded config file might be invalid. A cancelled buildout run, an
+accidentally gzip-encoded download and so on.
+
+>>> write(server_data, 'faulty.cfg', """\
+... This is definitively not
+... a proper() config file.
+... """)
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = %sfaulty.cfg
+... """ % server_url)
+>>> print_(system(buildout))
+While:
+  Initializing.
+...
+MissingSectionHeaderError: File contains no section headers.
+file: http://localhost/faulty.cfg (cached at ...), line: 1
+'This is definitively not\n'
 
 
 Clean up
