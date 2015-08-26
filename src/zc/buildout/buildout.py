@@ -1570,9 +1570,10 @@ def _open(base, filename, seen, dl_options, override, downloaded):
         _dl_options, cache=_dl_options.get('extends-cache'),
         fallback=fallback, hash_name=True)
     is_temp = False
+    downloaded_filename = None
     if _isurl(filename):
-        path, is_temp = download(filename)
-        fp = open(path)
+        downloaded_filename, is_temp = download(filename)
+        fp = open(downloaded_filename)
         base = filename[:filename.rfind('/')]
     elif _isurl(base):
         if os.path.isabs(filename):
@@ -1580,8 +1581,8 @@ def _open(base, filename, seen, dl_options, override, downloaded):
             base = os.path.dirname(filename)
         else:
             filename = base + '/' + filename
-            path, is_temp = download(filename)
-            fp = open(path)
+            downloaded_filename, is_temp = download(filename)
+            fp = open(downloaded_filename)
             base = filename[:filename.rfind('/')]
     else:
         filename = os.path.join(base, filename)
@@ -1592,16 +1593,22 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     if filename in seen:
         if is_temp:
             fp.close()
-            os.remove(path)
+            os.remove(downloaded_filename)
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
     root_config_file = not seen
     seen.append(filename)
 
-    result = zc.buildout.configparser.parse(fp, filename, _default_globals)
+    filename_for_logging = filename
+    if downloaded_filename:
+        filename_for_logging = '%s (downloaded as %s)' % (
+            filename, downloaded_filename)
+    result = zc.buildout.configparser.parse(
+        fp, filename_for_logging, _default_globals)
+
     fp.close()
     if is_temp:
-        os.remove(path)
+        os.remove(downloaded_filename)
 
     options = result.get('buildout', {})
     extends = options.pop('extends', None)

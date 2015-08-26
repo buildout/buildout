@@ -4,7 +4,9 @@ Change History
 2.4.2 (unreleased)
 ==================
 
-- Nothing changed yet.
+- If a downloaded config file in the "extends-cache" gets corrupted, buildout
+  now tells you the filename in the cache. Handy for troubleshooting.
+  [reinout]
 
 
 2.4.1 (2015-08-08)
