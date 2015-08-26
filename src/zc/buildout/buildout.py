@@ -1601,7 +1601,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 
     filename_for_logging = filename
     if downloaded_filename:
-        filename_for_logging = '%s (cached at %s)' % (
+        filename_for_logging = '%s (downloaded as %s)' % (
             filename, downloaded_filename)
     result = zc.buildout.configparser.parse(
         fp, filename_for_logging, _default_globals)

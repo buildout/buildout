@@ -524,7 +524,7 @@ accidentally gzip-encoded download and so on.
 While:
   Initializing.
 ... File contains no section headers.
-file: http://localhost/faulty.cfg (cached at ...), line: 1
+file: http://localhost/faulty.cfg (downloaded as ...), line: 1
 'This is definitively not\n'
 
 
