@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.2 (unreleased)
+2.4.2 (2015-08-26)
 ==================
 
 - If a downloaded config file in the "extends-cache" gets corrupted, buildout
