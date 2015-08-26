@@ -1570,10 +1570,10 @@ def _open(base, filename, seen, dl_options, override, downloaded):
         _dl_options, cache=_dl_options.get('extends-cache'),
         fallback=fallback, hash_name=True)
     is_temp = False
-    cached_filename = None
+    downloaded_filename = None
     if _isurl(filename):
-        cached_filename, is_temp = download(filename)
-        fp = open(cached_filename)
+        downloaded_filename, is_temp = download(filename)
+        fp = open(downloaded_filename)
         base = filename[:filename.rfind('/')]
     elif _isurl(base):
         if os.path.isabs(filename):
@@ -1581,8 +1581,8 @@ def _open(base, filename, seen, dl_options, override, downloaded):
             base = os.path.dirname(filename)
         else:
             filename = base + '/' + filename
-            cached_filename, is_temp = download(filename)
-            fp = open(cached_filename)
+            downloaded_filename, is_temp = download(filename)
+            fp = open(downloaded_filename)
             base = filename[:filename.rfind('/')]
     else:
         filename = os.path.join(base, filename)
@@ -1593,21 +1593,22 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     if filename in seen:
         if is_temp:
             fp.close()
-            os.remove(cached_filename)
+            os.remove(downloaded_filename)
         raise zc.buildout.UserError("Recursive file include", seen, filename)
 
     root_config_file = not seen
     seen.append(filename)
 
     filename_for_logging = filename
-    if cached_filename:
-        filename_for_logging = '%s (cached at %s)' % (filename, cached_filename)
+    if downloaded_filename:
+        filename_for_logging = '%s (cached at %s)' % (
+            filename, downloaded_filename)
     result = zc.buildout.configparser.parse(
         fp, filename_for_logging, _default_globals)
 
     fp.close()
     if is_temp:
-        os.remove(cached_filename)
+        os.remove(downloaded_filename)
 
     options = result.get('buildout', {})
     extends = options.pop('extends', None)
