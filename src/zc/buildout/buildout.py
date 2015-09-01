@@ -392,10 +392,8 @@ class Buildout(DictMixin):
             if cache:
                 cache = os.path.join(options['directory'], cache)
                 if not os.path.exists(cache):
-                    # Note: os.mkdir only creates the dir if the parent
-                    # exists. This is the way we want it.
                     self._logger.info('Creating directory %r.', cache)
-                    os.mkdir(cache)
+                    os.makedirs(cache)
 
         if download_cache:
             # Actually, we want to use a subdirectory in there called 'dist'.
