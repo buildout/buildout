@@ -144,7 +144,7 @@ Auto-creation of download cache directory
 -----------------------------------------
 
 With zc.buildout version 2.2.2 or higher the cache directory is automatically
-created, provided it is within an already existing directory::
+created::
 
     >>> write('buildout.cfg',
     ... '''
@@ -215,3 +215,30 @@ filesystem because it wouldn't make any sense having a remote cache::
       Initializing.
     Error: Setting "download-cache" to a non absolute location ("cache") within a
     remote configuration file...
+
+Though, you can create the ``download-cache`` within a nested directory, so that you can
+group all your generated directories (like ``eggs-directory`` or ``extends-cache`` too)
+within a single directory:
+
+    >>> test_nested = tmpdir('test_nested')
+    >>> cd(test_nested)
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... download-cache = ${buildout:directory}/var/cache
+    ... eggs-directory = ${buildout:directory}/var/eggs
+    ... parts-directory = ${buildout:directory}/var/parts
+    ... develop-eggs-directory = ${buildout:directory}/var/develop-eggs
+    ... ''')
+
+    >>> dummy = system(buildout)
+    >>> ls(test_nested)
+    d  bin
+    -  buildout.cfg
+    d  var
+    >>> ls(os.path.join(test_nested, 'var'))
+    d  cache
+    d  develop-eggs
+    d  eggs
+    d  parts
+
