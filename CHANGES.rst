@@ -4,7 +4,8 @@ Change History
 2.4.3 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Added nested directory creation support 
+  [guyzmo]
 
 
 2.4.2 (2015-08-26)
