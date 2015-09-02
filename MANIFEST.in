@@ -1,13 +1,9 @@
+include *.py
+include *.rst
+include *.txt
 recursive-include bootstrap *.py
 recursive-include doc *.txt
 recursive-include specifications *.txt
-recursive-include src/zc *.txt
 recursive-include src/zc *.test
-include .travis.yml
-include *.txt
-include *.py
-include *.rst
-include 2.4.cfg
-include Makefile
-include buildout.cfg
-include test_all_pythons.cfg
+recursive-include src/zc *.txt
+recursive-ignore zc.recipe.egg_
