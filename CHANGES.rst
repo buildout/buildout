@@ -4,7 +4,7 @@ Change History
 2.4.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Added support for Python>=3.3 into the download.py.
 
 
 2.4.3 (2015-09-03)
