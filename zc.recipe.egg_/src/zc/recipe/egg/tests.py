@@ -39,7 +39,7 @@ def setUp(test):
 def test_suite():
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
-            'README.txt',
+            'README.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
@@ -57,7 +57,7 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
-            'api.txt',
+            'api.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
@@ -77,7 +77,7 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
-            'custom.txt',
+            'custom.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,

@@ -58,3 +58,12 @@ https://bootstrap.pypa.io/bootstrap-buildout.py .
 If there are changes to bootstrap.py, be sure to update the date in the
 ``__version__`` attribute and to record the bootstrap change (including the
 new date/version) in zc.buildout's changelog.
+
+When releasing, make sure you also build a (universal) wheel in addition to
+the regular .tar.gz::
+
+    $ python setup.py sdist bdist_wheel upload
+
+You can also use zest.releaser to release it. If you've installed it as
+``zest.releaser[recommended]`` it builds the wheel for you and uploads it via
+https (via twine).
