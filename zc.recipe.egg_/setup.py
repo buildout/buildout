@@ -30,9 +30,9 @@ setup(
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
     long_description = (
-        read('README.txt')
+        read('README.rst')
         + '\n' +
-        read('CHANGES.txt')
+        read('CHANGES.rst')
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
