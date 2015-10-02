@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.4 (unreleased)
+2.4.4 (2015-10-02)
 ==================
 
 - zc.buildout is now also released as a wheel. (Note: buildout itself doesn't
