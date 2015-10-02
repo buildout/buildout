@@ -4,13 +4,15 @@ Change History
 2.4.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- zc.buildout is now also released as a wheel. (Note: buildout itself doesn't
+  support installing wheels yet.)
+  [graingert]
 
 
 2.4.3 (2015-09-03)
 ==================
 
-- Added nested directory creation support 
+- Added nested directory creation support
   [guyzmo]
 
 
