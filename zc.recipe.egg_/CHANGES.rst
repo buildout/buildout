@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.3 (unreleased)
+2.0.3 (2015-10-02)
 ==================
 
 - Releasing zc.recipe.egg as a wheel in addition to only an sdist. No
