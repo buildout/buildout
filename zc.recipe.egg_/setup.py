@@ -37,11 +37,11 @@ setup(
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'README.txt')
+        read('src', 'zc', 'recipe', 'egg', 'README.rst')
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'custom.txt')
+        read('src', 'zc', 'recipe', 'egg', 'custom.rst')
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'api.txt')
+        read('src', 'zc', 'recipe', 'egg', 'api.rst')
         + '\n' +
         'Download\n'
         '*********\n'
