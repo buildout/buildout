@@ -3539,6 +3539,10 @@ def test_suite():
                  "Unused options for buildout: 'scripts' 'eggs'."),
                 # Python 3.4 changed the wording of NameErrors
                 (re.compile('NameError: global name'), 'NameError: name'),
+                # fix for test_distutils_scripts_using_import_are_properly_parsed
+                # and test_distutils_scripts_using_from_are_properly_parsed
+                # win32 apparently adds a " around sys.executable
+                (re.compile('#!"python"'), '#!python'),
                 ]),
             ),
         zc.buildout.rmtree.test_suite(),
