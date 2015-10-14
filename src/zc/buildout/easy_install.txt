@@ -1007,7 +1007,9 @@ scripts in the metadata. We try to detect such scripts anyhow:
     >>> dev_distutils_dir = tmpdir('dev_distutils_dir')
     >>> dev_distutils_dest = tmpdir('dev_distutils_dest')
     >>> dev_eggs_dir = os.path.join(dev_distutils_dest, 'develop-eggs')
+    >>> bin_dir = os.path.join(dev_distutils_dest, 'bin')
     >>> os.mkdir(dev_eggs_dir)
+    >>> os.mkdir(bin_dir)
     >>> write(dev_distutils_dir, 'distutilsscript2',
     ...     '#!/usr/bin/python\n'
     ...     '# -*- coding: utf-8 -*-\n'
@@ -1028,7 +1030,7 @@ scripts in the metadata. We try to detect such scripts anyhow:
     >>> ws = zc.buildout.easy_install.working_set(
     ...     ['foo2'], sys.executable, [dev_eggs_dir])
     >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['foo2'], ws, sys.executable, dev_distutils_dest)
+    ...     ['foo2'], ws, sys.executable, dest=bin_dir)
     >>> scripts
     ['/dev_distutils_dest/bin/distutilsscript2']
 
