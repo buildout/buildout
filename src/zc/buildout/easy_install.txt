@@ -1001,6 +1001,37 @@ for. Buildout doesn't crash on that:
     >>> ls(distbin2)
     -  distutilsscript
 
+Installing develop eggs sadly means that setuptools doesn't record distutils
+scripts in the metadata. We try to detect such scripts anyhow:
+
+    >>> dev_distutils_dir = tmpdir('dev_distutils_dir')
+    >>> dev_distutils_dest = tmpdir('dev_distutils_dest')
+    >>> dev_eggs_dir = os.path.join(dev_distutils_dest, 'develop-eggs')
+    >>> os.mkdir(dev_eggs_dir)
+    >>> write(dev_distutils_dir, 'distutilsscript2',
+    ...     '#!/usr/bin/python\n'
+    ...     '# -*- coding: utf-8 -*-\n'
+    ...     '"""Module docstring."""\n'
+    ...     'from __future__ import print_statement\n'
+    ...     'import os\n'
+    ...     'import sys; sys.stdout.write("distutils!\\n")\n'
+    ...     )
+    >>> write(dev_distutils_dir, 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name="foo2",
+    ...       scripts=['distutilsscript2'])
+    ... ''')
+    >>> zc.buildout.easy_install.develop(
+    ...   dev_distutils_dir, dev_eggs_dir)
+    '/dev_distutils_dest/develop-eggs/foo2.egg-link'
+    >>> ws = zc.buildout.easy_install.working_set(
+    ...     ['foo2'], sys.executable, [dev_eggs_dir])
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['foo2'], ws, sys.executable, dev_distutils_dest)
+    >>> scripts
+    ['/dev_distutils_dest/bin/distutilsscript2']
+
 
 Handling custom build options for extensions provided in source distributions
 -----------------------------------------------------------------------------
