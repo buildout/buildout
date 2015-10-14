@@ -904,15 +904,21 @@ def _detect_distutils_scripts(directory):
     marker = 'EASY-INSTALL-DEV-SCRIPT'
     scripts_found = []
     for filename in dir_contents:
-        dev_script_content = open(os.path.join(directory, filename)).read()
+        filepath = os.path.join(directory, filename)
+        if not os.path.isfile(filepath):
+            continue
+        with open(filepath) as fp:
+            dev_script_content = fp.read()
         if marker in dev_script_content:
             # The distutils bin script points at the actual file we need.
             for line in dev_script_content.splitlines():
                 match = DUNDER_FILE_PATTERN.search(line)
                 if match:
+                    # The ``__file__ =`` line in the generated script points
+                    # at the actual distutils script we need.
                     actual_script_filename = match.group('filename')
-                    actual_script_content = open(
-                        actual_script_filename).read()
+                    with open(actual_script_filename) as fp:
+                        actual_script_content = fp.read()
                     scripts_found.append([filename, actual_script_content])
 
     if scripts_found:
