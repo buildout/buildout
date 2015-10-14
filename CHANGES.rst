@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.5 (unreleased)
+2.4.5 (2015-10-14)
 ==================
 
 - More complete fix for #24. Distutils scripts are now also generated for
