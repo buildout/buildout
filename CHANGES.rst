@@ -4,7 +4,9 @@ Change History
 2.4.5 (unreleased)
 ==================
 
-- Nothing changed yet.
+- More complete fix for #24. Distutils scripts are now also generated for
+  develop eggs.
+  [reinout]
 
 
 2.4.4 (2015-10-02)

@@ -86,6 +86,7 @@ buildout_and_setuptools_path = [
     ]
 
 FILE_SCHEME = re.compile('file://', re.I).match
+DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -859,13 +860,13 @@ def build(spec, dest, build_ext,
     return installer.build(spec, build_ext)
 
 
-
 def _rm(*paths):
     for path in paths:
         if os.path.isdir(path):
             shutil.rmtree(path)
         elif os.path.exists(path):
             os.remove(path)
+
 
 def _copyeggs(src, dest, suffix, undo):
     result = []
@@ -881,6 +882,51 @@ def _copyeggs(src, dest, suffix, undo):
     undo.pop()
 
     return result[0]
+
+
+_develop_distutils_scripts = {}
+
+
+def _detect_distutils_scripts(directory):
+    """Record detected distutils scripts from develop eggs
+
+    ``setup.py develop`` doesn't generate metadata on distutils scripts, in
+    contrast to ``setup.py install``. So we have to store the information for
+    later.
+
+    """
+    dir_contents = os.listdir(directory)
+    egginfo_filenames = [filename for filename in dir_contents
+                         if filename.endswith('.egg-link')]
+    if not egginfo_filenames:
+        return
+    egg_name = egginfo_filenames[0].replace('.egg-link', '')
+    marker = 'EASY-INSTALL-DEV-SCRIPT'
+    scripts_found = []
+    for filename in dir_contents:
+        filepath = os.path.join(directory, filename)
+        if not os.path.isfile(filepath):
+            continue
+        with open(filepath) as fp:
+            dev_script_content = fp.read()
+        if marker in dev_script_content:
+            # The distutils bin script points at the actual file we need.
+            for line in dev_script_content.splitlines():
+                match = DUNDER_FILE_PATTERN.search(line)
+                if match:
+                    # The ``__file__ =`` line in the generated script points
+                    # at the actual distutils script we need.
+                    actual_script_filename = match.group('filename')
+                    with open(actual_script_filename) as fp:
+                        actual_script_content = fp.read()
+                    scripts_found.append([filename, actual_script_content])
+
+    if scripts_found:
+        logger.debug(
+            "Distutils scripts found for develop egg %s: %s",
+            egg_name, scripts_found)
+        _develop_distutils_scripts[egg_name] = scripts_found
+
 
 def develop(setup, dest,
             build_ext=None,
@@ -924,7 +970,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
 
-        args = [executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
+        args = [executable,  tsetup, '-q', 'develop', '-mN', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
@@ -936,7 +982,7 @@ def develop(setup, dest,
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
         call_subprocess(args)
-
+        _detect_distutils_scripts(tmp3)
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
@@ -956,6 +1002,7 @@ def working_set(specs, executable, path=None,
     assert allowed_eggs_from_site_packages is None
 
     return install(specs, None, path=path)
+
 
 def scripts(reqs, working_set, executable, dest=None,
             scripts=None,
@@ -1002,12 +1049,20 @@ def scripts(reqs, working_set, executable, dest=None,
             # distutils/setuptools, except by placing the original scripts in
             # /EGG-INFO/scripts/.
             if dist.metadata_isdir('scripts'):
+                # egg-info metadata from installed egg.
                 for name in dist.metadata_listdir('scripts'):
                     if dist.metadata_isdir('scripts/' + name):
                         # Probably Python 3 __pycache__ directory.
                         continue
                     contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
+            elif dist.key in _develop_distutils_scripts:
+                # Development eggs don't have metadata about scripts, so we
+                # collected it ourselves in develop()/ and
+                # _detect_distutils_scripts().
+                for name, contents in _develop_distutils_scripts[dist.key]:
+                    distutils_scripts.append((name, contents))
+
         else:
             entry_points.append(req)
 
