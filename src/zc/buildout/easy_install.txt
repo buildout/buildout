@@ -1031,8 +1031,12 @@ scripts in the metadata. We try to detect such scripts anyhow:
     ...     ['foo2'], sys.executable, [dev_eggs_dir])
     >>> scripts = zc.buildout.easy_install.scripts(
     ...     ['foo2'], ws, sys.executable, dest=bin_dir)
-    >>> scripts
-    ['/dev_distutils_dest/bin/distutilsscript2']
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2.exe'),
+    ...                 os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2')]
+    True
 
 
 Handling custom build options for extensions provided in source distributions
