@@ -38,7 +38,7 @@ parts defined.
 We have a sample buildout that we created using the bootstrap command
 of an existing buildout (method 3 above).  It has the absolute minimum
 information.  We have bin, develop-eggs, eggs and parts directories,
-and a configuration file:
+and a configuration file::
 
     >>> ls(sample_buildout)
     d  bin
@@ -47,7 +47,7 @@ and a configuration file:
     d  eggs
     d  parts
 
-The bin directory contains scripts.
+The bin directory contains scripts::
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -56,7 +56,7 @@ The bin directory contains scripts.
     -  setuptools-0.7-py3.3.egg
     -  zc.buildout.egg-link
 
-The develop-eggs and parts directories are initially empty:
+The develop-eggs and parts directories are initially empty::
 
     >>> ls(sample_buildout, 'develop-eggs')
     >>> ls(sample_buildout, 'parts')
@@ -81,7 +81,7 @@ looks for the file buildout.cfg in the directory where the buildout is
 run.
 
 The minimal configuration file has a buildout section that defines no
-parts:
+parts::
 
     >>> cat(sample_buildout, 'buildout.cfg')
     [buildout]
@@ -107,11 +107,11 @@ developed.
 
 Let's create a recipe as part of the sample project.  We'll create a
 recipe for creating directories.  First, we'll create a recipes source
-directory for our local recipes:
+directory for our local recipes::
 
     >>> mkdir(sample_buildout, 'recipes')
 
-and then we'll create a source file for our mkdir recipe:
+and then we'll create a source file for our mkdir recipe::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -209,7 +209,7 @@ We need to provide packaging information so that our recipe can be
 installed as a develop egg. The minimum information we need to specify
 is a name.  For recipes, we also need to define the
 names of the recipe classes as entry points.  Packaging information is
-provided via a setup.py script:
+provided via a setup.py script::
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -228,11 +228,11 @@ classes must be exposed as entry points in the zc.buildout group.  we
 give entry points names within the group.
 
 We also need a README.txt for our recipes to avoid an annoying warning
-from distutils, on which setuptools and zc.buildout are based:
+from distutils, on which setuptools and zc.buildout are based::
 
     >>> write(sample_buildout, 'recipes', 'README.txt', " ")
 
-Now let's update our buildout.cfg:
+Now let's update our buildout.cfg::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -279,7 +279,7 @@ the recipe to be used to install the part.  In this case, we also
 specify the path to be created.
 
 Let's run the buildout.  We do so by running the build script in the
-buildout:
+buildout::
 
     >>> import os
     >>> os.chdir(sample_buildout)
@@ -289,7 +289,7 @@ buildout:
     Installing data-dir.
     data-dir: Creating directory mystuff
 
-We see that the recipe created the directory, as expected:
+We see that the recipe created the directory, as expected::
 
     >>> ls(sample_buildout)
     -  .installed.cfg
@@ -302,7 +302,7 @@ We see that the recipe created the directory, as expected:
     d  recipes
 
 In addition, .installed.cfg has been created containing information
-about the part we installed:
+about the part we installed::
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
@@ -320,7 +320,7 @@ In addition, the path option includes the actual destination
 directory.
 
 If we change the name of the directory in the configuration file,
-we'll see that the directory gets removed and recreated:
+we'll see that the directory gets removed and recreated::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -350,7 +350,7 @@ we'll see that the directory gets removed and recreated:
     d  recipes
 
 If any of the files or directories created by a recipe are removed,
-the part will be reinstalled:
+the part will be reinstalled::
 
     >>> rmdir(sample_buildout, 'mydata')
     >>> print_(system(buildout), end='')
@@ -368,8 +368,7 @@ then raising a (or an instance of a subclass of a)
 zc.buildout.UserError exception.  Raising an error other than a
 UserError still displays the error, but labels it as a bug in the
 buildout software or recipe. In the sample above, of someone gives a
-non-existent directory to create the directory in:
-
+non-existent directory to create the directory in::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -382,7 +381,7 @@ non-existent directory to create the directory in:
     ... path = /xxx/mydata
     ... """)
 
-We'll get a user error, not a traceback.
+We'll get a user error, not a traceback::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -399,7 +398,7 @@ Recipe Error Handling
 
 If an error occurs during installation, it is up to the recipe to
 clean up any system side effects, such as files created.  Let's update
-the mkdir recipe to support multiple paths:
+the mkdir recipe to support multiple paths::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -440,7 +439,7 @@ the mkdir recipe to support multiple paths:
     >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
 
 If there is an error creating a path, the install method will exit and
-leave previously created paths in place:
+leave previously created paths in place::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -467,13 +466,13 @@ leave previously created paths in place:
     Traceback (most recent call last):
     ... exists...
 
-We meant to create a directory bins, but typed bin.  Now foo was
-left behind.
+We meant to create a directory ``bins``, but typed ``bin``.  Now ``foo`` was
+left behind::
 
     >>> os.path.exists('foo')
     True
 
-If we fix the typo:
+If we fix the typo::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -498,11 +497,11 @@ If we fix the typo:
     Traceback (most recent call last):
     ... exists...
 
-Now they fail because foo exists, because it was left behind.
+Now they fail because foo exists, because it was left behind::
 
     >>> remove('foo')
 
-Let's fix the recipe:
+Let's fix the recipe::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -556,7 +555,7 @@ Let's fix the recipe:
 
     >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
 
-And put back the typo:
+And put back the typo::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -569,7 +568,7 @@ And put back the typo:
     ... path = foo bin
     ... """)
 
-When we rerun the buildout:
+When we rerun the buildout::
 
     >>> print_(system(buildout)) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
@@ -585,7 +584,7 @@ When we rerun the buildout:
     Traceback (most recent call last):
     ... exists...
 
-we get the same error, but we don't get the directory left behind:
+we get the same error, but we don't get the directory left behind::
 
     >>> os.path.exists('foo')
     False
@@ -598,7 +597,7 @@ to record files as they are created.  If the install or update method
 returns with an error, then any registered paths are removed
 automatically.  The method returns the files registered and can be
 used to return the files created.  Let's use this API to simplify the
-recipe:
+recipe::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -645,7 +644,7 @@ returns the registered paths.  We did this for illustrative purposes.
 It would be simpler just to return the paths as before.
 
 If we rerun the buildout, again, we'll get the error and no
-directories will be created:
+directories will be created::
 
     >>> print_(system(buildout)) # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
@@ -663,7 +662,7 @@ directories will be created:
     >>> os.path.exists('foo')
     False
 
-Now, we'll fix the typo again and we'll get the directories we expect:
+Now, we'll fix the typo again and we'll get the directories we expect::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -785,11 +784,11 @@ In addition top the syntactic details above:
 Annotated sections
 ------------------
 
-When used with the `annotate` command, buildout displays annotated sections.
+When used with the ``annotate`` command, buildout displays annotated sections.
 All sections are displayed, sorted alphabetically. For each section,
 all key-value pairs are displayed, sorted alphabetically, along with
-the origin of the value (file name or COMPUTED_VALUE, DEFAULT_VALUE,
-COMMAND_LINE_VALUE).
+the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
+``COMMAND_LINE_VALUE``)::
 
     >>> print_(system(buildout+ ' annotate'), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
@@ -865,7 +864,7 @@ Variable substitutions
 
 Buildout configuration files support variable substitution.
 To illustrate this, we'll create an debug recipe to
-allow us to see interactions with the buildout:
+allow us to see interactions with the buildout::
 
     >>> write(sample_buildout, 'recipes', 'debug.py',
     ... """
@@ -889,7 +888,7 @@ This recipe doesn't actually create anything. The install method
 doesn't return anything, because it didn't create any files or
 directories.
 
-We also have to update our setup script:
+We also have to update our setup script::
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -908,7 +907,7 @@ edit.  In particular, entry points are now defined as a configuration
 string, rather than a dictionary.
 
 Let's update our configuration to provide variable substitution
-examples:
+examples::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -933,7 +932,7 @@ substituted are qualified option names, consisting of a section name
 and option name joined by a colon.
 
 Now, if we run the buildout, we'll see the options with the values
-substituted.
+substituted::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -945,14 +944,14 @@ substituted.
     File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
-Note that the substitution of the data-dir path option reflects the
-update to the option performed by the mkdir recipe.
+Note that the substitution of the ``data-dir`` path option reflects the
+update to the option performed by the ``mkdir`` recipe.
 
-It might seem surprising that mydata was created again.  This is
-because we changed our recipes package by adding the debug module.
-The buildout system didn't know if this module could effect the mkdir
-recipe, so it assumed it could and reinstalled mydata.  If we rerun
-the buildout:
+It might seem surprising that ``mydata`` was created again.  This is
+because we changed our recipes package by adding the ``debug`` module.
+The buildout system didn't know if this module could affect the ``mkdir``
+recipe, so it assumed it could and reinstalled ``mydata``.  If we rerun
+the buildout::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -962,7 +961,7 @@ the buildout:
     File-2 /sample-buildout/mydata/file/log
     recipe recipes:debug
 
-We can see that mydata was not recreated.
+we can see that ``mydata`` was not recreated.
 
 Note that, in this case, we didn't specify a log level, so
 we didn't get output about what the buildout was doing.
@@ -973,7 +972,7 @@ restriction might be relaxed in future releases.
 
 We can omit the section name in a variable substitution to refer to
 the current section.  We can also use the special option,
-_buildout_section_name_ to get the current section name.
+``_buildout_section_name_`` to get the current section name::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1009,7 +1008,7 @@ Automatic part selection and ordering
 When a section with a recipe is referred to, either through variable
 substitution or by an initializing recipe, the section is treated as a
 part and added to the part list before the referencing part.  For
-example, we can leave data-dir out of the parts list:
+example, we can leave ``data-dir`` out of the parts list::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1029,7 +1028,7 @@ example, we can leave data-dir out of the parts list:
     ... """)
 
 
-It will still be treated as a part:
+It will still be treated as a part::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -1046,9 +1045,9 @@ It will still be treated as a part:
     parts = data-dir debug
     ...
 
-Note that the data-dir part is included *before* the debug part,
-because the debug part refers to the data-dir part.  Even if we list
-the data-dir part after the debug part, it will be included before:
+Note that the ``data-dir`` part is included *before* the ``debug`` part,
+because the ``debug`` part refers to the ``data-dir`` part.  Even if we list
+the ``data-dir`` part after the ``debug`` part, it will be included before::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1068,7 +1067,7 @@ the data-dir part after the debug part, it will be included before:
     ... """)
 
 
-It will still be treated as a part:
+It will still be treated as a part::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -2029,7 +2028,7 @@ the ``mkdir`` recipe::
     ... setup(name="recipes", entry_points=entry_points)
     ... """)
 
-Now we can use it with a mkdir part::
+Now we can use it with a ``mkdir`` part::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -2104,56 +2103,56 @@ command usage is::
 
 The following options are supported:
 
--h (or --help)
+``-h`` (or ``--help``)
     Print basic usage information.  If this option is used, then all
     other options are ignored.
 
--c filename
-    The -c option can be used to specify a configuration file, rather than
-    buildout.cfg in the current directory.
+``-c`` filename
+    The ``-c`` option can be used to specify a configuration file, rather than
+    ``buildout.cfg`` in the current directory.
 
 
--t socket_timeout
+``-t`` socket_timeout
    Specify the socket timeout in seconds.
 
--v
+``-v``
     Increment the verbosity by 10.  The verbosity is used to adjust
     the logging level.  The verbosity is subtracted from the numeric
     value of the log-level option specified in the configuration file.
 
--q
+``-q``
     Decrement the verbosity by 10.
 
--U
+``-U``
     Don't read user-default configuration.
 
--o
+``-o``
     Run in off-line mode.  This is equivalent to the assignment
-    buildout:offline=true.
+    ``buildout:offline=true``.
 
--O
+``-O``
     Run in non-off-line mode.  This is equivalent to the assignment
-    buildout:offline=false.  This is the default buildout mode.  The
-    -O option would normally be used to override a true offline
+    ``buildout:offline=false``.  This is the default buildout mode.  The
+    ``-O`` option would normally be used to override a true offline
     setting in a configuration file.
 
--n
+``-n``
     Run in newest mode.  This is equivalent to the assignment
-    buildout:newest=true.  With this setting, which is the default,
+    ``buildout:newest=true``.  With this setting, which is the default,
     buildout will try to find the newest versions of distributions
     available that satisfy its requirements.
 
--N
+``-N``
     Run in non-newest mode.  This is equivalent to the assignment
-    buildout:newest=false.  With this setting, buildout will not seek
-    new distributions if installed distributions satisfy it's
+    ``buildout:newest=false``.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy its
     requirements.
 
 Assignments are of the form::
 
   section_name:option_name=value
 
-Or::
+or::
 
   option_name=value
 
@@ -2209,7 +2208,7 @@ argument::
     >>> os.remove(os.path.join(sample_buildout, '.other.cfg'))
 
 The most commonly used command is ``install``, and it takes a list of
-parts to install. if any parts are specified, only those parts are
+parts to install. If any parts are specified, only those parts are
 installed.  To illustrate this, we'll update our configuration and run
 the buildout in the usual way::
 
@@ -2507,14 +2506,14 @@ Logging control
 
 Three buildout options are used to control logging:
 
-log-level
+``log-level``
    specifies the log level
 
-verbosity
+``verbosity``
    adjusts the log level
 
-log-format
-   allows an alternate logging for mat to be specified
+``log-format``
+   allows an alternate logging format to be specified
 
 We've already seen the log level and verbosity.  Let's look at an example
 of changing the format::
@@ -2535,7 +2534,7 @@ than the logger name.
 We've also illustrated, with a contrived example, that the log level
 can be a numeric value and that the verbosity can be specified in the
 configuration file.  Because the verbosity is subtracted from the log
-level, we get a final log level of 20, which is the INFO level::
+level, we get a final log level of 20, which is the *INFO* level::
 
     >>> print_(system(buildout), end='')
     INFO Develop: '/sample-buildout/recipes'
@@ -2596,7 +2595,7 @@ All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
 
-allow-hosts
+``allow-hosts``
     On some environments the links visited by ``zc.buildout`` can be forbidden
     by paranoid firewalls. These URLs might be in the chain of links visited
     by ``zc.buildout`` as defined by buildout's ``find-links`` option, or as
@@ -2620,40 +2619,45 @@ allow-hosts
 
     All URLs that do not match these hosts will not be visited.
 
-allow-picked-versions
-    By default, the buildout will choose the best match for a given requirement
+``allow-picked-versions``
+    By default, the buildout will choose the best match for a given
+    requirement
     if the requirement is not specified precisely (for instance, using the
-    "versions" option.  This behavior corresponds to the
-    "allow-picked-versions" being set to its default value, "true".  If
-    "allow-picked-versions" is "false," instead of picking the best match,
+    ``versions`` option.  This behavior corresponds to the
+    ``allow-picked-versions`` being set to its default value, ``true``.  If
+    ``allow-picked-versions`` is ``false``, instead of picking the best match,
     buildout will raise an error.  This helps enforce repeatability.
 
-bin-directory
+``bin-directory``
    The directory path where scripts are written.  This can be a
    relative path, which is interpreted relative to the directory
    option.
 
-develop-eggs-directory
+``develop-eggs-directory``
    The directory path where development egg links are created for software
    being created in the local project.  This can be a relative path,
    which is interpreted relative to the directory option.
 
-directory
+``directory``
    The buildout directory.  This is the base for other buildout file
    and directory locations, when relative locations are used.
 
-eggs-directory
+``eggs-directory``
    The directory path where downloaded eggs are put.  It is common to share
-   this directory across buildouts. Eggs in this directory should
-   *never* be modified.  This can be a relative path, which is
+   this directory across buildouts.
+   This can be a relative path, which is
    interpreted relative to the directory option.
 
-find-links
+   .. warning:: 
+   
+     Eggs in this directory should *never* be modified.
+
+``find-links``
     You can specify more locations to search for distributions using the
     ``find-links`` option. All locations specified will be searched for
     distributions along with the package index as described before.
 
-    Locations can be urls::
+    Locations can be URLs::
 
       [buildout]
       ...
@@ -2680,87 +2684,93 @@ find-links
           /some/otherpath
           /some/path/someegg-1.0.0-py2.3.egg
 
-install-from-cache
+``install-from-cache``
     A download cache can be used as the basis of application source releases.
-    In an application source release, we want to distribute an application that
+    In an application source release, we want to distribute an application
+    that
     can be built without making any network accesses.  In this case, we
-    distribute a buildout with download cache and tell the buildout to install
+    distribute a buildout along with a download cache, and tell the buildout
+    to install
     from the download cache only, without making network accesses.  The
-    buildout install-from-cache option can be used to signal that packages
+    buildout ``install-from-cache`` option can be used to signal that packages
     should be installed only from the download cache.
 
-installed
+``installed``
    The file path where information about the results of the previous
    buildout run is written.  This can be a relative path, which is
    interpreted relative to the directory option.  This file provides
    an inventory of installed parts with information needed to decide
    which if any parts need to be uninstalled.
 
-log-format
+``log-format``
    The format used for logging messages.
 
-log-level
+``log-level``
    The log level before verbosity adjustment
 
-newest
+``newest``
     By default buildout and recipes will try to find the newest versions of
     distributions needed to satisfy requirements.  This can be very time
     consuming, especially when incrementally working on setting up a buildout
-    or working on a recipe.  The buildout "newest" option can be used to to
-    suppress this.  If the "newest" option is set to false, then new
+    or working on a recipe.  The buildout ``newest`` option can be used to to
+    suppress this.  If the ``newest`` option is set to false, then new
     distributions won't be sought if an installed distribution meets
-    requirements.  The "newest" option can also be set to false using the -N
-    command-line option.  See also the "offline" option.
+    requirements.  The ``newest`` option can also be set to false using the -N
+    command-line option.  See also the ``offline`` option.
 
-offline
-    The "offline" option goes a bit further than the "newest" option.  If the
-    buildout "offline" option is given a value of "true", the buildout and
-    recipes that are aware of the option will avoid doing network access.  This
+``offline``
+    The ``offline`` option goes a bit further than the ``newest`` option.  
+    If the
+    buildout ``offline`` option is given a value of ``true``, the buildout and
+    recipes that are aware of the option will avoid doing network access.
+    This
     is handy when running the buildout when not connected to the internet.  It
     also makes buildouts run much faster. This option is typically set using
-    the buildout -o option.
+    the buildout ``-o`` option.
 
-parts
-   A white space separated list of parts to be installed.
+``parts``
+   A whitespace-separated list of parts to be installed.
 
-parts-directory
+``parts-directory``
    A working directory that parts can used to store data.
 
-prefer-final
+``prefer-final``
     Currently, when searching for new releases, the newest available
     release is used.  This isn't usually ideal, as you may get a
     development release or alpha releases not ready to be widely used.
-    You can request that final releases be preferred using the prefer
-    final option in the buildout section::
+    You can request that final releases be preferred using the 
+    ``prefer-final`` option in the ``buildout`` section::
 
       [buildout]
       ...
       prefer-final = true
 
-    When the prefer-final option is set to true, then when searching for
+    When the ``prefer-final`` option is set to ``true``, then when searching
+    for
     new releases, final releases are preferred.  If there are final
     releases that satisfy distribution requirements, then those releases
     are used even if newer non-final releases are available.  The buildout
-    prefer-final option can be used to override this behavior.
+    ``prefer-final`` option can be used to override this behavior.
 
     In buildout version 2, final releases will be preferred by default.
-    You will then need to use a false value for prefer-final to get the
-    newest releases.
+    You will then need to use a ``false`` value for ``prefer-final`` to get
+    the newest releases.
 
-use-dependency-links
-    By default buildout will obey the setuptools dependency_links metadata
+``use-dependency-links``
+    By default buildout will obey the setuptools ``dependency_links`` metadata
     when it looks for dependencies. This behavior can be controlled with
-    the use-dependency-links buildout option::
+    the ``use-dependency-links`` buildout option::
 
       [buildout]
       ...
       use-dependency-links = false
 
-    The option defaults to true. If you set it to false, then dependency
-    links are only looked for in the locations specified by find-links.
+    The option defaults to ``true``. If you set it to ``false``, then
+    dependency links are only looked for in the locations specified by
+    ``find-links``.
 
-verbosity
-   A log-level adjustment.  Typically, this is set via the -q and -v
+``verbosity``
+   A log-level adjustment.  Typically, this is set via the ``-q`` and ``-v``
    command-line options.
 
 
@@ -2859,7 +2869,7 @@ Initial eggs
 ------------
 
 When using the ``init`` command, you can specify distribution requirements
-or paths to use:
+or paths to use::
 
     >>> cd(sample_bootstrapped)
     >>> remove('setup.cfg')
@@ -2879,8 +2889,8 @@ or paths to use:
     Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
 
-This causes a ``py`` part to be included that sets up a custom python
-interpreter with the given requirements or paths:
+This causes a ``py`` part to be included that sets up a custom Python
+interpreter with the given requirements or paths::
 
     >>> cat('setup.cfg')
     [buildout]
@@ -2895,16 +2905,16 @@ interpreter with the given requirements or paths:
     extra-paths =
       ./src
 
-Passing requirements or paths causes the the buildout to be run as part
+Passing requirements or paths causes the buildout to be run as part
 of initialization.  In the example above, we got a number of
 distributions installed and 2 scripts generated.  The first, ``demo``,
 was defined by the ``demo`` project. The second, ``py`` was defined by
-the generated configuration.  It's a "custom interpreter" that behaves
-like a standard Python interpreter, except that includes the specified
-eggs and extra paths in it's Python path.
+the generated configuration.  It's a *custom interpreter* that behaves
+like a standard Python interpreter, except that it includes the specified
+eggs and extra paths in its Python path.
 
 We specified a source directory that didn't exist. Buildout created it
-for us:
+for us::
 
     >>> ls('.')
     -  .installed.cfg
@@ -2953,15 +2963,15 @@ distributions. The latest version of the distribution that meets the
 requirements of the buildout will always be used.
 
 You can also specify more locations to search for distributions using
-the `find-links` option. See its description above.
+the ``find-links`` option. See its description above.
 
 Controlling the installation database
 -------------------------------------
 
-The buildout installed option is used to specify the file used to save
+The buildout ``installed`` option is used to specify the file used to save
 information on installed parts.  This option is initialized to
-".installed.cfg", but it can be overridden in the configuration file
-or on the command line:
+``.installed.cfg``, but it can be overridden in the configuration file
+or on the command line::
 
     >>> write('buildout.cfg',
     ... """
@@ -2992,7 +3002,7 @@ or on the command line:
     d  recipes
 
 The installation database can be disabled by supplying an empty
-buildout installed option:
+buildout installed option::
 
     >>> os.remove('inst.cfg')
     >>> print_(system(buildout+' buildout:installed='), end='')
@@ -3013,7 +3023,7 @@ buildout installed option:
     d  recipes
 
 
-Note that there will be no installation database if there are no parts:
+Note that there will be no installation database if there are no parts::
 
     >>> write('buildout.cfg',
     ... """
@@ -3038,12 +3048,12 @@ Note that there will be no installation database if there are no parts:
 Extensions
 ----------
 
-A feature allows code to be loaded and run after
-configuration files have been read but before the buildout has begun
+A feature allows code to be loaded and run *after*
+configuration files have been read, but *before* the buildout has begun
 any processing.  The intent is to allow special plugins such as
-urllib2 request handlers to be loaded.
+``urllib2`` request handlers to be loaded.
 
-To load an extension, we use the extensions option and list one or
+To load an extension we use the ``extensions`` option and list one or
 more distribution requirements, on separate lines.  The distributions
 named will be loaded and any ``zc.buildout.extension`` entry points found
 will be called with the buildout as an argument.  When buildout
@@ -3051,7 +3061,7 @@ finishes processing, any ``zc.buildout.unloadextension`` entry points
 found will be called with the buildout as an argument.
 
 Let's create a sample extension in our sample buildout created in the
-previous section:
+previous section::
 
     >>> mkdir(sample_bootstrapped, 'demo')
 
@@ -3080,8 +3090,8 @@ previous section:
 Our extension just prints out the word 'demo', and lists the sections
 found in the buildout passed to it.
 
-We'll update our buildout.cfg to list the demo directory as a develop
-egg to be built:
+We'll update our ``buildout.cfg`` to list the demo directory as a develop
+egg to be built::
 
     >>> write(sample_bootstrapped, 'buildout.cfg',
     ... """
@@ -3095,12 +3105,12 @@ egg to be built:
     ...        end='')
     Develop: '/sample-bootstrapped/demo'
 
-Now we can add the extensions option.  We were a bit tricky and ran
+Now we can add the ``extensions`` option.  We were a bit tricky and ran
 the buildout once with the demo develop egg defined but without the
 extension option.  This is because extensions are loaded before the
 buildout creates develop eggs. We needed to use a separate buildout
 run to create the develop egg.  Normally, when eggs are loaded from
-the network, we wouldn't need to do anything special.
+the network, we wouldn't need to do anything special. ::
 
     >>> write(sample_bootstrapped, 'buildout.cfg',
     ... """
@@ -3110,7 +3120,7 @@ the network, we wouldn't need to do anything special.
     ... parts =
     ... """)
 
-We see that our extension is loaded and executed:
+We see that our extension is loaded and executed::
 
     >>> print_(system(os.path.join(sample_bootstrapped, 'bin', 'buildout')),
     ...        end='')
