@@ -14,17 +14,17 @@ This document describes how to define buildouts using buildout
 configuration files and recipes.  There are three ways to set up the
 buildout software and create a buildout instance:
 
-1. Install the zc.buildout egg with easy_install and use the buildout
+1. Install the ``zc.buildout`` egg with ``easy_install`` and use the buildout
    script installed in a Python scripts area.
 
 2. Use the buildout bootstrap script to create a buildout that
-   includes both the setuptools and zc.buildout eggs.  This allows you
+   includes both the ``setuptools`` and ``zc.buildout`` eggs.  This allows you
    to use the buildout software without modifying a Python install.
    The buildout script is installed into your buildout local scripts
    area.
 
 3. Use a buildout command from an already installed buildout to
-   bootstrap a new buildout.  (See the section on bootstraping later
+   bootstrap a new buildout.  (See the section on bootstrapping later
    in this document.)
 
 Often, a software project will be managed in a software repository,
@@ -32,13 +32,13 @@ such as a subversion repository, that includes some software source
 directories, buildout configuration files, and a copy of the buildout
 bootstrap script.  To work on the project, one would check out the
 project from the repository and run the bootstrap script which
-installs setuptools and zc.buildout into the checkout as well as any
+installs ``setuptools`` and ``zc.buildout`` into the checkout as well as any
 parts defined.
 
 We have a sample buildout that we created using the bootstrap command
 of an existing buildout (method 3 above).  It has the absolute minimum
-information.  We have bin, develop-eggs, eggs and parts directories,
-and a configuration file::
+information.  We have ``bin``, ``develop-eggs``, ``eggs`` and ``parts``
+directories, and a configuration file::
 
     >>> ls(sample_buildout)
     d  bin
@@ -47,7 +47,7 @@ and a configuration file::
     d  eggs
     d  parts
 
-The bin directory contains scripts::
+The ``bin`` directory contains scripts::
 
     >>> ls(sample_buildout, 'bin')
     -  buildout
@@ -56,31 +56,31 @@ The bin directory contains scripts::
     -  setuptools-0.7-py3.3.egg
     -  zc.buildout.egg-link
 
-The develop-eggs and parts directories are initially empty::
+The ``develop-eggs`` and ``parts`` directories are initially empty::
 
     >>> ls(sample_buildout, 'develop-eggs')
     >>> ls(sample_buildout, 'parts')
 
-The develop-eggs directory holds egg links for software being
-developed in the buildout.  We separate develop-eggs and other eggs to
+The ``develop-eggs`` directory holds egg links for software being
+developed in the buildout.  We separate ``develop-eggs`` and other eggs to
 allow eggs directories to be shared across multiple buildouts.  For
 example, a common developer technique is to define a common eggs
 directory in their home that all non-develop eggs are stored in.  This
 allows larger buildouts to be set up much more quickly and saves disk
 space.
 
-The parts directory provides an area where recipes can install
+The ``parts`` directory provides an area where recipes can install
 part data.  For example, if we built a custom Python, we would
-install it in the part directory.  Part data is stored in a
+install it in the ``parts`` directory.  Part data is stored in a
 sub-directory of the parts directory with the same name as the part.
 
 Buildouts are defined using configuration files.  These are in the
-format defined by the Python ConfigParser module, with extensions
+format defined by the Python ``ConfigParser`` module, with extensions
 that we'll describe later.  By default, when a buildout is run, it
-looks for the file buildout.cfg in the directory where the buildout is
+looks for the file ``buildout.cfg`` in the directory where the buildout is
 run.
 
-The minimal configuration file has a buildout section that defines no
+The minimal configuration file has a ``buildout`` section that defines no
 parts::
 
     >>> cat(sample_buildout, 'buildout.cfg')
@@ -111,7 +111,7 @@ directory for our local recipes::
 
     >>> mkdir(sample_buildout, 'recipes')
 
-and then we'll create a source file for our mkdir recipe::
+and then we'll create a source file for our ``mkdir`` recipe::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -158,15 +158,15 @@ changed if it's options, after adjusting for data read from other
 sections, has changed, or if the recipe has changed.  Only the options
 for the part are considered.  If data are read from other sections,
 then that information has to be reflected in the parts options.  In
-the Mkdir example, the given path is interpreted relative to the
+the ``mkdir`` example, the given path is interpreted relative to the
 buildout directory, and data from the buildout directory is read.  The
 path option is updated to reflect this.  If the directory option was
 changed in the buildout sections, we would know to update parts
-created using the mkdir recipe using relative path names.
+created using the ``mkdir`` recipe using relative path names.
 
 When buildout is run, it saves configuration data for installed parts
-in a file named ".installed.cfg".  In subsequent runs, it compares
-part-configuration data stored in the .installed.cfg file and the
+in a file named ``.installed.cfg``.  In subsequent runs, it compares
+part-configuration data stored in the ``.installed.cfg`` file and the
 part-configuration data loaded from the configuration files as
 modified by recipe constructors to decide if the configuration of a
 part has changed. If the configuration has changed, or if the recipe
@@ -176,7 +176,7 @@ configure the part needs to be reflected in the part's options.  It is
 the job of a recipe constructor to make sure that the options include
 all relevant data.
 
-Of course, parts are also uninstalled if they are no-longer used.
+Of course, parts are also uninstalled if they are no longer used.
 
 The recipe defines a constructor that takes a buildout object, a part
 name, and an options dictionary. It saves them in instance attributes.
@@ -190,13 +190,13 @@ directory.
 The install method is responsible for creating the part.  In this
 case, we need the path of the directory to create.  We'll use a path
 option from our options dictionary.  The install method logs what it's
-doing using the Python logging call.  We return the path that we
+doing using the Python ``logging`` call.  We return the path that we
 installed.  If the part is uninstalled or reinstalled, then the path
 returned will be removed by the buildout machinery.  A recipe install
 method is expected to return a string, or an iterable of strings
 containing paths to be removed if a part is uninstalled.  For most
 recipes, this is all of the uninstall support needed. For more complex
-uninstallation scenarios use `Uninstall recipes`_.
+uninstallation scenarios, use `Uninstall recipes`_.
 
 The update method is responsible for updating an already installed
 part.  An empty method is often provided, as in this example, if parts
@@ -209,7 +209,7 @@ We need to provide packaging information so that our recipe can be
 installed as a develop egg. The minimum information we need to specify
 is a name.  For recipes, we also need to define the
 names of the recipe classes as entry points.  Packaging information is
-provided via a setup.py script::
+provided via a ``setup.py`` script::
 
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
@@ -221,18 +221,18 @@ provided via a setup.py script::
     ...     )
     ... """)
 
-Our setup script defines an entry point. Entry points provide
+Our setup script defines an *entry point*. Entry points provide
 a way for an egg to define the services it provides.  Here we've said
-that we define a zc.buildout entry point named mkdir.  Recipe
-classes must be exposed as entry points in the zc.buildout group.  we
+that we define a ``zc.buildout`` entry point named ``mkdir``.  Recipe
+classes must be exposed as entry points in the ``zc.buildout`` group.  We
 give entry points names within the group.
 
-We also need a README.txt for our recipes to avoid an annoying warning
-from distutils, on which setuptools and zc.buildout are based::
+We also need a ``README.txt`` for our recipes to avoid an annoying warning
+from ``distutils`` (which ``setuptools`` and ``zc.buildout`` are based on)::
 
     >>> write(sample_buildout, 'recipes', 'README.txt', " ")
 
-Now let's update our buildout.cfg::
+Now let's update our ``buildout.cfg``::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -254,7 +254,7 @@ Any number of paths can be listed.  The paths can be relative or
 absolute.  If relative, they are treated as relative to the buildout
 directory.  They can be directory or file paths.  If a file path is
 given, it should point to a Python setup script.  If a directory path
-is given, it should point to a directory containing a setup.py file.
+is given, it should point to a directory containing a ``setup.py`` file.
 Development eggs are installed before building any parts, as they may
 provide locally-defined recipes needed by the parts.
 
@@ -262,8 +262,8 @@ provide locally-defined recipes needed by the parts.
 
     parts = data-dir
 
-Here we've named a part to be "built".  We can use any name we want
-except that different part names must be unique and recipes will often
+Here we've named a part to be "built".  We can use any name we want,
+except that part names have to be unique and recipes will often
 use the part name to decide what to do.
 
 ::
@@ -362,12 +362,13 @@ the part will be reinstalled::
 Error reporting
 ---------------
 
-If a user makes an error, an error needs to be printed and work needs
+If a user makes an error the error needs to be reported, and work needs
 to stop.  This is accomplished by logging a detailed error message and
-then raising a (or an instance of a subclass of a)
-zc.buildout.UserError exception.  Raising an error other than a
-UserError still displays the error, but labels it as a bug in the
-buildout software or recipe. In the sample above, of someone gives a
+then raising a 
+``zc.buildout.UserError`` exception (or a subclass of this exception).
+Raising an error other than a
+``UserError`` still displays the error, but labels it as a bug in the
+buildout software or recipe. In the sample above, if someone gives a
 non-existent directory to create the directory in::
 
     >>> write(sample_buildout, 'buildout.cfg',
@@ -381,7 +382,7 @@ non-existent directory to create the directory in::
     ... path = /xxx/mydata
     ... """)
 
-We'll get a user error, not a traceback::
+we'll get a user error, not a traceback::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
@@ -398,7 +399,7 @@ Recipe Error Handling
 
 If an error occurs during installation, it is up to the recipe to
 clean up any system side effects, such as files created.  Let's update
-the mkdir recipe to support multiple paths::
+the ``mkdir`` recipe to support multiple paths::
 
     >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
@@ -497,7 +498,7 @@ If we fix the typo::
     Traceback (most recent call last):
     ... exists...
 
-Now they fail because foo exists, because it was left behind::
+Now they fail because ``foo`` exists, because it was left behind::
 
     >>> remove('foo')
 
@@ -592,8 +593,8 @@ we get the same error, but we don't get the directory left behind::
 It's critical that recipes clean up partial effects when errors
 occur.  Because recipes most commonly create files and directories,
 buildout provides a helper API for removing created files when an
-error occurs.  Option objects have a created method that can be called
-to record files as they are created.  If the install or update method
+error occurs.  Option objects have a ``created`` method that can be called
+to record files as they are created.  If the ``install`` or ``update`` method
 returns with an error, then any registered paths are removed
 automatically.  The method returns the files registered and can be
 used to return the files created.  Let's use this API to simplify the
@@ -639,11 +640,11 @@ recipe::
 
     >>> clean_up_pyc(sample_buildout, 'recipes', 'mkdir.py')
 
-We returned by calling created, taking advantage of the fact that it
+We returned by calling ``created``, taking advantage of the fact that it
 returns the registered paths.  We did this for illustrative purposes.
-It would be simpler just to return the paths as before.
+It would be simpler to just return the paths as before.
 
-If we rerun the buildout, again, we'll get the error and no
+If we rerun the buildout again, we'll get the error and no
 directories will be created::
 
     >>> print_(system(buildout)) # doctest: +ELLIPSIS
@@ -690,30 +691,30 @@ Configuration file syntax
 -------------------------
 
 A buildout configuration file consists of a sequence of sections.  A
-section has a section header followed by 0 or more section options.
+section has a *section header* followed by 0 or more *section options*.
 (Buildout configuration files may be viewed as a variation on INI
 files.)
 
 A section header consists of a section name enclosed in square braces.
 A section name consists of one or more non-whitespace characters other
-than square braces ('[', ']'), curly braces ('{', '}'), colons (':')
-or equal signs ('='). Whitespace surrounding section names is ignored.
+than square braces (``[``, ``]``), curly braces (``{``, ``}``), colons (``:``)
+or equal signs (``=``). Whitespace surrounding section names is ignored.
 
 A section header can optionally have a condition expression separated
 by a colon.  See `Conditional sections`_.
 
 Options consist of option names, followed by optional space or tab
-characters, an optional plus or minus sign and an equal signs and
+characters, an optional plus or minus sign and an equal sign and
 values.  An option value may be spread over multiple lines as long as
 the lines after the first start with a whitespace character.  An
 option name consists of one or more non-whitespace characters other
-than equal signs, square braces ("[", "]"), curly braces ("{", "}"),
-plus signs or colons (":"). The option name '<' is reserved.  An
+than equal signs, square braces (``[``, ``]``), curly braces (``{``, ``}``),
+plus signs or colons (``:``). The option name ``<`` is reserved.  An
 option's data consists of the characters following the equal sign on
 the start line, plus the continuation lines.
 
 Option values have extra whitespace stripped.  How this is done
-depends on whether the value has non-whitespace characterts on the
+depends on whether the value has non-whitespace characters on the
 first line.  If an option value has non-whitespace characters on the
 first line, then each line is stripped and blank lines are removed.
 For example, in::
@@ -737,7 +738,7 @@ For example, in::
 The value of of ``bar`` is ``'1'`` and the value of ``baz`` is
 ``'a\nb\nc'``.
 
-If the first line of an option doesn't contain whitespace, then the
+If the first line of an option does **not** contain whitespace, then the
 value is dedented (with ``textwrap.dedent``), trailing spaces in lines
 are removed, and leading and trailing blank lines are removed.  For
 example, in::
@@ -760,18 +761,18 @@ example, in::
 
 The value of bar is ``''``, and the value of baz is ``'a\n  b\n\nc'``.
 
-Lines starting with '#' or ';' characters are comments.  Comments can
-also be placed after the closing square bracket (']') in a section header.
+Lines starting with ``#`` or ``;`` characters are comments.  Comments can
+also be placed after the closing square bracket (``]``) in a section header.
 
 Buildout configuration data are Python strings, which are bytes in
 Python 2 and unicode in Python 3.
 
 Sections and options within sections may be repeated.  Multiple
-occurrences of of a section are treated as if they were concatenated.
+occurrences of a section are treated as if they were concatenated.
 The last option value for a given name in a section overrides previous
 values.
 
-In addition top the syntactic details above:
+In addition to the syntactic details above:
 
 - option names are case sensitive
 
@@ -903,7 +904,7 @@ We also have to update our setup script::
     ... """)
 
 We've rearranged the script a bit to make the entry points easier to
-edit.  In particular, entry points are now defined as a configuration
+edit.  Specifically, entry points are now defined as a configuration
 string, rather than a dictionary.
 
 Let's update our configuration to provide variable substitution
@@ -926,8 +927,8 @@ examples::
     ... path = mydata
     ... """)
 
-We used a string-template substitution for File-1 and File-2.  This
-type of substitution uses the string.Template syntax.  Names
+We used a string-template substitution for ``File-1`` and ``File-2``.  This
+type of substitution uses the ``string.Template`` syntax.  Names
 substituted are qualified option names, consisting of a section name
 and option name joined by a colon.
 
@@ -948,7 +949,7 @@ Note that the substitution of the ``data-dir`` path option reflects the
 update to the option performed by the ``mkdir`` recipe.
 
 It might seem surprising that ``mydata`` was created again.  This is
-because we changed our recipes package by adding the ``debug`` module.
+because we changed our ``recipes`` package by adding the ``debug`` module.
 The buildout system didn't know if this module could affect the ``mkdir``
 recipe, so it assumed it could and reinstalled ``mydata``.  If we rerun
 the buildout::

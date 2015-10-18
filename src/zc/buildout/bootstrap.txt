@@ -47,7 +47,7 @@ Make sure the bootstrap script actually works::
     X...
     d  zc.buildout-...egg
 
-By default it gets the latest version:
+By default it gets the latest version::
 
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
     >>> if sys.platform.startswith('win'):
@@ -59,8 +59,8 @@ By default it gets the latest version:
       '/sample/eggs/zc.buildout-22.0.0...egg',
       ]...
 
-Now trying the `--buildout-version` option, that let you define a version for
-`zc.buildout`.
+Now trying the ``--buildout-version`` option, that let you define a version
+for ``zc.buildout``.
 
 Let's try with an unknown version::
 
@@ -73,7 +73,7 @@ Let's try with an unknown version::
     No local packages or download links found for zc.buildout==UNKNOWN
     ...
 
-Now let's try with `2.0.0`, which happens to exist::
+Now let's try with ``2.0.0``, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
@@ -81,7 +81,7 @@ Now let's try with `2.0.0`, which happens to exist::
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
-Let's make sure the generated `buildout` script uses it::
+Let's make sure the generated ``buildout`` script uses it::
 
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
@@ -90,10 +90,10 @@ Let's make sure the generated `buildout` script uses it::
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
 
-Now trying the `--setuptools-version` option, that let you define a version for
-`setuptools`.
+Now trying the ``--setuptools-version`` option, that lets you define a version
+for ``setuptools``.
 
-Now let's try with `8.0`, which happens to exist::
+Now let's try with ``8.0``, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
@@ -101,7 +101,7 @@ Now let's try with `8.0`, which happens to exist::
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
-Let's make sure the generated `buildout` script uses it::
+Let's make sure the generated ``buildout`` script uses it::
 
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
@@ -110,7 +110,7 @@ Let's make sure the generated `buildout` script uses it::
       '/sample/eggs/zc.buildout-...egg',
       ]...
 
-Now let's try specifying both `zc.buildout` and `setuptools` to versions
+Now let's try specifying both ``zc.buildout`` and ``setuptools`` to versions
 which happens to exist::
 
     >>> print_('X'); print_(system(
@@ -119,7 +119,7 @@ which happens to exist::
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
-Let's make sure the generated `buildout` script uses it::
+Let's make sure the generated ``buildout`` script uses it::
 
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
@@ -128,8 +128,8 @@ Let's make sure the generated `buildout` script uses it::
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
 
-For a completely offline install we want to avoid downloading ez_setup.py,
-specify the setuptools version, and to reuse the setuptools zipfile.
+For a completely offline install we want to avoid downloading ``ez_setup.py``,
+specify the setuptools version, and to reuse the setuptools zipfile::
 
     >>> try:
     ...     from urllib.request import urlopen
@@ -160,12 +160,12 @@ specify the setuptools version, and to reuse the setuptools zipfile.
       '/sample/eggs/zc.buildout-2.0.0...egg',
       ]...
 
-You can ask bootstrap.py for its version. This is really the day the last
+You can ask ``bootstrap.py`` for its version. This is really the day the last
 change was made. A date leads to less confusion than a version number separate
 from buildout's own version number. Similarly, tracking buildout's version
 number leads to bootstraps with a new version number but without changes or to
 bootstraps with version number from an already-older buildout. So: a date is
-best.
+best::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
