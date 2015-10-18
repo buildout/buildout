@@ -1088,10 +1088,10 @@ Extending sections (macros)
 ---------------------------
 
 A section (other than the buildout section) can extend one or more
-other sections using the ``<=`` option.  Options from the referenced
+other sections using the ``<`` option.  Options from the referenced
 sections are copied to the referring section *before* variable
 substitution.  This, together with the ability to refer to variables
-of the current section, allows sections to be used as macros.
+of the current section, allows sections to be used as macros::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1133,6 +1133,10 @@ of the current section, allows sections to be used as macros.
 In this example, the ``debug``, ``with_file1`` and ``with_file2`` sections act
 as macros. In particular, the variable substitutions are performed
 relative to the ``myfiles`` section.
+
+.. note:: Don't be fooled by the appearance of the ``<= section`` lines ---
+    though ``<=`` may look like a new operator, it's still just the familiar
+    ``key = value`` syntax.
 
 Conditional sections
 --------------------
