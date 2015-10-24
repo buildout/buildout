@@ -1152,6 +1152,8 @@ def _relative_path(common, path):
 def _relativitize(path, script, relative_paths):
     if path == script:
         raise AssertionError("path == script")
+    if path == relative_paths:
+        return "base"
     common = os.path.dirname(os.path.commonprefix([path, script]))
     if (common == relative_paths or
         common.startswith(os.path.join(relative_paths, ''))
