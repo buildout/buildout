@@ -835,7 +835,7 @@ to pass a common base directory of the scripts and eggs:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, join(bo, 'bin'), dict(demo='run'),
-    ...    extra_paths=[ba, join(bo, 'bar')],
+    ...    extra_paths=[ba, join(bo, 'bar'), bo],
     ...    interpreter='py',
     ...    relative_paths=bo)
 
@@ -854,6 +854,7 @@ to pass a common base directory of the scripts and eggs:
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
+      base,
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -887,6 +888,7 @@ We specified an interpreter and its paths are adjusted too:
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
+      base,
       ]
     <BLANKLINE>
     _interactive = True

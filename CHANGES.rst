@@ -4,7 +4,9 @@ Change History
 2.4.6 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Relative paths are now also correctly generated for the current directory
+  ("develop = .").
+  [youngking]
 
 
 2.4.5 (2015-10-14)
