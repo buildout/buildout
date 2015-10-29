@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.7 (unreleased)
+2.4.7 (2015-10-29)
 ==================
 
 - Fix for #279. Distutils script detection previously broke on windows with
