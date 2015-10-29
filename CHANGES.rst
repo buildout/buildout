@@ -4,7 +4,9 @@ Change History
 2.4.7 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix for #279. Distutils script detection previously broke on windows with
+  python 3 because it errored on ``.exe`` files.
+  [reinout]
 
 
 2.4.6 (2015-10-28)
