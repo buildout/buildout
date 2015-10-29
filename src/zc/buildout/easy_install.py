@@ -904,6 +904,8 @@ def _detect_distutils_scripts(directory):
     marker = 'EASY-INSTALL-DEV-SCRIPT'
     scripts_found = []
     for filename in dir_contents:
+        if filename.endswith('.exe'):
+            continue
         filepath = os.path.join(directory, filename)
         if not os.path.isfile(filepath):
             continue
