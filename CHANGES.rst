@@ -4,8 +4,8 @@ Change History
 2.4.7 (unreleased)
 ==================
 
-- Fix for #279. Distutils script detection previously broke on windows because
-  it errored on ``.exe`` files.
+- Fix for #279. Distutils script detection previously broke on windows with
+  python 3 because it errored on ``.exe`` files.
   [reinout]
 
 
