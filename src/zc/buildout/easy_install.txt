@@ -248,7 +248,7 @@ we'll get an error:
     zc.buildout.easy_install DEBUG
       Installing 'demo >0.2'.
     zc.buildout.easy_install INFO
-      version and requirements information containing demo:
+      Version and requirements information containing demo:
       [versions] constraint on demo: 0.2
       Base installation request: 'demo >0.2'
 

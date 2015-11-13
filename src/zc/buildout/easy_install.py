@@ -235,7 +235,7 @@ class Installer:
 
         """
         output = [
-            "version and requirements information containing %s:" % name]
+            "Version and requirements information containing %s:" % name]
         version_constraint = self._versions.get(name)
         if version_constraint:
             output.append(
