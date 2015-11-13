@@ -222,9 +222,27 @@ class Installer:
         self._newest = newest
         self._env = pkg_resources.Environment(path)
         self._index = _get_index(index, links, self._allow_hosts)
+        self._requirements_and_constraints = []
 
         if versions is not None:
             self._versions = normalize_versions(versions)
+
+    def _version_conflict_information(self, name):
+        """Return textual requirements/constraint information for debug purposes
+
+        We do a very simple textual search, as that filters out most
+        extraneous information witout missing anything.
+
+        """
+        output = [
+            "version and requirements information containing %s:" % name]
+        version_constraint = self._versions.get(name)
+        if version_constraint:
+            output.append(
+                "[versions] constraint on %s: %s" % (name, version_constraint))
+        output += [line for line in self._requirements_and_constraints
+                   if name.lower() in line.lower()]
+        return '\n  '.join(output)
 
     def _satisfied(self, req, source=None):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -611,12 +629,21 @@ class Installer:
         """Return requirement with optional [versions] constraint added."""
         constraint = self._versions.get(requirement.project_name.lower())
         if constraint:
-            requirement = _constrained_requirement(constraint, requirement)
+            try:
+                requirement = _constrained_requirement(constraint,
+                                                       requirement)
+            except IncompatibleConstraintError:
+                logger.info(self._version_conflict_information(
+                    requirement.project_name.lower()))
+                raise
+
         return requirement
 
     def install(self, specs, working_set=None):
 
         logger.debug('Installing %s.', repr(specs)[1:-1])
+        self._requirements_and_constraints.append(
+            "Base installation request: %s" % repr(specs)[1:-1])
 
         for_buildout_run = bool(working_set)
         path = self._path
@@ -689,11 +716,17 @@ class Installer:
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
+                logger.info(self._version_conflict_information(dist))
                 raise VersionConflict(
                     pkg_resources.VersionConflict(dist, req), ws)
 
             best[req.key] = dist
-            requirements.extend(dist.requires(req.extras)[::-1])
+            extra_requirements = dist.requires(req.extras)[::-1]
+            for extra_requirement in extra_requirements:
+                self._requirements_and_constraints.append(
+                    "Requirement of %s: %s" % (current_requirement, extra_requirement))
+            requirements.extend(extra_requirements)
+
             processed[req] = True
         return ws
 
