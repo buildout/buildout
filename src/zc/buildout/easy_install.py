@@ -608,6 +608,7 @@ class Installer:
 
 
     def _constrain(self, requirement):
+        """Return requirement with optional [versions] constraint added."""
         constraint = self._versions.get(requirement.project_name.lower())
         if constraint:
             requirement = _constrained_requirement(constraint, requirement)
