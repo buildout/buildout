@@ -716,7 +716,7 @@ class Installer:
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
-                logger.info(self._version_conflict_information(dist))
+                logger.info(self._version_conflict_information(req.key))
                 raise VersionConflict(
                     pkg_resources.VersionConflict(dist, req), ws)
 
