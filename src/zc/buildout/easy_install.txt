@@ -247,6 +247,10 @@ we'll get an error:
     >>> print_(handler)
     zc.buildout.easy_install DEBUG
       Installing 'demo >0.2'.
+    zc.buildout.easy_install INFO
+      version and requirements information containing demo:
+      [versions] constraint on demo: 0.2
+      Base installation request: 'demo >0.2'
 
     >>> handler.clear()
 
