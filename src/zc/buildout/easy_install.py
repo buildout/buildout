@@ -1505,7 +1505,9 @@ def _constrained_requirement(constraint, requirement):
             assert constraint.startswith('==')
             constraint = constraint[2:]
         if constraint not in requirement:
-            bad_constraint(constraint, requirement)
+            msg = ("The requirement (%r) is not allowed by your [versions] "
+                   "constraint (%s)" % (str(requirement), constraint))
+            raise IncompatibleConstraintError(msg)
 
         # Sigh, copied from Requirement.__str__
         extras = ','.join(requirement.extras)
@@ -1528,8 +1530,3 @@ class IncompatibleConstraintError(zc.buildout.UserError):
     """
 
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
-
-def bad_constraint(constraint, requirement):
-    logger.error("The constraint, %s, is not consistent with the "
-                 "requirement, %r.", constraint, str(requirement))
-    raise IncompatibleConstraintError("Bad constraint", constraint, requirement)
