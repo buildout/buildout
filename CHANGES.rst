@@ -4,7 +4,13 @@ Change History
 2.4.8 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Added more elaborate version and requirement information when there's a
+  version conflict. Previously, you could get a report of a version conflict
+  without information about which dependency requested the conflicing
+  requirement.
+
+  Now all this information is logged and displayed in case of an error.
+  [reinout]
 
 
 2.4.7 (2015-10-29)
