@@ -242,13 +242,15 @@ we'll get an error:
     ...     versions = dict(demo='0.2', demoneeded='1.0'))
     Traceback (most recent call last):
     ...
-    IncompatibleConstraintError: Bad constraint 0.2 demo>0.2
+    IncompatibleConstraintError: The requirement ('demo>0.2') is not allowed by your [versions] constraint (0.2)
 
     >>> print_(handler)
     zc.buildout.easy_install DEBUG
       Installing 'demo >0.2'.
-    zc.buildout.easy_install ERROR
-      The constraint, 0.2, is not consistent with the requirement, 'demo>0.2'.
+    zc.buildout.easy_install INFO
+      Version and requirements information containing demo:
+      [versions] constraint on demo: 0.2
+      Base installation request: 'demo >0.2'
 
     >>> handler.clear()
 

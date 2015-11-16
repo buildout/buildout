@@ -306,6 +306,9 @@ Now, let's create a buildout that requires y and z:
     Installing eggs.
     Getting distribution for 'demoneeded==1.1'.
     Got demoneeded 1.1.
+    Version and requirements information containing demoneeded:
+      Requirement of samplez: demoneeded==1.1
+      Requirement of sampley: demoneeded==1.0
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -355,6 +358,9 @@ If we use the verbose switch, we can see where requirements are coming from:
     Getting required 'sampley'
       required by sampleb 1.
     We have a develop egg: sampley 1
+    Version and requirements information containing demoneeded:
+      Requirement of samplez: demoneeded==1.1
+      Requirement of sampley: demoneeded==1.0
     While:
       Installing eggs.
     Error: There is a version conflict.

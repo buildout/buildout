@@ -4,7 +4,17 @@ Change History
 2.4.8 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Added more elaborate version and requirement information when there's a
+  version conflict. Previously, you could get a report of a version conflict
+  without information about which dependency requested the conflicing
+  requirement.
+
+  Now all this information is logged and displayed in case of an error.
+  [reinout]
+
+- Dropped 3.2 support (at least in the automatic tests) as setuptools will
+  soon stop supporting it. Added python 3.5 to the automatic tests.
+  [reinout]
 
 
 2.4.7 (2015-10-29)

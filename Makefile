@@ -19,6 +19,10 @@ ifeq ($(PYTHON_VER),3.4)
 	PYTHON_MINOR ?= 3.4.2
 	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
 endif
+ifeq ($(PYTHON_VER),3.5)
+	PYTHON_MINOR ?= 3.5.0
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
 
 ifndef PYTHON_MINOR
     $(error Please specify desired PYTHON_MINOR for Python $(PYTHON_VER))
