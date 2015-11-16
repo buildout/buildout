@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.4.8 (unreleased)
+2.5.0 (2015-11-16)
 ==================
 
 - Added more elaborate version and requirement information when there's a
