@@ -809,7 +809,7 @@ class Buildout(DictMixin):
             req = pkg_resources.Requirement.parse(recipe)
             sig = _dists_sig(pkg_resources.working_set.resolve([req]))
             sig = ' '.join(sig)
-            if isinstance(sig, text_type):
+            if isinstance(sig, unicode) and not PY3:
                 sig = sig.encode()
             options['__buildout_signature__'] = sig
 
