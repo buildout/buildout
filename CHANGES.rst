@@ -4,7 +4,16 @@ Change History
 2.5.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix for #283: setuptools 19.1's unicode package names don't break buildout anymore.
+
+  The problem is that setuptools 19.1 apparently returns unicode package names
+  on python 2 instead of strings as previously. Buildout expects strings on
+  python 2. So I copied an `encode()` if from somewhere else in buildout that
+  fixes it.
+
+  Also see
+  https://bitbucket.org/pypa/setuptools/issues/476/setuptools-191-breaks-zcbuildout
+  [reinout]
 
 
 2.5.0 (2015-11-16)
