@@ -36,7 +36,7 @@ except ImportError:
     from urlparse import urlunparse
     import urllib2
 
-    def urlretrieve(url, tmp):
+    def urlretrieve(url, tmp_path):
         """Work around Python issue 24599 includig basic auth support
         """
         scheme, netloc, path, params, query, frag = urlparse(url)
@@ -50,9 +50,9 @@ except ImportError:
         else:
             req = urllib2.Request(url)
         url_obj = urllib2.urlopen(req)
-        with open(tmp, 'wb') as fp:
+        with open(tmp_path, 'wb') as fp:
             fp.write(url_obj.read())
-        return tmp, url_obj.info()
+        return tmp_path, url_obj.info()
 
 
 from zc.buildout.easy_install import realpath
