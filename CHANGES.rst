@@ -4,7 +4,8 @@ Change History
 2.5.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix python 2 for downloading external config files with basic auth in the
+  URL. Fixes #257.
 
 
 2.5.0 (2015-11-16)
