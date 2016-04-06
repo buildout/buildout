@@ -31,17 +31,28 @@ try:
 
 except ImportError:
     # Python 2
+    import base64
     from urlparse import urlparse
-
+    from urlparse import urlunparse
     import urllib2
 
-    def urlretrieve(url, path):
-        """Work around Python issue 24599
+    def urlretrieve(url, tmp):
+        """Work around Python issue 24599 includig basic auth support
         """
-        url_obj = urllib2.urlopen(url)
-        with open(path, 'wb') as fp:
+        scheme, netloc, path, params, query, frag = urlparse(url)
+        auth, host = urllib2.splituser(netloc)
+        if auth:
+            url = urlunparse((scheme, host, path, params, query, frag))
+            req = urllib2.Request(url)
+            base64string = base64.encodestring(auth)[:-1]
+            basic = "Basic " + base64string
+            req.add_header("Authorization", basic)
+        else:
+            req = urllib2.Request(url)
+        url_obj = urllib2.urlopen(req)
+        with open(tmp, 'wb') as fp:
             fp.write(url_obj.read())
-        return path, url_obj.info()
+        return tmp, url_obj.info()
 
 
 from zc.buildout.easy_install import realpath
