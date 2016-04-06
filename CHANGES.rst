@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.5.1 (unreleased)
+2.5.1 (2016-04-06)
 ==================
 
 - Fix python 2 for downloading external config files with basic auth in the
