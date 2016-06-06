@@ -14,6 +14,9 @@ When you're developing buildout itself, you need to know two things:
 - Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
   dev.py``.
 
+- Run buildout with -U, to ignore user (default) settings which can interfere
+  with using the development version
+
 For your convenience we provide a Makefile to build various Python versions
 in subdirectories of the buildout checkout. To use these and run the tests
 with them do::
