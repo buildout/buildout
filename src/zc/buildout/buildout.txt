@@ -1135,7 +1135,8 @@ macros. In particular, the variable substitutions are performed
 relative to the myfiles section.
 
 Extending sections (macros) - Adding and removing options
-----------------------------------------------------
+---------------------------------------------------------
+
 We can also add and remove options in extended sections.
 
 This is illustrated below; first we define a base configuration.
@@ -1147,12 +1148,12 @@ This is illustrated below; first we define a base configuration.
     ...
     ... [part1]
     ... recipe =
-    ... option = a1 
-    ...          a2 
-    ...     
+    ... option = a1
+    ...          a2
+    ...
     ... [part2]
     ... <= part1
-    ... option -= a1    
+    ... option -= a1
     ... option += c3 c4
     ...
     ... [part3]
@@ -1198,7 +1199,7 @@ Set up a buildout configuration for this extension.
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/demo'
     ....
- 
+
 Verify option values.
 
     >>> write(sample_buildout, 'buildout.cfg',
