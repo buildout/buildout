@@ -4,7 +4,8 @@ Change History
 2.5.2 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed ``-=`` and ``+=`` when extending sections. See #161.
+  [puittenbroek]
 
 
 2.5.1 (2016-04-06)
