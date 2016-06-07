@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.5.2 (unreleased)
+2.5.2 (2016-06-07)
 ==================
 
 - Fixed ``-=`` and ``+=`` when extending sections. See #161.
