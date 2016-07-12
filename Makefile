@@ -4,17 +4,17 @@ PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
 PYTHON_BUILD_DIR = $(HERE)/python_builds
 
 ifeq ($(PYTHON_VER),2.7)
-	PYTHON_MINOR ?= 2.7.3
+	PYTHON_MINOR ?= 2.7.11
 endif
 ifeq ($(PYTHON_VER),3.3)
 	PYTHON_MINOR ?= 3.3.0
 endif
 ifeq ($(PYTHON_VER),3.4)
-	PYTHON_MINOR ?= 3.4.2
+	PYTHON_MINOR ?= 3.4.4
 	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
 endif
 ifeq ($(PYTHON_VER),3.5)
-	PYTHON_MINOR ?= 3.5.0
+	PYTHON_MINOR ?= 3.5.2
 	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
 endif
 
