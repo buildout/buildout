@@ -4,7 +4,7 @@ Change History
 2.5.3 (unreleased)
 ==================
 
-- Removed Pyrthon 2.6 and 3.2 support.
+- Removed Python 2.6 and 3.2 support.
   [do3cc]
 
 
