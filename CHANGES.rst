@@ -4,6 +4,14 @@ Change History
 2.5.3 (unreleased)
 ==================
 
+- Do not remove an existing egg.  When installing an egg to a location
+  that already exists, keep the current location (directory or file).
+  This can only happen when the location at first did not exist and
+  this changed during the buildout run.  We used to remove the
+  previous location, but this could cause problems when running two
+  buildouts at the same time, when they try to install the same new
+  egg.  Fixes #307.  [maurits]
+
 - In ``zc.buildout.testing.system``, set ``TERM=dumb`` in the environment.
   This avoids invisible control characters popping up in some terminals,
   like ``xterm``.  Note that this may affect tests by buildout recipes.
