@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import zc.buildout
 import warnings
 
@@ -400,7 +401,22 @@ class Installer:
                 newloc = os.path.join(dest, os.path.basename(d.location))
                 if os.path.exists(newloc):
                     if os.path.isdir(newloc):
-                        shutil.rmtree(newloc)
+                        try:
+                            shutil.rmtree(newloc)
+                        except OSError:
+                            # This can happen when running two buildouts in
+                            # parallel.  Or it is simply a permission error.
+                            # So we retry once.  See
+                            # https://github.com/buildout/buildout/issues/307
+                            seconds = 5
+                            logger.warn(
+                                "OSError while removing %s.\nThis can happen "
+                                "when two buildouts run at the same time. "
+                                "Or it is a permission error. "
+                                "Retrying once in %d seconds.",
+                                newloc, seconds)
+                            time.sleep(seconds)
+                            shutil.rmtree(newloc)
                     else:
                         os.remove(newloc)
                 os.rename(d.location, newloc)
