@@ -4,6 +4,10 @@ Change History
 2.5.3 (unreleased)
 ==================
 
+- When removing an egg directory gives an OSError, retry once.  This
+  avoids problems when running two buildouts at the same time, when
+  they try to install the same new egg.  Fixes #307.  [maurits]
+
 - Removed Python 2.6 and 3.2 support.
   [do3cc]
 
