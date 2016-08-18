@@ -397,7 +397,7 @@ class Installer:
 
             result = []
             for d in dists:
-                newloc = _move_to_eggs_dir(d, dest)
+                newloc = _move_to_eggs_dir_and_compile(d, dest)
                 [d] = pkg_resources.Environment([newloc])[d.project_name]
                 result.append(d)
 
@@ -518,8 +518,7 @@ class Installer:
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
-                    newloc = _move_to_eggs_dir(dist, self._dest)
-                    redo_pyc(newloc)
+                    newloc = _move_to_eggs_dir_and_compile(dist, self._dest)
 
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
@@ -532,7 +531,6 @@ class Installer:
                     dists = self._call_easy_install(
                         dist.location, ws, self._dest, dist)
                     for dist in dists:
-                        redo_pyc(dist.location)
                         if for_buildout_run:
                             # ws is the global working set and we're
                             # installing buildout, setuptools, extensions or
@@ -772,9 +770,6 @@ class Installer:
                 dists = self._call_easy_install(
                     base, pkg_resources.WorkingSet(),
                     self._dest, dist)
-
-                for dist in dists:
-                    redo_pyc(dist.location)
 
                 return [dist.location for dist in dists]
             finally:
@@ -1547,8 +1542,10 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
-def _move_to_eggs_dir(dist, dest):
+def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
+
+    And compile the py files, if we have actually moved the dist.
 
     Its new location is expected not to exist there yet, otherwise we
     would not be calling this function: the egg is already there.  But
@@ -1604,6 +1601,10 @@ def _move_to_eggs_dir(dist, dest):
                 "We will accept it.\n"
                 "If this contains a wrong package, please remove it yourself.",
                 newloc)
+        else:
+            # There were no problems during the rename.
+            # Do the compile step.
+            redo_pyc(newloc)
     finally:
         # Remember that temporary directories must be removed
         shutil.rmtree(tmp_dest)

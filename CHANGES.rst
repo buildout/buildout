@@ -1,8 +1,13 @@
 Change History
 **************
 
-2.5.3 (unreleased)
+2.6.0 (unreleased)
 ==================
+
+- After a dist is fetched and put into its final place, compile its
+  python files.  No longer wait with compiling until all dists are in
+  place.  This is related to the change below about not removing an
+  existing egg.  [maurits]
 
 - Do not remove an existing egg.  When installing an egg to a location
   that already exists, keep the current location (directory or file).
