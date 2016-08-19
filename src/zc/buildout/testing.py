@@ -110,12 +110,18 @@ def clean_up_pyc(*path):
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
 def system(command, input='', with_exit_code=False):
+    # Some TERMinals, expecially xterm and its variants, add invisible control
+    # characters, which we do not want as they mess up doctests.  See:
+    # https://github.com/buildout/buildout/pull/311
+    # http://bugs.python.org/issue19884
+    env = dict(os.environ, TERM='dumb')
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         close_fds=MUST_CLOSE_FDS)
+                         close_fds=MUST_CLOSE_FDS,
+                         env=env)
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input.encode())
