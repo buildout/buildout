@@ -4,6 +4,11 @@ Change History
 2.5.3 (unreleased)
 ==================
 
+- In ``zc.buildout.testing.system``, set ``TERM=dumb`` in the environment.
+  This avoids invisible control characters popping up in some terminals,
+  like ``xterm``.  Note that this may affect tests by buildout recipes.
+  [maurits]
+
 - Removed Python 2.6 and 3.2 support.
   [do3cc]
 
