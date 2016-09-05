@@ -397,16 +397,8 @@ class Installer:
 
             result = []
             for d in dists:
-                newloc = os.path.join(dest, os.path.basename(d.location))
-                if os.path.exists(newloc):
-                    if os.path.isdir(newloc):
-                        shutil.rmtree(newloc)
-                    else:
-                        os.remove(newloc)
-                os.rename(d.location, newloc)
-
+                newloc = _move_to_eggs_dir_and_compile(d, dest)
                 [d] = pkg_resources.Environment([newloc])[d.project_name]
-
                 result.append(d)
 
             return result
@@ -526,19 +518,7 @@ class Installer:
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
-
-                    newloc = os.path.join(
-                        self._dest, os.path.basename(dist.location))
-
-                    if os.path.isdir(dist.location):
-                        # we got a directory. It must have been
-                        # obtained locally.  Just copy it.
-                        shutil.copytree(dist.location, newloc)
-                    else:
-                        setuptools.archive_util.unpack_archive(
-                            dist.location, newloc)
-
-                    redo_pyc(newloc)
+                    newloc = _move_to_eggs_dir_and_compile(dist, self._dest)
 
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
@@ -551,7 +531,6 @@ class Installer:
                     dists = self._call_easy_install(
                         dist.location, ws, self._dest, dist)
                     for dist in dists:
-                        redo_pyc(dist.location)
                         if for_buildout_run:
                             # ws is the global working set and we're
                             # installing buildout, setuptools, extensions or
@@ -791,9 +770,6 @@ class Installer:
                 dists = self._call_easy_install(
                     base, pkg_resources.WorkingSet(),
                     self._dest, dist)
-
-                for dist in dists:
-                    redo_pyc(dist.location)
 
                 return [dist.location for dist in dists]
             finally:
@@ -1564,3 +1540,72 @@ class IncompatibleConstraintError(zc.buildout.UserError):
     """
 
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
+
+
+def _move_to_eggs_dir_and_compile(dist, dest):
+    """Move distribution to the eggs destination directory.
+
+    And compile the py files, if we have actually moved the dist.
+
+    Its new location is expected not to exist there yet, otherwise we
+    would not be calling this function: the egg is already there.  But
+    the new location might exist at this point if another buildout is
+    running in parallel.  So we copy to a temporary directory first.
+    See discussion at https://github.com/buildout/buildout/issues/307
+
+    We return the new location.
+    """
+    # First make sure the destination directory exists.  This could suffer from
+    # the same kind of race condition as the rest: if we check that it does not
+    # exist, and we then create it, it will fail when a second buildout is
+    # doing the same thing.
+    try:
+        os.makedirs(dest)
+    except OSError:
+        if not os.path.isdir(dest):
+            # Unknown reason.  Reraise original error.
+            raise
+    newloc = os.path.join(
+        dest, os.path.basename(dist.location))
+    tmp_dest = tempfile.mkdtemp(dir=dest)
+    try:
+        tmp_egg_dir = os.path.join(tmp_dest, os.path.basename(dist.location))
+        if os.path.isdir(dist.location):
+            # We got a directory. It must have been obtained locally.
+            # Just copy it.
+            shutil.copytree(dist.location, tmp_egg_dir)
+        else:
+            # It is a zipped egg.  Buildout 2 no longer installs zipped eggs,
+            # so we always want to unpack it.
+            setuptools.archive_util.unpack_archive(
+                dist.location, tmp_egg_dir)
+        # We have copied the egg. Now try to rename/move it.
+        try:
+            os.rename(tmp_egg_dir, newloc)
+        except OSError:
+            # Might be for various reasons.  If it is because newloc already
+            # exists, we can investigate.
+            if not os.path.exists(newloc):
+                # No, it is a different reason.  Give up.
+                raise
+            # Try to use it as environment and check if our project is in it.
+            if not pkg_resources.Environment([newloc])[dist.project_name]:
+                # Path exists, but is not our package.  We could
+                # try something, but it seems safer to bail out
+                # with the original error.
+                raise
+            # newloc looks okay to use.  Do print a warning.
+            logger.warn(
+                "Path %s unexpectedly already exists.\n"
+                "Maybe a buildout running in parallel has added it. "
+                "We will accept it.\n"
+                "If this contains a wrong package, please remove it yourself.",
+                newloc)
+        else:
+            # There were no problems during the rename.
+            # Do the compile step.
+            redo_pyc(newloc)
+    finally:
+        # Remember that temporary directories must be removed
+        shutil.rmtree(tmp_dest)
+    return newloc
