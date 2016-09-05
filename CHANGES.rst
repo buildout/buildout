@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.6.0 (unreleased)
+2.5.3 (2016-09-05)
 ==================
 
 - After a dist is fetched and put into its final place, compile its
