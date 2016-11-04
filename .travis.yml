@@ -3,6 +3,8 @@ env:
     - PYTHON_VER=2.7
     - PYTHON_VER=3.4
     - PYTHON_VER=3.5
+    - PYTHON_VER="pypy"
+    - PYTHON_VER="pypy3"
 
 sudo: false
 cache:
