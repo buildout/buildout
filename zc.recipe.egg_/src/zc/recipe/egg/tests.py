@@ -41,6 +41,7 @@ def test_suite():
         doctest.DocFileSuite(
             'README.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -59,6 +60,7 @@ def test_suite():
         doctest.DocFileSuite(
             'api.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -79,6 +81,7 @@ def test_suite():
         doctest.DocFileSuite(
             'custom.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,

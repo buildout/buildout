@@ -341,6 +341,7 @@ If we use the verbose switch, we can see where requirements are coming from:
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
+    ...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
@@ -464,6 +465,7 @@ We do not need to run in verbose mode for that to work:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
+    ...
     <BLANKLINE>
     # Required by:
     # sampley==1
@@ -847,7 +849,9 @@ On the other hand, if we have a regular egg, rather than a develop egg:
     -  zc.recipe.egg.egg-link
 
     >>> ls('eggs') # doctest: +ELLIPSIS
+    d...
     -  foox-0.0.0-py2.4.egg
+    ...
     d  setuptools.eggpyN.N.egg
     ...
 
@@ -1747,6 +1751,7 @@ def install_source_dist_with_bad_py():
     ...
 
     >>> ls('eggs') # doctest: +ELLIPSIS
+    d...
     d  badegg-1-py2.4.egg
     ...
 
@@ -2042,6 +2047,7 @@ def dealing_with_extremely_insane_dependencies():
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
+    ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
     Develop: '/sample-buildout/pack2'
@@ -2469,7 +2475,7 @@ Distribution setup scripts can import modules in the distribution directory:
     """
 
 def dont_pick_setuptools_if_version_is_specified_when_required_by_src_dist():
-    """
+    r"""
 When installing a source distribution, we got setuptools without
 honoring our version specification.
 
@@ -2491,14 +2497,15 @@ honoring our version specification.
     ... allow-picked-versions = false
     ...
     ... [versions]
-    ... setuptools = %s
+    ... wtf = %s
     ... foo = 1
     ...
     ... [foo]
     ... recipe = zc.recipe.egg
     ... eggs = foo
-    ... ''' % pkg_resources.working_set.find(
-    ...    pkg_resources.Requirement.parse('setuptools')).version)
+    ... ''' % ('\n'.join(
+    ...     '%s = %s' % (d.key, d.version)
+    ...     for d in zc.buildout.easy_install.buildout_and_setuptools_dists)))
 
     >>> print_(system(buildout), end='')
     Installing foo.
@@ -2867,7 +2874,7 @@ def want_new_zcrecipeegg():
     ... eggs = demo
     ... ''')
     >>> print_(system(join('bin', 'buildout')), end='') # doctest: +ELLIPSIS
-    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'.
+    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'...
     While:
       Installing.
       Getting section egg.
@@ -2932,6 +2939,7 @@ def bootstrap_honors_relative_paths():
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
+      ...
       join(base, 'eggs/setuptools-0.7-py2.7.egg'),
       ...
       ]
@@ -3273,9 +3281,7 @@ def getWorkingSetWithBuildoutEgg(test):
              os.path.join(os.path.dirname(dist.location), 'setup.py'),
              '-q', 'bdist_egg', '-d', eggs],
             env=dict(os.environ,
-                     PYTHONPATH=pkg_resources.working_set.find(
-                         pkg_resources.Requirement.parse('setuptools')
-                         ).location,
+                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
                      ),
             )
         os.chdir(here)
@@ -3297,10 +3303,9 @@ def updateSetup(test):
     test.globs['new_releases'] = new_releases
     ws = getWorkingSetWithBuildoutEgg(test)
     # now let's make the new releases
-    makeNewRelease('zc.buildout', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'zc.buildout'))
-    makeNewRelease('setuptools', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'setuptools'))
+    for dist in zc.buildout.easy_install.buildout_and_setuptools_dists:
+        makeNewRelease(dist.key, ws, new_releases)
+        os.mkdir(os.path.join(new_releases, dist.key))
 
 bootstrap_py = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(
@@ -3336,6 +3341,7 @@ def test_suite():
             'configparser.test'),
         manuel.testing.TestSuite(
             manuel.doctest.Manuel(
+                optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
@@ -3378,6 +3384,7 @@ def test_suite():
             'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -3434,6 +3441,7 @@ def test_suite():
             'update.txt',
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
                             '-py\d.\d.egg'),
@@ -3463,6 +3471,7 @@ def test_suite():
             'allowhosts.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_path,

@@ -61,9 +61,6 @@ def print_(*args, **kw):
 
 realpath = zc.buildout.easy_install.realpath
 
-pkg_resources_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')).location
-
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
 class MissingOption(zc.buildout.UserError, KeyError):
@@ -435,12 +432,10 @@ class Buildout(DictMixin):
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
-        for name in 'setuptools', 'zc.buildout':
-            r = pkg_resources.Requirement.parse(name)
-            dist = pkg_resources.working_set.find(r)
+        for dist in zc.buildout.easy_install.buildout_and_setuptools_dists:
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 dest = os.path.join(self['buildout']['develop-eggs-directory'],
-                                    name+'.egg-link')
+                                    dist.key + '.egg-link')
                 open(dest, 'w').write(dist.location)
                 entries.append(dist.location)
             else:
@@ -752,7 +747,8 @@ class Buildout(DictMixin):
         dest = self['buildout']['develop-eggs-directory']
         old_files = os.listdir(dest)
 
-        env = dict(os.environ, PYTHONPATH=pkg_resources_loc)
+        env = dict(os.environ,
+                   PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath)
         here = os.getcwd()
         try:
             try:
@@ -1090,7 +1086,6 @@ class Buildout(DictMixin):
         fd, tsetup = tempfile.mkstemp()
         try:
             os.write(fd, (zc.buildout.easy_install.runsetup_template % dict(
-                setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,

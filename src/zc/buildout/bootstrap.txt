@@ -55,8 +55,8 @@ By default it gets the latest version::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
       '/sample/eggs/zc.buildout-22.0.0...egg',
+      '/sample/eggs/setuptools-...egg'...
       ]...
 
 Now trying the ``--buildout-version`` option, that let you define a version
@@ -86,8 +86,8 @@ Let's make sure the generated ``buildout`` script uses it::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/setuptools-...egg'...
       ]...
 
 Now trying the ``--setuptools-version`` option, that lets you define a version
@@ -106,8 +106,8 @@ Let's make sure the generated ``buildout`` script uses it::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-8.0...egg',
       '/sample/eggs/zc.buildout-...egg',
+      '/sample/eggs/setuptools-8.0...egg'...
       ]...
 
 Now let's try specifying both ``zc.buildout`` and ``setuptools`` to versions
@@ -124,8 +124,8 @@ Let's make sure the generated ``buildout`` script uses it::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-8.0...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/setuptools-8.0...egg'...
       ]...
 
 For a completely offline install we want to avoid downloading ``ez_setup.py``,
@@ -156,8 +156,8 @@ specify the setuptools version, and to reuse the setuptools zipfile::
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/setuptools-14.3...egg',
       '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/setuptools-14.3...egg'...
       ]...
 
 You can ask ``bootstrap.py`` for its version. This is really the day the last

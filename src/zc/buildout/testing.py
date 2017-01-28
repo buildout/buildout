@@ -46,9 +46,6 @@ print_ = zc.buildout.buildout.print_
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
-setuptools_location = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')).location
-
 def cat(dir, *names):
     path = os.path.join(dir, *names)
     if (not os.path.exists(path)
@@ -149,7 +146,10 @@ def _runsetup(setup, *args):
         os.chdir(os.path.dirname(setup))
         zc.buildout.easy_install.call_subprocess(
             [sys.executable, setup] + args,
-            env=dict(os.environ, PYTHONPATH=setuptools_location))
+            env=dict(os.environ,
+                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
+                     ),
+            )
         if os.path.exists('build'):
             rmtree('build')
     finally:
