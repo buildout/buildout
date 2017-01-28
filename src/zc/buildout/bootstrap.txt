@@ -93,11 +93,11 @@ Let's make sure the generated ``buildout`` script uses it::
 Now trying the ``--setuptools-version`` option, that lets you define a version
 for ``setuptools``.
 
-Now let's try with ``8.0``, which happens to exist::
+Now let's try with ``33.1.1``, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 8.0')); print_('X')
+    ...     'bootstrap.py --setuptools-version 33.1.1')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -107,7 +107,7 @@ Let's make sure the generated ``buildout`` script uses it::
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-...egg',
-      '/sample/eggs/setuptools-8.0...egg'...
+      '/sample/eggs/setuptools-33.1.1...egg'...
       ]...
 
 Now let's try specifying both ``zc.buildout`` and ``setuptools`` to versions
@@ -115,7 +115,7 @@ which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 8.0 --buildout-version 2.0.0')); print_('X')
+    ...     'bootstrap.py --setuptools-version 33.1.1 --buildout-version 2.0.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -125,7 +125,7 @@ Let's make sure the generated ``buildout`` script uses it::
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',
-      '/sample/eggs/setuptools-8.0...egg'...
+      '/sample/eggs/setuptools-33.1.1...egg'...
       ]...
 
 For a completely offline install we want to avoid downloading ``ez_setup.py``,
