@@ -6,6 +6,8 @@ Change History
 
 - Updated to work with the latest setuptools.
 
+- Added (verified) Python 3.6 support.
+
 2.5.3 (2016-09-05)
 ==================
 

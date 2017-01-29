@@ -224,7 +224,7 @@ the bits if the path added to reflect the eggs:
     ... """).replace('>>> ', '').replace('... ', ''), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     demo-0.2-py2.4.egg
-    demoneeded-1.1-py2.4.egg
+    demoneeded-1.1-py2.4.egg...
 
 Egg updating
 ------------
