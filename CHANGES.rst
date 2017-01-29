@@ -1,6 +1,16 @@
 Change History
 **************
 
+- Added a buildout option, ``abi-tag-eggs`` that, when true, causes
+  the `ABI tag <https://www.python.org/dev/peps/pep-0425/#abi-tag>`_
+  for the buildout environment to be added to the eggs directory name.
+
+  This is useful when switching Python implementations (e.g. CPython
+  vs PyPI or debug builds vs regular builds), especially when
+  environment differences aren't reflected in egg names.  It also has
+  the side benefit of making eggs directories smaller, because eggs
+  for different Python versions are in different directories.
+
 2.6.0 (2017-01-29)
 ==================
 

@@ -2695,6 +2695,15 @@ All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
 
+``abi-tag-eggs``
+    Add an `ABI tag
+    <https://www.python.org/dev/peps/pep-0425/#abi-tag>`_ to the
+    directory name given by the ``eggs-directory`` option.  This is
+    useful when switching between python implementations when details
+    of the implementation aren't reflected in egg names.  It also has
+    the side benefit of making eggs directories smaller, because eggs
+    for different Python versions are in different directories.
+
 ``allow-hosts``
     On some environments the links visited by ``zc.buildout`` can be forbidden
     by paranoid firewalls. These URLs might be in the chain of links visited

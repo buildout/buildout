@@ -384,7 +384,12 @@ class Buildout(DictMixin):
 
         download_cache = options.get('download-cache')
         extends_cache = options.get('extends-cache')
+
+        if bool_option(options, 'abi-tag-eggs', 'false'):
+            from zc.buildout.pep425tags import get_abi_tag
+            options['eggs-directory'] += '-' + get_abi_tag()
         eggs_cache = options.get('eggs-directory')
+
         for cache in [download_cache, extends_cache, eggs_cache]:
             if cache:
                 cache = os.path.join(options['directory'], cache)
