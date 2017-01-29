@@ -93,11 +93,11 @@ Let's make sure the generated ``buildout`` script uses it::
 Now trying the ``--setuptools-version`` option, that lets you define a version
 for ``setuptools``.
 
-Now let's try with ``33.1.1``, which happens to exist::
+Now let's try with ``31.0.0``, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 33.1.1')); print_('X')
+    ...     'bootstrap.py --setuptools-version 31.0.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -107,7 +107,7 @@ Let's make sure the generated ``buildout`` script uses it::
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-...egg',
-      '/sample/eggs/setuptools-33.1.1...egg'...
+      '/sample/eggs/setuptools-31.0.0...egg'...
       ]...
 
 Now let's try specifying both ``zc.buildout`` and ``setuptools`` to versions
@@ -115,7 +115,7 @@ which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 33.1.1 --buildout-version 2.0.0')); print_('X')
+    ...     'bootstrap.py --setuptools-version 31.0.0 --buildout-version 2.0.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -125,7 +125,7 @@ Let's make sure the generated ``buildout`` script uses it::
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',
-      '/sample/eggs/setuptools-33.1.1...egg'...
+      '/sample/eggs/setuptools-31.0.0...egg'...
       ]...
 
 For a completely offline install we want to avoid downloading ``ez_setup.py``,
@@ -140,24 +140,24 @@ specify the setuptools version, and to reuse the setuptools zipfile::
     ... '''print("Using local ez_setup.py")
     ... ''' + ez_setup.decode('ascii'))
 
-    >>> os.path.exists('setuptools-14.3.zip')
+    >>> os.path.exists('setuptools-32.1.0.zip')
     False
 
     >>> print_('X'); print_(system(
-    ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 14.3 --buildout-version 2.0.0 '+
-    ...     '--setuptools-to-dir .')); print_('X')
+    ...   zc.buildout.easy_install._safe_arg(sys.executable)+' '+
+    ...   'bootstrap.py --setuptools-version 32.1.0 --buildout-version 2.0.0 '+
+    ...   '--setuptools-to-dir .')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Using local ez_setup.py...Generated script '/sample/bin/buildout'...X
 
-    >>> os.path.exists('setuptools-14.3.zip')
+    >>> os.path.exists('setuptools-32.1.0.zip')
     True
 
     >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',
-      '/sample/eggs/setuptools-14.3...egg'...
+      '/sample/eggs/setuptools-32.1.0...egg'...
       ]...
 
 You can ask ``bootstrap.py`` for its version. This is really the day the last
