@@ -52,8 +52,12 @@ The ``bin`` directory contains scripts::
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
+The ``eggs`` directory has installed distributions:
+
     >>> ls(sample_buildout, 'eggs')
+    d...
     -  setuptools-0.7-py3.3.egg
+    ...
     -  zc.buildout.egg-link
 
 The ``develop-eggs`` and ``parts`` directories are initially empty::
@@ -1138,6 +1142,17 @@ relative to the ``myfiles`` section.
     though ``<=`` may look like a new operator, it's still just the familiar
     ``key = value`` syntax.
 
+.. cleanup buildout
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts =
+    ... """)
+
+    >>> _ = system(buildout)
+
 Extending sections (macros) - Adding and removing options
 ---------------------------------------------------------
 
@@ -1202,7 +1217,6 @@ Set up a buildout configuration for this extension.
     >>> os.chdir(sample_buildout)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/demo'
-    ....
 
 Verify option values.
 
@@ -2645,7 +2659,7 @@ database is shown::
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
-    <BLANKLINE>
+    ...
     Configuration data:
     [buildout]
     allow-hosts = *
@@ -2901,7 +2915,9 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
+    d...
     -  setuptools-0.7-py2.3.egg
+    ...
     -  zc.buildout-1.0-py2.3.egg
 
 (We list both the ``eggs`` and ``develop-eggs`` directories because the

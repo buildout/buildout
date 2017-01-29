@@ -4,8 +4,7 @@ Change History
 2.6.0 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Updated to work with the latest setuptools.
 
 2.5.3 (2016-09-05)
 ==================

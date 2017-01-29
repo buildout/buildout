@@ -74,16 +74,11 @@ if has_distribute and not has_setuptools:
              " you have the latest version downloaded from"
              " https://bootstrap.pypa.io/bootstrap-buildout.py")
 
-setuptools_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')
-    ).location
-
-# Include buildout and setuptools eggs in paths
-buildout_and_setuptools_path = [
-    setuptools_loc,
-    pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('zc.buildout')).location,
-    ]
+# Include buildout and setuptools eggs in paths.  We get this
+# initially from the entire working set.  Later, we'll use the install
+# function to narrow to just the buildout and setuptools paths.
+buildout_and_setuptools_path = [d.location for d in pkg_resources.working_set]
+setuptools_path = buildout_and_setuptools_path
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
@@ -208,7 +203,7 @@ class Installer:
 
         if use_dependency_links is not None:
             self._use_dependency_links = use_dependency_links
-        self._links = links = list(_fix_file_links(links))
+        self._links = links = list(self._fix_file_links(links))
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
 
@@ -269,7 +264,7 @@ class Installer:
 
         if self._prefer_final:
             fdists = [dist for dist in dists
-                      if _final_version(dist.parsed_version)
+                      if self._final_version(dist.parsed_version)
                       ]
             if fdists:
                 # There are final dists, so only use those
@@ -300,8 +295,8 @@ class Installer:
             return best_we_have, None
 
         if self._prefer_final:
-            if _final_version(best_available.parsed_version):
-                if _final_version(best_we_have.parsed_version):
+            if self._final_version(best_available.parsed_version):
+                if self._final_version(best_we_have.parsed_version):
                     if (best_we_have.parsed_version
                         <
                         best_available.parsed_version
@@ -310,7 +305,7 @@ class Installer:
                 else:
                     return None, best_available
             else:
-                if (not _final_version(best_we_have.parsed_version)
+                if (not self._final_version(best_we_have.parsed_version)
                     and
                     (best_we_have.parsed_version
                      <
@@ -339,10 +334,10 @@ class Installer:
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = setuptools_loc
+            path = setuptools_path
 
             args = [sys.executable, '-c',
-                    ('import sys; sys.path[0:0] = [%r]; ' % path) +
+                    ('import sys; sys.path[0:0] = %r; ' % path) +
                     _easy_install_cmd, '-mZUNxd', tmp]
             level = logger.getEffectiveLevel()
             if level > 0:
@@ -428,7 +423,7 @@ class Installer:
         # result if it is non empty.
         if self._prefer_final:
             fdists = [dist for dist in dists
-                      if _final_version(dist.parsed_version)
+                      if self._final_version(dist.parsed_version)
                       ]
             if fdists:
                 # There are final dists, so only use those
@@ -688,7 +683,7 @@ class Installer:
                     logger.debug('Getting required %r', str(req))
                 else:
                     logger.debug('Adding required %r', str(req))
-                _log_requirement(ws, req)
+                self._log_requirement(ws, req)
                 for dist in self._get_dist(req, ws,
                                            for_buildout_run=for_buildout_run):
                     ws.add(dist)
@@ -703,7 +698,8 @@ class Installer:
             extra_requirements = dist.requires(req.extras)[::-1]
             for extra_requirement in extra_requirements:
                 self._requirements_and_constraints.append(
-                    "Requirement of %s: %s" % (current_requirement, extra_requirement))
+                    "Requirement of %s: %s" % (
+                        current_requirement, extra_requirement))
             requirements.extend(extra_requirements)
 
             processed[req] = True
@@ -778,6 +774,38 @@ class Installer:
         finally:
             if tmp != self._download_cache:
                 shutil.rmtree(tmp)
+
+    def _fix_file_links(self, links):
+        for link in links:
+            if link.startswith('file://') and link[-1] != '/':
+                if os.path.isdir(link[7:]):
+                    # work around excessive restriction in setuptools:
+                    link += '/'
+            yield link
+
+    def _log_requirement(self, ws, req):
+        if (not logger.isEnabledFor(logging.DEBUG) and
+            not Installer._store_required_by):
+            # Sorting the working set and iterating over it's requirements
+            # is expensive, so short circuit the work if it won't even be
+            # logged.  When profiling a simple buildout with 10 parts with
+            # identical and large working sets, this resulted in a
+            # decrease of run time from 93.411 to 15.068 seconds, about a
+            # 6 fold improvement.
+            return
+
+        ws = list(ws)
+        ws.sort()
+        for dist in ws:
+            if req in dist.requires():
+                logger.debug("  required by %s." % dist)
+                req_ = str(req)
+                if req_ not in Installer._required_by:
+                    Installer._required_by[req_] = set()
+                Installer._required_by[req_].add(str(dist.as_requirement()))
+
+    def _final_version(self, parsed_version):
+        return not parsed_version.is_prerelease
 
 
 def normalize_versions(versions):
@@ -858,6 +886,12 @@ def install(specs, dest,
                           allow_hosts=allow_hosts)
     return installer.install(specs, working_set)
 
+buildout_and_setuptools_dists = list(install(['zc.buildout'], None))
+buildout_and_setuptools_path = [d.location
+                                for d in buildout_and_setuptools_dists]
+setuptools_path = [d.location
+                   for d in install(['setuptools'], None)]
+setuptools_pythonpath = os.pathsep.join(setuptools_path)
 
 def build(spec, dest, build_ext,
           links=(), index=None,
@@ -973,7 +1007,6 @@ def develop(setup, dest,
         undo.append(lambda: os.close(fd))
 
         os.write(fd, (runsetup_template % dict(
-            setuptools=setuptools_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
@@ -1014,6 +1047,7 @@ def working_set(specs, executable, path=None,
     assert allowed_eggs_from_site_packages is None
 
     return install(specs, None, path=path)
+
 
 
 def scripts(reqs, working_set, executable, dest=None,
@@ -1396,19 +1430,19 @@ if _interactive:
 
 runsetup_template = """
 import sys
-sys.path.insert(0, %(setupdir)r)
-sys.path.insert(0, %(setuptools)r)
+sys.path.insert(0, %%(setupdir)r)
+sys.path[0:0] = %r
 
 import os, setuptools
 
-__file__ = %(__file__)r
+__file__ = %%(__file__)r
 
-os.chdir(%(setupdir)r)
-sys.argv[0] = %(setup)r
+os.chdir(%%(setupdir)r)
+sys.argv[0] = %%(setup)r
 
-with open(%(setup)r, 'U') as f:
-    exec(compile(f.read(), %(setup)r, 'exec'))
-"""
+with open(%%(setup)r, 'U') as f:
+    exec(compile(f.read(), %%(setup)r, 'exec'))
+""" % setuptools_path
 
 
 class VersionConflict(zc.buildout.UserError):
@@ -1442,38 +1476,6 @@ class MissingDistribution(zc.buildout.UserError):
     def __str__(self):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
-
-def _log_requirement(ws, req):
-    if (not logger.isEnabledFor(logging.DEBUG) and
-        not Installer._store_required_by):
-        # Sorting the working set and iterating over it's requirements
-        # is expensive, so short circuit the work if it won't even be
-        # logged.  When profiling a simple buildout with 10 parts with
-        # identical and large working sets, this resulted in a
-        # decrease of run time from 93.411 to 15.068 seconds, about a
-        # 6 fold improvement.
-        return
-
-    ws = list(ws)
-    ws.sort()
-    for dist in ws:
-        if req in dist.requires():
-            logger.debug("  required by %s." % dist)
-            req_ = str(req)
-            if req_ not in Installer._required_by:
-                Installer._required_by[req_] = set()
-            Installer._required_by[req_].add(str(dist.as_requirement()))
-
-def _fix_file_links(links):
-    for link in links:
-        if link.startswith('file://') and link[-1] != '/':
-            if os.path.isdir(link[7:]):
-                # work around excessive restriction in setuptools:
-                link += '/'
-        yield link
-
-def _final_version(parsed_version):
-    return not parsed_version.is_prerelease
 
 def redo_pyc(egg):
     if not os.path.isdir(egg):
