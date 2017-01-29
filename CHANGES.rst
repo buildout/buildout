@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.6.0 (unreleased)
+2.6.0 (2017-01-29)
 ==================
 
 - Updated to work with the latest setuptools.
