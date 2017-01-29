@@ -46,7 +46,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ===============================================================================
 
 The module, zc.buildout.pep425tags, is copied from the wheel package,
-which used the MIT license:
+which uses the MIT license:
 
 "wheel" copyright (c) 2012-2014 Daniel Holth <dholth@fastmail.fm> and
 contributors.
