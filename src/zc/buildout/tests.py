@@ -3033,6 +3033,35 @@ def parse_with_section_expr():
 
     """
 
+def test_abi_tag_eggs():
+    r"""
+    >>> mkdir('..', 'bo')
+    >>> cd('..', 'bo')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = egg
+    ... abi-tag-eggs = true
+    ... [egg]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''')
+    >>> _ = system(join('..', 'sample-buildout', 'bin', 'buildout')
+    ...            + ' bootstrap')
+    >>> _ = system(join('bin', 'buildout'))
+    >>> ls('.')
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    >>> from zc.buildout.pep425tags import get_abi_tag
+    >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
+    d...
+    d  setuptools-34.0.3-py3.5.egg
+    ...
+    """
+
 if sys.platform == 'win32':
     del buildout_honors_umask # umask on dohs is academic
 
