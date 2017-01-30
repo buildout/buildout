@@ -1,8 +1,8 @@
 Change History
 **************
 
-2.7.0dev0 (unreleased)
-======================
+2.7.0 (2017-01-30)
+==================
 
 - Added a buildout option, ``abi-tag-eggs`` that, when true, causes
   the `ABI tag <https://www.python.org/dev/peps/pep-0425/#abi-tag>`_
