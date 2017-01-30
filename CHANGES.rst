@@ -1,6 +1,9 @@
 Change History
 **************
 
+2.7.0dev0 (unreleased)
+======================
+
 - Added a buildout option, ``abi-tag-eggs`` that, when true, causes
   the `ABI tag <https://www.python.org/dev/peps/pep-0425/#abi-tag>`_
   for the buildout environment to be added to the eggs directory name.
