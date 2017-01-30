@@ -3035,6 +3035,8 @@ def parse_with_section_expr():
 
 def test_abi_tag_eggs():
     r"""
+    >>> mkdir('..', 'bo')
+    >>> cd('..', 'bo')
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -3044,16 +3046,17 @@ def test_abi_tag_eggs():
     ... recipe = zc.recipe.egg
     ... eggs = demo
     ... ''')
-    >>> _ = system(join('bin', 'buildout') + ' bootstrap')
-    >>> remove('eggs')
+    >>> _ = system(join('..', 'sample-buildout', 'bin', 'buildout')
+    ...            + ' bootstrap')
     >>> _ = system(join('bin', 'buildout'))
-    >>> dirs = os.listdir('.')
-    >>> 'eggs' in dirs
-    False
+    >>> ls('.')
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
     >>> from zc.buildout.pep425tags import get_abi_tag
-    >>> 'eggs-' + get_abi_tag() in dirs
-    True
-    >>> ls('eggs-' + get_abi_tag()) # doctest: +ELLIPSIS
+    >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
     d...
     d  setuptools-34.0.3-py3.5.egg
     ...

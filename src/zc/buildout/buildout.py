@@ -387,7 +387,9 @@ class Buildout(DictMixin):
 
         if bool_option(options, 'abi-tag-eggs', 'false'):
             from zc.buildout.pep425tags import get_abi_tag
-            options['eggs-directory'] += '-' + get_abi_tag()
+            options['eggs-directory'] = os.path.join(
+                options['eggs-directory'], get_abi_tag())
+
         eggs_cache = options.get('eggs-directory')
 
         for cache in [download_cache, extends_cache, eggs_cache]:
@@ -734,7 +736,7 @@ class Buildout(DictMixin):
         __doing__ = 'Setting up buildout directories'
 
         # Create buildout directories
-        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
+        for name in ('bin', 'parts', 'develop-eggs'):
             d = self['buildout'][name+'-directory']
             if not os.path.exists(d):
                 self._logger.info('Creating directory %r.', d)
