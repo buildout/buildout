@@ -3082,17 +3082,23 @@ def test_buildout_doesnt_keep_adding_itself_to_versions():
     >>> with open('versions.cfg') as f:
     ...     versions = f.read()
     >>> _ = system(join('bin', 'buildout'))
-    >>> _ = system(join('bin', 'buildout'))
-    >>> _ = system(join('bin', 'buildout'))
-    >>> with open('versions.cfg') as f:
-    ...     versions == f.read()
-    True
+
+    On the first run, some pins were added:
+
     >>> cat('versions.cfg') # doctest: +ELLIPSIS
     [versions]
     <BLANKLINE>
     # Added by buildout...
     setuptools = 34.0.3
     ...
+    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout'))
+
+    Subsequent runs didn't add additional text:
+
+    >>> with open('versions.cfg') as f:
+    ...     versions == f.read()
+    True
     """
 
 if sys.platform == 'win32':
