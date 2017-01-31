@@ -2408,12 +2408,12 @@ def wont_downgrade_due_to_prefer_final():
     ... parts =
     ... ''')
 
-    >>> [v] = [l.split('= >=', 1)[1].strip()
+    >>> [v] = [str(l.split('= >=', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
     ...        if l.startswith('zc.buildout = >=')]
-    >>> v == pkg_resources.working_set.find(
+    >>> v == str(pkg_resources.working_set.find(
     ...         pkg_resources.Requirement.parse('zc.buildout')
-    ...         ).version
+    ...         ).version)
     True
 
     >>> write('buildout.cfg',
@@ -3059,6 +3059,39 @@ def test_abi_tag_eggs():
     >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
     d...
     d  setuptools-34.0.3-py3.5.egg
+    ...
+    """
+
+def test_buildout_doesnt_keep_adding_itself_to_versions():
+    r"""
+    We were constantly writing to versions.cfg for buildout and setuptools
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... extends = versions.cfg
+    ... show-picked-versions = true
+    ... update-versions-file = versions.cfg
+    ... extends = versions.cfg
+    ... ''')
+    >>> write('versions.cfg',
+    ... '''[versions]
+    ... ''')
+    >>> _ = system(join('bin', 'buildout'))
+    >>> with open('versions.cfg') as f:
+    ...     versions = f.read()
+    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout'))
+    >>> with open('versions.cfg') as f:
+    ...     versions == f.read()
+    True
+    >>> cat('versions.cfg') # doctest: +ELLIPSIS
+    [versions]
+    <BLANKLINE>
+    # Added by buildout...
+    setuptools = 34.0.3
     ...
     """
 
