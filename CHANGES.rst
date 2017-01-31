@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.7.1 (unreleased)
+2.7.1 (2017-01-31)
 ==================
 
 - Fixed a bug introduced in 2.6.0:
