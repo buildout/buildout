@@ -420,10 +420,8 @@ The versions file now contains the extra pin:
 
 And re-running buildout doesn't report any picked versions anymore:
 
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    Updating foo.
-    recipe v2
-    ...
+    >>> 'picked' in system(buildout)
+    False
 
 If you've enabled ``update-versions-file`` but not ``show-picked-versions``,
 buildout will append the versions to your versions file anyway (without

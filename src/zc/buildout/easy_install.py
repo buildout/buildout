@@ -188,7 +188,8 @@ class Installer:
                  newest=True,
                  versions=None,
                  use_dependency_links=None,
-                 allow_hosts=('*',)
+                 allow_hosts=('*',),
+                 check_picked=True,
                  ):
         assert executable == sys.executable, (executable, sys.executable)
         self._dest = dest
@@ -218,6 +219,7 @@ class Installer:
         self._env = pkg_resources.Environment(path)
         self._index = _get_index(index, links, self._allow_hosts)
         self._requirements_and_constraints = []
+        self._check_picked = check_picked
 
         if versions is not None:
             self._versions = normalize_versions(versions)
@@ -558,23 +560,25 @@ class Installer:
                                                      self._links,
                                                      self._allow_hosts)
 
-        for dist in dists:
+        if self._check_picked:
             # Check whether we picked a version and, if we did, report it:
-            if not (
-                dist.precedence == pkg_resources.DEVELOP_DIST
-                or
-                (len(requirement.specs) == 1
-                 and
-                 requirement.specs[0][0] == '==')
-                ):
-                logger.debug('Picked: %s = %s',
-                             dist.project_name, dist.version)
-                self._picked_versions[dist.project_name] = dist.version
+            for dist in dists:
+                if not (
+                    dist.precedence == pkg_resources.DEVELOP_DIST
+                    or
+                    (len(requirement.specs) == 1
+                     and
+                     requirement.specs[0][0] == '==')
+                    ):
+                    logger.debug('Picked: %s = %s',
+                                 dist.project_name, dist.version)
+                    self._picked_versions[dist.project_name] = dist.version
 
-                if not self._allow_picked_versions:
-                    raise zc.buildout.UserError(
-                        'Picked: %s = %s' % (dist.project_name, dist.version)
-                        )
+                    if not self._allow_picked_versions:
+                        raise zc.buildout.UserError(
+                            'Picked: %s = %s' % (dist.project_name,
+                                                 dist.version)
+                            )
 
         return dists
 
@@ -875,6 +879,7 @@ def install(specs, dest,
             use_dependency_links=None, allow_hosts=('*',),
             include_site_packages=None,
             allowed_eggs_from_site_packages=None,
+            check_picked=True,
             ):
     assert executable == sys.executable, (executable, sys.executable)
     assert include_site_packages is None
@@ -883,14 +888,16 @@ def install(specs, dest,
     installer = Installer(dest, links, index, sys.executable,
                           always_unzip, path,
                           newest, versions, use_dependency_links,
-                          allow_hosts=allow_hosts)
+                          allow_hosts=allow_hosts,
+                          check_picked=check_picked)
     return installer.install(specs, working_set)
 
-buildout_and_setuptools_dists = list(install(['zc.buildout'], None))
+buildout_and_setuptools_dists = list(install(['zc.buildout'], None,
+                                             check_picked=False))
 buildout_and_setuptools_path = [d.location
                                 for d in buildout_and_setuptools_dists]
 setuptools_path = [d.location
-                   for d in install(['setuptools'], None)]
+                   for d in install(['setuptools'], None, check_picked=False)]
 setuptools_pythonpath = os.pathsep.join(setuptools_path)
 
 def build(spec, dest, build_ext,

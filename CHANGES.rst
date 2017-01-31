@@ -4,7 +4,11 @@ Change History
 2.7.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed a bug introduced in 2.6.0:
+  zc.buildout and its dependeoncies were reported as picked even when
+  their versions were fixed in a ``versions`` section.  Worse, when the
+  ``update-versions-file`` option was used, the ``versions`` section was
+  updated needlessly on every run.
 
 
 2.7.0 (2017-01-30)

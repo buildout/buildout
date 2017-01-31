@@ -3062,6 +3062,45 @@ def test_abi_tag_eggs():
     ...
     """
 
+def test_buildout_doesnt_keep_adding_itself_to_versions():
+    r"""
+    We were constantly writing to versions.cfg for buildout and setuptools
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... extends = versions.cfg
+    ... show-picked-versions = true
+    ... update-versions-file = versions.cfg
+    ... extends = versions.cfg
+    ... ''')
+    >>> write('versions.cfg',
+    ... '''[versions]
+    ... ''')
+    >>> _ = system(join('bin', 'buildout'))
+    >>> with open('versions.cfg') as f:
+    ...     versions = f.read()
+    >>> _ = system(join('bin', 'buildout'))
+
+    On the first run, some pins were added:
+
+    >>> cat('versions.cfg') # doctest: +ELLIPSIS
+    [versions]
+    <BLANKLINE>
+    # Added by buildout...
+    setuptools = 34.0.3
+    ...
+    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout'))
+
+    Subsequent runs didn't add additional text:
+
+    >>> with open('versions.cfg') as f:
+    ...     versions == f.read()
+    True
+    """
+
 if sys.platform == 'win32':
     del buildout_honors_umask # umask on dohs is academic
 
