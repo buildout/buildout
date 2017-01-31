@@ -2408,12 +2408,12 @@ def wont_downgrade_due_to_prefer_final():
     ... parts =
     ... ''')
 
-    >>> [v] = [str(l.split('= >=', 1)[1].strip())
+    >>> [v] = [l.split('= >=', 1)[1].strip()
     ...        for l in system(buildout+' -vv').split('\n')
     ...        if l.startswith('zc.buildout = >=')]
-    >>> v == str(pkg_resources.working_set.find(
+    >>> v == pkg_resources.working_set.find(
     ...         pkg_resources.Requirement.parse('zc.buildout')
-    ...         ).version)
+    ...         ).version
     True
 
     >>> write('buildout.cfg',
