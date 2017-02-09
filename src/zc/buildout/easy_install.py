@@ -1107,6 +1107,11 @@ def scripts(reqs, working_set, executable, dest=None,
                     if dist.metadata_isdir('scripts/' + name):
                         # Probably Python 3 __pycache__ directory.
                         continue
+                    if name.lower().endswith('.exe'):
+                        # windows: scripts are implemented with 2 files
+                        #          the .exe gets also into metadata_listdir
+                        #          get_metadata chokes on the binary
+                        continue
                     contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
             elif dist.key in _develop_distutils_scripts:
