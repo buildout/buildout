@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
    index
+   topics/index
+   reference
 
 
 Indices and tables
