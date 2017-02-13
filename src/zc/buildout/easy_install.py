@@ -83,6 +83,9 @@ setuptools_path = buildout_and_setuptools_path
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
 
+def wheel_to_egg(dist, dest):
+    raise zc.buildout.UserError("Wheels are not supported")
+
 class _Monkey(object):
     def __init__(self, module, **kw):
         mdict = self._mdict = module.__dict__
@@ -512,6 +515,9 @@ class Installer:
                 if dist is None:
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
+
+                if dist.location.endswith('.whl'):
+                    dist = wheel_to_egg(dist, tmp)
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
