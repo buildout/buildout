@@ -3104,6 +3104,53 @@ def test_buildout_doesnt_keep_adding_itself_to_versions():
 if sys.platform == 'win32':
     del buildout_honors_umask # umask on dohs is academic
 
+class UnitTests(unittest.TestCase):
+
+    @property
+    def globs(self):
+        return self.__dict__
+
+    def setUp(self):
+        easy_install_SetUp(self)
+        import setuptools.package_index
+        setuptools.package_index.EXTENSIONS.append('.whl')
+        import zc.buildout.easy_install
+        self.orig_wheel_to_egg = zc.buildout.easy_install.wheel_to_egg
+
+    def tearDown(self):
+        import zc.buildout.easy_install
+        zc.buildout.testing.buildoutTearDown(self)
+        import setuptools.package_index
+        setuptools.package_index.EXTENSIONS.remove('.whl')
+        zc.buildout.easy_install.wheel_to_egg = self.orig_wheel_to_egg
+
+    def test_wheel_to_egg(self):
+        [egg_name] = [n for n in os.listdir(self.sample_eggs)
+                  if n.startswith('demo-0.3-')]
+        path = os.path.join(self.sample_eggs, egg_name)
+        os.rename(path, os.path.join(self.sample_eggs, 'demo-0.3.whl'))
+
+        import zc.buildout.easy_install
+        installer = zc.buildout.easy_install.Installer(
+            os.path.join(self.sample_buildout, 'eggs'),
+            index = self.sample_eggs)
+
+        # Can't install because the original hook is in place:
+        with self.assertRaises(zc.buildout.UserError):
+            installer.install(['demo'])
+
+        def wheel_to_egg(dist, dest):
+            newloc = os.path.join(dest, egg_name)
+            shutil.copy(dist.location, newloc)
+            return pkg_resources.Distribution.from_location(newloc,
+                                                            'demo-0.3.whl')
+        zc.buildout.easy_install.wheel_to_egg = wheel_to_egg
+        egg_dir = os.path.join(self.sample_buildout, 'eggs')
+        self.assertFalse(egg_name in os.listdir(egg_dir))
+        installer.install(['demo'])
+        self.assertTrue(egg_name in os.listdir(egg_dir))
+
+
 ######################################################################
 
 def create_sample_eggs(test, executable=sys.executable):
@@ -3659,8 +3706,8 @@ def test_suite():
                 ),
                ])
             ),
-        doctest.DocFileSuite(
-            'testing_bugfix.txt'),
+        doctest.DocFileSuite('testing_bugfix.txt'),
+        unittest.makeSuite(UnitTests),
     ]
 
     # adding bootstrap.txt doctest to the suite

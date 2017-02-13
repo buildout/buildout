@@ -1,11 +1,11 @@
 Change History
 **************
 
-2.7.2 (unreleased)
+2.8.0 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Added a hook to enable a soon-to-be-released buildout extension to
+  provide wheel support.
 
 2.7.1 (2017-01-31)
 ==================
