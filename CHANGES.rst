@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.8.0 (unreleased)
+2.8.0 (2017-02-13)
 ==================
 
 - Added a hook to enable a soon-to-be-released buildout extension to
