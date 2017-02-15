@@ -232,8 +232,9 @@ If we run Buildout::
       </logfile>
     </eventlog>
 
-  The **details aren't important**, other than the fact that the script
-  reflects part options and the actual buildout location.
+  The **details aren't important**, other than the fact that the
+  configuration file reflects part options and the actual buildout
+  location.
 
 Version control
 ===============
