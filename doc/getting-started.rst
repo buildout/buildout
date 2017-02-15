@@ -21,7 +21,7 @@ Getting started with Buildout
    - A ``buildout`` section in a Buildout configuration (in a
      particular buildout).
 
-     We'll use a lowercase fix-width font for these.
+     We'll use a lowercase fixed-width font for these.
 
 First steps
 ===========
