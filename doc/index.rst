@@ -49,7 +49,7 @@ Some examples:
   It should be possible, when deploying production software, for the
   software to configure the monitoring system to monitor the software.
 
-- Software should provide facilities to automate it's configuration.
+- Software should provide facilities to automate its configuration.
   It shouldn't be necessary for people to create separate
   configuration whether it be in development or deployment (or stages
   in between).
