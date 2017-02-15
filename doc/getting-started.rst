@@ -62,7 +62,7 @@ brackets. Section options are names, followed by equal signs, followed
 by values.  Values may be continued over multiple lines as long as the
 continuation lines start with whitespace.
 
-Buildout is all about building stuff and the stuff to be built are
+Buildout is all about building things and the things to be built are
 specified using *parts*.  The parts to be built are listed in the
 ``parts`` option.  For each part, there must be a section with the same
 name that names the software to build the part and optionally provides
