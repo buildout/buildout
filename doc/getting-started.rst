@@ -299,7 +299,7 @@ Modern Linux container technology (e.g. `Docker
 environment.  If you develop entirely with respect to a particular
 container image, you can have repeatability with respect to that
 image, which is usually good enough because the environment, defined
-by the image is itself repeatable and unshared with other
+by the image, is itself repeatable and unshared with other
 applications.
 
 Python requirement versions
