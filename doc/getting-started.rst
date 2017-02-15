@@ -286,13 +286,7 @@ application affect other applications, including buildouts. This can
 lead to unexpected errors.   This is why it's recommended to use a
 `virtual environment <https://virtualenv.pypa.io/en/stable/>`_ or a
 "clean python" built from source with no third-party packages
-installed.
-
-(It's a little hypocritical to recommend installing Buildout into an
-otherwise clean environment, which is why Buildout provides a
-:doc:`bootstrapping mechanism <topics/bootstrapping>` which allows
-setting up a buildout without having to contaminate a virtual environment or
-clean Python install.)
+installed [#hypocritical]_.
 
 To limit dependence on the operating system, people sometimes install
 libraries or even database servers as Buildout parts.
@@ -579,6 +573,12 @@ details, as well as let you know about features not touched on here.
 .. [#if-same-environment] This assumes the same environment and that
    dependencies haven't changed.  We'll explain further in the
    section on repeatability.
+
+.. [#hypocritical] It's a little hypocritical to recommend installing
+   Buildout into an otherwise clean environment, which is why Buildout
+   provides a :doc:`bootstrapping mechanism <topics/bootstrapping>`
+   which allows setting up a buildout without having to contaminate a
+   virtual environment or clean Python install.)
 
 .. [#develop-eggs] pip calls these `"editable" installs
    <https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`_.
