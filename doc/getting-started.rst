@@ -118,8 +118,35 @@ Then a number of things will happen:
 - ``ZEO`` and its dependencies will be downloaded and installed. (ZEO
   is a small Python database server.)
 
-- A number of scripts will be installed in the ``bin`` directory.  One
-  in particular, ``runzeo`` is used to run a ZEO server.
+  After this, the eggs directory will look something like::
+
+    $ ls -l eggs
+    total 0
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZConfig-3.1.0-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZEO-5.0.4-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZODB-5.2.0-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 persistent-4.2.2-py3.5-macosx-10.10-x86_64.egg
+    drwxr-xr-x  5 jim  staff  170 Feb 15 13:06 six-1.10.0-py3.5.egg
+    drwx------  2 jim  staff   68 Feb 15 13:06 tmpd_xxokys
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 transaction-2.1.0-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.buildout-2.8.0-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.lockfile-1.2.1-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.recipe.egg-2.0.3-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zdaemon-4.2.0-py3.5.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zodbpickle-0.6.0-py3.5-macosx-10.10-x86_64.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zope.interface-4.3.3-py3.5-macosx-10.10-x86_64.egg
+
+- A number of scripts will be installed in the ``bin`` directory::
+
+    bash-3.2$ ls -l bin
+    total 40
+    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 runzeo
+    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeo-nagios
+    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeoctl
+    -rwxr-xr-x  1 jim  staff  879 Feb 15 13:07 zeopack
+    -rwxr-xr-x  1 jim  staff  867 Feb 15 13:07 zeopasswd
+
+  One in particular, ``runzeo`` is used to run a ZEO server.
 
 Generating configuration and custom scripts
 ===========================================
