@@ -65,7 +65,7 @@ continuation lines start with whitespace.
 Buildout is all about building things and the things to be built are
 specified using *parts*.  The parts to be built are listed in the
 ``parts`` option.  For each part, there must be a section with the same
-name that names the software to build the part and optionally provides
+name that specifies the software to build the part and provides
 parameters to control how the part is built.
 
 Installing software
