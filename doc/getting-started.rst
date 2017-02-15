@@ -288,7 +288,7 @@ installed.
 (It's a little hypocritical to recommend installing Buildout into an
 otherwise clean environment, which is why Buildout provides a
 :doc:`bootstrapping mechanism <topics/bootstrapping>` which allows
-setting up a buildout without having to sully a virtual environment or
+setting up a buildout without having to contaminate a virtual environment or
 clean Python install.)
 
 To limit dependence on the operating system, people sometimes install
