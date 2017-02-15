@@ -7,7 +7,7 @@ Buildout Topics
 
 .. todo:
 
-   variables-extensing-and-substitutions
+   variables-extending-and-substitutions
    writing-recipes
    bootstrapping
    buildout-and-packaging

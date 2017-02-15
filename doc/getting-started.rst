@@ -150,7 +150,7 @@ We used a ``program`` option to define what program should be run.
 There are a couple of interesting things to note about this option:
 
 - We used :doc:`variable substitutions
-  <topics/variables-extensing-and-substitutions>`:
+  <topics/variables-extending-and-substitutions>`:
 
   ``${buildout:directory}``
       Expands to the full path of the buildout directory.
