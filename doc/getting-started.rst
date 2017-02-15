@@ -188,6 +188,9 @@ There are a couple of interesting things to note about this option:
   Variable substitution provides a way to access Buildout settings and
   share information between parts and avoid repetition.
 
+  See the :doc:`reference <reference>` to see what buildout settings
+  are available.
+
 - We spread the program over multiple lines.  A configuration value
   can be spread over multiple lines as long as the continuation lines
   begin with whitespace.
