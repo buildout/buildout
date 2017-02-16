@@ -36,10 +36,30 @@ a minimal configuration::
   [buildout]
   parts =
 
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
+
 A minimal (and useless) Buildout configuration has a ``buildout`` section
 with a parts option.  If we run Buildout::
 
   buildout
+
+.. -> src
+
+   >>> run_buildout(src)
+
+   >>> import os
+   >>> ls = lambda d='.': os.listdir(d)
+   >>> eqs(ls(), 'buildout.cfg', 'bin', 'eggs', 'develop-eggs', 'parts')
+
+   >>> eqs(ls('bin'))
+   >>> eqs(ls('develop-eggs'))
+   >>> eqs(ls('parts'))
+
+   TODO: fix upgrading so eggs is empty
+
+   >>> nope('ZEO' in ls('eggs'))
 
 Four directories are created:
 
@@ -86,6 +106,10 @@ update our Buildout configuration to add a ``zeo`` part::
   recipe = zc.recipe.egg
   eggs = ZEO
 
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
+
 We added the part name, ``zeo`` to the ``parts`` option in the
 ``buildout`` section.  We also added a ``zeo`` section with two
 options:
@@ -109,6 +133,10 @@ eggs
 If we run this [#gcc]_::
 
   buildout
+
+.. -> src
+
+   >>> run_buildout(src)
 
 Then a number of things will happen:
 
@@ -136,6 +164,11 @@ Then a number of things will happen:
     drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zodbpickle-0.6.0-py3.5-macosx-10.10-x86_64.egg
     drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zope.interface-4.3.3-py3.5-macosx-10.10-x86_64.egg
 
+
+  .. ZEO in eggs:
+
+     >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
+
 - A number of scripts will be installed in the ``bin`` directory::
 
     bash-3.2$ ls -l bin
@@ -144,9 +177,12 @@ Then a number of things will happen:
     -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeo-nagios
     -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeoctl
     -rwxr-xr-x  1 jim  staff  879 Feb 15 13:07 zeopack
-    -rwxr-xr-x  1 jim  staff  867 Feb 15 13:07 zeopasswd
 
   One in particular, ``runzeo`` is used to run a ZEO server.
+
+.. Really?
+
+   >>> yup('runzeo' in ls('bin'))
 
 Generating configuration and custom scripts
 ===========================================
@@ -171,6 +207,10 @@ configuration becomes::
     ${buildout:bin-directory}/runzeo
       -f ${buildout:directory}/data.fs
       -a 127.0.0.1:8200
+
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
 
 Here we've added a new ``server`` part that uses ``zc.zdaemonrecipe``.
 We used a ``program`` option to define what program should be run.
@@ -203,6 +243,10 @@ If we run Buildout::
 
   buildout
 
+.. -> src
+
+    >>> run_buildout(src)
+
 - The ``zc.zdaemonrecipe`` recipe will be downloaded and installed in
   the eggs directory.
 
@@ -234,6 +278,11 @@ If we run Buildout::
         path /Users/jim/t/0214/parts/server/transcript.log
       </logfile>
     </eventlog>
+
+  .. -> expect
+
+     >>> expect = expect.replace('/Users/jim/t/0214', os.getcwd()).strip()
+     >>> eq(expect, read('parts/server/zdaemon.conf').strip())
 
   The **details aren't important**, other than the fact that the
   configuration file reflects part options and the actual buildout
@@ -320,6 +369,10 @@ Buildout to *not* check for newer versions of Python requirements::
 
   buildout -N
 
+.. -> src
+
+   >>> run_buildout(src)
+
 This relaxes repeatability, but with little risk if there was a recent
 run without this option.
 
@@ -332,6 +385,22 @@ where you list them, as in::
   [zeo]
   recipe = zc.recipe.egg
   eggs = ZEO <5.0
+
+.. -> src
+
+   >>> prefix = """
+   ... [buildout]
+   ... parts = zeo
+   ... """
+   >>> with open('buildout.cfg', 'w') as f:
+   ...     _ = f.write(prefix)
+   ...     _ = f.write(src)
+
+   >>> import shutil
+   >>> shutil.rmtree('eggs')
+   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
+   >>> yup('ZEO = 4.3.1' in read('o'))
 
 In this example, we've requested a version of ZEO less than 5.0.
 
@@ -352,7 +421,15 @@ The more common way to pin version is using a ``versions`` section::
       -a 127.0.0.1:8200
 
   [versions]
-  ZEO = 5.0.4
+  ZEO = 4.3.1
+
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
+   >>> shutil.rmtree('eggs')
+   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
+   >>> nope('ZEO = 4.3.1' in read('o'))
 
 Larger projects may need to pin many versions, so it's common to put
 versions in their own file::
@@ -372,6 +449,10 @@ versions in their own file::
       -f ${buildout:directory}/data.fs
       -a 127.0.0.1:8200
 
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
+
 Here, we've used the Buildout ``extends`` option to say that
 configurations should be read from the named file (or files) and that
 configuration in the current file should override configuration in the
@@ -379,11 +460,18 @@ extended files.  To continue the example, our ``versions.cfg`` file
 might look like::
 
   [versions]
-  ZEO = 5.0.4
+  ZEO = 4.3.1
+
+.. -> versions_cfg
+
+   >>> write(versions_cfg, 'versions.cfg')
+   >>> shutil.rmtree('eggs')
+   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
+   >>> nope('ZEO = 4.3.1' in read('o'))
 
 We can use the ``update-versions-file`` option to ask Buildout to
 maintain our ``versions.cfg`` file for us::
-
 
   [buildout]
   extends = versions.cfg
@@ -402,6 +490,14 @@ maintain our ``versions.cfg`` file for us::
     ${buildout:bin-directory}/runzeo
       -f ${buildout:directory}/data.fs
       -a 127.0.0.1:8200
+
+.. -> src
+
+   >>> write(src, 'buildout.cfg')
+   >>> eq(versions_cfg, read('versions.cfg'))
+   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
+   >>> yup('ZODB = ' in read('versions.cfg'))
 
 With ``update-versions-file``, whenever Buildout gets the newest
 version for a requirement (subject to requirement constraints), it
@@ -440,19 +536,26 @@ Buildout versions and automatic upgrade
 In the interest of repeatability, Buildout can upgrade itself or its
 dependencies to use the newest versions or downgrade to respect pinned
 versions.  This only happens if you run Buildout from a buildout's own
-``bin`` directory.  If you've been running the examples, you may have
-noticed the message::
-
-  Not upgrading because not running a local buildout command.
+``bin`` directory.
 
 We can use Buildout's ``bootstrap`` command to install a local
 buildout script::
 
   buildout bootstrap
 
+.. -> src
+
+   >>> nope('buildout' in ls('bin'))
+   >>> run_buildout(src)
+   >>> yup('buildout' in ls('bin'))
+
 Then, if the installed script is used::
 
   bin/buildout
+
+.. -> src
+
+   >>> yup(os.path.exists(src.strip()))
 
 Then Buildout will upgrade or downgrade to be consistent with version
 requirements.  See the :doc:`bootstrapping topic
@@ -468,6 +571,8 @@ facilitates this with the ``develop`` option::
    [buildout]
    develop = .
    ...
+
+.. -> develop_snippet
 
 The ``develop`` option takes one more more paths to project `setup.py
 <https://docs.python.org/3.6/distutils/setupscript.html>`_ files or,
@@ -496,7 +601,11 @@ Fortunately, an application setup script can be minimal. Here's an
 example::
 
   from setuptools import setup
-  setup(name='main', install_requires = ['bobo', 'WebTest'])
+  setup(name='main', install_requires = ['ZODB', 'six'])
+
+.. -> src
+
+   >>> write(src, 'setup.py')
 
 We suggest copying and modifying the example above, using it as
 boilerplate.  As is probably clear, the setup arguments used:
@@ -523,6 +632,15 @@ something like this::
    eggs = main
    interpreter = py
 
+.. -> src
+
+   >>> eq(src.strip().split('\n')[:2], develop_snippet.strip().split('\n')[:2])
+   >>> write(src, 'buildout.cfg')
+   >>> run_buildout(debug='o')
+   >>> yup('Develop: ' in read('o'))
+
+   >>> eq(os.getcwd(), read('develop-eggs/main.egg-link').split()[0])
+
 There's a new option, ``interpreter``, which names an *interpreter*
 script to be generated. An interpreter script [#interpreter-script]_
 mimics a Python interpreter with its path set to include the
@@ -531,9 +649,17 @@ dependencies.  We can run the interpreter::
 
   bin/py
 
+.. -> path
+
+   >>> yup(os.getcwd() in read(path.strip()))
+
 To get an interactive Python prompt, or you can run a script with it::
 
   bin/py somescript.py
+
+.. -> path
+
+   >>> yup(os.path.exists(path.split()[0]))
 
 If you need to work on multiple interdependent projects at the same
 time, you can name multiple directories in the ``develop`` option,

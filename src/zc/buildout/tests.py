@@ -13,7 +13,7 @@
 #
 ##############################################################################
 from zc.buildout.buildout import print_
-from zope.testing import renormalizing
+from zope.testing import renormalizing, setupstack
 
 import doctest
 import manuel.capture
@@ -3375,10 +3375,14 @@ def updateSetup(test):
         makeNewRelease(dist.key, ws, new_releases)
         os.mkdir(os.path.join(new_releases, dist.key))
 
-bootstrap_py = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.dirname(__file__)))),
-    'bootstrap', 'bootstrap.py')
+def ancestor(path, level):
+    while level > 0:
+        path = os.path.dirname(path)
+        level -= 1
+
+    return path
+
+bootstrap_py = os.path.join(ancestor(__file__, 4), 'bootstrap', 'bootstrap.py')
 
 def bootstrapSetup(test):
     buildout_txt_setup(test)
@@ -3401,6 +3405,21 @@ normalize_S = (
     re.compile(r'#!/usr/local/bin/python2.7 -S'),
     '#!/usr/local/bin/python2.7',
     )
+
+def run_buildout(command, debug):
+    import sys
+    if debug:
+        if isinstance(debug, str):
+            sys.stdout = sys.stderr = open(debug, 'w')
+        else:
+            sys.stdout = sys.stderr
+    else:
+        sys.stderr = sys.stdout
+    args = command.strip().split()
+    import pkg_resources
+    buildout = pkg_resources.load_entry_point(
+        'zc.buildout', 'console_scripts', args[0])
+    buildout(args[1:])
 
 def test_suite():
     test_suite = [
@@ -3662,6 +3681,54 @@ def test_suite():
         doctest.DocFileSuite(
             'testing_bugfix.txt'),
     ]
+
+    docdir = os.path.join(ancestor(__file__, 4), 'doc')
+    if os.path.exists(docdir) and not sys.platform.startswith('win'):
+        # Note that the purpose of the documentation tests are mainly
+        # to test the documentation, not to test buildout.
+
+        def docSetUp(test):
+            index=" index=" + os.path.join(ancestor(__file__, 4), 'doc')
+            def run_buildout_in_process(command='buildout', debug=False):
+                from multiprocessing import Process, Queue
+                queue = Queue()
+                process = Process(
+                    target=run_buildout,
+                    args=(command + index, debug),
+                    )
+                process.daemon = True
+                process.start()
+                process.join(9)
+                assert not process.is_alive()
+                return process.exitcode or None
+
+            def read(path):
+                with open(path) as f:
+                    return f.read()
+
+            def write(text, path):
+                with open(path, 'w') as f:
+                    f.write(text)
+
+            test.globs.update(
+                indexarg=index,
+                run_buildout=run_buildout_in_process,
+                yup=lambda cond, orelse='Nope': None if cond else orelse,
+                nope=lambda cond, orelse='Nope': orelse if cond else None,
+                eq=lambda a, b: None if a == b else (a, b),
+                eqs=lambda a, *b: None if set(a) == set(b) else (a, b),
+                read=read,
+                write=write,
+                )
+            setupstack.setUpDirectory(test)
+
+        test_suite.append(
+            manuel.testing.TestSuite(
+                manuel.doctest.Manuel() + manuel.capture.Manuel(),
+                os.path.join(docdir, 'getting-started.rst'),
+                setUp=docSetUp, tearDown=setupstack.tearDown
+                ))
+
 
     # adding bootstrap.txt doctest to the suite
     # only if bootstrap.py is present
