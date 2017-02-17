@@ -3685,6 +3685,8 @@ def test_suite():
         def docSetUp(test):
             extra_options = (
                 " use-dependency-links=false"
+                # Leaving this here so we can uncomment to see what's going on.
+                #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
                 " index=" + os.path.join(ancestor(__file__, 4), 'doc')
                 )
             def run_buildout_in_process(command='buildout'):
@@ -3694,17 +3696,13 @@ def test_suite():
                     )
                 process.daemon = True
                 process.start()
-                process.join(9)
-                assert not process.is_alive()
-                if process.exitcode:
-                    print(out())
+                process.join(99)
+                if process.is_alive() or process.exitcode:
+                    print(read())
 
-            def read(path):
+            def read(path='out'):
                 with open(path) as f:
                     return f.read()
-
-            def out():
-                read('out')
 
             def write(text, path):
                 with open(path, 'w') as f:
@@ -3717,7 +3715,6 @@ def test_suite():
                 eq=lambda a, b: None if a == b else (a, b),
                 eqs=lambda a, *b: None if set(a) == set(b) else (a, b),
                 read=read,
-                out=out,
                 write=write,
                 )
             setupstack.setUpDirectory(test)
