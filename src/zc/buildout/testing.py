@@ -212,6 +212,9 @@ def buildoutSetUp(test):
             root_logger.removeHandler(handler)
         for handler in handlers_before_set_up:
             root_logger.addHandler(handler)
+        bo_logger = logging.getLogger('zc.buildout')
+        for handler in bo_logger.handlers[:]:
+            bo_logger.removeHandler(handler)
     register_teardown(restore_root_logger_handlers)
 
     base = tempfile.mkdtemp('buildoutSetUp')
