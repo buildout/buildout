@@ -13,8 +13,8 @@ Getting started with Buildout
 
      We'll capitalize the word when we do this.
 
-   - A particular application of Buildout, which has a buildout
-     configuration.
+   - A particular use of Buildout, a directory having a Buildout
+     configuration file.
 
      We'll use lower case to refer to these.
 
