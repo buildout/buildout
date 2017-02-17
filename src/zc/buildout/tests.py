@@ -19,6 +19,7 @@ import doctest
 import manuel.capture
 import manuel.doctest
 import manuel.testing
+from multiprocessing import Process
 import os
 import pkg_resources
 import re
@@ -3406,19 +3407,13 @@ normalize_S = (
     '#!/usr/local/bin/python2.7',
     )
 
-def run_buildout(command, debug):
-    import sys
-    if debug:
-        if isinstance(debug, str):
-            sys.stdout = sys.stderr = open(debug, 'w')
-        else:
-            sys.stdout = sys.stderr
-    else:
-        sys.stderr = sys.stdout
+def run_buildout(command):
+    os.environ['HOME'] = os.getcwd() # Make sure we don't get .buildout
     args = command.strip().split()
     import pkg_resources
     buildout = pkg_resources.load_entry_point(
         'zc.buildout', 'console_scripts', args[0])
+    sys.stdout = sys.stderr = open('out', 'w')
     buildout(args[1:])
 
 def test_suite():
@@ -3688,36 +3683,41 @@ def test_suite():
         # to test the documentation, not to test buildout.
 
         def docSetUp(test):
-            index=" index=" + os.path.join(ancestor(__file__, 4), 'doc')
-            def run_buildout_in_process(command='buildout', debug=False):
-                from multiprocessing import Process, Queue
-                queue = Queue()
+            extra_options = (
+                " use-dependency-links=false"
+                " index=" + os.path.join(ancestor(__file__, 4), 'doc')
+                )
+            def run_buildout_in_process(command='buildout'):
                 process = Process(
                     target=run_buildout,
-                    args=(command + index, debug),
+                    args=(command + extra_options, ),
                     )
                 process.daemon = True
                 process.start()
                 process.join(9)
                 assert not process.is_alive()
-                return process.exitcode or None
+                if process.exitcode:
+                    print(out())
 
             def read(path):
                 with open(path) as f:
                     return f.read()
+
+            def out():
+                read('out')
 
             def write(text, path):
                 with open(path, 'w') as f:
                     f.write(text)
 
             test.globs.update(
-                indexarg=index,
                 run_buildout=run_buildout_in_process,
                 yup=lambda cond, orelse='Nope': None if cond else orelse,
                 nope=lambda cond, orelse='Nope': orelse if cond else None,
                 eq=lambda a, b: None if a == b else (a, b),
                 eqs=lambda a, *b: None if set(a) == set(b) else (a, b),
                 read=read,
+                out=out,
                 write=write,
                 )
             setupstack.setUpDirectory(test)

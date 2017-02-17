@@ -51,7 +51,7 @@ with a parts option.  If we run Buildout::
 
    >>> import os
    >>> ls = lambda d='.': os.listdir(d)
-   >>> eqs(ls(), 'buildout.cfg', 'bin', 'eggs', 'develop-eggs', 'parts')
+   >>> eqs(ls(), 'buildout.cfg', 'bin', 'eggs', 'develop-eggs', 'parts', 'out')
 
    >>> eqs(ls('bin'))
    >>> eqs(ls('develop-eggs'))
@@ -398,9 +398,9 @@ where you list them, as in::
 
    >>> import shutil
    >>> shutil.rmtree('eggs')
-   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> run_buildout('buildout show-picked-versions=true')
    >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> yup('ZEO = 4.3.1' in read('o'))
+   >>> yup('ZEO = 4.3.1' in read('out'))
 
 In this example, we've requested a version of ZEO less than 5.0.
 
@@ -427,9 +427,9 @@ The more common way to pin version is using a ``versions`` section::
 
    >>> write(src, 'buildout.cfg')
    >>> shutil.rmtree('eggs')
-   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> run_buildout('buildout show-picked-versions=true')
    >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> nope('ZEO = 4.3.1' in read('o'))
+   >>> nope('ZEO = 4.3.1' in read('out'))
 
 Larger projects may need to pin many versions, so it's common to put
 versions in their own file::
@@ -466,9 +466,9 @@ might look like::
 
    >>> write(versions_cfg, 'versions.cfg')
    >>> shutil.rmtree('eggs')
-   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> run_buildout('buildout show-picked-versions=true')
    >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> nope('ZEO = 4.3.1' in read('o'))
+   >>> nope('ZEO = 4.3.1' in read('out'))
 
 We can use the ``update-versions-file`` option to ask Buildout to
 maintain our ``versions.cfg`` file for us::
@@ -495,7 +495,7 @@ maintain our ``versions.cfg`` file for us::
 
    >>> write(src, 'buildout.cfg')
    >>> eq(versions_cfg, read('versions.cfg'))
-   >>> run_buildout('buildout show-picked-versions=true', debug='o')
+   >>> run_buildout('buildout show-picked-versions=true')
    >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
    >>> yup('ZODB = ' in read('versions.cfg'))
 
@@ -636,8 +636,8 @@ something like this::
 
    >>> eq(src.strip().split('\n')[:2], develop_snippet.strip().split('\n')[:2])
    >>> write(src, 'buildout.cfg')
-   >>> run_buildout(debug='o')
-   >>> yup('Develop: ' in read('o'))
+   >>> run_buildout()
+   >>> yup('Develop: ' in read('out'))
 
    >>> eq(os.getcwd(), read('develop-eggs/main.egg-link').split()[0])
 
