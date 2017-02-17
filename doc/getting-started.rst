@@ -264,6 +264,21 @@ If we run Buildout:
 .. -> src
 
     >>> run_buildout(src)
+    >>> print(read('bin/server')) # doctest: +ELLIPSIS
+    #!...python...
+    <BLANKLINE>
+    import sys
+    sys.path[0:0] = [
+      '.../eggs/zdaemon...
+    <BLANKLINE>
+    import zdaemon.zdctl
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(zdaemon.zdctl.main([
+            '-C', '.../parts/server/zdaemon.conf',
+            ]+sys.argv[1:]
+            ))
+    <BLANKLINE>
 
 - The ``zc.zdaemonrecipe`` recipe will be downloaded and installed in
   the eggs directory.
