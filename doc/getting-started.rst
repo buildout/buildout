@@ -638,7 +638,7 @@ more commonly, directories containing them. Buildout then creates
 
 With develop eggs, you can modify the sources and the modified sources
 are reflected in future Python runs (or after `reloads
-<https://docs.python.org/3/library/imp.html?highlight=reload#imp.reload>`_).
+<https://docs.python.org/3/library/importlib.html#importlib.reload>`_).
 
 For libraries that you plan to distribute using the Python packaging
 infrastructure, You'll need to write a setup file, because it's needed
