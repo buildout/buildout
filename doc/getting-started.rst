@@ -347,8 +347,8 @@ software from source, we could run JavaScript builders, or do anything
 else that can be automated with Python.
 
 Buildout is a simple automation framework.  There are hundreds of
-recipes to choose from and :doc:`writing new recipes is easy
-<topics/writing-recipes>`.
+recipes to choose from [#finding-hundreds]_ and :doc:`writing new
+recipes is easy <topics/writing-recipes>`.
 
 Repeatability
 =============
@@ -762,6 +762,15 @@ details, as well as let you know about features not touched on here.
 .. [#if-same-environment] This assumes the same environment and that
    dependencies haven't changed.  We'll explain further in the
    section on repeatability.
+
+.. [#finding-hundreds] You can list Buildout-related software,
+   consisting mostly of Buildout recipes, using the
+   `Framework :: Buildout
+   <https://pypi.python.org/pypi?:action=browse&show=all&c=512>`_
+   classifier search. These results miss recipes that don't provide
+   classifier meta data.  Generally you can find a recipe for a task by
+   searching the name of the task and the "recipe" in the `package
+   index <https://pypi.python.org/pypi>`_.
 
 .. [#hypocritical] It's a little hypocritical to recommend installing
    Buildout into an otherwise clean environment, which is why Buildout
