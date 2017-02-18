@@ -12,4 +12,3 @@ Buildout Topics
 
    variables-extending-and-substitutions
    writing-recipes
-   bootstrapping
