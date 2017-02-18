@@ -6,6 +6,7 @@ Buildout Topics
    :maxdepth: 2
 
    history
+   bootstrapping
 
 .. todo:
 
