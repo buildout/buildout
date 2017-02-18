@@ -55,12 +55,12 @@ automated download and installation of Python packages *and their
 dependencies*.  Because we built large applications, this was
 something we'd wanted for some time and had even begun building a
 package manager ourselves.  Part of the rationale for creating a new
-buildout version, beyond the initial prototype, was to take advantage of
+Buildout version, beyond the initial prototype, was to take advantage of
 the additional automation that setuptools promised.
 
 Initially, we tried to leverage the ``easy_install`` command
 [#easy_install_module]_, but the goals of ``easy_install`` and
-buildout were at odds.  ``easy_install`` sought to make it easy for
+Buildout were at odds.  ``easy_install`` sought to make it easy for
 humans to install and upgrade packages manually, in an ad hoc manner.
 While it installed dependencies, it didn't upgrade them.  It didn't
 provide ways of managing an installation as a whole.  Buildout, on the
@@ -105,7 +105,7 @@ Buildout uses eggs very differently
 
 .. sidebar:: Script generation
 
-   When buildout generates a script, it's usually generating a wrapper
+   When Buildout generates a script, it's usually generating a wrapper
    script.  Python package distributions define scripts in two ways,
    via `entry points
    <https://setuptools.readthedocs.io/en/latest/setuptools.html#automatic-script-creation>`_,
@@ -138,7 +138,7 @@ same way, using jars and class paths.
 
 Buildout uses eggs almost exclusively as an **installation** format
 [#unzipped]_, in a way that leverages eggs' strengths.  Eggs provide
-buildout with the ability to efficiently control which dependencies a
+Buildout with the ability to efficiently control which dependencies a
 script uses, providing repeatability and predictability.
 
 .. [#ultimately-not-enough] Ultimately, we moved to a model where we
