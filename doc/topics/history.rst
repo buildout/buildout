@@ -125,7 +125,7 @@ Buildout uses eggs very differently
 
 Buildout doesn't use ``.pth`` files. Instead, when Buildout generates
 a script, it generates a Python path that names the eggs needed, and
-only the eggs needed, for a particular script based on it's
+only the eggs needed, for a particular script based on its
 requirements.  When Buildout is run, scripts are regenerated if
 versions of any of their dependencies change.  Scripts defined by
 different parts can use different versions, because they have
@@ -150,7 +150,7 @@ script uses, providing repeatability and predictability.
 .. [#easy_install_module] The ``zc.buildout.easy_install`` module
    started out as a thin wrapper around the ``easy_install``
    command. Although it has (almost) nothing to do with the
-   ``easy_install`` command today, it's name has remained, because it
+   ``easy_install`` command today, its name has remained, because it
    provides some public APIs.
 
 .. [#java-loves-zip] Java tools have no problem working with zip
