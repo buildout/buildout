@@ -743,11 +743,11 @@ details, as well as let you know about features not touched on here.
 
 .. [#egg] You may have heard bad things about eggs.  This stems in
    part from the way that eggs were applied to regular Python
-   installs.  We think eggs, which were inspired by `jar
+   installs.  We think eggs, which were inspired by `jar files
    <https://en.wikipedia.org/wiki/JAR_(file_format)>`_, when used as
    an installation format, are a good fit for Buildout's goals.  Learn
-   more in the topic on :doc:`Buildout and packaging
-   <topics/buildout-and-packaging>`.
+   more in the topic on :ref:`Buildout and packaging
+   <buildout_and_packaging>`.
 
 .. [#configparser] Buildout uses a variation (fork) of standard
    ``ConfigParser`` module and follows (mostly) the same parsing
