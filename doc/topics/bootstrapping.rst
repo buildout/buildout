@@ -27,7 +27,7 @@ Avoid modifying the python environment.
   existed, it might not have been possible to modify the environment
   without building Python from source.
 
-  Unfortunately, doing this this requires :ref:`using a bootstrap script
+  Unfortunately, doing this requires :ref:`using a bootstrap script
   <using-a-bootstrap-script>`.
 
 Local bootstrapping using the ``buildout`` subcommand
