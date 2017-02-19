@@ -13,12 +13,13 @@
 #
 ##############################################################################
 from zc.buildout.buildout import print_
-from zope.testing import renormalizing
+from zope.testing import renormalizing, setupstack
 
 import doctest
 import manuel.capture
 import manuel.doctest
 import manuel.testing
+from multiprocessing import Process
 import os
 import pkg_resources
 import re
@@ -3422,10 +3423,14 @@ def updateSetup(test):
         makeNewRelease(dist.key, ws, new_releases)
         os.mkdir(os.path.join(new_releases, dist.key))
 
-bootstrap_py = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.dirname(__file__)))),
-    'bootstrap', 'bootstrap.py')
+def ancestor(path, level):
+    while level > 0:
+        path = os.path.dirname(path)
+        level -= 1
+
+    return path
+
+bootstrap_py = os.path.join(ancestor(__file__, 4), 'bootstrap', 'bootstrap.py')
 
 def bootstrapSetup(test):
     buildout_txt_setup(test)
@@ -3448,6 +3453,15 @@ normalize_S = (
     re.compile(r'#!/usr/local/bin/python2.7 -S'),
     '#!/usr/local/bin/python2.7',
     )
+
+def run_buildout(command):
+    os.environ['HOME'] = os.getcwd() # Make sure we don't get .buildout
+    args = command.strip().split()
+    import pkg_resources
+    buildout = pkg_resources.load_entry_point(
+        'zc.buildout', 'console_scripts', args[0])
+    sys.stdout = sys.stderr = open('out', 'w')
+    buildout(args[1:])
 
 def test_suite():
     test_suite = [
@@ -3709,6 +3723,56 @@ def test_suite():
         doctest.DocFileSuite('testing_bugfix.txt'),
         unittest.makeSuite(UnitTests),
     ]
+
+    docdir = os.path.join(ancestor(__file__, 4), 'doc')
+    if os.path.exists(docdir) and not sys.platform.startswith('win'):
+        # Note that the purpose of the documentation tests are mainly
+        # to test the documentation, not to test buildout.
+
+        def docSetUp(test):
+            extra_options = (
+                " use-dependency-links=false"
+                # Leaving this here so we can uncomment to see what's going on.
+                #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
+                " index=" + os.path.join(ancestor(__file__, 4), 'doc')
+                )
+            def run_buildout_in_process(command='buildout'):
+                process = Process(
+                    target=run_buildout,
+                    args=(command + extra_options, ),
+                    )
+                process.daemon = True
+                process.start()
+                process.join(99)
+                if process.is_alive() or process.exitcode:
+                    print(read())
+
+            def read(path='out'):
+                with open(path) as f:
+                    return f.read()
+
+            def write(text, path):
+                with open(path, 'w') as f:
+                    f.write(text)
+
+            test.globs.update(
+                run_buildout=run_buildout_in_process,
+                yup=lambda cond, orelse='Nope': None if cond else orelse,
+                nope=lambda cond, orelse='Nope': orelse if cond else None,
+                eq=lambda a, b: None if a == b else (a, b),
+                eqs=lambda a, *b: None if set(a) == set(b) else (a, b),
+                read=read,
+                write=write,
+                )
+            setupstack.setUpDirectory(test)
+
+        test_suite.append(
+            manuel.testing.TestSuite(
+                manuel.doctest.Manuel() + manuel.capture.Manuel(),
+                os.path.join(docdir, 'getting-started.rst'),
+                setUp=docSetUp, tearDown=setupstack.tearDown
+                ))
+
 
     # adding bootstrap.txt doctest to the suite
     # only if bootstrap.py is present
