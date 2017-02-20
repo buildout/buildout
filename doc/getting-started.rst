@@ -417,6 +417,8 @@ Buildout to *not* check for newer versions of Python requirements:
 This relaxes repeatability, but with little risk if there was a recent
 run without this option.
 
+.. _pinned-versions:
+
 Pinned versions
 _______________
 
@@ -616,6 +618,8 @@ Then Buildout will upgrade or downgrade to be consistent with version
 requirements.  See the :doc:`bootstrapping topic
 <topics/bootstrapping>` to learn more about bootstrapping.
 
+.. _python-development-projects:
+
 Python development projects
 ===========================
 
@@ -632,7 +636,7 @@ facilitates this with the ``develop`` option:
 .. -> develop_snippet
 
 The ``develop`` option takes one more more paths to project `setup.py
-<https://docs.python.org/3.6/distutils/setupscript.html>`_ files or,
+<https://docs.python.org/3.6/distutils/setupscript.html>`_ Files or,
 more commonly, directories containing them. Buildout then creates
 "develop eggs" [#develop-eggs]_ for the corresponding projects.
 
