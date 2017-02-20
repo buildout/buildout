@@ -4,7 +4,10 @@ Change History
 2.8.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed a bug (windows, py 3.4)
+  When processing metadata on "old-style" distutils scripts, .exe stubs
+  appeared in ``metadata_listdir``, in turn reading those burped with
+  ``UnicodeDecodeError``. Skipping .exe stubs now.
 
 
 2.8.0 (2017-02-13)
