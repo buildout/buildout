@@ -57,6 +57,7 @@ is_source_encoding_line = re.compile('coding[:=]\s*([-\w.]+)').search
 
 is_win32 = sys.platform == 'win32'
 is_jython = sys.platform.startswith('java')
+PY3 = sys.version_info[0] == 3
 
 if is_jython:
     import java.lang.System
@@ -1074,6 +1075,9 @@ def scripts(reqs, working_set, executable, dest=None,
     assert executable == sys.executable, (executable, sys.executable)
 
     path = [dist.location for dist in working_set]
+    if not PY3:
+        # Fix for #283, setuptools 19.1+ reports itself as unicode on python 2.
+        path = [str(path_item) for path_item in path]
     path.extend(extra_paths)
     # order preserving unique
     unique_path = []

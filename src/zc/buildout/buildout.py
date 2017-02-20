@@ -811,7 +811,10 @@ class Buildout(DictMixin):
             recipe, entry = _recipe(options)
             req = pkg_resources.Requirement.parse(recipe)
             sig = _dists_sig(pkg_resources.working_set.resolve([req]))
-            options['__buildout_signature__'] = ' '.join(sig)
+            sig = ' '.join(sig)
+            if isinstance(sig, text_type) and not PY3:
+                sig = sig.encode()
+            options['__buildout_signature__'] = sig
 
     def _read_installed_part_options(self):
         old = self['buildout']['installed']
