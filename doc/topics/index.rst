@@ -12,3 +12,5 @@ Buildout Topics
 .. todo:
 
    writing-recipes
+   optimizing
+
