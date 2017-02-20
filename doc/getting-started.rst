@@ -636,7 +636,7 @@ facilitates this with the ``develop`` option:
 .. -> develop_snippet
 
 The ``develop`` option takes one more more paths to project `setup.py
-<https://docs.python.org/3.6/distutils/setupscript.html>`_ Files or,
+<https://docs.python.org/3.6/distutils/setupscript.html>`_ files or,
 more commonly, directories containing them. Buildout then creates
 "develop eggs" [#develop-eggs]_ for the corresponding projects.
 
