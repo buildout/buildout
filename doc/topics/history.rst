@@ -67,8 +67,8 @@ provide ways of managing an installation as a whole.  Buildout, on the
 other hand, was all about automation and repeatability.
 
 To achieve Buildout's goals, it was necessary to interact with
-setuptools at a much lower level and to write quite a bit of packaging
-logic than planned.
+setuptools at a much lower level and to write quite a bit more
+packaging logic than planned.
 
 Eggs
 ----
@@ -88,7 +88,7 @@ result:
   - They needed to be added to the Python path. The ``easy_install``
     command did this by generating complex `.pth files
     <https://docs.python.org/2/library/site.html>`_.  This often
-    lead to hard to diagnose bugs and frustration.
+    led to hard to diagnose bugs and frustration.
 
   - By default, eggs were installed as `zip files
     <https://en.wikipedia.org/wiki/Zip_(file_format)>`_.  Software
