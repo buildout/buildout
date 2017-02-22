@@ -175,7 +175,7 @@ extends-cache
   | (:ref:`newest <newest-mode>`)   | and saved in the cache, even |
   |                                 | it is already cached, and    |
   |                                 | the previously cached value  |
-  |                                 | is replaced.
+  |                                 | is replaced.                 |
   +---------------------------------+------------------------------+
 
   If the value is a relative path and doesn't contain value
@@ -231,10 +231,32 @@ installed, default: '.installed.cfg'
   buildout directory.
 
 log-format, default: ''
-  Format to use for log messages.
+  `Format
+  <https://docs.python.org/3/library/logging.html#formatter-objects>`_
+  to use for log messages.
+
+  If ``log-format`` is blank, the default, Buildout will use the format::
+
+    %(message)s
+
+  for its own messages, and::
+
+    %(name)s: %(message)s
+
+  for the root logger [#root-logger]_.
+
+  If ``log-format`` is non-blank, then it will be used for the root logger
+  [#root-logger]_ (and for Buildout's messages).
 
 log-level, default: 'INFO'
-  The default level to log at.
+  The `logging level
+  <https://docs.python.org/3/library/logging.html#logging-levels>`_.
+
+  This may be adjusted with the :ref:`-v option <-v-option>` or the
+  :ref:`-q option <-q-option>`, which are the more common ways to control
+  the logging level.
+
+  The ``log-level`` option is rarely used.
 
 .. _newest-mode:
 
@@ -254,7 +276,7 @@ offline, default: 'false'
 
   .. Warning:: Offline mode is deprecated.
 
-     It's purpose has evolved over time and the end result doesn't
+     Its purpose has evolved over time and the end result doesn't
      make much sense, but it is retained for backward compatibility.
 
      If you think you want an offline mode, you probably want the
@@ -311,3 +333,6 @@ use-dependency-links, default: true
 
 versions, default 'versions'
   The name of a section that contains :ref:`version pins <pinned-versions>`.
+
+.. [#root-logger] Generally, the root logger format is used for all
+   messages unless it is overridden by a lower-level logger.
