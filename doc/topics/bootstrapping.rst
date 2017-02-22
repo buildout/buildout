@@ -41,6 +41,16 @@ the buildout in the current directory:
 
   buildout bootstrap
 
+.. -> src
+
+   >>> import os
+   >>> eqs(os.listdir("."))
+   >>> write("[buildout]\nparts=\n", 'buildout.cfg')
+   >>> run_buildout(src)
+   >>> eqs(os.listdir("."),
+   ...     'buildout.cfg', 'out', 'eggs', 'bin', 'develop-eggs', 'parts')
+
+
 If you have any other buildouts that have local ``buildout`` scripts, you
 can use their ``buildout`` scripts:
 
@@ -60,11 +70,33 @@ If you download::
 
   https://bootstrap.pypa.io/bootstrap-buildout.py
 
+.. -> url
+
 And then run it:
 
 .. code-block:: console
 
    python bootstrap-buildout.py
+
+.. -> src
+
+   >>> os.mkdir('fresh'); os.chdir('fresh')
+   >>> eqs(os.listdir("."))
+   >>> from six.moves.urllib import request
+   >>> f = request.urlopen(url)
+   >>> write(f.read().decode('ascii'), 'bootstrap-buildout.py')
+   >>> f.close()
+   >>> write("[buildout]\nparts=\n", 'buildout.cfg')
+   >>> import subprocess, sys
+   >>> src = src.replace('python', sys.executable).split()
+   >>> p = subprocess.Popen(
+   ...     src, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+   ...     env=dict(HOME='zzzzz'))
+   >>> if p.wait():
+   ...     print(p.stderr.read())
+   >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
+   ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
+   >>> os.chdir('..')
 
 It will download the software needed to run Buildout and install it in
 the current directory.
@@ -104,11 +136,37 @@ If you don't have one, you can use the :ref:`init subcommand
 
    buildout init
 
+.. -> src
+
+   >>> os.mkdir('init'); os.chdir('init')
+   >>> eqs(os.listdir("."))
+   >>> run_buildout(src)
+   >>> eqs(os.listdir("."),
+   ...     'buildout.cfg', 'out', 'eggs', 'bin', 'develop-eggs', 'parts')
+   >>> os.chdir('..')
+
+
 This can be used with the bootstrapping script as well:
 
 .. code-block:: console
 
    python bootstrap-buildout.py init
+
+.. -> src
+
+   >>> os.mkdir('fresh2'); os.chdir('fresh2')
+   >>> eqs(os.listdir("."))
+   >>> f = request.urlopen(url)
+   >>> write(f.read().decode('ascii'), 'bootstrap-buildout.py')
+   >>> f.close()
+   >>> src = src.replace('python', sys.executable).split()
+   >>> p = subprocess.Popen(
+   ...     src, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+   ...     env=dict(HOME='zzzzz'))
+   >>> if p.wait():
+   ...     print(p.stderr.read())
+   >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
+   ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
 
 This creates an empty Buildout configuration:
 
@@ -117,12 +175,28 @@ This creates an empty Buildout configuration:
   [buildout]
   parts =
 
+.. -> src
+
+   >>> eq(src, read('buildout.cfg'))
+   >>> os.chdir('..')
+   >>> os.chdir('init')
+   >>> eq(src, read('buildout.cfg'))
+   >>> os.chdir('..')
+
 If you know you're going to use some packages, you can supply
 requirements on the command line after ``init``:
 
 .. code-block:: console
 
    buildout init ZODB six
+
+.. -> src
+
+   >>> os.mkdir('init2'); os.chdir('init2')
+   >>> eqs(os.listdir("."))
+   >>> run_buildout(src)
+   >>> eqs(os.listdir("."), '.installed.cfg',
+   ...     'buildout.cfg', 'out', 'eggs', 'bin', 'develop-eggs', 'parts')
 
 In which case it will generate and run a buildout that uses them.  The
 command above would generate a buildout configuration file:
@@ -138,6 +212,11 @@ command above would generate a buildout configuration file:
   eggs =
     ZODB
     six
+
+.. -> src
+
+   >>> eq(src, read('buildout.cfg'))
+   >>> os.chdir('..')
 
 This can provide an easy way to experiment with a package without
 adding it to your Python environment or creating a virtualenv.
