@@ -4,7 +4,7 @@ Staying DRY with value substitutions, extending, and macros
 
 A buildout configuration is a collection of sections, each holding a
 collection of options.  It's common for option values to be repeated
-accross options.  For examples, many file-path options might start
+across options.  For examples, many file-path options might start
 with common path prefixes. Configurations that include clients and
 servers might share server-address options.  This topic presents
 various ways you can reuse option values without repeating yourself.
@@ -24,14 +24,14 @@ For example: ``${buildout:directory}`` refers to the value of the
 configuration.  The value of the referenced option will be substituted
 for the referencing text.
 
-You can simplify referces to options in the current section by ommitting the
+You can simplify references to options in the current section by omitting the
 section name.  If we wanted to use the ``buildout`` ``directory``
 option from within the ``buildout`` section itself, we could use
-``${:directory}``.  This convenience is especiall useful in
+``${:directory}``.  This convenience is especially useful in
 :ref:`macros <macros-label>`, which we'll discuss later in this topic.
 
 There's a special value that's also useful in macros, named
-``_buildout_section_name_``, wich has the name of the current
+``_buildout_section_name_``, which has the name of the current
 section. We'll show how this is used when we discuss :ref:`macros
 <macros-label>`.
 
@@ -51,7 +51,7 @@ complete list of Buildout options that can be used in substitutions.
 Many recipes also have options that have defaults or that are computed and
 are available for substitutions.
 
-Sources of configuation options
+Sources of configuration options
 ====================================
 
 Configuration option values can come from a number of sources (in
@@ -68,7 +68,7 @@ options from one or more configuration files
   These override user defaults and each other, as described below.
 
 option values in the :ref:`buildout command line <buildout-command-line>`
-  These override configutation-file settings.
+  These override configuration-file settings.
 
 .. _extends_option:
 
@@ -133,8 +133,8 @@ used in the example above.
 
 .. _merge-values-with-existing-values:
 
-Merging, rather tha overriding values
-=====================================
+Merging, rather than overriding values
+========================================
 
 Normally, values in extending configurations override values in
 extended configurations by replacing them, but it's also possible to
@@ -223,7 +223,7 @@ macro:
    port = 8082
 
 In the example above, the ``server1`` and  ``server2`` sections use the
-``server`` section, getting it's ``recipe`` and ``program`` options.
+``server`` section, getting its ``recipe`` and ``program`` options.
 The resulting configuration is equivalent to:
 
 .. code-block:: ini
@@ -252,7 +252,7 @@ The resulting configuration is equivalent to:
         --port ${:port}
         --name ${:_buildout_section_name_}
 
-Value substitutions in the base section are applied after it's
+Value substitutions in the base section are applied after its
 application as a macro, so the substitutions are applied using data
 from the sections that used the macro (using the ``<`` option).
 
