@@ -583,6 +583,25 @@ that your component only works a range of versions of some dependency,
 the express the range in your project requirements. Don't require
 specific versions.
 
+.. _unpinning-versions:
+
+Unpinning versions
+__________________
+
+You can unpin a version by just removing it (or commenting it out of)
+your ``versions`` section.
+
+You can also unpin a version by setting the version setting the
+version to an empty string:
+
+.. code-block:: ini
+
+  [versions]
+  ZEO =
+
+In an extending configuration (``builduot.cfg`` in the example above), or
+:ref:`on the buildout command line <unpinning-on-command-line>`.
+
 Buildout versions and automatic upgrade
 ---------------------------------------
 
