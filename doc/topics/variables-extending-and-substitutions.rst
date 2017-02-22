@@ -193,6 +193,15 @@ when running buildout:
 
    buildout develop+=/path/to/other/project
 
+.. _unpinning-on-command-line:
+
+Although, if you've pinned the version of that project, you'll need to
+:ref:`unpin it <unpinning-versions>`, which you can also do on the command-line:
+
+.. code-block:: console
+
+   buildout develop+=/path/to/other/project versions:projectname=
+
 .. _macros-label:
 
 Extending sections using macros
