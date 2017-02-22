@@ -602,6 +602,11 @@ version to an empty string:
 In an extending configuration (``builduot.cfg`` in the example above), or
 :ref:`on the buildout command line <unpinning-on-command-line>`.
 
+You might do this if pins are shared between projects and you want to
+unpin a requirement for one of the projects, or want to remove a pin
+while using a requirement in :ref:`development mode
+<python-development-projects>`.
+
 Buildout versions and automatic upgrade
 ---------------------------------------
 
