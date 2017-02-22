@@ -107,6 +107,11 @@ base.cfg from the cache:
 >>> print_(system(buildout + ' -o'))
 Unused options for buildout: 'foo'.
 
+.. verify same behavior for install-from-cache:
+
+   >>> print_(system(buildout + ' install-from-cache=true download-cache=.'))
+   Unused options for buildout: 'foo'.
+
 In online mode, buildout will download and use the modified version:
 
 >>> print_(system(buildout))
