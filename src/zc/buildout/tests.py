@@ -3737,10 +3737,10 @@ def test_suite():
                 " index=" + os.path.join(ancestor(__file__, 4), 'doc')
                 )
             def run_buildout_in_process(command='buildout'):
-                process = Process(
-                    target=run_buildout,
-                    args=(command + extra_options, ),
-                    )
+                command = command.split(' ', 1)
+                command.insert(1, extra_options)
+                command = ' '.join(command)
+                process = Process(target=run_buildout, args=(command, ))
                 process.daemon = True
                 process.start()
                 process.join(99)
@@ -3770,6 +3770,7 @@ def test_suite():
             manuel.testing.TestSuite(
                 manuel.doctest.Manuel() + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
+                os.path.join(docdir, 'topics', 'bootstrapping.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 
