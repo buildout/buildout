@@ -123,8 +123,8 @@ is typically used to set up a shared egg or cache directory, as in:
 .. code-block:: ini
 
   [buildout]
-  eggs-directory = ~/.buildout/eggs
-  download-cache = ~/.buildout/download-cache
+  eggs-directory = eggs
+  download-cache = download-cache
   abi-tag-eggs = true
 
 See the section on :doc:`optimizing buildouts with shared eggs and
