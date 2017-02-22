@@ -311,9 +311,13 @@ show-picked-versions, default: 'false'
   :ref:`update-versions-file <update-versions-file>` option was used.
 
 socket-timeout, default: ''
-  Specify a socket timeout, in seconds, to use when downloading
-  distributions and other artifacts.  This may be useful if downloads
-  are attempted from very slow sources.
+  Specify a socket timeout [#socket-timeout]_, in seconds, to use when
+  downloading distributions and other artifacts.  If non-blank, the
+  value must be a positive non-zero integer. If left blank, the socket
+  timeout is system dependent.
+
+  This may be useful if downloads are attempted from very slow
+  sources.
 
 .. _update-versions-file:
 
@@ -336,3 +340,7 @@ versions, default 'versions'
 
 .. [#root-logger] Generally, the root logger format is used for all
    messages unless it is overridden by a lower-level logger.
+
+.. [#socket-timeout] This timeout reflects how long to wait on
+   individual socket operations. A slow request may take much longer
+   than this timeout.
