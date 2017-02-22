@@ -88,7 +88,7 @@ bin-directory, default: bin
 .. _develop-option:
 
 develop
-  One or more paths to `distutils setup scripts
+  One or more (whitespace-separated) paths to `distutils setup scripts
   <https://docs.python.org/3.6/distutils/setupscript.html>`_ or (more
   commonly) directories containing setup scripts named ``setup.py``.
 
