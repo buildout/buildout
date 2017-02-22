@@ -150,15 +150,30 @@ extends
 
 .. _extends-cache-buildout-option:
 
-
 extends-cache
-  An optional directory to cache remote configurations in.  This
-  allows remote configurations to be used in :ref:`offline mode
-  <offline-mode>`.  When not in offline mode, and a remote
-  configuration is used, by using a URL in an
-  :ref:`extends option <extends_option>`, the configuration is written
-  to the extends cache and will be used if the buildout is later run
-  in offline mode.
+  An optional directory to cache remote configurations in.  Remote
+  configuration is configuration specified using a URL in an
+  :ref:`extends option <extends_option>` or as the argument to the
+  :ref:`-C buildout command-line option <-C-option>`. How the
+  extends-cache behaves depends on the buildout mode:
+
+  +---------------------------------+------------------------------+
+  | Mode                            | Behavior                     |
+  +=================================+==============================+
+  | :ref:`install-from-cache        | Configuration is retrieved   |
+  | <install-from-cache-mode>` or   | from cache if possible. If   |
+  | :ref:`offline <offline-mode>`   | configuration isn't cached,  |
+  |                                 | the buildout fails.          |
+  +---------------------------------+------------------------------+
+  | :ref:`non-newest                | Configuration is retrieved   |
+  | <non-newest-mode>`              | from cache if possible. If   |
+  |                                 | configuration isn't cached,  |
+  |                                 | then it is downloaded        |
+  |                                 | and saved in the cache.      |
+  +---------------------------------+------------------------------+
+  | Default                         | Configuration is downloaded  |
+  | (:ref:`newest <newest-mode>`)   | and saved in the cache.      |
+  +---------------------------------+------------------------------+
 
   If the value is a relative path and doesn't contain value
   substitutions, it's interpreted relative to the directory containing
@@ -184,9 +199,23 @@ index
 
   If this isn't set, then ``https://pypi.python.org/simple/`` is used.
 
+.. _install-from-cache-mode:
+
 install-from-cache, default: 'false'
-  If this is true, then distributions will only be installed if they
-  can be found in the :ref:`download cache <download-cache>`.
+  Enable install-from-cache mode.
+
+  In install-from-cache mode, no network requests should be made.
+
+  It's a responsibility of recipes to adhere to this.  Recipes that
+  would need to download files may use the :ref:`download cache
+  <download-cache>`.
+
+  The original purpose of the install-from-cache mode was to support
+  source-distribution of buildouts that could be built without making
+  network requests (mostly for security reasons).
+
+  This mode may only be used if a :ref:`download-cache
+  <download-cache>` is specified.
 
 installed, default: '.installed.cfg'
   The name of the file used to store information about what's installed.
@@ -204,14 +233,29 @@ log-format, default: ''
 log-level, default: 'INFO'
   The default level to log at.
 
+.. _newest-mode:
+
+.. _non-newest-mode:
+
 newest, default: 'true'
   If true, check for newer distributions.  If false, then only look
   for distributions when installed distributions don't satisfy requirements.
+
+  The goal of non-newest mode is to speed Buildout runs by avoiding
+  network requests.
 
 .. _offline-mode:
 
 offline, default: 'false'
   If true, then offline mode is enabled.
+
+  .. Warning:: Offline mode is deprecated.
+
+     It's purpose has evolved over time and the end result doesn't
+     make much sense, but it is retained for backward compatibility.
+
+     If you think you want an offline mode, you probably want the
+     :ref:`install-from-cache <install-from-cache-mode>` mode instead.
 
   In offline mode, no network requests should be made.  It's the
   responsibility of recipes to adhere to this.  Recipes that would
@@ -264,4 +308,3 @@ use-dependency-links, default: true
 
 versions, default 'versions'
   The name of a section that contains :ref:`version pins <pinned-versions>`.
-
