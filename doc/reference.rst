@@ -100,7 +100,7 @@ develop-eggs-directory, default: 'develop-eggs'
   relative path, it's evaluated relative to the buildout directory.
 
 directory, default: directory containing top-level buildout configuration
-  The top if the buildout.  Other directories specified (or
+  The top of the buildout.  Other directories specified (or
   defaulting) with relative paths are created relative to this directory.
 
 .. _download-cache:
@@ -111,7 +111,7 @@ download-cache
   directory.  Recipes may also cache downloads in this directory, or
   in a subdirectory.
 
-  This is often set in in a :ref:`User-default configuration
+  This is often set in a :ref:`User-default configuration
   <user-default-configuration>` to share a cache between buildouts.
   See the section on :doc:`Optimizing buildouts with shared eggs and
   download caches <topics/optimizing>`.
@@ -125,7 +125,7 @@ download-cache
 eggs-directory, default: 'eggs'
   The directory where :ref:`eggs <eggs-label>` are installed.
 
-  This is often set in in a :ref:`User-default configuration
+  This is often set in a :ref:`User-default configuration
   <user-default-configuration>` to share eggs between buildouts.
   See the section on :doc:`Optimizing buildouts with shared eggs and
   download caches <topics/optimizing>`.
@@ -236,7 +236,7 @@ prefer-final, default: 'true'
   used unless no final distributions satisfy requirements.
 
 show-picked-versions, default: 'false'
-  If true, when Buildout finds a a newest distribution for a
+  If true, when Buildout finds a newest distribution for a
   requirement that `wasn't pinned <pinned-versions>`, it will print
   lines it would write to a versions configuration if the
   :ref:`update-versions-file <update-versions-file>` option was used.
