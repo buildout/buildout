@@ -245,7 +245,7 @@ If we run Buildout:
 
 .. code-block:: console
 
-  buildout -vvv
+  buildout
 
 .. -> src
 
