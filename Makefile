@@ -51,6 +51,4 @@ clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
 
 test:
-	ls -l $(HERE)/eggs
-	ls -l $(HERE)/doc
-	$(HERE)/bin/test -1 -vvv -t getting-started.rst
+	$(HERE)/bin/test -1 -vvv
