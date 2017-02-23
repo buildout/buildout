@@ -3734,7 +3734,7 @@ def test_suite():
                 " use-dependency-links=false"
                 # Leaving this here so we can uncomment to see what's going on.
                 #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
-                " index=" + os.path.join(ancestor(__file__, 4), 'doc')
+                " index=" + os.path.join(ancestor(__file__, 4), 'eggs')
                 )
             def run_buildout_in_process(command='buildout'):
                 command = command.split(' ', 1)

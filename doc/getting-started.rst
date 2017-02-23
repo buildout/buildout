@@ -65,7 +65,7 @@ with a parts option.  If we run Buildout:
 
    TODO: fix upgrading so eggs is empty
 
-   >>> nope('ZEO' in ls('eggs'))
+   >>> nope('bobo' in ls('eggs'))
 
 Four directories are created:
 
@@ -97,29 +97,29 @@ parameters to control how the part is built.
 Installing software
 ===================
 
-In this tutorial, we're going to install a simple database server.
+In this tutorial, we're going to install a simple web server.
 The details of the server aren't important.  It just provides a useful
 example that illustrates a number of ways that Buildout can make
 things easier.
 
 We'll start by adding a part to install the server software.  We'll
-update our Buildout configuration to add a ``zeo`` part:
+update our Buildout configuration to add a ``bobo`` part:
 
 .. code-block:: ini
 
   [buildout]
-  parts = zeo
+  parts = bobo
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO
+  eggs = bobo
 
 .. -> src
 
    >>> write(src, 'buildout.cfg')
 
-We added the part name, ``zeo`` to the ``parts`` option in the
-``buildout`` section.  We also added a ``zeo`` section with two
+We added the part name, ``bobo`` to the ``parts`` option in the
+``buildout`` section.  We also added a ``bobo`` section with two
 options:
 
 recipe
@@ -138,7 +138,7 @@ eggs
   addition, any scripts provided by the listed requirements (but not
   their dependencies) are installed in the ``bin`` directory.
 
-If we run this [#gcc]_:
+If we run this:
 
 .. code-block:: console
 
@@ -153,7 +153,7 @@ Then a number of things will happen:
 - ``zc.recipe.egg`` will be downloaded and installed in your ``eggs``
   directory.
 
-- ``ZEO`` and its dependencies will be downloaded and installed. (ZEO
+- ``bobo`` and its dependencies will be downloaded and installed. (bobo
   is a small Python database server.)
 
   After this, the eggs directory will look something like:
@@ -162,46 +162,32 @@ Then a number of things will happen:
 
     $ ls -l eggs
     total 0
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZConfig-3.1.0-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZEO-5.0.4-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 ZODB-5.2.0-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 persistent-4.2.2-py3.5-macosx-10.10-x86_64.egg
-    drwxr-xr-x  5 jim  staff  170 Feb 15 13:06 six-1.10.0-py3.5.egg
-    drwx------  2 jim  staff   68 Feb 15 13:06 tmpd_xxokys
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 transaction-2.1.0-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.buildout-2.8.0-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.lockfile-1.2.1-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zc.recipe.egg-2.0.3-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zdaemon-4.2.0-py3.5.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zodbpickle-0.6.0-py3.5-macosx-10.10-x86_64.egg
-    drwxr-xr-x  4 jim  staff  136 Feb 15 13:06 zope.interface-4.3.3-py3.5-macosx-10.10-x86_64.egg
+    drwxr-xr-x  4 jim  staff  136 Feb 23 09:01 WebOb-1.7.1-py2.7.egg
+    drwxr-xr-x  9 jim  staff  306 Feb 23 09:10 bobo-2.3.0-py2.7.egg
 
+  .. bobo in eggs:
 
-  .. ZEO in eggs:
+     >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
 
-     >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-
-- A number of scripts will be installed in the ``bin`` directory:
+- A ``bobo`` script will be installed in the ``bin`` directory:
 
   .. code-block:: console
 
     $ ls -l bin
-    total 40
-    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 runzeo
-    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeo-nagios
-    -rwxr-xr-x  1 jim  staff  861 Feb 15 13:07 zeoctl
-    -rwxr-xr-x  1 jim  staff  879 Feb 15 13:07 zeopack
+    total 8
+    -rwxr-xr-x  1 jim  staff  391 Feb 23 09:10 bobo
 
-  One in particular, ``runzeo`` is used to run a ZEO server.
+  This script is used to `run a bobo server
+  <http://bobo.readthedocs.io/en/latest/reference.html#the-bobo-server>`_.
 
 .. Really?
 
-   >>> yup('runzeo' in ls('bin'))
+   >>> yup('bobo' in ls('bin'))
 
 Generating configuration and custom scripts
 ===========================================
 
-The ``runzeo`` program doesn't daemonize itself. Rather, it's meant to
+The ``bobo`` program doesn't daemonize itself. Rather, it's meant to
 be used with a dedicated daemonizer like `zdaemon
 <https://pypi.python.org/pypi/zdaemon>`_ or `supervisord
 <http://supervisord.org/>`_.  We'll use a `recipe to set up zdaemon
@@ -211,18 +197,18 @@ configuration becomes:
 .. code-block:: ini
 
   [buildout]
-  parts = zeo server
+  parts = bobo server
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO
+  eggs = bobo
 
   [server]
   recipe = zc.zdaemonrecipe
   program =
-    ${buildout:bin-directory}/runzeo
-      -f ${buildout:directory}/data.fs
-      -a 127.0.0.1:8200
+    ${buildout:bin-directory}/bobo
+      --static /=${buildout:directory}
+      --port 8200
 
 .. -> src
 
@@ -307,7 +293,7 @@ If we run Buildout:
     <runner>
       daemon on
       directory /Users/jim/t/0214/parts/server
-      program /Users/jim/t/0214/bin/runzeo -f /Users/jim/t/0214/data.fs -a 127.0.0.1:8200
+      program /Users/jim/t/0214/bin/bobo --static /=/Users/jim/t/0214 --port 8200
       socket-name /Users/jim/t/0214/parts/server/zdaemon.sock
       transcript /Users/jim/t/0214/parts/server/transcript.log
     </runner>
@@ -425,15 +411,15 @@ where you list them, as in:
 
 .. code-block:: ini
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO <5.0
+  eggs = bobo <5.0
 
 .. -> src
 
    >>> prefix = """
    ... [buildout]
-   ... parts = zeo
+   ... parts = bobo
    ... """
    >>> with open('buildout.cfg', 'w') as f:
    ...     _ = f.write(prefix)
@@ -442,39 +428,39 @@ where you list them, as in:
    >>> import shutil
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> yup('ZEO = 4.3.1' in read('out'))
+   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup('bobo = 2.3.0' in read('out'))
 
-In this example, we've requested a version of ZEO less than 5.0.
+In this example, we've requested a version of bobo less than 5.0.
 
 The more common way to pin version is using a ``versions`` section:
 
 .. code-block:: ini
 
   [buildout]
-  parts = zeo server
+  parts = bobo server
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO
+  eggs = bobo
 
   [server]
   recipe = zc.zdaemonrecipe
   program =
-    ${buildout:bin-directory}/runzeo
-      -f ${buildout:directory}/data.fs
-      -a 127.0.0.1:8200
+    ${buildout:bin-directory}/bobo
+      --static /=${buildout:directory}
+      --port 8200
 
   [versions]
-  ZEO = 4.3.1
+  bobo = 2.3.0
 
 .. -> src
 
    >>> write(src, 'buildout.cfg')
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> nope('ZEO = 4.3.1' in read('out'))
+   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> nope('bobo = 2.3.0' in read('out'))
 
 Larger projects may need to pin many versions, so it's common to put
 versions in their own file:
@@ -483,18 +469,18 @@ versions in their own file:
 
   [buildout]
   extends = versions.cfg
-  parts = zeo server
+  parts = bobo server
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO
+  eggs = bobo
 
   [server]
   recipe = zc.zdaemonrecipe
   program =
-    ${buildout:bin-directory}/runzeo
-      -f ${buildout:directory}/data.fs
-      -a 127.0.0.1:8200
+    ${buildout:bin-directory}/bobo
+      --static /=${buildout:directory}
+      --port 8200
 
 .. -> src
 
@@ -509,15 +495,15 @@ might look like:
 .. code-block:: ini
 
   [versions]
-  ZEO = 4.3.1
+  bobo = 2.3.0
 
 .. -> versions_cfg
 
    >>> write(versions_cfg, 'versions.cfg')
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> nope('ZEO = 4.3.1' in read('out'))
+   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> nope('bobo = 2.3.0' in read('out'))
 
 We can use the ``update-versions-file`` option to ask Buildout to
 maintain our ``versions.cfg`` file for us:
@@ -529,26 +515,26 @@ maintain our ``versions.cfg`` file for us:
   show-picked-versions = true
   update-versions-file = versions.cfg
 
-  parts = zeo server
+  parts = bobo server
 
-  [zeo]
+  [bobo]
   recipe = zc.recipe.egg
-  eggs = ZEO
+  eggs = bobo
 
   [server]
   recipe = zc.zdaemonrecipe
   program =
-    ${buildout:bin-directory}/runzeo
-      -f ${buildout:directory}/data.fs
-      -a 127.0.0.1:8200
+    ${buildout:bin-directory}/bobo
+      --static /=${buildout:directory}
+      --port 8200
 
 .. -> src
 
    >>> write(src, 'buildout.cfg')
    >>> eq(versions_cfg, read('versions.cfg'))
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('ZEO-4.3.1-')])
-   >>> yup('ZODB = ' in read('versions.cfg'))
+   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup('WebOb = ' in read('versions.cfg'))
 
 With ``update-versions-file``, whenever Buildout gets the newest
 version for a requirement (subject to requirement constraints), it
@@ -658,7 +644,7 @@ Fortunately, an application setup script can be minimal. Here's an
 example::
 
   from setuptools import setup
-  setup(name='main', install_requires = ['ZODB', 'six'])
+  setup(name='main', install_requires = ['bobo', 'six'])
 
 .. -> src
 
@@ -754,10 +740,7 @@ details, as well as let you know about features not touched on here.
    rules.
 
 .. [#requirements-one-per-line] Requirements can have whitespace
-   characters as in ``ZEO <=5``, so they're separated by newlines.
-
-.. [#gcc] Currently, this example requires the ability to build
-   Python extensions and requires access to development tools.
+   characters as in ``bobo <3``, so they're separated by newlines.
 
 .. [#if-same-environment] This assumes the same environment and that
    dependencies haven't changed.  We'll explain further in the

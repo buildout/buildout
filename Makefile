@@ -51,4 +51,4 @@ clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
 
 test:
-	$(HERE)/bin/test -1 -v
+	$(HERE)/bin/test -1 -vvv
