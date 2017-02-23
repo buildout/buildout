@@ -51,4 +51,4 @@ clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
 
 test:
-  echo $(HERE)/doc
+  echo "$(HERE)/doc"
