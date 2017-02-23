@@ -56,7 +56,6 @@ with a parts option.  If we run Buildout:
    >>> run_buildout(src)
 
    >>> import os
-   >>> ls = lambda d='.': os.listdir(d)
    >>> eqs(ls(), 'buildout.cfg', 'bin', 'eggs', 'develop-eggs', 'parts', 'out')
 
    >>> eqs(ls('bin'))

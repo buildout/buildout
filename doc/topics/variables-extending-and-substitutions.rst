@@ -94,6 +94,27 @@ with the later (right/bottom) configurations overriding earlier
    extends = base1.cfg base2.cfg
              base3.cfg
 
+.. -> src
+
+    >>> write("[buildout]\na=11\nb=12\n", 'base1.cfg')
+    >>> write("[buildout]\nb=21\nc=22\n", 'base2.cfg')
+    >>> write("[buildout]\nc=31\nd=32\n", 'base3.cfg')
+    >>> write("[buildout]\nparts=\n" + src, 'buildout.cfg')
+    >>> run_buildout("buildout -vv")
+    >>> print(read()) # doctest: +ELLIPSIS
+    Creating ...
+    [buildout]
+    a = 11
+    allow-hosts = *
+    allow-picked-versions = true
+    b = 21
+    bin-directory = ...
+    c = 31
+    d = 32
+    develop-eggs-directory = ...
+
+    >>> clear_here()
+
 The options in the configuration using the extends option override the
 options in ``base3.cfg``, which override the options in ``base2.cfg``,
 which override the options in ``base1.cfg``.
@@ -127,6 +148,31 @@ is typically used to set up a shared egg or cache directory, as in:
   download-cache = ~/.buildout/download-cache
   abi-tag-eggs = true
 
+.. -> src
+
+    >>> import os
+    >>> os.makedirs(join('home', '.buildout'))
+    >>> write(src, 'home', '.buildout', 'default.cfg')
+    >>> write("""\
+    ... [buildout]
+    ... parts = bobo
+    ... [bobo]
+    ... recipe=zc.recipe.egg
+    ... eggs=bobo
+    ... """, "buildout.cfg")
+    >>> run_buildout()
+    >>> eqs(ls(),
+    ...     'out', 'home', '.installed.cfg', 'buildout.cfg',
+    ...     'develop-eggs', 'parts', 'bin')
+    >>> eqs(ls(join('home', '.buildout')),
+    ...     'default.cfg', 'eggs', 'download-cache')
+    >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
+    >>> eqs([n.split('-', 1)[0]
+    ...      for n in ls('home', '.buildout', 'eggs', abieggs)],
+    ...     'bobo', 'WebOb')
+
+    >>> clear_here()
+
 See the section on :doc:`optimizing buildouts with shared eggs and
 download caches <topics/optimizing>` for an explanation of the options
 used in the example above.
@@ -151,6 +197,22 @@ for example if we have a base configuration, ``buildout.cfg``:
      server
    ...
 
+.. -> src
+
+   >>> py_part = """
+   ... [{name}]
+   ... recipe = zc.recipe.egg
+   ... eggs = bobo
+   ... scripts = {name}
+   ... interpreter = {name}
+   ... """
+   >>> parts = (py_part.format(name='py')
+   ...        + py_part.format(name='test')
+   ...        + py_part.format(name='server'))
+   >>> write(src.replace('...', parts), 'buildout.cfg')
+   >>> run_buildout()
+   >>> eqs(ls('bin'), 'py', 'test', 'server')
+
 And a production configuration ``prod.cfg``, we can add another part,
 ``monitor``, like this:
 
@@ -160,6 +222,12 @@ And a production configuration ``prod.cfg``, we can add another part,
    extends = buildout.cfg
    parts += monitor
    ...
+
+.. -> src
+
+   >>> write(src.replace('...', py_part.format(name='monitor')), 'e.cfg')
+   >>> run_buildout("buildout -N -c e.cfg")
+   >>> eqs(ls('bin'), 'py', 'test', 'server', 'monitor')
 
 In this example, we didn't have to repeat (or necessarily know) the
 base parts to add the ``monitor`` part.
@@ -174,6 +242,14 @@ the ``test`` part in production:
    parts += monitor
    parts -= test
    ...
+
+.. -> src
+
+   >>> write(src.replace('...', py_part.format(name='monitor')), 'e.cfg')
+   >>> run_buildout("buildout -N -c e.cfg")
+   >>> eqs(ls('bin'), 'py', 'server', 'monitor')
+
+   >>> clear_here()
 
 Something to keep in mind is that this works by *lines*.  The ``+=``
 form adds the lines in the new data to the lines of the
@@ -193,6 +269,26 @@ when running buildout:
 
    buildout develop+=/path/to/other/project
 
+.. -> src
+
+   >>> write("import setuptools; setuptools.setup(name='a')", "setup.py")
+   >>> write("""
+   ... [buildout]
+   ... develop=.
+   ... parts=py
+   ... [py]
+   ... recipe=zc.recipe.egg
+   ... eggs = a
+   ...        b
+   ... [versions]
+   ... b=1
+   ... """, "buildout.cfg")
+   >>> os.mkdir('b')
+   >>> write("import setuptools; setuptools.setup(name='b', version=1)",
+   ...       "b", "setup.py")
+   >>> run_buildout(src.replace('/path/to/other/project', 'b'))
+   >>> eqs(ls('develop-eggs'), 'b.egg-link', 'a.egg-link')
+
 .. _unpinning-on-command-line:
 
 Although, if you've pinned the version of that project, you'll need to
@@ -201,6 +297,16 @@ Although, if you've pinned the version of that project, you'll need to
 .. code-block:: console
 
    buildout develop+=/path/to/other/project versions:projectname=
+
+.. -> src
+
+   >>> write("import setuptools; setuptools.setup(name='b', version=2)",
+   ...       "b", "setup.py")
+   >>> run_buildout(src.replace('/path/to/other/project', 'b')
+   ...                 .replace('projectname', 'b'))
+   >>> eqs(ls('develop-eggs'), 'b.egg-link', 'a.egg-link')
+
+   >>> clear_here()
 
 .. _macros-label:
 
@@ -216,7 +322,7 @@ macro:
 .. code-block:: ini
 
    [server]
-   recipe = zc.recipe.zdaemon
+   recipe = zc.zdaemonrecipe
    port = 8080
    program =
      ${buildout:bin-directory}/serve
@@ -230,6 +336,34 @@ macro:
    [server2]
    <= server
    port = 8082
+
+.. -> src
+
+   >>> write("[buildout]\nparts=server server1 server2\n" + src, "buildout.cfg")
+   >>> run_buildout("buildout -vv")
+   >>> print(read()) # doctest: +ELLIPSIS
+   Creating ...
+   [server]
+   ...
+   port = 8080
+   program = .../bin/serve...--port 8080...--name server
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
+   [server1]
+   ...
+   port = 8081
+   program = .../bin/serve...--port 8081...--name server1
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
+   [server2]
+   ...
+   port = 8082
+   program = .../bin/serve...--port 8082...--name server2
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
 
 In the example above, the ``server1`` and  ``server2`` sections use the
 ``server`` section, getting its ``recipe`` and ``program`` options.
@@ -238,7 +372,7 @@ The resulting configuration is equivalent to:
 .. code-block:: ini
 
    [server]
-   recipe = zc.recipe.zdaemon
+   recipe = zc.zdaemonrecipe
    port = 8080
    program =
      ${buildout:bin-directory}/serve
@@ -246,7 +380,7 @@ The resulting configuration is equivalent to:
         --name ${:_buildout_section_name_}
 
    [server1]
-   recipe = zc.recipe.zdaemon
+   recipe = zc.zdaemonrecipe
    port = 8081
    program =
      ${buildout:bin-directory}/serve
@@ -254,12 +388,40 @@ The resulting configuration is equivalent to:
         --name ${:_buildout_section_name_}
 
    [server2]
-   recipe = zc.recipe.zdaemon
+   recipe = zc.zdaemonrecipe
    port = 8082
    program =
      ${buildout:bin-directory}/serve
         --port ${:port}
         --name ${:_buildout_section_name_}
+
+.. -> src
+
+   >>> write("[buildout]\nparts=server server1 server2\n" + src, "buildout.cfg")
+   >>> run_buildout("buildout -vv")
+   >>> print(read()) # doctest: +ELLIPSIS
+   Installing ...
+   [server]
+   ...
+   port = 8080
+   program = .../bin/serve...--port 8080...--name server
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
+   [server1]
+   ...
+   port = 8081
+   program = .../bin/serve...--port 8081...--name server1
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
+   [server2]
+   ...
+   port = 8082
+   program = .../bin/serve...--port 8082...--name server2
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
 
 Value substitutions in the base section are applied after its
 application as a macro, so the substitutions are applied using data
@@ -274,6 +436,27 @@ on separate lines, as in:
    <= server
       monitored
    port = 8082
+
+.. -> src
+
+   >>> old = read('buildout.cfg')
+   >>> write(old + src + """
+   ... [monitored]
+   ... name = ${:_buildout_section_name_}
+   ... mport = 1${:port}
+   ... """, "buildout.cfg")
+   >>> run_buildout("buildout -vv")
+   >>> print(read()) # doctest: +ELLIPSIS
+   Installing ...
+   [server2]
+   ...
+   mport = 18082
+   name = server2
+   port = 8082
+   program = .../bin/serve...--port 8082...--name server2
+   ...
+   recipe = zc.zdaemonrecipe
+   ...
 
 If multiple sections are extended, they're processed in order, with
 later ones taking precedence.  In the example above, if both
