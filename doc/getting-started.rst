@@ -591,15 +591,15 @@ __________________
 You can unpin a version by just removing it (or commenting it out of)
 your ``versions`` section.
 
-You can also unpin a version by setting the version setting the
-version to an empty string:
+You can also unpin a version by setting the version to an empty
+string:
 
 .. code-block:: ini
 
   [versions]
   ZEO =
 
-In an extending configuration (``builduot.cfg`` in the example above), or
+In an extending configuration (``buildout.cfg`` in the example above), or
 :ref:`on the buildout command line <unpinning-on-command-line>`.
 
 You might do this if pins are shared between projects and you want to

@@ -173,7 +173,7 @@ extends-cache
   +---------------------------------+------------------------------+
   | Default                         | Configuration is downloaded  |
   | (:ref:`newest <newest-mode>`)   | and saved in the cache, even |
-  |                                 | it is already cached, and    |
+  |                                 | if it is already cached, and |
   |                                 | the previously cached value  |
   |                                 | is replaced.                 |
   +---------------------------------+------------------------------+
