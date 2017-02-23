@@ -188,7 +188,7 @@ requirements on the command line after ``init``:
 
 .. code-block:: console
 
-   buildout init ZODB six
+   buildout init bobo six
 
 .. -> src
 
@@ -210,7 +210,7 @@ command above would generate a buildout configuration file:
   recipe = zc.recipe.egg
   interpreter = py
   eggs =
-    ZODB
+    bobo
     six
 
 .. -> src
