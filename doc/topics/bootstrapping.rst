@@ -123,7 +123,7 @@ bootstrapping solution.
 
 .. _init-generates-buildout.cfg:
 
-bootstrapping requires a ``buildout.cfg``, ``init`` creates one
+Bootstrapping requires a ``buildout.cfg``, ``init`` creates one
 ==================================================================
 
 Normally, when bootstrapping, the local directory must have a
