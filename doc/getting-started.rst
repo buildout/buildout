@@ -56,7 +56,6 @@ with a parts option.  If we run Buildout:
    >>> run_buildout(src)
 
    >>> import os
-   >>> ls = lambda d='.': os.listdir(d)
    >>> eqs(ls(), 'buildout.cfg', 'bin', 'eggs', 'develop-eggs', 'parts', 'out')
 
    >>> eqs(ls('bin'))
@@ -403,6 +402,8 @@ Buildout to *not* check for newer versions of Python requirements:
 This relaxes repeatability, but with little risk if there was a recent
 run without this option.
 
+.. _pinned-versions:
+
 Pinned versions
 _______________
 
@@ -567,6 +568,30 @@ that your component only works a range of versions of some dependency,
 the express the range in your project requirements. Don't require
 specific versions.
 
+.. _unpinning-versions:
+
+Unpinning versions
+__________________
+
+You can unpin a version by just removing it (or commenting it out of)
+your ``versions`` section.
+
+You can also unpin a version by setting the version to an empty
+string:
+
+.. code-block:: ini
+
+  [versions]
+  ZEO =
+
+In an extending configuration (``buildout.cfg`` in the example above), or
+:ref:`on the buildout command line <unpinning-on-command-line>`.
+
+You might do this if pins are shared between projects and you want to
+unpin a requirement for one of the projects, or want to remove a pin
+while using a requirement in :ref:`development mode
+<python-development-projects>`.
+
 Buildout versions and automatic upgrade
 ---------------------------------------
 
@@ -601,6 +626,8 @@ Then, if the installed script is used:
 Then Buildout will upgrade or downgrade to be consistent with version
 requirements.  See the :doc:`bootstrapping topic
 <topics/bootstrapping>` to learn more about bootstrapping.
+
+.. _python-development-projects:
 
 Python development projects
 ===========================

@@ -70,6 +70,8 @@ To achieve Buildout's goals, it was necessary to interact with
 setuptools at a much lower level and to write quite a bit more
 packaging logic than planned.
 
+.. _eggs-label:
+
 Eggs
 ----
 

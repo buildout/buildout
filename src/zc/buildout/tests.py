@@ -3455,7 +3455,8 @@ normalize_S = (
     )
 
 def run_buildout(command):
-    os.environ['HOME'] = os.getcwd() # Make sure we don't get .buildout
+    # Make sure we don't get .buildout
+    os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
     args = command.strip().split()
     import pkg_resources
     buildout = pkg_resources.load_entry_point(
@@ -3751,18 +3752,32 @@ def test_suite():
                 with open(path) as f:
                     return f.read()
 
-            def write(text, path):
-                with open(path, 'w') as f:
+            def write(text, *path):
+                with open(os.path.join(*path), 'w') as f:
                     f.write(text)
+
+            def eqs(a, *b):
+                a = set(a); b = set(b)
+                return None if a == b else (a - b, b - a)
+
+            def clear_here():
+                for name in os.listdir('.'):
+                    if os.path.isfile(name):
+                        os.remove(name)
+                    else:
+                        shutil.rmtree(name)
 
             test.globs.update(
                 run_buildout=run_buildout_in_process,
                 yup=lambda cond, orelse='Nope': None if cond else orelse,
                 nope=lambda cond, orelse='Nope': orelse if cond else None,
                 eq=lambda a, b: None if a == b else (a, b),
-                eqs=lambda a, *b: None if set(a) == set(b) else (a, b),
+                eqs=eqs,
                 read=read,
                 write=write,
+                ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
+                join=os.path.join,
+                clear_here=clear_here
                 )
             setupstack.setUpDirectory(test)
 
@@ -3771,6 +3786,9 @@ def test_suite():
                 manuel.doctest.Manuel() + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
                 os.path.join(docdir, 'topics', 'bootstrapping.rst'),
+                os.path.join(
+                    docdir,
+                    'topics', 'variables-extending-and-substitutions.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 

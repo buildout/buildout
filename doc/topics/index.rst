@@ -6,9 +6,11 @@ Buildout Topics
    :maxdepth: 2
 
    history
+   variables-extending-and-substitutions
    bootstrapping
 
 .. todo:
 
-   variables-extending-and-substitutions
    writing-recipes
+   optimizing
+
