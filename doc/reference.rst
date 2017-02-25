@@ -11,15 +11,15 @@ A Buildout execution is of the form:
 
 .. code-block:: console
 
-  buildout [buildout-options] [settings] [subcommand [subcommand-arguments]]
+  buildout [buildout-options] [assignments] [command [command arguments]]
 
-Settings take the form ``section:option=value`` and override (or
-augment) settings in configuration files.  For example, to pin a
+Assignments take the form ``section:option=value`` and override (or
+augment) options in configuration files.  For example, to pin a
 version of ZEO you could use ``versions:ZEO=4.3.1``.  The section
 defaults to the ``buildout`` section.  So, for example: ``parts=test``
 sets the ``buildout`` section ``parts`` option.
 
-Command-line settings overrides can use ``+=`` and ``-=`` to
+Command-line assignments can use ``+=`` and ``-=`` to
 :ref:`merge values with existing values <merge-values-with-existing-values>`
 
 Buildout command-line options
@@ -42,7 +42,7 @@ Buildout command-line options
 
 ``-N``
   Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
-  to the command-line setting ``newest=false``.
+  to the command-line assignment ``newest=false``.
 
 ``-q``
    Decrease the level of verbosity.  This option can be used multiple
@@ -76,8 +76,8 @@ Buildout command-line options
 
    At the next, "debugging", level, ``-vv`` (or equivalently ``-v
    -v``), buildout prints low-level debugging information, including a
-   listing of all configuration options, including: default settings,
-   computed settings and the results of :ref:`value substitutions
+   listing of all configuration options, including: default options,
+   computed options and the results of :ref:`value substitutions
    <value-substitutions>` and :ref:`macros <macros-label>`.
 
    Using this option more than twice has no effect.
@@ -85,21 +85,21 @@ Buildout command-line options
 ``--version``
    Print buildout version number and exit.
 
-Buildout subcommands
---------------------
+Buildout commands
+-----------------
 
-.. _bootstrap-subcommand:
+.. _bootstrap-command:
 
 bootstrap
 _________
 
-Install a local ``bootstrap`` script.  The ``bootstrap`` subcommand
+Install a local ``bootstrap`` script.  The ``bootstrap`` command
 doesn't take any arguments.
 
 See :doc:`Bootstrapping <topics/bootstrapping>` for information on why
 you might want to do this.
 
-.. _init-subcommand:
+.. _init-command:
 
 init [requirements]
 ____________________
