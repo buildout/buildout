@@ -174,7 +174,7 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> clear_here()
 
 See the section on :doc:`optimizing buildouts with shared eggs and
-download caches <topics/optimizing>` for an explanation of the options
+download caches <optimizing>` for an explanation of the options
 used in the example above.
 
 .. _merge-values-with-existing-values:
