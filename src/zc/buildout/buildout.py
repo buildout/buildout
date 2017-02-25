@@ -1777,27 +1777,32 @@ Usage: buildout [options] [assignments] [command [command arguments]]
 
 Options:
 
-  -h, --help
-
-     Print this message and exit.
-
-  --version
-
-     Print buildout version number and exit.
-
-  -v
-
-     Increase the level of verbosity.  This option can be used multiple times.
-
-  -q
-
-     Decrease the level of verbosity.  This option can be used multiple times.
-
   -c config_file
 
      Specify the path to the buildout configuration file to be used.
      This defaults to the file named "buildout.cfg" in the current
      working directory.
+
+  -D
+
+    Debug errors.  If an error occurs, then the post-mortem debugger
+    will be started. This is especially useful for debuging recipe
+    problems.
+
+  -h, --help
+
+     Print this message and exit.
+
+  -N
+
+    Run in non-newest mode.  This is equivalent to the assignment
+    buildout:newest=false.  With this setting, buildout will not seek
+    new distributions if installed distributions satisfy it's
+    requirements.
+
+  -q
+
+     Decrease the level of verbosity.  This option can be used multiple times.
 
   -t socket_timeout
 
@@ -1807,37 +1812,13 @@ Options:
 
      Don't read user defaults.
 
-  -o
+  -v
 
-    Run in off-line mode.  This is equivalent to the assignment
-    buildout:offline=true.
+     Increase the level of verbosity.  This option can be used multiple times.
 
-  -O
+  --version
 
-    Run in non-off-line mode.  This is equivalent to the assignment
-    buildout:offline=false.  This is the default buildout mode.  The
-    -O option would normally be used to override a true offline
-    setting in a configuration file.
-
-  -n
-
-    Run in newest mode.  This is equivalent to the assignment
-    buildout:newest=true.  With this setting, which is the default,
-    buildout will try to find the newest versions of distributions
-    available that satisfy its requirements.
-
-  -N
-
-    Run in non-newest mode.  This is equivalent to the assignment
-    buildout:newest=false.  With this setting, buildout will not seek
-    new distributions if installed distributions satisfy it's
-    requirements.
-
-  -D
-
-    Debug errors.  If an error occurs, then the post-mortem debugger
-    will be started. This is especially useful for debuging recipe
-    problems.
+     Print buildout version number and exit.
 
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the

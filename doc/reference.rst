@@ -22,8 +22,68 @@ sets the ``buildout`` section ``parts`` option.
 Command-line settings overrides can use ``+=`` and ``-=`` to
 :ref:`merge values with existing values <merge-values-with-existing-values>`
 
-Buildout options
-----------------
+Buildout command-line options
+-----------------------------
+
+.. _-c-option:
+
+``-c config_file``
+   Specify the path (or URL) to the buildout configuration file to be used.
+   This defaults to the file named ``buildout.cfg`` in the current
+   working directory.
+
+``-D``
+  Debug errors.  If an error occurs, then the post-mortem debugger
+  will be started. This is especially useful for debugging recipe
+  problems.
+
+``-h``, ``--help``
+   Print basic usage information and exit.
+
+``-N``
+  Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
+  to the command-line setting ``newest=false``.
+
+``-q``
+   Decrease the level of verbosity.  This option can be used multiple
+   times.
+
+   Using a single ``-q`` suppresses normal output, but still shows
+   warnings and errors.
+
+   Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
+   normal output and warnings.
+
+   Using the option more than twice suppresses errors, which is a bad idea.
+
+``-t socket_timeout``
+   Specify the socket timeout in seconds. See the
+   :ref:`socket-timeout option <socket-timeout-option>` for details.
+
+``-U``
+   Don't use :ref:`user-default configuration <user-default-configuration>`.
+
+``-v``
+   Increase the level of verbosity.  This option can be used multiple
+   times.
+
+   At the default verbosity, buildout prints messages about significant
+   activities.  It also prints warning and error messages.
+
+   At the next, "verbose", level (``-v``), it prints much
+   more information. In particular, buildout will show when and why
+   it's installing specific distribution versions.
+
+   At the next, "debugging", level, ``-vv`` (or equivalently ``-v
+   -v``), buildout prints low-level debugging information, including a
+   listing of all configuration options, including: default settings,
+   computed settings and the results of :ref:`value substitutions
+   <value-substitutions>` and :ref:`macros <macros-label>`.
+
+   Using this option more than twice has no effect.
+
+``--version``
+   Print buildout version number and exit.
 
 Buildout subcommands
 --------------------
@@ -248,16 +308,6 @@ log-format, default: ''
   If ``log-format`` is non-blank, then it will be used for the root logger
   [#root-logger]_ (and for Buildout's messages).
 
-log-level, default: 'INFO'
-  The `logging level
-  <https://docs.python.org/3/library/logging.html#logging-levels>`_.
-
-  This may be adjusted with the :ref:`-v option <-v-option>` or the
-  :ref:`-q option <-q-option>`, which are the more common ways to control
-  the logging level.
-
-  The ``log-level`` option is rarely used.
-
 .. _newest-mode:
 
 .. _non-newest-mode:
@@ -309,6 +359,8 @@ show-picked-versions, default: 'false'
   requirement that `wasn't pinned <pinned-versions>`, it will print
   lines it would write to a versions configuration if the
   :ref:`update-versions-file <update-versions-file>` option was used.
+
+.. _socket-timeout-option:
 
 socket-timeout, default: ''
   Specify a socket timeout [#socket-timeout]_, in seconds, to use when
