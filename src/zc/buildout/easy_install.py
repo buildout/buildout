@@ -375,12 +375,7 @@ class Installer:
             str(req))
         return best_we_have, None
 
-    def _load_dist(self, dist):
-        dists = pkg_resources.Environment(dist.location)[dist.project_name]
-        assert len(dists) == 1
-        return dists[0]
-
-    def _call_easy_install(self, spec, ws, dest, dist):
+    def _call_easy_install(self, spec, dest, dist):
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
@@ -527,7 +522,7 @@ class Installer:
 
         return dist.clone(location=new_location)
 
-    def _get_dist(self, requirement, ws, for_buildout_run=False):
+    def _get_dist(self, requirement, ws):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
@@ -579,15 +574,7 @@ class Installer:
                     # It's some other kind of dist.  We'll let easy_install
                     # deal with it:
                     dists = self._call_easy_install(
-                        dist.location, ws, self._dest, dist)
-                    for dist in dists:
-                        if for_buildout_run:
-                            # ws is the global working set and we're
-                            # installing buildout, setuptools, extensions or
-                            # recipes. Make sure that whatever correct version
-                            # we've just installed is the active version,
-                            # hence the ``replace=True``.
-                            ws.add(dist, replace=True)
+                        dist.location, self._dest, dist)
 
             finally:
                 if tmp != self._download_cache:
@@ -672,10 +659,6 @@ class Installer:
             "Base installation request: %s" % repr(specs)[1:-1])
 
         for_buildout_run = bool(working_set)
-        path = self._path
-        dest = self._dest
-        if dest is not None and dest not in path:
-            path.insert(0, dest)
 
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
@@ -686,8 +669,7 @@ class Installer:
             ws = working_set
 
         for requirement in requirements:
-            for dist in self._get_dist(requirement, ws,
-                                       for_buildout_run=for_buildout_run):
+            for dist in self._get_dist(requirement, ws):
                 ws.add(dist)
                 self._maybe_add_setuptools(ws, dist)
 
@@ -731,13 +713,12 @@ class Installer:
                     if not for_buildout_run:
                         raise VersionConflict(err, ws)
             if dist is None:
-                if dest:
+                if self._dest:
                     logger.debug('Getting required %r', str(req))
                 else:
                     logger.debug('Adding required %r', str(req))
                 self._log_requirement(ws, req)
-                for dist in self._get_dist(req, ws,
-                                           for_buildout_run=for_buildout_run):
+                for dist in self._get_dist(req, ws):
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
@@ -815,9 +796,7 @@ class Installer:
                 setuptools.command.setopt.edit_config(
                     setup_cfg, dict(build_ext=build_ext))
 
-                dists = self._call_easy_install(
-                    base, pkg_resources.WorkingSet(),
-                    self._dest, dist)
+                dists = self._call_easy_install(base, self._dest, dist)
 
                 return [dist.location for dist in dists]
             finally:
