@@ -326,11 +326,13 @@ offline, default: 'false'
 
   .. Warning:: Offline mode is deprecated.
 
-     Its purpose has evolved over time and the end result doesn't
-     make much sense, but it is retained for backward compatibility.
+     Its purpose has evolved over time and the end result doesn't make
+     much sense, but it is retained (indefinitely) for backward
+     compatibility.
 
-     If you think you want an offline mode, you probably want the
-     :ref:`install-from-cache <install-from-cache-mode>` mode instead.
+     If you think you want an offline mode, you probably want either
+     the :ref:`non-newest mode <non-newest-mode>` or the
+     :ref:`install-from-cache mode <install-from-cache-mode>` instead.
 
   In offline mode, no network requests should be made.  It's the
   responsibility of recipes to adhere to this.  Recipes that would
