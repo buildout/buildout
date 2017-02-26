@@ -3748,8 +3748,8 @@ def test_suite():
                 if process.is_alive() or process.exitcode:
                     print(read())
 
-            def read(path='out'):
-                with open(path) as f:
+            def read(path='out', *rest):
+                with open(os.path.join(path, *rest)) as f:
                     return f.read()
 
             def write(text, *path):
@@ -3777,7 +3777,8 @@ def test_suite():
                 write=write,
                 ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
                 join=os.path.join,
-                clear_here=clear_here
+                clear_here=clear_here,
+                os=os,
                 )
             setupstack.setUpDirectory(test)
 
@@ -3789,6 +3790,7 @@ def test_suite():
                 os.path.join(
                     docdir,
                     'topics', 'variables-extending-and-substitutions.rst'),
+                os.path.join(docdir, 'topics', 'writing-recipes.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 

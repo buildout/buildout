@@ -1848,17 +1848,10 @@ Options and assignments can be interspersed.
 
 Commands:
 
-  install [parts]
+  install
 
-    Install parts.  If no command arguments are given, then the parts
-    definition from the configuration file is used.  Otherwise, the
-    arguments specify the parts to be installed.
-
-    Note that the semantics differ depending on whether any parts are
-    specified.  If parts are specified, then only those parts will be
-    installed. If no parts are specified, then the parts specified by
-    the buildout parts option will be installed along with all of
-    their dependencies.
+    Install the parts specified in the buildout configuration.  This is
+    the default command if no command is specified.
 
   bootstrap
 
@@ -1866,11 +1859,16 @@ Commands:
     the buildout and setuptools eggs and, creating a basic directory
     structure and a buildout-local buildout script.
 
-  init
+  init [requirements]
 
-    Initialize a buildout, creating a buildout.cfg file if it doesn't
-    exist and then performing the same actions as for the buildout
+    Initialize a buildout, creating a minimal buildout.cfg file if it doesn't
+    exist and then performing the same actions as for the bootstrap
     command.
+
+    If requirements are supplied, then the generated configuration
+    will include an interpreter script that requires them.  This
+    provides an easy way to quickly set up a buildout to experiment
+    with some packages.
 
   setup script [setup command and options]
 
