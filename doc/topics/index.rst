@@ -7,6 +7,7 @@ Buildout Topics
 
    history
    variables-extending-and-substitutions
+   implicit-parts
    bootstrapping
 
 .. todo:
