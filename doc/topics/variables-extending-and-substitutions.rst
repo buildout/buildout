@@ -137,7 +137,7 @@ Conditional configuration sections
 Sometimes, you need different configuration in different environments
 (different operating systems, or different versions of Python).  To
 make this easier, you can define environment-specific options by
-providing conditional sections::
+providing conditional sections:
 
 .. code-block:: ini
 
