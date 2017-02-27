@@ -434,7 +434,7 @@ data on the first line
 
       >>> eq(parse(header + option)['buildout']['parts'] + '\n', val)
 
-No data on the first line
+no data on the first line
   Internal blank lines are retained and common leading white space is stripped.
 
   For example, the value of the option:
