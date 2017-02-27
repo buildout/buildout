@@ -240,7 +240,7 @@ class Installer:
                  check_picked=True,
                  ):
         assert executable == sys.executable, (executable, sys.executable)
-        self._dest = dest
+        self._dest = dest if dest is None else pkg_resources.normalize_path(dest)
         self._allow_hosts = allow_hosts
 
         if self._install_from_cache:
@@ -258,19 +258,50 @@ class Installer:
 
         self._index_url = index
         path = (path and path[:] or []) + buildout_and_setuptools_path
-        if dest is not None and dest not in path:
-            path.insert(0, dest)
         self._path = path
         if self._dest is None:
             newest = False
         self._newest = newest
-        self._env = pkg_resources.Environment(path)
+        self._env = self._make_env()
         self._index = _get_index(index, links, self._allow_hosts)
         self._requirements_and_constraints = []
         self._check_picked = check_picked
 
         if versions is not None:
             self._versions = normalize_versions(versions)
+
+    def _make_env(self):
+        full_path = self._get_dest_dist_paths() + self._path
+        env = pkg_resources.Environment(full_path)
+        # this needs to be called whenever self._env is modified (or we could
+        # make an Environment subclass):
+        self._eggify_env_dest_dists(env, self._dest)
+        return env
+
+    def _env_rescan_dest(self):
+        self._env.scan(self._get_dest_dist_paths())
+        self._eggify_env_dest_dists(self._env, self._dest)
+
+    def _get_dest_dist_paths(self):
+        dest = self._dest
+        if dest is None:
+            return []
+        eggs = glob.glob(os.path.join(dest, '*.egg'))
+        dists = [os.path.dirname(dist_info) for dist_info in
+                 glob.glob(os.path.join(dest, '*', '*.dist-info'))]
+        # sort them like pkg_resources.find_on_path() would
+        return pkg_resources._by_version_descending(set(eggs + dists))
+
+    @staticmethod
+    def _eggify_env_dest_dists(env, dest):
+        """
+        Make sure everything found under `dest` is seen as an egg, even if it's
+        some other kind of dist.
+        """
+        for project_name in env:
+            for dist in env[project_name]:
+                if os.path.dirname(dist.location) == dest:
+                    dist.precedence = pkg_resources.EGG_DIST
 
     def _version_conflict_information(self, name):
         """Return textual requirements/constraint information for debug purposes
@@ -536,7 +567,7 @@ class Installer:
                 if tmp != self._download_cache:
                     shutil.rmtree(tmp)
 
-            self._env.scan([self._dest])
+            self._env_rescan_dest()
             dist = self._env.best_match(requirement, ws)
             logger.info("Got %s.", dist)
 
