@@ -169,6 +169,51 @@ def _execute_permission():
 
 _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 
+def get_namespace_package_paths(dist):
+    """
+    Generator of the expected pathname of each __init__.py file of the
+    namespaces of a distribution.
+    """
+    base = [dist.location]
+    init = ['__init__.py']
+    for namespace in dist.get_metadata_lines('namespace_packages.txt'):
+        yield os.path.join(*(base + namespace.split('.') + init))
+
+def namespace_packages_need_pkg_resources(dist):
+    if os.path.isfile(dist.location):
+        # Zipped egg, with namespaces, surely needs setuptools
+        return True
+    # If they have `__init__.py` files that use pkg_resources and don't
+    # fallback to using `pkgutil`, then they need setuptools/pkg_resources:
+    for path in get_namespace_package_paths(dist):
+        if os.path.isfile(path):
+            with open(path, 'rb') as f:
+                source = f.read()
+                if (source and
+                        b'pkg_resources' in source and
+                        not b'pkgutil' in source):
+                    return True
+    return False
+
+def dist_needs_pkg_resources(dist):
+    """
+    A distribution needs setuptools/pkg_resources added as requirement if:
+
+        * It has namespace packages declared with:
+        - `pkg_resources.declare_namespace()`
+        * Those namespace packages don't fall back to `pkgutil`
+        * It doesn't have `setuptools/pkg_resources` as requirement already
+    """
+
+    return (
+        dist.has_metadata('namespace_packages.txt') and
+        # This will need to change when `pkg_resources` gets its own
+        # project:
+        'setuptools' not in {r.project_name for r in dist.requires()} and
+        namespace_packages_need_pkg_resources(dist)
+    )
+
+
 class Installer:
 
     _versions = {}
@@ -591,25 +636,20 @@ class Installer:
         return dists
 
     def _maybe_add_setuptools(self, ws, dist):
-        if dist.has_metadata('namespace_packages.txt'):
-            for r in dist.requires():
-                if r.project_name in ('setuptools', 'setuptools'):
-                    break
-            else:
-                # We have a namespace package but no requirement for setuptools
-                if dist.precedence == pkg_resources.DEVELOP_DIST:
-                    logger.warn(
-                        "Develop distribution: %s\n"
-                        "uses namespace packages but the distribution "
-                        "does not require setuptools.",
-                        dist)
-                requirement = self._constrain(
-                    pkg_resources.Requirement.parse('setuptools')
-                    )
-                if ws.find(requirement) is None:
-                    for dist in self._get_dist(requirement, ws):
-                        ws.add(dist)
-
+        if dist_needs_pkg_resources(dist):
+            # We have a namespace package but no requirement for setuptools
+            if dist.precedence == pkg_resources.DEVELOP_DIST:
+                logger.warn(
+                    "Develop distribution: %s\n"
+                    "uses namespace packages but the distribution "
+                    "does not require setuptools.",
+                    dist)
+            requirement = self._constrain(
+                pkg_resources.Requirement.parse('setuptools')
+                )
+            if ws.find(requirement) is None:
+                for dist in self._get_dist(requirement, ws):
+                    ws.add(dist)
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""

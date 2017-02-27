@@ -836,12 +836,15 @@ and we will get setuptools included in the working set.
     ...        'zc.buildout.easy_install', level=logging.WARNING)
     >>> logging.getLogger('zc.buildout.easy_install').propagate = False
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['foox'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> def get_working_set(*project_names):
+    ...     paths = [join(sample_buildout, 'eggs'),
+    ...              join(sample_buildout, 'develop-eggs')]
+    ...     return [
+    ...        dist.project_name
+    ...        for dist in zc.buildout.easy_install.working_set(
+    ...            project_names, sys.executable, paths)
+    ...     ]
+    >>> get_working_set('foox')
     ['foox', 'setuptools']
 
     >>> print_(handler)
@@ -851,13 +854,15 @@ and we will get setuptools included in the working set.
 
     >>> handler.clear()
 
-On the other hand, if we have a regular egg, rather than a develop egg:
+On the other hand, if we have a zipped egg, rather than a develop egg:
 
     >>> os.remove(join('develop-eggs', 'foox.egg-link'))
 
-    >>> _ = system(join('bin', 'buildout') + ' setup foo bdist_egg -d'
-    ...            + join(sample_buildout, 'eggs'))
-
+    >>> _ = system(join('bin', 'buildout') + ' setup foo bdist_egg')
+    >>> foox_dist = join('foo', 'dist')
+    >>> import glob
+    >>> [foox_egg] = glob.glob(join(foox_dist, 'foox-*.egg'))
+    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs'))
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
 
@@ -870,17 +875,27 @@ On the other hand, if we have a regular egg, rather than a develop egg:
 
 We do not get a warning, but we do get setuptools included in the working set:
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['foox'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> get_working_set('foox')
     ['foox', 'setuptools']
 
     >>> print_(handler, end='')
 
-We get the same behavior if the it is a dependency that uses a
+Likewise for an unzipped egg:
+
+    >>> foox_egg_basename = os.path.basename(foox_egg)
+    >>> os.remove(join(sample_buildout, 'eggs', foox_egg_basename))
+    >>> _ = zc.buildout.easy_install.install(
+    ...     ['foox'], join(sample_buildout, 'eggs'), links=[foox_dist],
+    ...     index='file://' + foox_dist)
+    >>> ls('develop-eggs')
+    -  zc.recipe.egg.egg-link
+
+    >>> get_working_set('foox')
+    ['foox', 'setuptools']
+
+    >>> print_(handler, end='')
+
+We get the same behavior if it is a dependency that uses a
 namespace package.
 
 
@@ -903,12 +918,7 @@ namespace package.
     Develop: '/sample-buildout/foo'
     Develop: '/sample-buildout/bar'
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['bar'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> get_working_set('bar')
     ['bar', 'foox', 'setuptools']
 
     >>> print_(handler, end='')
@@ -916,6 +926,32 @@ namespace package.
       Develop distribution: foox 0.0.0
     uses namespace packages but the distribution does not require setuptools.
 
+On the other hand, if the distribution uses ``pkgutil.extend_path()`` to
+implement its namespaces, even if just as fallback from the absence of
+``pkg_resources``, then ``setuptools`` shoudn't be added as requirement to
+its unzipped egg:
+
+    >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
+    >>> namespace_init = join(foox_installed_egg, 'stuff', '__init__.py')
+    >>> write(namespace_init,
+    ... """try:
+    ...     __import__('pkg_resources').declare_namespace(__name__)
+    ... except ImportError:
+    ...     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+    ... """)
+
+    >>> os.remove(join('develop-eggs', 'foox.egg-link'))
+    >>> os.remove(join('develop-eggs', 'bar.egg-link'))
+    >>> get_working_set('foox')
+    ['foox']
+
+The same goes for packages using PEP420 namespaces
+
+    >>> os.remove(namespace_init)
+    >>> get_working_set('foox')
+    ['foox']
+
+Cleanup:
 
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
     >>> handler.uninstall()
