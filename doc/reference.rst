@@ -354,12 +354,12 @@ A section begins with a section and and, optionally, a condition in
 square braces (``[`` and ``]``).
 
 A name can consist of any characters other than whitespace, square
-braces, curly braced (``{`` or ``}``), point signs (``#``), colons
+braces, curly braced (``{`` or ``}``), pound signs (``#``), colons
 (``:``) or semi-colons (``;``).  The name may be surrounded by leading
 and trailing whitespace, which is ignored.
 
 An optional condition is separated from the name by a colon and is a
-Python expression. It may not contain a pound sign or semi-colon.  See
+Python expression.  It may not contain a pound sign or semi-colon.  See
 the section on :ref:`conditional sections <conditional-sections>` for
 an example and more details.
 
@@ -417,14 +417,13 @@ Trailing whitespace is stripped from each line in an option value.
 Leading and trailing blank lines are stripped from option values.
 
 Handling of leading whitespace and blank lines internal to values
-depend on whether their is data on the first line containing the
-option name.
+depend on whether there is data on the first line (containing the
+option name).
 
-If there is data on the first line
-  leading whitespace is stripped and blank lines are omitted.
+data on the first line
+  Leading whitespace is stripped and blank lines are omitted.
 
-  The
-  resulting option value in the example above is:
+  The resulting option value in the example above is:
 
   .. code-block:: ini
 
@@ -435,7 +434,7 @@ If there is data on the first line
 
       >>> eq(parse(header + option)['buildout']['parts'] + '\n', val)
 
-If there isn't data on the first line
+No data on the first line
   Internal blank lines are retained and common leading white space is stripped.
 
   For example, the value of the option:
