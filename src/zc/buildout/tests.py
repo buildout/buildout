@@ -3801,7 +3801,7 @@ def test_suite():
                 os.path.join(
                     docdir,
                     'topics', 'variables-extending-and-substitutions.rst'),
-                os.path.join( docdir, 'topics', 'optimizing.rst'),
+                os.path.join(docdir, 'topics', 'optimizing.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 
