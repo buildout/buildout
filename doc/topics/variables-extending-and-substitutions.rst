@@ -67,8 +67,8 @@ user default values
 options from one or more configuration files
   These override user defaults and each other, as described below.
 
-option values in the :ref:`buildout command line <buildout-command-line>`
-  These override configuration-file settings.
+option assignments in the :ref:`buildout command line <buildout-command-line>`
+  These override configuration-file options.
 
 .. _extends_option:
 
@@ -345,7 +345,7 @@ original *lines*. This is a bit delicate.  In the example above,
 we were careful to put the base values on separate lines, in
 anticipation of using ``-=``.
 
-Merging values also works with option settings provided via the
+Merging values also works with option assignments provided via the
 :ref:`buildout command line <buildout-command-line>`.  For example, if
 you want to temporarily use a :ref:`development version
 <python-development-projects>` of another project, you can augment the

@@ -615,6 +615,12 @@ def test_help():
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+         Specify the path to the buildout configuration file to be used.
+         This defaults to the file named "buildout.cfg" in the current
+         working directory.
+    ...
       -h, --help
     ...
 
@@ -625,6 +631,12 @@ def test_help():
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+         Specify the path to the buildout configuration file to be used.
+         This defaults to the file named "buildout.cfg" in the current
+         working directory.
+    ...
       -h, --help
     ...
     """
