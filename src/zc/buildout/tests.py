@@ -3797,6 +3797,7 @@ def test_suite():
             manuel.testing.TestSuite(
                 manuel.doctest.Manuel() + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
+                os.path.join(docdir, 'reference.rst'),
                 os.path.join(docdir, 'topics', 'bootstrapping.rst'),
                 os.path.join(
                     docdir,

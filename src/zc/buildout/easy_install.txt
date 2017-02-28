@@ -266,6 +266,8 @@ reporting that a version was picked automatically:
       Installing 'demo'.
     zc.buildout.easy_install INFO
       Getting distribution for 'demo'.
+    zc.buildout.easy_install DEBUG
+      Fetching demo 0.3 from: http://.../demo-0.3-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demo 0.3.
     zc.buildout.easy_install DEBUG
@@ -276,6 +278,8 @@ reporting that a version was picked automatically:
         required by demo 0.3.
     zc.buildout.easy_install INFO
       Getting distribution for 'demoneeded'.
+    zc.buildout.easy_install DEBUG
+      Fetching demoneeded 1.1 from: http://.../demoneeded-1.1.zip
     zc.buildout.easy_install DEBUG
       Running easy_install:...
     zc.buildout.easy_install INFO

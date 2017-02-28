@@ -2,8 +2,6 @@
 Getting started with Buildout
 =============================
 
-.. contents::
-
 .. note::
 
    In the Buildout documentation, we'll use the word

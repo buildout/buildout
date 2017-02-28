@@ -28,9 +28,9 @@ Buildout command-line options
 .. _-c-option:
 
 ``-c config_file``
-   Specify the path (or URL) to the buildout configuration file to be used.
-   This defaults to the file named ``buildout.cfg`` in the current
-   working directory.
+  Specify the path (or URL) to the buildout configuration file to be used.
+  This defaults to the file named ``buildout.cfg`` in the current
+  working directory.
 
 ``-D``
   Debug errors.  If an error occurs, then the post-mortem debugger
@@ -38,52 +38,52 @@ Buildout command-line options
   problems.
 
 ``-h``, ``--help``
-   Print basic usage information and exit.
+  Print basic usage information and exit.
 
 ``-N``
   Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
   to the command-line assignment ``newest=false``.
 
 ``-q``
-   Decrease the level of verbosity.  This option can be used multiple
-   times.
+  Decrease the level of verbosity.  This option can be used multiple
+  times.
 
-   Using a single ``-q`` suppresses normal output, but still shows
-   warnings and errors.
+  Using a single ``-q`` suppresses normal output, but still shows
+  warnings and errors.
 
-   Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
-   normal output and warnings.
+  Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
+  normal output and warnings.
 
-   Using the option more than twice suppresses errors, which is a bad idea.
+  Using the option more than twice suppresses errors, which is a bad idea.
 
 ``-t socket_timeout``
-   Specify the socket timeout in seconds. See the
-   :ref:`socket-timeout option <socket-timeout-option>` for details.
+  Specify the socket timeout in seconds. See the
+  :ref:`socket-timeout option <socket-timeout-option>` for details.
 
 ``-U``
-   Don't use :ref:`user-default configuration <user-default-configuration>`.
+  Don't use :ref:`user-default configuration <user-default-configuration>`.
 
 ``-v``
-   Increase the level of verbosity.  This option can be used multiple
-   times.
+  Increase the level of verbosity.  This option can be used multiple
+  times.
 
-   At the default verbosity, buildout prints messages about significant
-   activities.  It also prints warning and error messages.
+  At the default verbosity, buildout prints messages about significant
+  activities.  It also prints warning and error messages.
 
-   At the next, "verbose", level (``-v``), it prints much
-   more information. In particular, buildout will show when and why
-   it's installing specific distribution versions.
+  At the next, "verbose", level (``-v``), it prints much
+  more information. In particular, buildout will show when and why
+  it's installing specific distribution versions.
 
-   At the next, "debugging", level, ``-vv`` (or equivalently ``-v
-   -v``), buildout prints low-level debugging information, including a
-   listing of all configuration options, including: default options,
-   computed options and the results of :ref:`value substitutions
-   <value-substitutions>` and :ref:`macros <macros-label>`.
+  At the next, "debugging", level, ``-vv`` (or equivalently ``-v
+  -v``), buildout prints low-level debugging information, including a
+  listing of all configuration options, including: default options,
+  computed options and the results of :ref:`value substitutions
+  <value-substitutions>` and :ref:`macros <macros-label>`.
 
-   Using this option more than twice has no effect.
+  Using this option more than twice has no effect.
 
 ``--version``
-   Print buildout version number and exit.
+  Print buildout version number and exit.
 
 Buildout commands
 -----------------
@@ -326,11 +326,13 @@ offline, default: 'false'
 
   .. Warning:: Offline mode is deprecated.
 
-     Its purpose has evolved over time and the end result doesn't
-     make much sense, but it is retained for backward compatibility.
+     Its purpose has evolved over time and the end result doesn't make
+     much sense, but it is retained (indefinitely) for backward
+     compatibility.
 
-     If you think you want an offline mode, you probably want the
-     :ref:`install-from-cache <install-from-cache-mode>` mode instead.
+     If you think you want an offline mode, you probably want either
+     the :ref:`non-newest mode <non-newest-mode>` or the
+     :ref:`install-from-cache mode <install-from-cache-mode>` instead.
 
   In offline mode, no network requests should be made.  It's the
   responsibility of recipes to adhere to this.  Recipes that would
@@ -389,6 +391,147 @@ use-dependency-links, default: true
 
 versions, default 'versions'
   The name of a section that contains :ref:`version pins <pinned-versions>`.
+
+Configuration file syntax
+=========================
+
+Buildout configurations use an `INI file format
+<https://en.wikipedia.org/wiki/INI_file>`_.
+
+A configuration is a collection of named sections containing named
+options.
+
+Section names
+-------------
+
+A section begins with a section and and, optionally, a condition in
+square braces (``[`` and ``]``).
+
+A name can consist of any characters other than whitespace, square
+braces, curly braces (``{`` or ``}``), pound signs (``#``), colons
+(``:``) or semi-colons (``;``).  The name may be surrounded by leading
+and trailing whitespace, which is ignored.
+
+An optional condition is separated from the name by a colon and is a
+Python expression.  It may not contain a pound sign or semi-colon.  See
+the section on :ref:`conditional sections <conditional-sections>` for
+an example and more details.
+
+A comment, preceded by a pound sign or semicolon may follow the
+section name, as in:
+
+.. code-block:: ini
+
+   [buildout] # This is the buildout section
+
+.. -> header
+
+Options
+-------
+
+Options are specified with an option name followed by an equal sign
+and a value:
+
+.. code-block:: ini
+
+   parts = py
+
+.. -> option
+
+    >>> import six
+    >>> import zc.buildout.configparser
+    >>> def parse(s):
+    ...     return zc.buildout.configparser.parse(six.StringIO(s), 'test')
+    >>> from pprint import pprint
+    >>> pprint(parse(header + option))
+    {'buildout': {'parts': 'py'}}
+
+Option names may have any characters other than whitespace, square
+braces, curly braces, equal signs, or colons.  There may be and usually
+is whitespace between the name and the equal sign and the name and
+equal sign must be on the same line.
+
+Option values may contain any characters. A consequence of this is
+that there can't be comments in option values.
+
+Option values may be continued on multiple lines, and may contain blank lines:
+
+.. code-block:: ini
+
+   parts = py
+
+           test
+
+.. -> option
+
+Whitespace in option values
+___________________________
+
+Trailing whitespace is stripped from each line in an option value.
+Leading and trailing blank lines are stripped from option values.
+
+Handling of leading whitespace and blank lines internal to values
+depend on whether there is data on the first line (containing the
+option name).
+
+data on the first line
+  Leading whitespace is stripped and blank lines are omitted.
+
+  The resulting option value in the example above is:
+
+  .. code-block:: ini
+
+        py
+        test
+
+  .. -> val
+
+      >>> eq(parse(header + option)['buildout']['parts'] + '\n', val)
+
+no data on the first line
+  Internal blank lines are retained and common leading white space is stripped.
+
+  For example, the value of the option:
+
+  .. code-block:: ini
+
+     code =
+         if x == 1:
+             y = 2 # a comment
+
+             return
+
+  .. -> option
+
+  is::
+
+     if x == 1:
+         y = 2 # a comment
+
+         return
+
+  .. -> val
+
+       >>> eq(parse(header + option)['buildout']['code'] + '\n', val)
+
+Comments and blank lines
+------------------------
+
+Lines beginning with pound signs or semi-colons (``#`` or ``;``) are
+comments::
+
+  # This is a comment
+  ; This too
+
+.. -> comment
+
+       >>> eq(parse(comment + header + comment + option + comment )
+       ...    ['buildout']['code'] + '\n', val)
+
+As mentioned earlier, comments can also appear after section names.
+
+Blank lines are ignored unless they're within option values that only
+have data on continuation lines.
 
 .. [#root-logger] Generally, the root logger format is used for all
    messages unless it is overridden by a lower-level logger.

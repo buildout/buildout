@@ -466,8 +466,10 @@ class Installer:
         if (download_cache
             and (realpath(os.path.dirname(dist.location)) == download_cache)
             ):
+            logger.debug("Download cache has %s at: %s", dist, dist.location)
             return dist
 
+        logger.debug("Fetching %s from: %s", dist, dist.location)
         new_location = self._index.download(dist.location, tmp)
         if (download_cache
             and (realpath(new_location) == realpath(dist.location))
