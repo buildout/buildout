@@ -28,9 +28,9 @@ Buildout command-line options
 .. _-c-option:
 
 ``-c config_file``
-   Specify the path (or URL) to the buildout configuration file to be used.
-   This defaults to the file named ``buildout.cfg`` in the current
-   working directory.
+  Specify the path (or URL) to the buildout configuration file to be used.
+  This defaults to the file named ``buildout.cfg`` in the current
+  working directory.
 
 ``-D``
   Debug errors.  If an error occurs, then the post-mortem debugger
@@ -38,52 +38,52 @@ Buildout command-line options
   problems.
 
 ``-h``, ``--help``
-   Print basic usage information and exit.
+  Print basic usage information and exit.
 
 ``-N``
   Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
   to the command-line assignment ``newest=false``.
 
 ``-q``
-   Decrease the level of verbosity.  This option can be used multiple
-   times.
+  Decrease the level of verbosity.  This option can be used multiple
+  times.
 
-   Using a single ``-q`` suppresses normal output, but still shows
-   warnings and errors.
+  Using a single ``-q`` suppresses normal output, but still shows
+  warnings and errors.
 
-   Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
-   normal output and warnings.
+  Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
+  normal output and warnings.
 
-   Using the option more than twice suppresses errors, which is a bad idea.
+  Using the option more than twice suppresses errors, which is a bad idea.
 
 ``-t socket_timeout``
-   Specify the socket timeout in seconds. See the
-   :ref:`socket-timeout option <socket-timeout-option>` for details.
+  Specify the socket timeout in seconds. See the
+  :ref:`socket-timeout option <socket-timeout-option>` for details.
 
 ``-U``
-   Don't use :ref:`user-default configuration <user-default-configuration>`.
+  Don't use :ref:`user-default configuration <user-default-configuration>`.
 
 ``-v``
-   Increase the level of verbosity.  This option can be used multiple
-   times.
+  Increase the level of verbosity.  This option can be used multiple
+  times.
 
-   At the default verbosity, buildout prints messages about significant
-   activities.  It also prints warning and error messages.
+  At the default verbosity, buildout prints messages about significant
+  activities.  It also prints warning and error messages.
 
-   At the next, "verbose", level (``-v``), it prints much
-   more information. In particular, buildout will show when and why
-   it's installing specific distribution versions.
+  At the next, "verbose", level (``-v``), it prints much
+  more information. In particular, buildout will show when and why
+  it's installing specific distribution versions.
 
-   At the next, "debugging", level, ``-vv`` (or equivalently ``-v
-   -v``), buildout prints low-level debugging information, including a
-   listing of all configuration options, including: default options,
-   computed options and the results of :ref:`value substitutions
-   <value-substitutions>` and :ref:`macros <macros-label>`.
+  At the next, "debugging", level, ``-vv`` (or equivalently ``-v
+  -v``), buildout prints low-level debugging information, including a
+  listing of all configuration options, including: default options,
+  computed options and the results of :ref:`value substitutions
+  <value-substitutions>` and :ref:`macros <macros-label>`.
 
-   Using this option more than twice has no effect.
+  Using this option more than twice has no effect.
 
 ``--version``
-   Print buildout version number and exit.
+  Print buildout version number and exit.
 
 Buildout commands
 -----------------
