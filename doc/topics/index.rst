@@ -9,8 +9,6 @@ Buildout Topics
    variables-extending-and-substitutions
    optimizing
    bootstrapping
-
-.. todo:
-
    writing-recipes
 
+.. todo:

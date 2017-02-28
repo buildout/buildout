@@ -138,6 +138,22 @@ It then runs the resulting buildout.
 
 See :ref:`Bootstrapping <init-generates-buildout.cfg>` for examples.
 
+.. _install-command:
+
+install
+_______
+
+Install the parts specified in the buildout configuration.  This is
+the default command if no command is specified.
+
+.. We're not documenting arguments.
+
+   Passing arguments to install is an attractive nuisance, since it
+   can lead to parts being installed inconsistently.  The feature
+   exists for backward compatibility, but may be dropped in the
+   future.
+
+
 setup PATH SETUP-COMMANDS
 _________________________
 
@@ -301,6 +317,8 @@ extends-cache
   substitutions, and the result is a relative path, then it will be
   interpreted relative to the buildout directory.)
 
+.. _find-links-option:
+
 find-links, default: ''
   Extra locations to search for distributions to download.
 
@@ -336,6 +354,8 @@ install-from-cache, default: 'false'
 
   This mode may only be used if a :ref:`download-cache
   <download-cache>` is specified.
+
+.. _installed-option:
 
 installed, default: '.installed.cfg'
   The name of the file used to store information about what's installed.
