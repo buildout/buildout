@@ -7,10 +7,10 @@ Buildout Topics
 
    history
    variables-extending-and-substitutions
+   optimizing
    bootstrapping
 
 .. todo:
 
    writing-recipes
-   optimizing
 
