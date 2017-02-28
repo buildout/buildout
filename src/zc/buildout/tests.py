@@ -3191,8 +3191,7 @@ class UnitTests(unittest.TestCase):
         def wheel_to_egg(dist, dest):
             newloc = os.path.join(dest, egg_name)
             shutil.copy(dist.location, newloc)
-            return pkg_resources.Distribution.from_location(newloc,
-                                                            'demo-0.3.whl')
+            return pkg_resources.Distribution.from_filename(newloc)
         zc.buildout.easy_install.wheel_to_egg = wheel_to_egg
         egg_dir = os.path.join(self.sample_buildout, 'eggs')
         self.assertFalse(egg_name in os.listdir(egg_dir))

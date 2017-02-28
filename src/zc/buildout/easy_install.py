@@ -379,38 +379,12 @@ class Installer:
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = setuptools_path
-
-            args = [sys.executable, '-c',
-                    ('import sys; sys.path[0:0] = %r; ' % path) +
-                    _easy_install_cmd, '-mZUNxd', tmp]
-            level = logger.getEffectiveLevel()
-            if level > 0:
-                args.append('-q')
-            elif level < 0:
-                args.append('-v')
-
-            args.append(spec)
-
-            if level <= logging.DEBUG:
-                logger.debug('Running easy_install:\n"%s"\npath=%s\n',
-                             '" "'.join(args), path)
-
-            sys.stdout.flush() # We want any pending output first
-
-            exit_code = subprocess.call(list(args))
+            paths = call_easy_install(spec, tmp)
 
             dists = []
-            env = pkg_resources.Environment([tmp])
+            env = pkg_resources.Environment(paths)
             for project in env:
                 dists.extend(env[project])
-
-            if exit_code:
-                logger.error(
-                    "An error occurred when trying to install %s. "
-                    "Look above this message for any errors that "
-                    "were output by easy_install.",
-                    dist)
 
             if not dists:
                 raise zc.buildout.UserError("Couldn't install: %s" % dist)
@@ -437,9 +411,7 @@ class Installer:
 
             result = []
             for d in dists:
-                newloc = _move_to_eggs_dir_and_compile(d, dest)
-                [d] = pkg_resources.Environment([newloc])[d.project_name]
-                result.append(d)
+                result.append(_move_to_eggs_dir_and_compile(d, dest))
 
             return result
 
@@ -558,23 +530,7 @@ class Installer:
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
-                if dist.location.endswith('.whl'):
-                    dist = wheel_to_egg(dist, tmp)
-
-                if dist.precedence == pkg_resources.EGG_DIST:
-                    # It's already an egg, just fetch it into the dest
-                    newloc = _move_to_eggs_dir_and_compile(dist, self._dest)
-
-                    # Getting the dist from the environment causes the
-                    # distribution meta data to be read.  Cloning isn't
-                    # good enough.
-                    dists = pkg_resources.Environment([newloc])[
-                        dist.project_name]
-                else:
-                    # It's some other kind of dist.  We'll let easy_install
-                    # deal with it:
-                    dists = self._call_easy_install(
-                        dist.location, self._dest, dist)
+                dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
 
             finally:
                 if tmp != self._download_cache:
@@ -588,39 +544,46 @@ class Installer:
             dists = [dist]
 
         if not self._install_from_cache and self._use_dependency_links:
-            for dist in dists:
-                if dist.has_metadata('dependency_links.txt'):
-                    for link in dist.get_metadata_lines('dependency_links.txt'):
-                        link = link.strip()
-                        if link not in self._links:
-                            logger.debug('Adding find link %r from %s',
-                                         link, dist)
-                            self._links.append(link)
-                            self._index = _get_index(self._index_url,
-                                                     self._links,
-                                                     self._allow_hosts)
+            self._add_dependency_links_from_dists(dists)
 
         if self._check_picked:
-            # Check whether we picked a version and, if we did, report it:
-            for dist in dists:
-                if not (
-                    dist.precedence == pkg_resources.DEVELOP_DIST
-                    or
-                    (len(requirement.specs) == 1
-                     and
-                     requirement.specs[0][0] == '==')
-                    ):
-                    logger.debug('Picked: %s = %s',
-                                 dist.project_name, dist.version)
-                    self._picked_versions[dist.project_name] = dist.version
-
-                    if not self._allow_picked_versions:
-                        raise zc.buildout.UserError(
-                            'Picked: %s = %s' % (dist.project_name,
-                                                 dist.version)
-                            )
+            self._check_picked_requirement_versions(requirement, dists)
 
         return dists
+
+    def _add_dependency_links_from_dists(self, dists):
+        reindex = False
+        links = self._links
+        for dist in dists:
+            if dist.has_metadata('dependency_links.txt'):
+                for link in dist.get_metadata_lines('dependency_links.txt'):
+                    link = link.strip()
+                    if link not in links:
+                        logger.debug('Adding find link %r from %s',
+                                     link, dist)
+                        links.append(link)
+                        reindex = True
+        if reindex:
+            self._index = _get_index(self._index_url, links, self._allow_hosts)
+
+    def _check_picked_requirement_versions(self, requirement, dists):
+        """ Check whether we picked a version and, if we did, report it """
+        for dist in dists:
+            if not (dist.precedence == pkg_resources.DEVELOP_DIST
+                or
+                (len(requirement.specs) == 1
+                 and
+                 requirement.specs[0][0] == '==')
+                ):
+                logger.debug('Picked: %s = %s',
+                             dist.project_name, dist.version)
+                self._picked_versions[dist.project_name] = dist.version
+
+                if not self._allow_picked_versions:
+                    raise zc.buildout.UserError(
+                        'Picked: %s = %s' % (dist.project_name,
+                                             dist.version)
+                        )
 
     def _maybe_add_setuptools(self, ws, dist):
         if dist_needs_pkg_resources(dist):
@@ -1583,6 +1546,84 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
+def call_easy_install(spec, dest):
+    """
+    Call `easy_install` from setuptools as a subprocess to install a
+    distribution specified by `spec` into `dest`.
+    Returns all the paths inside `dest` created by the above.
+    """
+    path = setuptools_path
+
+    args = [sys.executable, '-c',
+            ('import sys; sys.path[0:0] = %r; ' % path) +
+            _easy_install_cmd, '-mZUNxd', dest]
+    level = logger.getEffectiveLevel()
+    if level > 0:
+        args.append('-q')
+    elif level < 0:
+        args.append('-v')
+
+    args.append(spec)
+
+    if level <= logging.DEBUG:
+        logger.debug('Running easy_install:\n"%s"\npath=%s\n',
+                        '" "'.join(args), path)
+
+    sys.stdout.flush() # We want any pending output first
+
+    exit_code = subprocess.call(list(args))
+
+    if exit_code:
+        logger.error(
+            "An error occurred when trying to install %s. "
+            "Look above this message for any errors that "
+            "were output by easy_install.",
+            spec)
+    return glob.glob(os.path.join(dest, '*'))
+
+
+def unpack_egg(location, dest):
+    # Buildout 2 no longer installs zipped eggs,
+    # so we always want to unpack it.
+    dest = os.path.join(dest, os.path.basename(location))
+    setuptools.archive_util.unpack_archive(location, dest)
+
+
+WHEEL_TO_EGG_WARNING = """
+Using unpack_wheel() shim over deprecated wheel_to_egg().
+Please update your wheel extension implementation for one that installs a .whl
+handler in %s.UNPACKERS
+""".strip() % (__name__,)
+
+def unpack_wheel(location, dest):
+    logger.warning(WHEEL_TO_EGG_WARNING)
+    # Deprecated backward compatibility shim. Please do not use.
+    basename = os.path.basename(location)
+    dists = setuptools.package_index.distros_for_location(location, basename)
+    wheel_to_egg(list(dists)[0], dest)
+    
+
+UNPACKERS = {
+    # Buildout 2 no longer installs zipped eggs, so we always want to unpack it.
+    '.egg': unpack_egg,
+    '.whl': unpack_wheel,
+}
+
+
+def _get_matching_dist_in_location(dist, location):
+    """
+    Check if `locations` contain only the one intended dist.
+    Return the dist with metadata in the new location.
+    """
+    # Getting the dist from the environment causes the
+    # distribution meta data to be read.  Cloning isn't
+    # good enough.
+    env = pkg_resources.Environment([location])
+    dists = [ d for project_name in env for d in env[project_name] ]
+    dist_infos = [ (d.project_name, d.version) for d in dists ]
+    if dist_infos == [(dist.project_name, dist.version)]:
+        return dists.pop()
+
 def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
 
@@ -1594,7 +1635,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     running in parallel.  So we copy to a temporary directory first.
     See discussion at https://github.com/buildout/buildout/issues/307
 
-    We return the new location.
+    We return the new distribution with properly loaded metadata.
     """
     # First make sure the destination directory exists.  This could suffer from
     # the same kind of race condition as the rest: if we check that it does not
@@ -1606,23 +1647,26 @@ def _move_to_eggs_dir_and_compile(dist, dest):
         if not os.path.isdir(dest):
             # Unknown reason.  Reraise original error.
             raise
-    newloc = os.path.join(
-        dest, os.path.basename(dist.location))
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
-        tmp_egg_dir = os.path.join(tmp_dest, os.path.basename(dist.location))
-        if os.path.isdir(dist.location):
-            # We got a directory. It must have been obtained locally.
+        if (os.path.isdir(dist.location) and
+                dist.precedence >= pkg_resources.BINARY_DIST):
+            # We got a pre-built directory. It must have been obtained locally.
             # Just copy it.
-            shutil.copytree(dist.location, tmp_egg_dir)
+            tmp_loc = os.path.join(tmp_dest, os.path.basename(dist.location))
+            shutil.copytree(dist.location, tmp_loc)
         else:
-            # It is a zipped egg.  Buildout 2 no longer installs zipped eggs,
-            # so we always want to unpack it.
-            setuptools.archive_util.unpack_archive(
-                dist.location, tmp_egg_dir)
-        # We have copied the egg. Now try to rename/move it.
+            # It is an archive of some sort.
+            # Figure out how to unpack it, or fall back to easy_install.
+            _, ext = os.path.splitext(dist.location)
+            unpacker = UNPACKERS.get(ext, call_easy_install)
+            unpacker(dist.location, tmp_dest)
+            [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
+
+        # We have installed the dist. Now try to rename/move it.
+        newloc = os.path.join(dest, os.path.basename(tmp_loc))
         try:
-            os.rename(tmp_egg_dir, newloc)
+            os.rename(tmp_loc, newloc)
         except OSError:
             # Might be for various reasons.  If it is because newloc already
             # exists, we can investigate.
@@ -1630,7 +1674,8 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 # No, it is a different reason.  Give up.
                 raise
             # Try to use it as environment and check if our project is in it.
-            if not pkg_resources.Environment([newloc])[dist.project_name]:
+            newdist = _get_matching_dist_in_location(dist, newloc)
+            if newdist is None:
                 # Path exists, but is not our package.  We could
                 # try something, but it seems safer to bail out
                 # with the original error.
@@ -1646,7 +1691,9 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             # There were no problems during the rename.
             # Do the compile step.
             redo_pyc(newloc)
+            newdist = _get_matching_dist_in_location(dist, newloc)
+            assert newdist is not None  # newloc above is missing our dist?!
     finally:
         # Remember that temporary directories must be removed
         shutil.rmtree(tmp_dest)
-    return newloc
+    return newdist
