@@ -30,10 +30,10 @@ Avoid modifying the python environment.
   Unfortunately, doing this requires :ref:`using a bootstrap script
   <using-a-bootstrap-script>`.
 
-Local bootstrapping using the ``buildout`` subcommand
-=====================================================
+Local bootstrapping using the ``bootstrap`` command
+===================================================
 
-You can use the :ref:`bootstrap subcommand <bootstrap-subcommand>` of a
+You can use the :ref:`bootstrap command <bootstrap-command>` of a
 ``buildout`` script installed in your Python environment to boostrap
 the buildout in the current directory:
 
@@ -129,8 +129,8 @@ Bootstrapping requires a ``buildout.cfg``, ``init`` creates one
 Normally, when bootstrapping, the local directory must have a
 ``buildout.cfg`` file.
 
-If you don't have one, you can use the :ref:`init subcommand
-<init-subcommand>` instead:
+If you don't have one, you can use the :ref:`init command
+<init-command>` instead:
 
 .. code-block:: console
 

@@ -615,6 +615,12 @@ def test_help():
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+         Specify the path to the buildout configuration file to be used.
+         This defaults to the file named "buildout.cfg" in the current
+         working directory.
+    ...
       -h, --help
     ...
 
@@ -625,6 +631,12 @@ def test_help():
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+         Specify the path to the buildout configuration file to be used.
+         This defaults to the file named "buildout.cfg" in the current
+         working directory.
+    ...
       -h, --help
     ...
     """
@@ -3786,11 +3798,13 @@ def test_suite():
             manuel.testing.TestSuite(
                 manuel.doctest.Manuel() + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
+                os.path.join(docdir, 'reference.rst'),
                 os.path.join(docdir, 'topics', 'bootstrapping.rst'),
                 os.path.join(
                     docdir,
                     'topics', 'variables-extending-and-substitutions.rst'),
                 os.path.join(docdir, 'topics', 'writing-recipes.rst'),
+                os.path.join(docdir, 'topics', 'optimizing.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 

@@ -11,22 +11,132 @@ A Buildout execution is of the form:
 
 .. code-block:: console
 
-  buildout [buildout-options] [settings] [subcommand [subcommand-arguments]]
+  buildout [buildout-options] [assignments] [command [command arguments]]
 
-Settings take the form ``section:option=value`` and override (or
-augment) settings in configuration files.  For example, to pin a
+Assignments take the form ``section:option=value`` and override (or
+augment) options in configuration files.  For example, to pin a
 version of ZEO you could use ``versions:ZEO=4.3.1``.  The section
 defaults to the ``buildout`` section.  So, for example: ``parts=test``
 sets the ``buildout`` section ``parts`` option.
 
-Command-line settings overrides can use ``+=`` and ``-=`` to
+Command-line assignments can use ``+=`` and ``-=`` to
 :ref:`merge values with existing values <merge-values-with-existing-values>`
 
-Buildout options
-----------------
+Buildout command-line options
+-----------------------------
 
-Buildout subcommands
---------------------
+.. _-c-option:
+
+``-c config_file``
+  Specify the path (or URL) to the buildout configuration file to be used.
+  This defaults to the file named ``buildout.cfg`` in the current
+  working directory.
+
+``-D``
+  Debug errors.  If an error occurs, then the post-mortem debugger
+  will be started. This is especially useful for debugging recipe
+  problems.
+
+``-h``, ``--help``
+  Print basic usage information and exit.
+
+``-N``
+  Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
+  to the command-line assignment ``newest=false``.
+
+``-q``
+  Decrease the level of verbosity.  This option can be used multiple
+  times.
+
+  Using a single ``-q`` suppresses normal output, but still shows
+  warnings and errors.
+
+  Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
+  normal output and warnings.
+
+  Using the option more than twice suppresses errors, which is a bad idea.
+
+``-t socket_timeout``
+  Specify the socket timeout in seconds. See the
+  :ref:`socket-timeout option <socket-timeout-option>` for details.
+
+``-U``
+  Don't use :ref:`user-default configuration <user-default-configuration>`.
+
+``-v``
+  Increase the level of verbosity.  This option can be used multiple
+  times.
+
+  At the default verbosity, buildout prints messages about significant
+  activities.  It also prints warning and error messages.
+
+  At the next, "verbose", level (``-v``), it prints much
+  more information. In particular, buildout will show when and why
+  it's installing specific distribution versions.
+
+  At the next, "debugging", level, ``-vv`` (or equivalently ``-v
+  -v``), buildout prints low-level debugging information, including a
+  listing of all configuration options, including: default options,
+  computed options and the results of :ref:`value substitutions
+  <value-substitutions>` and :ref:`macros <macros-label>`.
+
+  Using this option more than twice has no effect.
+
+``--version``
+  Print buildout version number and exit.
+
+Buildout commands
+-----------------
+
+annotate
+________
+
+Display the buildout configuration options, including their values and
+where they came from. Try it!
+
+.. code-block:: console
+
+   buildout annotate
+
+.. -> command
+
+    >>> write("[buildout]\nparts=\n", "buildout.cfg")
+    >>> run_buildout(command)
+    >>> print(read()) # doctest: +ELLIPSIS
+    Creating directory ...
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+        DEFAULT_VALUE
+    ...
+
+.. _bootstrap-command:
+
+bootstrap
+_________
+
+Install a local ``bootstrap`` script.  The ``bootstrap`` command
+doesn't take any arguments.
+
+See :doc:`Bootstrapping <topics/bootstrapping>` for information on why
+you might want to do this.
+
+.. _init-command:
+
+init [requirements]
+____________________
+
+Generate a Buildout configuration file and bootstrap the resulting buildout.
+
+If requirements are given, the generated configuration will have a
+``py`` part that uses the ``zc.recipe.egg`` recipe to install the
+requirements and generate an interpreter script that can import them.
+It then runs the resulting buildout.
+
+See :ref:`Bootstrapping <init-generates-buildout.cfg>` for examples.
 
 .. _install-command:
 
@@ -43,31 +153,39 @@ the default command if no command is specified.
    exists for backward compatibility, but may be dropped in the
    future.
 
-.. _bootstrap-subcommand:
 
-bootstrap
-_________
+setup PATH SETUP-COMMANDS
+_________________________
 
-Install a local ``bootstrap`` script.  The ``bootstrap`` subcommand
-doesn't take any arguments.
+Run a setuptools-based setup script to build a distribution.
 
-See :doc:`Bootstrapping <topics/bootstrapping>` for information on why
-you might want to do this.
+The path must be the path of a `setup script
+<https://docs.python.org/3.6/distutils/setupscript.html>`_ or of a
+directory containing one named ``setup.py``.  For example, to create a
+source distribution using a setup script in the current directory:
 
-.. _init-subcommand:
+.. code-block:: console
 
-init [requirements]
-____________________
+   buildout setup . sdist
 
-Generate a Buildout configuration file and bootstrap the resulting buildout.
+.. -> command
 
-If requirements are given, the generated configuration will have a
-``py`` part that uses the ``zc.recipe.egg`` recipe to install the
-requirements and generate an interpreter script that can import them.
-It then runs the resulting buildout.
+   >>> write("""from setuptools import setup
+   ... setup(name='foo', url='.', author='test', author_email='test@test.com')
+   ... """, "setup.py")
+   >>> write('test', 'README')
+   >>> run_buildout(command.replace('.', '. -q'))
+   >>> eqs(ls('dist'), 'foo-0.0.0.tar.gz')
 
-See :ref:`Bootstrapping <init-generates-buildout.cfg>` for examples.
+This command is useful when the Python environment you're using
+doesn't have setuptools installed.  Normally today, setuptools *is*
+installed and you can just run setup scripts that use setuptools directly.
 
+Note that if you want to build and upload a package to the `standard
+package index <https://pypi.python.org/pypi>`_ you should consider
+using `zest.releaser <https://pypi.python.org/pypi/zest.releaser>`_,
+which automates many aspects of software release including checking
+meta data, building releases and making version-control tags.
 
 .. _buildout-configuration-options-reference:
 
@@ -267,16 +385,6 @@ log-format, default: ''
   If ``log-format`` is non-blank, then it will be used for the root logger
   [#root-logger]_ (and for Buildout's messages).
 
-log-level, default: 'INFO'
-  The `logging level
-  <https://docs.python.org/3/library/logging.html#logging-levels>`_.
-
-  This may be adjusted with the :ref:`-v option <-v-option>` or the
-  :ref:`-q option <-q-option>`, which are the more common ways to control
-  the logging level.
-
-  The ``log-level`` option is rarely used.
-
 .. _newest-mode:
 
 .. _non-newest-mode:
@@ -295,11 +403,13 @@ offline, default: 'false'
 
   .. Warning:: Offline mode is deprecated.
 
-     Its purpose has evolved over time and the end result doesn't
-     make much sense, but it is retained for backward compatibility.
+     Its purpose has evolved over time and the end result doesn't make
+     much sense, but it is retained (indefinitely) for backward
+     compatibility.
 
-     If you think you want an offline mode, you probably want the
-     :ref:`install-from-cache <install-from-cache-mode>` mode instead.
+     If you think you want an offline mode, you probably want either
+     the :ref:`non-newest mode <non-newest-mode>` or the
+     :ref:`install-from-cache mode <install-from-cache-mode>` instead.
 
   In offline mode, no network requests should be made.  It's the
   responsibility of recipes to adhere to this.  Recipes that would
@@ -329,6 +439,8 @@ show-picked-versions, default: 'false'
   lines it would write to a versions configuration if the
   :ref:`update-versions-file <update-versions-file>` option was used.
 
+.. _socket-timeout-option:
+
 socket-timeout, default: ''
   Specify a socket timeout [#socket-timeout]_, in seconds, to use when
   downloading distributions and other artifacts.  If non-blank, the
@@ -356,6 +468,147 @@ use-dependency-links, default: true
 
 versions, default 'versions'
   The name of a section that contains :ref:`version pins <pinned-versions>`.
+
+Configuration file syntax
+=========================
+
+Buildout configurations use an `INI file format
+<https://en.wikipedia.org/wiki/INI_file>`_.
+
+A configuration is a collection of named sections containing named
+options.
+
+Section names
+-------------
+
+A section begins with a section and and, optionally, a condition in
+square braces (``[`` and ``]``).
+
+A name can consist of any characters other than whitespace, square
+braces, curly braces (``{`` or ``}``), pound signs (``#``), colons
+(``:``) or semi-colons (``;``).  The name may be surrounded by leading
+and trailing whitespace, which is ignored.
+
+An optional condition is separated from the name by a colon and is a
+Python expression.  It may not contain a pound sign or semi-colon.  See
+the section on :ref:`conditional sections <conditional-sections>` for
+an example and more details.
+
+A comment, preceded by a pound sign or semicolon may follow the
+section name, as in:
+
+.. code-block:: ini
+
+   [buildout] # This is the buildout section
+
+.. -> header
+
+Options
+-------
+
+Options are specified with an option name followed by an equal sign
+and a value:
+
+.. code-block:: ini
+
+   parts = py
+
+.. -> option
+
+    >>> import six
+    >>> import zc.buildout.configparser
+    >>> def parse(s):
+    ...     return zc.buildout.configparser.parse(six.StringIO(s), 'test')
+    >>> from pprint import pprint
+    >>> pprint(parse(header + option))
+    {'buildout': {'parts': 'py'}}
+
+Option names may have any characters other than whitespace, square
+braces, curly braces, equal signs, or colons.  There may be and usually
+is whitespace between the name and the equal sign and the name and
+equal sign must be on the same line.
+
+Option values may contain any characters. A consequence of this is
+that there can't be comments in option values.
+
+Option values may be continued on multiple lines, and may contain blank lines:
+
+.. code-block:: ini
+
+   parts = py
+
+           test
+
+.. -> option
+
+Whitespace in option values
+___________________________
+
+Trailing whitespace is stripped from each line in an option value.
+Leading and trailing blank lines are stripped from option values.
+
+Handling of leading whitespace and blank lines internal to values
+depend on whether there is data on the first line (containing the
+option name).
+
+data on the first line
+  Leading whitespace is stripped and blank lines are omitted.
+
+  The resulting option value in the example above is:
+
+  .. code-block:: ini
+
+        py
+        test
+
+  .. -> val
+
+      >>> eq(parse(header + option)['buildout']['parts'] + '\n', val)
+
+no data on the first line
+  Internal blank lines are retained and common leading white space is stripped.
+
+  For example, the value of the option:
+
+  .. code-block:: ini
+
+     code =
+         if x == 1:
+             y = 2 # a comment
+
+             return
+
+  .. -> option
+
+  is::
+
+     if x == 1:
+         y = 2 # a comment
+
+         return
+
+  .. -> val
+
+       >>> eq(parse(header + option)['buildout']['code'] + '\n', val)
+
+Comments and blank lines
+------------------------
+
+Lines beginning with pound signs or semi-colons (``#`` or ``;``) are
+comments::
+
+  # This is a comment
+  ; This too
+
+.. -> comment
+
+       >>> eq(parse(comment + header + comment + option + comment )
+       ...    ['buildout']['code'] + '\n', val)
+
+As mentioned earlier, comments can also appear after section names.
+
+Blank lines are ignored unless they're within option values that only
+have data on continuation lines.
 
 .. [#root-logger] Generally, the root logger format is used for all
    messages unless it is overridden by a lower-level logger.
