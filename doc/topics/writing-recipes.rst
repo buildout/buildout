@@ -63,7 +63,7 @@ The constructor is passed 3 arguments:
    The buildout configuration
 
    The buildout configuration is a mapping from section names to
-   sections.  Sections, are mappings from option names to values.  The
+   sections.  Sections are mappings from option names to values.  The
    buildout configuration allows the recipe to access configuration
    data in much the same way as configuration files use :ref:`value
    substitutions <value-substitutions>`.
