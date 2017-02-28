@@ -7,8 +7,8 @@ Buildout Topics
 
    history
    variables-extending-and-substitutions
-   bootstrapping
    optimizing
+   bootstrapping
 
 .. todo:
 
