@@ -11,22 +11,82 @@ A Buildout execution is of the form:
 
 .. code-block:: console
 
-  buildout [buildout-options] [settings] [subcommand [subcommand-arguments]]
+  buildout [buildout-options] [assignments] [command [command arguments]]
 
-Settings take the form ``section:option=value`` and override (or
-augment) settings in configuration files.  For example, to pin a
+Assignments take the form ``section:option=value`` and override (or
+augment) options in configuration files.  For example, to pin a
 version of ZEO you could use ``versions:ZEO=4.3.1``.  The section
 defaults to the ``buildout`` section.  So, for example: ``parts=test``
 sets the ``buildout`` section ``parts`` option.
 
-Command-line settings overrides can use ``+=`` and ``-=`` to
+Command-line assignments can use ``+=`` and ``-=`` to
 :ref:`merge values with existing values <merge-values-with-existing-values>`
 
-Buildout options
-----------------
+Buildout command-line options
+-----------------------------
 
-Buildout subcommands
---------------------
+.. _-c-option:
+
+``-c config_file``
+  Specify the path (or URL) to the buildout configuration file to be used.
+  This defaults to the file named ``buildout.cfg`` in the current
+  working directory.
+
+``-D``
+  Debug errors.  If an error occurs, then the post-mortem debugger
+  will be started. This is especially useful for debugging recipe
+  problems.
+
+``-h``, ``--help``
+  Print basic usage information and exit.
+
+``-N``
+  Run in :ref:`non-newest mode <non-newest-mode>`.  This is equivalent
+  to the command-line assignment ``newest=false``.
+
+``-q``
+  Decrease the level of verbosity.  This option can be used multiple
+  times.
+
+  Using a single ``-q`` suppresses normal output, but still shows
+  warnings and errors.
+
+  Doubling the option ``-qq`` (or equivalently ``-q -q``) suppresses
+  normal output and warnings.
+
+  Using the option more than twice suppresses errors, which is a bad idea.
+
+``-t socket_timeout``
+  Specify the socket timeout in seconds. See the
+  :ref:`socket-timeout option <socket-timeout-option>` for details.
+
+``-U``
+  Don't use :ref:`user-default configuration <user-default-configuration>`.
+
+``-v``
+  Increase the level of verbosity.  This option can be used multiple
+  times.
+
+  At the default verbosity, buildout prints messages about significant
+  activities.  It also prints warning and error messages.
+
+  At the next, "verbose", level (``-v``), it prints much
+  more information. In particular, buildout will show when and why
+  it's installing specific distribution versions.
+
+  At the next, "debugging", level, ``-vv`` (or equivalently ``-v
+  -v``), buildout prints low-level debugging information, including a
+  listing of all configuration options, including: default options,
+  computed options and the results of :ref:`value substitutions
+  <value-substitutions>` and :ref:`macros <macros-label>`.
+
+  Using this option more than twice has no effect.
+
+``--version``
+  Print buildout version number and exit.
+
+Buildout commands
+-----------------
 
 annotate
 ________
@@ -53,18 +113,18 @@ where they came from. Try it!
         DEFAULT_VALUE
     ...
 
-.. _bootstrap-subcommand:
+.. _bootstrap-command:
 
 bootstrap
 _________
 
-Install a local ``bootstrap`` script.  The ``bootstrap`` subcommand
+Install a local ``bootstrap`` script.  The ``bootstrap`` command
 doesn't take any arguments.
 
 See :doc:`Bootstrapping <topics/bootstrapping>` for information on why
 you might want to do this.
 
-.. _init-subcommand:
+.. _init-command:
 
 init [requirements]
 ____________________
@@ -305,16 +365,6 @@ log-format, default: ''
   If ``log-format`` is non-blank, then it will be used for the root logger
   [#root-logger]_ (and for Buildout's messages).
 
-log-level, default: 'INFO'
-  The `logging level
-  <https://docs.python.org/3/library/logging.html#logging-levels>`_.
-
-  This may be adjusted with the :ref:`-v option <-v-option>` or the
-  :ref:`-q option <-q-option>`, which are the more common ways to control
-  the logging level.
-
-  The ``log-level`` option is rarely used.
-
 .. _newest-mode:
 
 .. _non-newest-mode:
@@ -333,11 +383,13 @@ offline, default: 'false'
 
   .. Warning:: Offline mode is deprecated.
 
-     Its purpose has evolved over time and the end result doesn't
-     make much sense, but it is retained for backward compatibility.
+     Its purpose has evolved over time and the end result doesn't make
+     much sense, but it is retained (indefinitely) for backward
+     compatibility.
 
-     If you think you want an offline mode, you probably want the
-     :ref:`install-from-cache <install-from-cache-mode>` mode instead.
+     If you think you want an offline mode, you probably want either
+     the :ref:`non-newest mode <non-newest-mode>` or the
+     :ref:`install-from-cache mode <install-from-cache-mode>` instead.
 
   In offline mode, no network requests should be made.  It's the
   responsibility of recipes to adhere to this.  Recipes that would
@@ -366,6 +418,8 @@ show-picked-versions, default: 'false'
   requirement that `wasn't pinned <pinned-versions>`, it will print
   lines it would write to a versions configuration if the
   :ref:`update-versions-file <update-versions-file>` option was used.
+
+.. _socket-timeout-option:
 
 socket-timeout, default: ''
   Specify a socket timeout [#socket-timeout]_, in seconds, to use when
@@ -411,7 +465,11 @@ A section begins with a section and and, optionally, a condition in
 square braces (``[`` and ``]``).
 
 A name can consist of any characters other than whitespace, square
+<<<<<<< HEAD
 braces, curly braced (``{`` or ``}``), pound signs (``#``), colons
+=======
+braces, curly braces (``{`` or ``}``), pound signs (``#``), colons
+>>>>>>> origin/master
 (``:``) or semi-colons (``;``).  The name may be surrounded by leading
 and trailing whitespace, which is ignored.
 
@@ -450,7 +508,11 @@ and a value:
     {'buildout': {'parts': 'py'}}
 
 Option names may have any characters other than whitespace, square
+<<<<<<< HEAD
 braces, curly braces equal signs or colons.  There may be and usually
+=======
+braces, curly braces, equal signs, or colons.  There may be and usually
+>>>>>>> origin/master
 is whitespace between the name and the equal sign and the name and
 equal sign must be on the same line.
 

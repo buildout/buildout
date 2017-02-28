@@ -67,8 +67,8 @@ user default values
 options from one or more configuration files
   These override user defaults and each other, as described below.
 
-option values in the :ref:`buildout command line <buildout-command-line>`
-  These override configuration-file settings.
+option assignments in the :ref:`buildout command line <buildout-command-line>`
+  These override configuration-file options.
 
 .. _extends_option:
 
@@ -204,16 +204,16 @@ jython         True if running Jython
 iron           True if running Iron Python
 cpython        True if not running PyPy, Jython, or Iron Python
 sys_platform   ``str(sys.platform).lower()``
-linux          True if running on linux
+linux          True if running on Linux
 windows        True if running on Windows
-cygwin         True if running on cygwin
-solaris        True if running on solaris
+cygwin         True if running on Cygwin
+solaris        True if running on Solaris
 macosx         True if running on Mac OS X
 posix          True if running on a POSIX-compatible system
 bits32         True if running on a 32-bit system.
 bits64         True if running on a 64-bit system.
 little_endian  True if running on a little-endian system
-big_endian     True if running on a little-endian system
+big_endian     True if running on a big-endian system
 =============  ====================================================
 
 Expressions must not contain either the ``#`` or the ``;`` character.
@@ -261,7 +261,7 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> clear_here()
 
 See the section on :doc:`optimizing buildouts with shared eggs and
-download caches <topics/optimizing>` for an explanation of the options
+download caches <optimizing>` for an explanation of the options
 used in the example above.
 
 .. _merge-values-with-existing-values:
@@ -345,7 +345,7 @@ original *lines*. This is a bit delicate.  In the example above,
 we were careful to put the base values on separate lines, in
 anticipation of using ``-=``.
 
-Merging values also works with option settings provided via the
+Merging values also works with option assignments provided via the
 :ref:`buildout command line <buildout-command-line>`.  For example, if
 you want to temporarily use a :ref:`development version
 <python-development-projects>` of another project, you can augment the
