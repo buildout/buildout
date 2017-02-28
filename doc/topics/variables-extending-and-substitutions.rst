@@ -131,6 +131,8 @@ extends-cache buildout option <extends-cache-buildout-option>`.
 When a relative path is used in an extends option, it's interpreted
 relative to the path of the extending configuration.
 
+.. _conditional-sections:
+
 Conditional configuration sections
 ==================================
 
