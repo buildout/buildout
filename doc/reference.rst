@@ -88,6 +88,31 @@ Buildout command-line options
 Buildout commands
 -----------------
 
+annotate
+________
+
+Display the buildout configuration options, including their values and
+where they came from. Try it!
+
+.. code-block:: console
+
+   buildout annotate
+
+.. -> command
+
+    >>> write("[buildout]\nparts=\n", "buildout.cfg")
+    >>> run_buildout(command)
+    >>> print(read()) # doctest: +ELLIPSIS
+    Creating directory ...
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+        DEFAULT_VALUE
+    ...
+
 .. _bootstrap-command:
 
 bootstrap
@@ -113,6 +138,38 @@ It then runs the resulting buildout.
 
 See :ref:`Bootstrapping <init-generates-buildout.cfg>` for examples.
 
+setup PATH SETUP-COMMANDS
+_________________________
+
+Run a setuptools-based setup script to build a distribution.
+
+The path must be the path of a `setup script
+<https://docs.python.org/3.6/distutils/setupscript.html>`_ or of a
+directory containing one named ``setup.py``.  For example, to create a
+source distribution using a setup script in the current directory:
+
+.. code-block:: console
+
+   buildout setup . sdist
+
+.. -> command
+
+   >>> write("""from setuptools import setup
+   ... setup(name='foo', url='.', author='test', author_email='test@test.com')
+   ... """, "setup.py")
+   >>> write('test', 'README')
+   >>> run_buildout(command.replace('.', '. -q'))
+   >>> eqs(ls('dist'), 'foo-0.0.0.tar.gz')
+
+This command is useful when the Python environment you're using
+doesn't have setuptools installed.  Normally today, setuptools *is*
+installed and you can just run setup scripts that use setuptools directly.
+
+Note that if you want to build and upload a package to the `standard
+package index <https://pypi.python.org/pypi>`_ you should consider
+using `zest.releaser <https://pypi.python.org/pypi/zest.releaser>`_,
+which automates many aspects of software release including checking
+meta data, building releases and making version-control tags.
 
 .. _buildout-configuration-options-reference:
 
