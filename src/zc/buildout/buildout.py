@@ -1779,9 +1779,9 @@ Options:
 
   -c config_file
 
-     Specify the path to the buildout configuration file to be used.
-     This defaults to the file named "buildout.cfg" in the current
-     working directory.
+    Specify the path to the buildout configuration file to be used.
+    This defaults to the file named "buildout.cfg" in the current
+    working directory.
 
   -D
 
@@ -1791,7 +1791,7 @@ Options:
 
   -h, --help
 
-     Print this message and exit.
+    Print this message and exit.
 
   -N
 
@@ -1802,23 +1802,23 @@ Options:
 
   -q
 
-     Decrease the level of verbosity.  This option can be used multiple times.
+    Decrease the level of verbosity.  This option can be used multiple times.
 
   -t socket_timeout
 
-     Specify the socket timeout in seconds.
+    Specify the socket timeout in seconds.
 
   -U
 
-     Don't read user defaults.
+    Don't read user defaults.
 
   -v
 
-     Increase the level of verbosity.  This option can be used multiple times.
+    Increase the level of verbosity.  This option can be used multiple times.
 
   --version
 
-     Print buildout version number and exit.
+    Print buildout version number and exit.
 
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
@@ -1869,7 +1869,6 @@ Commands:
     alphabetically. For each section, all key-value pairs are displayed,
     sorted alphabetically, along with the origin of the value (file name or
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
-
 """
 
 def _help():
