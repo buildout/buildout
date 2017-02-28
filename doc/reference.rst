@@ -354,7 +354,7 @@ A section begins with a section and and, optionally, a condition in
 square braces (``[`` and ``]``).
 
 A name can consist of any characters other than whitespace, square
-braces, curly braced (``{`` or ``}``), pound signs (``#``), colons
+braces, curly braces (``{`` or ``}``), pound signs (``#``), colons
 (``:``) or semi-colons (``;``).  The name may be surrounded by leading
 and trailing whitespace, which is ignored.
 
@@ -393,7 +393,7 @@ and a value:
     {'buildout': {'parts': 'py'}}
 
 Option names may have any characters other than whitespace, square
-braces, curly braces equal signs or colons.  There may be and usually
+braces, curly braces, equal signs, or colons.  There may be and usually
 is whitespace between the name and the equal sign and the name and
 equal sign must be on the same line.
 
