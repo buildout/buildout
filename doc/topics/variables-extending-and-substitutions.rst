@@ -204,16 +204,16 @@ jython         True if running Jython
 iron           True if running Iron Python
 cpython        True if not running PyPy, Jython, or Iron Python
 sys_platform   ``str(sys.platform).lower()``
-linux          True if running on linux
+linux          True if running on Linux
 windows        True if running on Windows
-cygwin         True if running on cygwin
-solaris        True if running on solaris
+cygwin         True if running on Cygwin
+solaris        True if running on Solaris
 macosx         True if running on Mac OS X
 posix          True if running on a POSIX-compatible system
 bits32         True if running on a 32-bit system.
 bits64         True if running on a 64-bit system.
 little_endian  True if running on a little-endian system
-big_endian     True if running on a little-endian system
+big_endian     True if running on a big-endian system
 =============  ====================================================
 
 Expressions must not contain either the ``#`` or the ``;`` character.
