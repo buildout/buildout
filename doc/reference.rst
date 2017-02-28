@@ -504,11 +504,7 @@ and a value:
     {'buildout': {'parts': 'py'}}
 
 Option names may have any characters other than whitespace, square
-<<<<<<< HEAD
-braces, curly braces equal signs or colons.  There may be and usually
-=======
 braces, curly braces, equal signs, or colons.  There may be and usually
->>>>>>> origin/master
 is whitespace between the name and the equal sign and the name and
 equal sign must be on the same line.
 
