@@ -610,32 +610,32 @@ def create_sections_on_command_line():
 def test_help():
     """
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
       -c config_file
     <BLANKLINE>
-         Specify the path to the buildout configuration file to be used.
-         This defaults to the file named "buildout.cfg" in the current
-         working directory.
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
     ...
       -h, --help
     ...
 
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              +' --help'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
       -c config_file
     <BLANKLINE>
-         Specify the path to the buildout configuration file to be used.
-         This defaults to the file named "buildout.cfg" in the current
-         working directory.
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
     ...
       -h, --help
     ...
