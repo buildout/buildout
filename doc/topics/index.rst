@@ -8,10 +8,8 @@ Buildout Topics
    history
    variables-extending-and-substitutions
    implicit-parts
+   optimizing
    bootstrapping
+   writing-recipes
 
 .. todo:
-
-   writing-recipes
-   optimizing
-

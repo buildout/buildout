@@ -67,8 +67,8 @@ user default values
 options from one or more configuration files
   These override user defaults and each other, as described below.
 
-option values in the :ref:`buildout command line <buildout-command-line>`
-  These override configuration-file settings.
+option assignments in the :ref:`buildout command line <buildout-command-line>`
+  These override configuration-file options.
 
 .. _extends_option:
 
@@ -131,6 +131,93 @@ extends-cache buildout option <extends-cache-buildout-option>`.
 When a relative path is used in an extends option, it's interpreted
 relative to the path of the extending configuration.
 
+.. _conditional-sections:
+
+Conditional configuration sections
+==================================
+
+Sometimes, you need different configuration in different environments
+(different operating systems, or different versions of Python).  To
+make this easier, you can define environment-specific options by
+providing conditional sections:
+
+.. code-block:: ini
+
+    [ctl]
+    suffix =
+
+    [ctl:windows]
+    suffix = .bat
+
+.. -> conf
+
+    >>> import zc.buildout.configparser
+    >>> import six
+    >>> zc.buildout.configparser.parse(
+    ...     six.StringIO(conf), 'test', lambda : dict(windows=True))
+    {'ctl': {'suffix': '.bat'}}
+    >>> zc.buildout.configparser.parse(
+    ...     six.StringIO(conf), 'test', lambda : dict(windows=False))
+    {'ctl': {'suffix': ''}}
+
+In this tiny example, we've defined a ``ctl:suffix`` option that's
+``.bat`` on Windows and an empty string elsewhere.
+
+A conditional section has a colon and then a Python expression after
+the name.  If the Python expression result is true, the section
+options from the section are included.  If the value is false, the
+section is ignored.
+
+Some things to note:
+
+- If there is no exception, then options from the section are
+  included.
+
+- Sections and options can be repeated.  If an option is repeated, the
+  last value is used. In the example above, on Windows, the second
+  ``suffix`` option overrides the first.  If the order of the sections
+  was reversed, the conditional section would have no effect.
+
+In addition to the normal built-ins, the expression has access to
+global variables that make common cases short and descriptive as shown
+below
+
+=============  ====================================================
+Name           Value
+=============  ====================================================
+sys            ``sys`` module
+os             ``os`` module
+platform       ``platform`` module
+re             ``re`` module
+python2        True if running Python 2
+python3        True if running Python 3
+python26       True if running Python 2.6
+python27       True if running Python 2.7
+python32       True if running Python 3.2
+python33       True if running Python 3.3
+python34       True if running Python 3.4
+python35       True if running Python 3.5
+python36       True if running Python 3.6
+sys_version    ``sys.version.lower()``
+pypy           True if running PyPy
+jython         True if running Jython
+iron           True if running Iron Python
+cpython        True if not running PyPy, Jython, or Iron Python
+sys_platform   ``str(sys.platform).lower()``
+linux          True if running on Linux
+windows        True if running on Windows
+cygwin         True if running on Cygwin
+solaris        True if running on Solaris
+macosx         True if running on Mac OS X
+posix          True if running on a POSIX-compatible system
+bits32         True if running on a 32-bit system.
+bits64         True if running on a 64-bit system.
+little_endian  True if running on a little-endian system
+big_endian     True if running on a big-endian system
+=============  ====================================================
+
+Expressions must not contain either the ``#`` or the ``;`` character.
+
 .. _user-default-configuration:
 
 User-default configuration
@@ -174,7 +261,7 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> clear_here()
 
 See the section on :doc:`optimizing buildouts with shared eggs and
-download caches <topics/optimizing>` for an explanation of the options
+download caches <optimizing>` for an explanation of the options
 used in the example above.
 
 .. _merge-values-with-existing-values:
@@ -258,7 +345,7 @@ original *lines*. This is a bit delicate.  In the example above,
 we were careful to put the base values on separate lines, in
 anticipation of using ``-=``.
 
-Merging values also works with option settings provided via the
+Merging values also works with option assignments provided via the
 :ref:`buildout command line <buildout-command-line>`.  For example, if
 you want to temporarily use a :ref:`development version
 <python-development-projects>` of another project, you can augment the

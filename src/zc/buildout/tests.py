@@ -610,21 +610,33 @@ def create_sections_on_command_line():
 def test_help():
     """
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
+    ...
       -h, --help
     ...
 
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              +' --help'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
+    ...
       -h, --help
     ...
     """
@@ -3748,8 +3760,8 @@ def test_suite():
                 if process.is_alive() or process.exitcode:
                     print(read())
 
-            def read(path='out'):
-                with open(path) as f:
+            def read(path='out', *rest):
+                with open(os.path.join(path, *rest)) as f:
                     return f.read()
 
             def write(text, *path):
@@ -3777,7 +3789,8 @@ def test_suite():
                 write=write,
                 ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
                 join=os.path.join,
-                clear_here=clear_here
+                clear_here=clear_here,
+                os=os,
                 )
             setupstack.setUpDirectory(test)
 
@@ -3785,11 +3798,14 @@ def test_suite():
             manuel.testing.TestSuite(
                 manuel.doctest.Manuel() + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
+                os.path.join(docdir, 'reference.rst'),
                 os.path.join(docdir, 'topics', 'bootstrapping.rst'),
                 os.path.join(docdir, 'topics', 'implicit-parts.rst'),
                 os.path.join(
                     docdir,
                     'topics', 'variables-extending-and-substitutions.rst'),
+                os.path.join(docdir, 'topics', 'writing-recipes.rst'),
+                os.path.join(docdir, 'topics', 'optimizing.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 
