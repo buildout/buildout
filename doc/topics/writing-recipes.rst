@@ -216,7 +216,7 @@ Here's the recipe source, ``src/democonfigrecipe.py``::
               f.write(self.options['contents'])
           return self.options.created()
 
-      updated = install
+      update = install
 
 .. -> src
 
@@ -332,7 +332,7 @@ Linux servers.  When the part was uninstalled, it needed to run
 ``/sbin/chkconfig`` to disable the service.  Uninstall recipes don't
 need to return anything.
 
-Like uninstall recipes, install recipes need to be registered using
+Like install recipes, uninstall recipes need to be registered using
 entry points, using the type ``zc.buildout.uninstall`` as can be seen
 in the `zc.recipe.rhrc setup script
 <https://github.com/zopefoundation/zc.recipe.rhrc/blob/master/setup.py#L23>`_.
