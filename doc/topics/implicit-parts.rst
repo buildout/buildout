@@ -1,47 +1,80 @@
-===========================
-Implicit part selection
-===========================
+=================================================
+Automatic installation of part dependencies
+=================================================
 
 Buildout parts are requested by the ``parts`` option of the
 ``buildout`` section, but a buildout may install additional parts that
-are referenced by the named parts.  For example, in
-[#common-dev-buildout-pattern]_:
+are dependencies of the named parts.  For example, in
 
 .. code-block:: ini
 
    [buildout]
    develop = .
-   parts = py
+   parts = server
 
-   [test]
-   recipe = zc.recipe.testrunner
-   eggs = myproject
+   [server]
+   => app
+   recipe = zc.zdaemonrecipe
+   program = $buildout:bin-directory}/app ${config:location}
 
-   [py]
+   [app]
    recipe = zc.recipe.egg
-   eggs = ${test:eggs}
-   interpreter = py
+   eggs = myapp
+
+   [config]
+   recipe = zc.recipe.deployment:configuration
+   text = port 8080
 
 .. -> src
 
-   >>> write(src, 'buildout.cfg')
-   >>> write("from setuptools import setup; setup(name='myproject')",
-   ... 'setup.py')
-   >>> run_buildout()
-   >>> eqs(ls('bin'), 'test', 'py')
+    >>> write(src, 'buildout.cfg')
+    >>> write("from setuptools import setup; setup(name='myapp')", 'setup.py')
+    >>> run_buildout('buildout annotate')
+    >>> run_buildout()
+    >>> print(read()) # doctest: +ELLIPSIS
+    Creating ...
+    Installing config.
+    Installing app.
+    Installing server.
+    ...
 
-The named part, ``py`` will be installed, but so will the ``test``
-part, because the configuration of the ``py`` part refers to the
-configuration of the ``test`` part.
+the ``server`` part depends on the ``app`` part to
+install the server software and on the ``config`` part to provide the
+server configuration.
 
-This is a minor convenience in this example, but in much larger
-buildouts, it can lead to significant simplification.
+The ``config`` part will be installed before the ``server`` part
+because it's referenced in a value substitution.  The value
+substitution makes the ``config`` part a dependency of the ``server``
+part.
 
-Implicit part selection also serves separation of concerns.  The
+The ``server`` part has the line:
+
+.. code-block:: ini
+
+   => app
+
+This line [#implication-syntax]_, uses a feature that's **new in zc.buildout
+2.9**.  It declares that the ``app`` part is a dependency of the
+``server`` part.  The server part doesn't use any information from the
+``app`` part, so it has to declare the dependency explicitly.  It
+could have declared both dependencies explicitly:
+
+.. code-block:: ini
+
+  => app config
+
+Dependency part selection serves separation of concerns.  The
 buildout ``parts`` option reflects the requirements of a buildout as a
 whole.  If a named part depends on another part, that's the concern of
 the named part, not of the buildout itself.
 
-.. [#common-dev-buildout-pattern] This configuration follows a common
-   pattern for new development projects, with a part to define a test
-   runner and a part to define an interpreter.
+.. [#implication-syntax] The ``=>`` syntax is a convenience.  It's
+   based on the mathematical symbol for implication.  It's a short
+   hand for:
+
+   .. code-block:: ini
+
+      <part-dependencies> = app
+
+   Multiple parts may be listed and spread over multiple lines, as
+   long as continuation lines are indented.
