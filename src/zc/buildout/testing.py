@@ -181,14 +181,21 @@ def wait_until(label, func, *args, **kw):
 
 class TestOptions(zc.buildout.buildout.Options):
 
+    def __init__(self, *args):
+        zc.buildout.buildout.Options.__init__(self, *args)
+        self._created = []
+
     def initialize(self):
         pass
 
 class Buildout(zc.buildout.buildout.Buildout):
 
     def __init__(self):
+        for name in 'parts', 'eggs':
+            if not os.path.exists(name):
+                os.mkdir(name)
         zc.buildout.buildout.Buildout.__init__(
-            self, '', [('buildout', 'directory', os.getcwd())])
+            self, '', [('buildout', 'directory', os.getcwd())], False)
 
     Options = TestOptions
 
