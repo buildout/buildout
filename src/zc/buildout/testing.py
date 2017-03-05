@@ -25,6 +25,7 @@ except ImportError:
 
 import errno
 import logging
+from multiprocessing import Process
 import os
 import pkg_resources
 import random
@@ -548,3 +549,37 @@ ignore_not_upgrading = (
     re.compile(
     'Not upgrading because not running a local buildout command.\n'
     ), '')
+
+def run_buildout(command):
+    # Make sure we don't get .buildout
+    os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
+    args = command.strip().split()
+    import pkg_resources
+    buildout = pkg_resources.load_entry_point(
+        'zc.buildout', 'console_scripts', args[0])
+    buildout(args[1:])
+
+def run_from_process(target, *args, **kw):
+    sys.stdout = sys.stderr = open('out', 'w')
+    target(*args, **kw)
+
+def run_in_process(*args, **kwargs):
+    process = Process(target=run_from_process, args=args, kwargs=kwargs)
+    process.daemon = True
+    process.start()
+    process.join(99)
+    if process.is_alive() or process.exitcode:
+        with open('out') as f:
+            print(f.read())
+
+def run_buildout_in_subprocess(command='buildout'):
+    command = command.split(' ', 1)
+    command.insert(
+        1,
+        " use-dependency-links=false"
+        # Leaving this here so we can uncomment to see what's going on.
+        #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
+        " index=" + __file__ + 'nonexistent' # hide index
+        )
+    command = ' '.join(command)
+    run_in_process(run_buildout, command)
