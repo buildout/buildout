@@ -337,6 +337,155 @@ entry points, using the type ``zc.buildout.uninstall`` as can be seen
 in the `zc.recipe.rhrc setup script
 <https://github.com/zopefoundation/zc.recipe.rhrc/blob/master/setup.py#L23>`_.
 
+Testing recipes
+================
+
+The recipe API is fairly simple and standard unit-testing approaches
+can be used.  We'll use a helper class,
+``zc.buildout.testing.Buildout`` [#helper-class-refined-in-2.9]_ to
+provide a minimal buildout environment.
+
+Let's write a test for our configuration recipe.  We need to verify that:
+
+- The recipe generates a ``path`` option.
+
+- The recipe generates a file in the correct place.
+
+- The recipe returns the path it created from ``install``.
+
+We create a ``testdemoconfigrecipe.py`` file containing our tests::
+
+  import os
+  import shutil
+  import tempfile
+  import unittest
+  import zc.buildout.testing
+
+  class RecipeTests(unittest.TestCase):
+
+      def setUp(self):
+          self.here = os.getcwd()
+          self.tmp = tempfile.mkdtemp()
+          os.chdir(self.tmp)
+          self.buildout = buildout = zc.buildout.testing.Buildout()
+          self.config = 'some config text\n'
+          buildout['config'] = dict(contents=self.config)
+          import democonfigrecipe
+          self.recipe = democonfigrecipe.Recipe(
+              buildout, 'config', buildout['config'])
+
+      def tearDown(self):
+          os.chdir(self.here)
+          shutil.rmtree(self.tmp)
+
+      def test_path_option(self):
+          buildout = self.buildout
+          self.assertEqual(os.path.join(buildout['buildout']['parts-directory'],
+                                        'config'),
+                           buildout['config']['path'])
+
+      def test_install(self):
+          buildout = self.buildout
+          self.assertEqual(self.recipe.install(), [buildout['config']['path']])
+          with open(buildout['config']['path']) as f:
+              self.assertEqual(self.config, f.read())
+
+  if __name__ == '__main__':
+      unittest.main()
+
+.. -> src
+
+   >>> write(src, 'src', 'testdemoconfigrecipe.py')
+
+In the ``setUp`` method, we created a temporary directory and changed
+to it.  This is useful to make sure we have a clean working
+directory.  We clean it up in the ``tearDown`` method.
+
+Our test uses ``zc.buildout`` so that we can use the
+``zc.buildout.testing.Buildout`` helper class.  We did this so we'd
+have a more realistic environment, but of course, we could have
+stubbed this out ourselves.  Because we're using ``zc.buildout`` in
+our test, we'll add it as a test dependency in our setup script::
+
+  from setuptools import setup
+
+  setup(
+      name='democonfigrecipe',
+      version='0.1.0',
+      py_modules = ['democonfigrecipe', 'testdemoconfigrecipe'],
+      entry_points = {"zc.buildout": ["default=democonfigrecipe:Recipe"]},
+      extras_require = dict(test=['zc.buildout >=2.9']),
+      )
+
+.. -> src
+
+   >>> src = src.replace('>=2.9', '>=2.9.dev0') # because we're still at dev0
+   >>> write(src, 'src', 'setup.py')
+
+Here, we defined an "extra" requirement. These are additional
+dependencies needed to support optional features. In this case, we're
+providing an optional ``test`` feature. (We specified that we want at
+least version 2.9, because we're depending on some testing-support
+refinements that were added in zc.buildout 2.9.0.)
+
+We'll write a development buildout to run our tests with:
+
+.. code-block:: ini
+
+   [buildout]
+   develop = src
+   parts = py
+
+   [py]
+   recipe = zc.recipe.egg
+   eggs = democonfigrecipe [test]
+   interpreter = py
+
+.. -> src
+
+    >>> write(src, 'buildout.cfg')
+    >>> run_buildout()
+
+Running Buildout with this gives is an interpreter script that we can
+run our tests with.  The script will make sure that ``zc.buildout``
+and our recipe can be imported.
+
+To run our tests:
+
+.. code-block:: console
+
+    bin/py src/testdemoconfigrecipe.py
+
+.. -> src
+
+    >>> from zc.buildout.testing import system
+    >>> print(system(src)) # doctest: +ELLIPSIS
+    ..
+    ----------------------------------------------------------------------
+    Ran 2 tests ...
+    OK
+    <BLANKLINE>
+
+In this example, we've tried to keep things simple and as free from
+external requirements as possible.
+
+More realistically:
+
+- You'd probably arrange your recipe in a Python package rather than
+  as a top-level module and a top-level testing module.
+
+- You might use a test runner like nose or pytest.  There are `recipes
+  that can help set this up
+  <https://pypi.python.org/pypi?%3Aaction=search&term=test+runner+buildout+recipe&>`_.
+  We just used the test runner built into ``unittest``.
+
+
+
+
+
+
+
+
 .. [#installed] Configuration data from previous runs are saved in a
    buildout's installed database, :ref:`typically saved in
    <installed-option>` a generated ``.installed.cfg`` file.
@@ -353,3 +502,6 @@ in the `zc.recipe.rhrc setup script
    recipe in this example, we still need to create a :ref:`develop
    distribution <python-development-projects>` so that Buildout can
    find the recipe and its meta data.
+
+.. [#helper-class-refined-in-2.9] We're relying on some refinements
+   made to the helper class in zc.buildout 2.9.
