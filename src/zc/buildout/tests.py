@@ -3768,36 +3768,21 @@ def test_suite():
 
         def docSetUp(test):
 
-            def read(path='out', *rest):
-                with open(os.path.join(path, *rest)) as f:
-                    return f.read()
-
             def write(text, *path):
                 with open(os.path.join(*path), 'w') as f:
                     f.write(text)
 
-            def eqs(a, *b):
-                a = set(a); b = set(b)
-                return None if a == b else (a - b, b - a)
-
-            def clear_here():
-                for name in os.listdir('.'):
-                    if os.path.isfile(name):
-                        os.remove(name)
-                    else:
-                        shutil.rmtree(name)
-
             test.globs.update(
-                run_buildout=zc.buildout.testing.run_buildout_in_subprocess,
+                run_buildout=zc.buildout.testing.run_buildout_in_process,
                 yup=lambda cond, orelse='Nope': None if cond else orelse,
                 nope=lambda cond, orelse='Nope': orelse if cond else None,
                 eq=lambda a, b: None if a == b else (a, b),
-                eqs=eqs,
-                read=read,
+                eqs=zc.buildout.testing.eqs,
+                read=zc.buildout.testing.read,
                 write=write,
                 ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
                 join=os.path.join,
-                clear_here=clear_here,
+                clear_here=zc.buildout.testing.clear_here,
                 os=os,
                 )
             setupstack.setUpDirectory(test)

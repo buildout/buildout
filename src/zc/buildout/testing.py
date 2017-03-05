@@ -47,6 +47,10 @@ print_ = zc.buildout.buildout.print_
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
+def read(path='out', *rest):
+    with open(os.path.join(path, *rest)) as f:
+        return f.read()
+
 def cat(dir, *names):
     path = os.path.join(dir, *names)
     if (not os.path.exists(path)
@@ -56,6 +60,17 @@ def cat(dir, *names):
         path = path+'-script.py'
     with open(path) as f:
         print_(f.read(), end='')
+
+def eqs(a, *b):
+    a = set(a); b = set(b)
+    return None if a == b else (a - b, b - a)
+
+def clear_here():
+    for name in os.listdir('.'):
+        if os.path.isfile(name):
+            os.remove(name)
+        else:
+            shutil.rmtree(name)
 
 def ls(dir, *subs):
     if subs:
@@ -572,7 +587,7 @@ def run_in_process(*args, **kwargs):
         with open('out') as f:
             print(f.read())
 
-def run_buildout_in_subprocess(command='buildout'):
+def run_buildout_in_process(command='buildout'):
     command = command.split(' ', 1)
     command.insert(
         1,

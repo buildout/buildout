@@ -141,7 +141,8 @@ based on a configuration string computed using value substitutions
 
 .. -> src
 
-   >>> write(src, 'buildout.cfg')
+   >>> from zc.buildout import testing
+   >>> testing.write('buildout.cfg', src)
 
 Some things to note about this example:
 
@@ -220,8 +221,8 @@ Here's the recipe source, ``src/democonfigrecipe.py``::
 
 .. -> src
 
-   >>> os.mkdir('src')
-   >>> write(src, 'src', 'democonfigrecipe.py')
+   >>> testing.mkdir('src')
+   >>> testing.write('src', 'democonfigrecipe.py', src)
 
 The constructor computes the ``path`` option.  This is then available
 for use by the ``server`` part above.  It's also used later in the
@@ -270,17 +271,21 @@ script, ``src/setup.py``::
 
 .. -> src
 
-   >>> write(src, 'src', 'setup.py')
-   >>> run_buildout()
+   >>> testing.write('src', 'setup.py', src)
+   >>> testing.run_buildout_in_process()
 
-   >>> eq(config.strip(), read('parts', 'config'))
-   >>> eq(server, read('parts', 'server', 'zdaemon.conf'))
+   >>> config.strip() == testing.read('parts', 'config')
+   True
+   >>> server == testing.read('parts', 'server', 'zdaemon.conf')
+   True
 
    Run again, nothing changes:
 
-   >>> run_buildout()
-   >>> eq(config.strip(), read('parts', 'config'))
-   >>> eq(server, read('parts', 'server', 'zdaemon.conf'))
+   >>> testing.run_buildout_in_process()
+   >>> config.strip() == read('parts', 'config')
+   True
+   >>> server == testing.read('parts', 'server', 'zdaemon.conf')
+   True
 
 The setup script specifies a name and version and lists the module to
 be included.
@@ -304,10 +309,10 @@ their paths and would remove them automatically.
 
 .. Oh yeah?
 
-   >>> write(read('buildout.cfg').replace('parts = server', 'parts ='),
-   ...      'buildout.cfg')
-   >>> run_buildout()
-   >>> eqs(ls('parts'))
+   >>> testing.write('buildout.cfg',
+   ...               read('buildout.cfg').replace('parts = server', 'parts ='))
+   >>> testing.run_buildout_in_process()
+   >>> testing.ls('parts')
 
 Uninstall recipes
 =================
@@ -353,6 +358,8 @@ Let's write a test for our configuration recipe.  We need to verify that:
 
 - The recipe returns the path it created from ``install``.
 
+.. _recipe-example:
+
 We create a ``testdemoconfigrecipe.py`` file containing our tests::
 
   import os
@@ -395,7 +402,7 @@ We create a ``testdemoconfigrecipe.py`` file containing our tests::
 
 .. -> src
 
-   >>> write(src, 'src', 'testdemoconfigrecipe.py')
+   >>> testing.write('src', 'testdemoconfigrecipe.py', src)
 
 In the ``setUp`` method, we created a temporary directory and changed
 to it.  This is useful to make sure we have a clean working
@@ -420,7 +427,7 @@ our test, we'll add it as a test dependency in our setup script::
 .. -> src
 
    >>> src = src.replace('>=2.9', '>=2.9.dev0') # because we're still at dev0
-   >>> write(src, 'src', 'setup.py')
+   >>> testing.write('src', 'setup.py', src)
 
 Here, we defined an "extra" requirement. These are additional
 dependencies needed to support optional features. In this case, we're
@@ -443,8 +450,8 @@ We'll write a development buildout to run our tests with:
 
 .. -> src
 
-    >>> write(src, 'buildout.cfg')
-    >>> run_buildout()
+    >>> testing.write('buildout.cfg', src)
+    >>> testing.run_buildout_in_process()
 
 Running Buildout with this gives is an interpreter script that we can
 run our tests with.  The script will make sure that ``zc.buildout``
@@ -458,8 +465,7 @@ To run our tests:
 
 .. -> src
 
-    >>> from zc.buildout.testing import system
-    >>> print(system(src)) # doctest: +ELLIPSIS
+    >>> print(testing.system(src)) # doctest: +ELLIPSIS
     ..
     ----------------------------------------------------------------------
     Ran 2 tests ...
@@ -479,10 +485,113 @@ More realistically:
   <https://pypi.python.org/pypi?%3Aaction=search&term=test+runner+buildout+recipe&>`_.
   We just used the test runner built into ``unittest``.
 
+``zc.buildout.testing`` reference
+----------------------------------
+The zc.buildout.testing module provides an API that can be used when
+writing recipe tests.  This API is documented below.
 
+Many of the functions documented below take a path argument as
+multiple arguments.  These are joined using ``os.path.join``.  This is
+more convenient than having to call os.path.join before calling the
+functions.
 
+``Buildout()``
+    A class you can use to create buildout and sections objects in your tests
 
+    This is a subclass of the main object used to run buildout.  Its
+    constructor takes no arguments.  You can add data to it by setting
+    section names to dictionaries::
 
+       buildout['config'] = dict(contents=self.config)
+
+    To get an options object to pass to your recipe, just ask for it back::
+
+       buildout['config']
+
+    See the :ref:`recipe example <recipe-example>` above.
+
+``cat(*path)``
+    Display the contents of a file.  The file path is provided as one or
+    more strings, to be joined with os.path.join.
+
+    On Windows, if the file doesn't exist, the function will try
+    adding a '-script.py' suffix.  This helps to work around a
+    difference in script generation on windows.
+
+``clear_here()``
+    Remove all files and directories in the current working directory.
+
+``eqs(got, *expected)``
+    Compare a collection with a collection given as multiple
+    arguments.
+
+    Both collections are converted to and compared as sets.  If the
+    sets are the same, then no output is returned, otherwise a tuple
+    of extras is returned, so, for example::
+
+      >>> eqs([1, 2, 3], 3, 1, 2)
+      >>> eqs([1, 2, 3], 1, 2, 4) == (set([3]), set([4]))
+      True
+
+``ls(*path)``
+    List the contents of a directory.  The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``mkdir(*path)``
+    Create a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``system(command, input='')``
+    Execute a system command with the given input passed to the
+    command's standard input.  The output (error and regular output)
+    from the command is returned.
+
+``read(*path)``
+    Read data from a file at the given path.  The file path is
+    provided as one or more strings, to be joined with os.path.join.
+
+    If no path is given, the ``'out'`` us used.
+
+``remove(*path)``
+    Remove a directory or file. The path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``rmdir(*path)``
+    Remove a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``run_buildout_in_process(command='buildout')``
+    Run Buildout in a `multiprocessing.Process
+    <https://docs.python.org/3/library/multiprocessing.html#process-and-exceptions>`_.
+    The command is must be a buildout command string, starting with 'buildout'.
+    You can provide additional arguments, as in ``'buildout -v'``.
+
+    Some extra options are added to the command to prevent network
+    access when running the command.  Any distribution the buildout
+    needs must already be available for import.  So, for example, if
+    you want to use some recipe, include it in your rest dependencies.
+
+    All output from the buildout run is captured in the file named ``out``.
+
+    This is useful for integration tests or tests of recipes that
+    interact intimately with buildout or other recipes.
+
+``write(*path_and_contents)``
+    Create a file.  The file path is provided as one or more strings,
+    to be joined with os.path.join. The last argument is the file contents.
+
+Documenting your recipe
+=======================
+
+Please, don't use your doctests to document your recipe. (We did that
+a lot and it didn't turn out well.) Just write straightforward
+documentation that explains to users how to use your recipe.
+
+If you have examples, however, considering testing them using `manuel
+<https://pythonhosted.org/manuel/>`_.  You can see examples of how to
+do that by looking at the `source of this topic
+<https://raw.githubusercontent.com/buildout/buildout/master/doc/topics/writing-recipes.rst>`_.
+Otherwise, it's very easy to end up with mistakes in your examples.
 
 
 
