@@ -928,7 +928,7 @@ namespace package.
 
 On the other hand, if the distribution uses ``pkgutil.extend_path()`` to
 implement its namespaces, even if just as fallback from the absence of
-``pkg_resources``, then ``setuptools`` shoudn't be added as requirement to
+``pkg_resources``, then ``setuptools`` shoud not be added as requirement to
 its unzipped egg:
 
     >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
@@ -3782,7 +3782,7 @@ def test_suite():
                 " use-dependency-links=false"
                 # Leaving this here so we can uncomment to see what's going on.
                 #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
-                " index=" + os.path.join(ancestor(__file__, 4), 'eggs')
+                " index=" + __file__ + 'nonexistent'
                 )
             def run_buildout_in_process(command='buildout'):
                 command = command.split(' ', 1)
