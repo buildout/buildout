@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.2 (unreleased)
+2.9.2 (2017-03-06)
 ==================
 
 - Fixed: We unnecessarily used a function from newer versions of
