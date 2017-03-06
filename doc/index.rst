@@ -75,3 +75,21 @@ Learn more:
 - :doc:`Reference <reference>`
 
 
+Additional resources
+====================
+
+Issue tracker
+  https://github.com/buildout/buildout/issues
+
+Mailing list
+  You can ask questions on the Python Distutils-SIG
+  mailing list, https://mail.python.org/mailman/listinfo/distutils-sig
+
+Github repository
+  https://github.com/buildout/buildout
+
+Contributing
+  Join the buildout-development google group,
+  https://groups.google.com/forum/#!forum/buildout-development to
+  discuss ideas and submit pull requests against the `buildout
+  repository <https://github.com/buildout/buildout>`_.
