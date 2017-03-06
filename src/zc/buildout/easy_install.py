@@ -1621,21 +1621,26 @@ def unpack_egg(location, dest):
 
 
 WHEEL_TO_EGG_WARNING = """
-Using unpack_wheel() shim over deprecated wheel_to_egg().
+Using unpack_wheel() shim over the deprecated wheel_to_egg() hook.
 Please update your wheel extension implementation for one that installs a .whl
 handler in %s.UNPACKERS
 """.strip() % (__name__,)
 
 def unpack_wheel(location, dest):
-    logger.warning(WHEEL_TO_EGG_WARNING)
     # Deprecated backward compatibility shim. Please do not use.
+    logger.warning(WHEEL_TO_EGG_WARNING)
     basename = os.path.basename(location)
     dists = setuptools.package_index.distros_for_location(location, basename)
-    wheel_to_egg(list(dists)[0], dest)
+    # `wheel_to_egg()` might generate zipped eggs, so we have to make sure we
+    # get unpacked eggs in the end:
+    tmp_dest = tempfile.mkdtemp(dir=dest)
+    wheel_to_egg(list(dists)[0], tmp_dest)
+    [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
+    unpack_egg(egg, dest)
+    shutil.rmtree(tmp_dest)
     
 
 UNPACKERS = {
-    # Buildout 2 no longer installs zipped eggs, so we always want to unpack it.
     '.egg': unpack_egg,
     '.whl': unpack_wheel,
 }
