@@ -187,8 +187,11 @@ class TestOptions(zc.buildout.buildout.Options):
 class Buildout(zc.buildout.buildout.Buildout):
 
     def __init__(self):
+        for name in 'eggs', 'parts':
+            if not os.path.exists(name):
+                os.mkdir(name)
         zc.buildout.buildout.Buildout.__init__(
-            self, '', [('buildout', 'directory', os.getcwd())])
+            self, '', [('buildout', 'directory', os.getcwd())], False)
 
     Options = TestOptions
 
