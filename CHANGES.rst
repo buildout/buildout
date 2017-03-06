@@ -347,9 +347,9 @@ Change History
 2.1.0 (2013-03-23)
 ==================
 
-- `Meta-recipe support`_
+- Meta-recipe support
 
-- `Conditional sections`_
+- Conditional sections
 
 - Buildout now accepts a ``--version`` command-line option to print
   its version.
