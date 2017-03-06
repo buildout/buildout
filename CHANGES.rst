@@ -4,7 +4,7 @@ Change History
 2.9.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed a minor packaging bug that broke the PyPI page.
 
 
 2.9.0 (2017-03-06)
