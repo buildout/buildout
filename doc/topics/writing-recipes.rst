@@ -342,6 +342,20 @@ entry points, using the type ``zc.buildout.uninstall`` as can be seen
 in the `zc.recipe.rhrc setup script
 <https://github.com/zopefoundation/zc.recipe.rhrc/blob/master/setup.py#L23>`_.
 
+User interaction: logging and UserError
+=======================================
+
+Recipes communicate to users through logging and errors. Recipes can
+log information using the Python logging library and messages will be
+displayed according to buildout's :ref:`verbosity setting <verbosity-level>`.
+
+Errors that a user can potentially correct should be reported by
+raising ``zc.buildout.UserError`` exceptions with error messages as
+arguments.
+
+Buildout will display these as user errors, rather than printing a
+trace back.
+
 Testing recipes
 ================
 
@@ -600,7 +614,6 @@ If you have examples, however, considering testing them using `manuel
 do that by looking at the `source of this topic
 <https://raw.githubusercontent.com/buildout/buildout/master/doc/topics/writing-recipes.rst>`_.
 Otherwise, it's very easy to end up with mistakes in your examples.
-
 
 
 .. [#installed] Configuration data from previous runs are saved in a

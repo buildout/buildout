@@ -10,6 +10,7 @@ Buildout Topics
    implicit-parts
    optimizing
    bootstrapping
+   extensions
    writing-recipes
    meta-recipes
 

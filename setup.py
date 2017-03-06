@@ -20,48 +20,7 @@ from setuptools import setup
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-doc_intro = """
-
-Below, you'll find doctest-based documentation.  It was an experiment
-in reusing tests as documentation.  The experiment didn't go that
-well, but there may be details below that aren't easy to find on
-buildout.org yet.
-
-.. contents ::
-
-doctest-based Documentation
-***************************
-
-"""
-
-long_description=(
-        read('README.rst')
-        + doc_intro +
-        read('src', 'zc', 'buildout', 'buildout.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'repeatable.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'download.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'downloadcache.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'extends-cache.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'setup.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'update.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'debugging.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'testing.txt')
-        + '\n' +
-        read('src', 'zc', 'buildout', 'easy_install.txt')
-        + '\n' +
-        read('CHANGES.rst')
-        # + '\n' +
-        # 'Download\n'
-        # '**********************\n'
-        )
+long_description= read('README.rst') + '\n' + read('CHANGES.rst')
 
 entry_points = """
 [console_scripts]
