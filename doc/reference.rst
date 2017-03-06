@@ -524,9 +524,10 @@ and a value:
     {'buildout': {'parts': 'py'}}
 
 Option names may have any characters other than whitespace, square
-braces, curly braces, equal signs, or colons.  There may be and usually
-is whitespace between the name and the equal sign and the name and
-equal sign must be on the same line.
+braces, curly braces, equal signs, or colons.  There may be and
+usually is whitespace between the name and the equal sign and the name
+and equal sign must be on the same line.  Names starting with ``<``
+are reserved for Buildout's use.
 
 Option values may contain any characters. A consequence of this is
 that there can't be comments in option values.
@@ -590,6 +591,27 @@ no data on the first line
   .. -> val
 
        >>> eq(parse(header + option)['buildout']['code'] + '\n', val)
+
+Special "implication" syntax for the ``<part-dependencies>`` option
+____________________________________________________________________
+
+An exception to the normal option syntax is the use of ``=>`` as a
+short-hand for the ``<part-dependencies>`` option:
+
+.. code-block:: ini
+
+   => part1 part2
+      part3
+
+This is equivalent to:
+
+.. code-block:: ini
+
+   <part-dependencies> = part1 part2
+      part3
+
+and declares that the named parts are dependencies of the part in
+which this option appears.
 
 Comments and blank lines
 ------------------------

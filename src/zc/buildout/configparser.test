@@ -39,9 +39,12 @@ First, an example that illustrates a well-formed configuration::
 
     >>> try: import StringIO
     ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> from pprint import pprint
+    >>> import zc.buildout.configparser
+    >>> def parse(config, *args, **kw):
+    ...     return zc.buildout.configparser.parse(StringIO.StringIO(config),
+    ...                                           'test', *args, **kw)
+    >>> pprint(parse(text))
     {'s1': {'a': '1'},
      's2': {'b    +': '1',
             'c': '1',
@@ -53,8 +56,7 @@ First, an example that illustrates a well-formed configuration::
 Here's an example with leading blank lines:
 
     >>> text = '\n\n[buildout]\nz=1\n\n'
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'buildout': {'z': '1'}}
 
 
@@ -81,8 +83,7 @@ otherwise empty section) is blank.  For example:"
 
 .. -> text
 
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'buildout': {'parts': 'hello', 'versions': 'versions'},
      'hello': {'cmds': 'echo Hello',
                'on_install': 'true',
@@ -111,11 +112,7 @@ conditional exclusion of sections::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'s1': {'a': '1'}, 's2': {'long': 'b'}, 's3': {'long': 'c'}}
 
 
@@ -159,11 +156,7 @@ some cases. For example, valid sections lines include::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'a': {'a': '1'},
      'b': {'b': '1'},
      'c': {'c': '1'},
@@ -197,11 +190,7 @@ character. The following are valid semicolon-separated comments::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'a': {'a': '1'},
      'b': {'b': '1'},
      'c': {'c': '1'},
@@ -229,11 +218,7 @@ The following sections with hash comment separators are valid too::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'a': {'a': '1'},
      'b': {'b': '1'},
      'c': {'c': '1'},
@@ -256,11 +241,7 @@ These expressions are valid and use escaped hash and semicolons in literals::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test'))
+    >>> pprint(parse(text))
     {'a': {'a': '1'}, 'b': {'b': '1'}}
 
 
@@ -271,10 +252,7 @@ And using unescaped semicolon and hash characters in expressions triggers an err
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import zc.buildout.configparser
-    >>> try: zc.buildout.configparser.parse(StringIO.StringIO(text), 'test')
+    >>> try: parse(text)
     ... except zc.buildout.configparser.MissingSectionHeaderError: pass # success
 
 
@@ -296,13 +274,9 @@ platform and sys modules functions and objects in our expressions ::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
     >>> import platform, sys
     >>> globs = lambda: {'platform': platform, 'sys': sys}
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test', exp_globals=globs))
+    >>> pprint(parse(text, exp_globals=globs))
     {'s1': {'a': '1'}, 's2': {'long': 'b'}}
 
 
@@ -334,15 +308,21 @@ called by buildout::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
-    >>> import pprint, zc.buildout.configparser
     >>> import zc.buildout.buildout
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
-    ...     text), 'test', zc.buildout.buildout._default_globals))
+    >>> pprint(parse(text, zc.buildout.buildout._default_globals))
     {'s1': {'a': '1'},
      's2': {'b': '1'},
      's3': {'c': '1'},
      's4': {'d': '1'},
      's5': {'e': '1'}}
 
+
+Preprocessing of implication and unicode cuteness::
+
+  [foo]
+  => part1 part2
+
+.. -> text
+
+    >>> pprint(parse(text))
+    {'foo': {'<part-dependencies>': 'part1 part2'}}

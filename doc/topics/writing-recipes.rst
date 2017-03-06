@@ -155,7 +155,7 @@ Some things to note about this example:
   as we've seen here.
 
 - We didn't have to list the ``config`` part in the buildout ``parts``
-  option.  It's :doc:`added implicitly <implicit-parts>` by virtue of
+  option.  It's :doc:`added automatically <implicit-parts>` by virtue of
   its use in the ``server`` part.
 
 - We used the ``develop`` option to specify a ``src`` directory

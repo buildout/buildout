@@ -206,6 +206,8 @@ def parse(fp, fpname, exp_globals=dict):
                 # no section header in the file?
                 raise MissingSectionHeaderError(fpname, lineno, line)
             else:
+                if line[:2] == '=>':
+                    line = '<part-dependencies> = ' + line[2:]
                 mo = option_start(line)
                 if mo:
                     if not section_condition:

@@ -1237,6 +1237,10 @@ class Options(DictMixin):
         if name == 'buildout':
             return # buildout section can never be a part
 
+        for dname in self.get('<part-dependencies>', '').split():
+            # force use of dependencies in buildout:
+            self.buildout[dname]
+
         if self.get('recipe'):
             self.initialize()
             self.buildout._parts.append(name)

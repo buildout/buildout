@@ -94,7 +94,8 @@ setup(
     entry_points = entry_points,
     extras_require = dict(
         test=['zope.testing', 'manuel',
-              'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe']),
+              'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe',
+              'zc.recipe.deployment']),
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',
