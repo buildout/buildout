@@ -345,7 +345,7 @@ in the `zc.recipe.rhrc setup script
 User interaction: logging and UserError
 =======================================
 
-Recipes communicate to users through logging and errors. Recipies can
+Recipes communicate to users through logging and errors. Recipes can
 log information using the Python logging library and messages will be
 displayed according to buildout's :ref:`verbosity setting <verbosity-level>`.
 
