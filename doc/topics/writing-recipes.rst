@@ -372,7 +372,7 @@ We create a ``testdemoconfigrecipe.py`` file containing our tests::
 
       def setUp(self):
           self.here = os.getcwd()
-          self.tmp = tempfile.mkdtemp()
+          self.tmp = tempfile.mkdtemp(prefix='testdemoconfigrecipe-')
           os.chdir(self.tmp)
           self.buildout = buildout = zc.buildout.testing.Buildout()
           self.config = 'some config text\n'
@@ -532,7 +532,7 @@ functions.
     of extras is returned, so, for example::
 
       >>> eqs([1, 2, 3], 3, 1, 2)
-      >>> eqs([1, 2, 3], 1, 2, 4) == (set([3]), set([4]))
+      >>> eqs([1, 2, 3], 1, 2, 4) == ({3}, {4})
       True
 
     *New in buildout 2.9*
@@ -547,14 +547,14 @@ functions.
 
 ``system(command, input='')``
     Execute a system command with the given input passed to the
-    command's standard input.  The output (error and regular output)
-    from the command is returned.
+    command's standard input.  The output (error and regular output
+    combined into a single string) from the command is returned.
 
 ``read(*path)``
-    Read data from a file at the given path.  The file path is
+    Read text from a file at the given path.  The file path is
     provided as one or more strings, to be joined with os.path.join.
 
-    If no path is given, the ``'out'`` us used.
+    If no path is given, the ``'out'`` is used.
 
     *New in buildout 2.9*
 
