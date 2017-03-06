@@ -289,8 +289,7 @@ class Installer:
         eggs = glob.glob(os.path.join(dest, '*.egg'))
         dists = [os.path.dirname(dist_info) for dist_info in
                  glob.glob(os.path.join(dest, '*', '*.dist-info'))]
-        # sort them like pkg_resources.find_on_path() would
-        return pkg_resources._by_version_descending(set(eggs + dists))
+        return list(set(eggs + dists))
 
     @staticmethod
     def _eggify_env_dest_dists(env, dest):
