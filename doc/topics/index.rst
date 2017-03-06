@@ -11,5 +11,6 @@ Buildout Topics
    optimizing
    bootstrapping
    writing-recipes
+   meta-recipes
 
 .. todo:

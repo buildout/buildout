@@ -1108,7 +1108,7 @@ class Buildout(DictMixin):
     def annotate(self, args=None):
         _print_annotate(self._annotated)
 
-    def print_options(self):
+    def print_options(self, base_path=None):
         for section in sorted(self._data):
             if section == 'buildout' or section == self['buildout']['versions']:
                 continue
@@ -1118,6 +1118,9 @@ class Buildout(DictMixin):
                     v = '\n  ' + v.replace('\n', '\n  ')
                 else:
                     v = ' '+v
+
+                if base_path:
+                    v = v.replace(os.getcwd(), base_path)
                 print_("%s =%s" % (k, v))
 
     def __getitem__(self, section):
