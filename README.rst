@@ -56,45 +56,4 @@ Buildout is a project designed to solve 2 problems:
    distribution, there can only be one installed.
 
 To learn more about buildout, including how to use it, see
-http://buildout.org/.
-
-
-Installation
-************
-
-There are a number of ways to install buildout.  You can install it as
-you would any other package, using pip or easy_install.  In this case,
-you'll get a buildout command that you can use to build projects.  To
-build a project, just use::
-
-  buildout
-
-from a project directory.
-
-Buildout's (stubborn) philosophy, however, is that projects should be
-self-contained, and not require changes to a shared Python
-installation. To avoid changing a shared Python installation you can
-download a bootstrap script that, when run, will install buildout
-locally in your project.
-
-The bootstrap script for buildout version 2 is at:
-
-  https://bootstrap.pypa.io/bootstrap-buildout.py
-
-So, for example, to install buildout 2 in a project, you might::
-
-  wget https://bootstrap.pypa.io/bootstrap-buildout.py
-  python bootstrap-buildout.py
-
-Then to build your project, you can just run::
-
-  bin/buildout
-
-from the project directory.
-
-buildout 2 is somewhat backward-incompatible with version 1.  Most
-projects will probably work fine with either.  If you need to keep
-using version 1, however, specify a version requirement when you use
-pip or easy_install, or use the version 1 bootstrap script at:
-
-  http://downloads.buildout.org/1/bootstrap.py
+http://docs.buildout.org/.
