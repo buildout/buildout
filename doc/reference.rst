@@ -63,6 +63,8 @@ Buildout command-line options
 ``-U``
   Don't use :ref:`user-default configuration <user-default-configuration>`.
 
+.. _verbosity-level:
+
 ``-v``
   Increase the level of verbosity.  This option can be used multiple
   times.
