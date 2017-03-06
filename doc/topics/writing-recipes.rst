@@ -521,6 +521,8 @@ functions.
 ``clear_here()``
     Remove all files and directories in the current working directory.
 
+    *New in buildout 2.9*
+
 ``eqs(got, *expected)``
     Compare a collection with a collection given as multiple
     arguments.
@@ -532,6 +534,8 @@ functions.
       >>> eqs([1, 2, 3], 3, 1, 2)
       >>> eqs([1, 2, 3], 1, 2, 4) == (set([3]), set([4]))
       True
+
+    *New in buildout 2.9*
 
 ``ls(*path)``
     List the contents of a directory.  The directory path is provided as one or
@@ -551,6 +555,8 @@ functions.
     provided as one or more strings, to be joined with os.path.join.
 
     If no path is given, the ``'out'`` us used.
+
+    *New in buildout 2.9*
 
 ``remove(*path)``
     Remove a directory or file. The path is provided as one or
@@ -575,6 +581,8 @@ functions.
 
     This is useful for integration tests or tests of recipes that
     interact intimately with buildout or other recipes.
+
+    *New in buildout 2.9*
 
 ``write(*path_and_contents)``
     Create a file.  The file path is provided as one or more strings,
