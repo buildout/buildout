@@ -19,7 +19,6 @@ import doctest
 import manuel.capture
 import manuel.doctest
 import manuel.testing
-from multiprocessing import Process
 import os
 import pkg_resources
 import re
@@ -928,7 +927,7 @@ namespace package.
 
 On the other hand, if the distribution uses ``pkgutil.extend_path()`` to
 implement its namespaces, even if just as fallback from the absence of
-``pkg_resources``, then ``setuptools`` shoudn't be added as requirement to
+``pkg_resources``, then ``setuptools`` should not be added as requirement to
 its unzipped egg:
 
     >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
@@ -3501,16 +3500,6 @@ normalize_S = (
     '#!/usr/local/bin/python2.7',
     )
 
-def run_buildout(command):
-    # Make sure we don't get .buildout
-    os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
-    args = command.strip().split()
-    import pkg_resources
-    buildout = pkg_resources.load_entry_point(
-        'zc.buildout', 'console_scripts', args[0])
-    sys.stdout = sys.stderr = open('out', 'w')
-    buildout(args[1:])
-
 def test_suite():
     test_suite = [
         manuel.testing.TestSuite(
@@ -3778,53 +3767,22 @@ def test_suite():
         # to test the documentation, not to test buildout.
 
         def docSetUp(test):
-            extra_options = (
-                " use-dependency-links=false"
-                # Leaving this here so we can uncomment to see what's going on.
-                #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
-                " index=" + os.path.join(ancestor(__file__, 4), 'eggs')
-                )
-            def run_buildout_in_process(command='buildout'):
-                command = command.split(' ', 1)
-                command.insert(1, extra_options)
-                command = ' '.join(command)
-                process = Process(target=run_buildout, args=(command, ))
-                process.daemon = True
-                process.start()
-                process.join(99)
-                if process.is_alive() or process.exitcode:
-                    print(read())
-
-            def read(path='out', *rest):
-                with open(os.path.join(path, *rest)) as f:
-                    return f.read()
 
             def write(text, *path):
                 with open(os.path.join(*path), 'w') as f:
                     f.write(text)
 
-            def eqs(a, *b):
-                a = set(a); b = set(b)
-                return None if a == b else (a - b, b - a)
-
-            def clear_here():
-                for name in os.listdir('.'):
-                    if os.path.isfile(name):
-                        os.remove(name)
-                    else:
-                        shutil.rmtree(name)
-
             test.globs.update(
-                run_buildout=run_buildout_in_process,
+                run_buildout=zc.buildout.testing.run_buildout_in_process,
                 yup=lambda cond, orelse='Nope': None if cond else orelse,
                 nope=lambda cond, orelse='Nope': orelse if cond else None,
                 eq=lambda a, b: None if a == b else (a, b),
-                eqs=eqs,
-                read=read,
+                eqs=zc.buildout.testing.eqs,
+                read=zc.buildout.testing.read,
                 write=write,
                 ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
                 join=os.path.join,
-                clear_here=clear_here,
+                clear_here=zc.buildout.testing.clear_here,
                 os=os,
                 )
             setupstack.setUpDirectory(test)

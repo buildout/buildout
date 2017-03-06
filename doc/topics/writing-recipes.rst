@@ -141,7 +141,8 @@ based on a configuration string computed using value substitutions
 
 .. -> src
 
-   >>> write(src, 'buildout.cfg')
+   >>> from zc.buildout import testing
+   >>> testing.write('buildout.cfg', src)
 
 Some things to note about this example:
 
@@ -220,8 +221,8 @@ Here's the recipe source, ``src/democonfigrecipe.py``::
 
 .. -> src
 
-   >>> os.mkdir('src')
-   >>> write(src, 'src', 'democonfigrecipe.py')
+   >>> testing.mkdir('src')
+   >>> testing.write('src', 'democonfigrecipe.py', src)
 
 The constructor computes the ``path`` option.  This is then available
 for use by the ``server`` part above.  It's also used later in the
@@ -270,17 +271,21 @@ script, ``src/setup.py``::
 
 .. -> src
 
-   >>> write(src, 'src', 'setup.py')
-   >>> run_buildout()
+   >>> testing.write('src', 'setup.py', src)
+   >>> testing.run_buildout_in_process()
 
-   >>> eq(config.strip(), read('parts', 'config'))
-   >>> eq(server, read('parts', 'server', 'zdaemon.conf'))
+   >>> config.strip() == testing.read('parts', 'config')
+   True
+   >>> server == testing.read('parts', 'server', 'zdaemon.conf')
+   True
 
    Run again, nothing changes:
 
-   >>> run_buildout()
-   >>> eq(config.strip(), read('parts', 'config'))
-   >>> eq(server, read('parts', 'server', 'zdaemon.conf'))
+   >>> testing.run_buildout_in_process()
+   >>> config.strip() == read('parts', 'config')
+   True
+   >>> server == testing.read('parts', 'server', 'zdaemon.conf')
+   True
 
 The setup script specifies a name and version and lists the module to
 be included.
@@ -304,10 +309,10 @@ their paths and would remove them automatically.
 
 .. Oh yeah?
 
-   >>> write(read('buildout.cfg').replace('parts = server', 'parts ='),
-   ...      'buildout.cfg')
-   >>> run_buildout()
-   >>> eqs(ls('parts'))
+   >>> testing.write('buildout.cfg',
+   ...               read('buildout.cfg').replace('parts = server', 'parts ='))
+   >>> testing.run_buildout_in_process()
+   >>> testing.ls('parts')
 
 Uninstall recipes
 =================
@@ -337,6 +342,267 @@ entry points, using the type ``zc.buildout.uninstall`` as can be seen
 in the `zc.recipe.rhrc setup script
 <https://github.com/zopefoundation/zc.recipe.rhrc/blob/master/setup.py#L23>`_.
 
+Testing recipes
+================
+
+The recipe API is fairly simple and standard unit-testing approaches
+can be used.  We'll use a helper class,
+``zc.buildout.testing.Buildout`` [#helper-class-refined-in-2.9]_ to
+provide a minimal buildout environment.
+
+Let's write a test for our configuration recipe.  We need to verify that:
+
+- The recipe generates a ``path`` option.
+
+- The recipe generates a file in the correct place.
+
+- The recipe returns the path it created from ``install``.
+
+.. _recipe-example:
+
+We create a ``testdemoconfigrecipe.py`` file containing our tests::
+
+  import os
+  import shutil
+  import tempfile
+  import unittest
+  import zc.buildout.testing
+
+  class RecipeTests(unittest.TestCase):
+
+      def setUp(self):
+          self.here = os.getcwd()
+          self.tmp = tempfile.mkdtemp(prefix='testdemoconfigrecipe-')
+          os.chdir(self.tmp)
+          self.buildout = buildout = zc.buildout.testing.Buildout()
+          self.config = 'some config text\n'
+          buildout['config'] = dict(contents=self.config)
+          import democonfigrecipe
+          self.recipe = democonfigrecipe.Recipe(
+              buildout, 'config', buildout['config'])
+
+      def tearDown(self):
+          os.chdir(self.here)
+          shutil.rmtree(self.tmp)
+
+      def test_path_option(self):
+          buildout = self.buildout
+          self.assertEqual(os.path.join(buildout['buildout']['parts-directory'],
+                                        'config'),
+                           buildout['config']['path'])
+
+      def test_install(self):
+          buildout = self.buildout
+          self.assertEqual(self.recipe.install(), [buildout['config']['path']])
+          with open(buildout['config']['path']) as f:
+              self.assertEqual(self.config, f.read())
+
+  if __name__ == '__main__':
+      unittest.main()
+
+.. -> src
+
+   >>> testing.write('src', 'testdemoconfigrecipe.py', src)
+
+In the ``setUp`` method, we created a temporary directory and changed
+to it.  This is useful to make sure we have a clean working
+directory.  We clean it up in the ``tearDown`` method.
+
+Our test uses ``zc.buildout`` so that we can use the
+``zc.buildout.testing.Buildout`` helper class.  We did this so we'd
+have a more realistic environment, but of course, we could have
+stubbed this out ourselves.  Because we're using ``zc.buildout`` in
+our test, we'll add it as a test dependency in our setup script::
+
+  from setuptools import setup
+
+  setup(
+      name='democonfigrecipe',
+      version='0.1.0',
+      py_modules = ['democonfigrecipe', 'testdemoconfigrecipe'],
+      entry_points = {"zc.buildout": ["default=democonfigrecipe:Recipe"]},
+      extras_require = dict(test=['zc.buildout >=2.9']),
+      )
+
+.. -> src
+
+   >>> src = src.replace('>=2.9', '>=2.9.dev0') # because we're still at dev0
+   >>> testing.write('src', 'setup.py', src)
+
+Here, we defined an "extra" requirement. These are additional
+dependencies needed to support optional features. In this case, we're
+providing an optional ``test`` feature. (We specified that we want at
+least version 2.9, because we're depending on some testing-support
+refinements that were added in zc.buildout 2.9.0.)
+
+We'll write a development buildout to run our tests with:
+
+.. code-block:: ini
+
+   [buildout]
+   develop = src
+   parts = py
+
+   [py]
+   recipe = zc.recipe.egg
+   eggs = democonfigrecipe [test]
+   interpreter = py
+
+.. -> src
+
+    >>> testing.write('buildout.cfg', src)
+    >>> testing.run_buildout_in_process()
+
+Running Buildout with this gives is an interpreter script that we can
+run our tests with.  The script will make sure that ``zc.buildout``
+and our recipe can be imported.
+
+To run our tests:
+
+.. code-block:: console
+
+    bin/py src/testdemoconfigrecipe.py
+
+.. -> src
+
+    >>> print(testing.system(src)) # doctest: +ELLIPSIS
+    ..
+    ----------------------------------------------------------------------
+    Ran 2 tests ...
+    OK
+    <BLANKLINE>
+
+In this example, we've tried to keep things simple and as free from
+external requirements as possible.
+
+More realistically:
+
+- You'd probably arrange your recipe in a Python package rather than
+  as a top-level module and a top-level testing module.
+
+- You might use a test runner like nose or pytest.  There are `recipes
+  that can help set this up
+  <https://pypi.python.org/pypi?%3Aaction=search&term=test+runner+buildout+recipe&>`_.
+  We just used the test runner built into ``unittest``.
+
+``zc.buildout.testing`` reference
+----------------------------------
+The zc.buildout.testing module provides an API that can be used when
+writing recipe tests.  This API is documented below.
+
+Many of the functions documented below take a path argument as
+multiple arguments.  These are joined using ``os.path.join``.  This is
+more convenient than having to call os.path.join before calling the
+functions.
+
+``Buildout()``
+    A class you can use to create buildout and sections objects in your tests
+
+    This is a subclass of the main object used to run buildout.  Its
+    constructor takes no arguments.  You can add data to it by setting
+    section names to dictionaries::
+
+       buildout['config'] = dict(contents=self.config)
+
+    To get an options object to pass to your recipe, just ask for it back::
+
+       buildout['config']
+
+    See the :ref:`recipe example <recipe-example>` above.
+
+``cat(*path)``
+    Display the contents of a file.  The file path is provided as one or
+    more strings, to be joined with os.path.join.
+
+    On Windows, if the file doesn't exist, the function will try
+    adding a '-script.py' suffix.  This helps to work around a
+    difference in script generation on windows.
+
+``clear_here()``
+    Remove all files and directories in the current working directory.
+
+    *New in buildout 2.9*
+
+``eqs(got, *expected)``
+    Compare a collection with a collection given as multiple
+    arguments.
+
+    Both collections are converted to and compared as sets.  If the
+    sets are the same, then no output is returned, otherwise a tuple
+    of extras is returned, so, for example::
+
+      >>> eqs([1, 2, 3], 3, 1, 2)
+      >>> eqs([1, 2, 3], 1, 2, 4) == ({3}, {4})
+      True
+
+    *New in buildout 2.9*
+
+``ls(*path)``
+    List the contents of a directory.  The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``mkdir(*path)``
+    Create a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``system(command, input='')``
+    Execute a system command with the given input passed to the
+    command's standard input.  The output (error and regular output
+    combined into a single string) from the command is returned.
+
+``read(*path)``
+    Read text from a file at the given path.  The file path is
+    provided as one or more strings, to be joined with os.path.join.
+
+    If no path is given, the ``'out'`` is used.
+
+    *New in buildout 2.9*
+
+``remove(*path)``
+    Remove a directory or file. The path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``rmdir(*path)``
+    Remove a directory. The directory path is provided as one or
+    more strings, to be joined with os.path.join.
+
+``run_buildout_in_process(command='buildout')``
+    Run Buildout in a `multiprocessing.Process
+    <https://docs.python.org/3/library/multiprocessing.html#process-and-exceptions>`_.
+    The command is must be a buildout command string, starting with 'buildout'.
+    You can provide additional arguments, as in ``'buildout -v'``.
+
+    Some extra options are added to the command to prevent network
+    access when running the command.  Any distribution the buildout
+    needs must already be available for import.  So, for example, if
+    you want to use some recipe, include it in your rest dependencies.
+
+    All output from the buildout run is captured in the file named ``out``.
+
+    This is useful for integration tests or tests of recipes that
+    interact intimately with buildout or other recipes.
+
+    *New in buildout 2.9*
+
+``write(*path_and_contents)``
+    Create a file.  The file path is provided as one or more strings,
+    to be joined with os.path.join. The last argument is the file contents.
+
+Documenting your recipe
+=======================
+
+Please, don't use your doctests to document your recipe. (We did that
+a lot and it didn't turn out well.) Just write straightforward
+documentation that explains to users how to use your recipe.
+
+If you have examples, however, considering testing them using `manuel
+<https://pythonhosted.org/manuel/>`_.  You can see examples of how to
+do that by looking at the `source of this topic
+<https://raw.githubusercontent.com/buildout/buildout/master/doc/topics/writing-recipes.rst>`_.
+Otherwise, it's very easy to end up with mistakes in your examples.
+
+
+
 .. [#installed] Configuration data from previous runs are saved in a
    buildout's installed database, :ref:`typically saved in
    <installed-option>` a generated ``.installed.cfg`` file.
@@ -353,3 +619,6 @@ in the `zc.recipe.rhrc setup script
    recipe in this example, we still need to create a :ref:`develop
    distribution <python-development-projects>` so that Buildout can
    find the recipe and its meta data.
+
+.. [#helper-class-refined-in-2.9] We're relying on some refinements
+   made to the helper class in zc.buildout 2.9.
