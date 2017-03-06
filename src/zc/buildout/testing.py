@@ -25,6 +25,7 @@ except ImportError:
 
 import errno
 import logging
+from multiprocessing import Process
 import os
 import pkg_resources
 import random
@@ -46,6 +47,10 @@ print_ = zc.buildout.buildout.print_
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
+def read(path='out', *rest):
+    with open(os.path.join(path, *rest)) as f:
+        return f.read()
+
 def cat(dir, *names):
     path = os.path.join(dir, *names)
     if (not os.path.exists(path)
@@ -55,6 +60,17 @@ def cat(dir, *names):
         path = path+'-script.py'
     with open(path) as f:
         print_(f.read(), end='')
+
+def eqs(a, *b):
+    a = set(a); b = set(b)
+    return None if a == b else (a - b, b - a)
+
+def clear_here():
+    for name in os.listdir('.'):
+        if os.path.isfile(name) or os.path.islink(name):
+            os.remove(name)
+        else:
+            shutil.rmtree(name)
 
 def ls(dir, *subs):
     if subs:
@@ -180,6 +196,10 @@ def wait_until(label, func, *args, **kw):
     raise ValueError('Timed out waiting for: '+label)
 
 class TestOptions(zc.buildout.buildout.Options):
+
+    def __init__(self, *args):
+        zc.buildout.buildout.Options.__init__(self, *args)
+        self._created = []
 
     def initialize(self):
         pass
@@ -544,3 +564,37 @@ ignore_not_upgrading = (
     re.compile(
     'Not upgrading because not running a local buildout command.\n'
     ), '')
+
+def run_buildout(command):
+    # Make sure we don't get .buildout
+    os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
+    args = command.split()
+    import pkg_resources
+    buildout = pkg_resources.load_entry_point(
+        'zc.buildout', 'console_scripts', args[0])
+    buildout(args[1:])
+
+def run_from_process(target, *args, **kw):
+    sys.stdout = sys.stderr = open('out', 'w')
+    target(*args, **kw)
+
+def run_in_process(*args, **kwargs):
+    process = Process(target=run_from_process, args=args, kwargs=kwargs)
+    process.daemon = True
+    process.start()
+    process.join(99)
+    if process.is_alive() or process.exitcode:
+        with open('out') as f:
+            print(f.read())
+
+def run_buildout_in_process(command='buildout'):
+    command = command.split(' ', 1)
+    command.insert(
+        1,
+        " use-dependency-links=false"
+        # Leaving this here so we can uncomment to see what's going on.
+        #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
+        " index=" + __file__ + 'nonexistent' # hide index
+        )
+    command = ' '.join(command)
+    run_in_process(run_buildout, command)
