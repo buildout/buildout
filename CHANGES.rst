@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.1 (unreleased)
+2.9.1 (2017-03-06)
 ==================
 
 - Fixed a minor packaging bug that broke the PyPI page.
