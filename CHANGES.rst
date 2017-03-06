@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.0 (unreleased)
+2.9.0 (2017-03-06)
 ==================
 
 - Added new syntax to explicitly declare that a part depends on other part.
