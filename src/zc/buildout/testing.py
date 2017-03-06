@@ -67,7 +67,7 @@ def eqs(a, *b):
 
 def clear_here():
     for name in os.listdir('.'):
-        if os.path.isfile(name):
+        if os.path.isfile(name) or os.path.islink(name):
             os.remove(name)
         else:
             shutil.rmtree(name)
@@ -568,7 +568,7 @@ ignore_not_upgrading = (
 def run_buildout(command):
     # Make sure we don't get .buildout
     os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
-    args = command.strip().split()
+    args = command.split()
     import pkg_resources
     buildout = pkg_resources.load_entry_point(
         'zc.buildout', 'console_scripts', args[0])
