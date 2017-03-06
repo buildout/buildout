@@ -4,7 +4,9 @@ Change History
 2.9.2 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed: We unnecessarily used a function from newer versions of
+  setuptools that caused problems when older setuptools or pkg_resources
+  installs were present (as in travis.ci).
 
 
 2.9.1 (2017-03-06)
