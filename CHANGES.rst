@@ -1,8 +1,15 @@
 Change History
 **************
 
-2.8.1 (unreleased)
+2.9.0 (unreleased)
 ==================
+
+- Added new syntax to explicitly declare that a part depends on other part.
+  See http://docs.buildout.org/en/latest/topics/implicit-parts.html
+
+- Fixed a bugs in ``zc.buildout.testing.Buildout``. It was loading
+  user-default configuration.  It didn't support calling the
+  ``created`` method on its sections.
 
 - Fixed a bug (windows, py 3.4)
   When processing metadata on "old-style" distutils scripts, .exe stubs
