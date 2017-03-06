@@ -12,5 +12,6 @@ Buildout Topics
    bootstrapping
    extensions
    writing-recipes
+   meta-recipes
 
 .. todo:

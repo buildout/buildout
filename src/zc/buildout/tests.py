@@ -3542,7 +3542,7 @@ def test_suite():
                      'zc.\1 = >=1.99'),
                     ])
                 ) + manuel.capture.Manuel(),
-            'buildout.txt', 'meta-recipes.txt',
+            'buildout.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             ),
@@ -3789,7 +3789,9 @@ def test_suite():
 
         test_suite.append(
             manuel.testing.TestSuite(
-                manuel.doctest.Manuel() + manuel.capture.Manuel(),
+                manuel.doctest.Manuel(
+                    optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+                    ) + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),
                 os.path.join(docdir, 'reference.rst'),
                 os.path.join(docdir, 'topics', 'bootstrapping.rst'),
@@ -3799,6 +3801,7 @@ def test_suite():
                     'topics', 'variables-extending-and-substitutions.rst'),
                 os.path.join(docdir, 'topics', 'writing-recipes.rst'),
                 os.path.join(docdir, 'topics', 'optimizing.rst'),
+                os.path.join(docdir, 'topics', 'meta-recipes.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
 
