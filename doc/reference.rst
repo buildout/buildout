@@ -122,7 +122,7 @@ where they came from. Try it!
   Increase the verbosity of the output: display all steps that compute the final values used by buildout.
 
 ``--section section``
-  Only displya annotation for the given section.
+  Only display annotation for the given section.
 
 bootstrap
 _________
