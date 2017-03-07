@@ -1848,7 +1848,7 @@ def _update_section(s1, s2):
             implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been defined locally too.
             section_key = s2.get(key, s1.get(key, implicit_value))
-            section_key.addToValue(v.value, v.source) 
+            section_key.addToValue(v.value, v.source)
             s2[key] = section_key
             del s2[k]
         elif k.endswith('-'):
@@ -1856,7 +1856,7 @@ def _update_section(s1, s2):
             implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been set by a += operation first
             section_key = s2.get(key, s1.get(key, implicit_value))
-            section_key.removeFromValue(v.value, v.source) 
+            section_key.removeFromValue(v.value, v.source)
             s2[key] = section_key
             del s2[k]
 
