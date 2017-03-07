@@ -1234,7 +1234,7 @@ class Buildout(DictMixin):
     runsetup = setup # backward compat.
 
     def annotate(self, args=None):
-        verbose = self['buildout'].get('verbosity', 0) <> 0
+        verbose = self['buildout'].get('verbosity', 0) != 0
         section = None
         if args is None:
             sections = []
