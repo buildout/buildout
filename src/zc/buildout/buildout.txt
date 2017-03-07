@@ -910,10 +910,10 @@ The ``annotate`` has a verbose flag. You get more information about the way valu
        AS DEFAULT_VALUE
        SET VALUE = eggs
     <BLANKLINE>
-    executable= /Users/gotcha/co/buildout/bin/python
+    executable= ...
     <BLANKLINE>
        AS DEFAULT_VALUE
-       SET VALUE = /Users/gotcha/co/buildout/bin/python
+       SET VALUE = ...
     <BLANKLINE>
     find-links=
     <BLANKLINE>
