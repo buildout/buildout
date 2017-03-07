@@ -117,6 +117,13 @@ where they came from. Try it!
 
 .. _bootstrap-command:
 
+
+``--verbose``
+  Increase the verbosity of the output: display all steps that compute the final values used by buildout.
+
+``--section section``
+  Only displya annotation for the given section.
+
 bootstrap
 _________
 
