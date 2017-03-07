@@ -1018,9 +1018,9 @@ You get more information about the way values are computed::
     ...
 
 The output of the ``annotate`` command can be very long.
-You can restrict output to a single section with the ``--section`` flag::
+You can restrict the output to some sections by passing section names as arguments::
 
-    >>> print_(system(buildout+ ' annotate --section=versions'), end='')
+    >>> print_(system(buildout+ ' annotate versions'), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections

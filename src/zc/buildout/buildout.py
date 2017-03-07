@@ -218,14 +218,14 @@ def _annotate(data, note):
     return data
 
 
-def _print_annotate(data, verbose, chosen_section, basedir):
+def _print_annotate(data, verbose, chosen_sections, basedir):
     sections = list(data.keys())
     sections.sort()
     print_()
     print_("Annotated sections")
     print_("="*len("Annotated sections"))
     for section in sections:
-        if (not chosen_section) or (section == chosen_section):
+        if (not chosen_sections) or (section in chosen_sections):
             print_()
             print_('[%s]' % section)
             keys = list(data[section].keys())
@@ -1236,11 +1236,11 @@ class Buildout(DictMixin):
     def annotate(self, args=None):
         verbose = self['buildout'].get('verbosity', 0) <> 0
         section = None
-        if args:
-            for arg in args:
-                if arg.startswith('--section'):
-                    _, section = arg.split("=")
-        _print_annotate(self._annotated, verbose, section, self._buildout_dir)
+        if args is None:
+            sections = []
+        else:
+            sections = args
+        _print_annotate(self._annotated, verbose, sections, self._buildout_dir)
 
     def print_options(self, base_path=None):
         for section in sorted(self._data):
