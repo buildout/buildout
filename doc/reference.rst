@@ -118,11 +118,17 @@ where they came from. Try it!
 .. _bootstrap-command:
 
 
-``--verbose``
-  Increase the verbosity of the output: display all steps that compute the final values used by buildout.
+.. code-block:: console
 
-``--section section``
-  Only display annotation for the given section.
+   buildout -v annotate
+
+  Increase the verbosity of the output to display all steps that compute the final values used by buildout.
+
+.. code-block:: console
+
+   buildout annotate versions
+  
+  You can pass one or more section names as arguments to display annotation only for the given sections.
 
 bootstrap
 _________
