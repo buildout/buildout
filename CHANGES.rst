@@ -4,7 +4,7 @@ Change History
 2.9.3 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add ``--verbose`` and ``--section`` flags to ``annotate`` command.
 
 
 2.9.2 (2017-03-06)
