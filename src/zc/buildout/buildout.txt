@@ -864,9 +864,10 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         DEFAULT_VALUE
     <BLANKLINE>
 
-The ``annotate`` has a verbose flag. You get more information about the way values are computed::
+The ``annotate`` command is sensitive to the verbosity flag. 
+You get more information about the way values are computed::
 
-    >>> print_(system(buildout+ ' annotate --verbose'), end='')
+    >>> print_(system(buildout+ ' -v annotate'), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -989,6 +990,11 @@ The ``annotate`` has a verbose flag. You get more information about the way valu
     <BLANKLINE>
        AS DEFAULT_VALUE
        SET VALUE = true
+    <BLANKLINE>
+    verbosity= 10
+    <BLANKLINE>
+       AS COMMAND_LINE_VALUE
+       SET VALUE = 10
     <BLANKLINE>
     versions= versions
     <BLANKLINE>
@@ -1590,9 +1596,9 @@ operations::
         DEFAULT_VALUE
     <BLANKLINE>
 
-With --verbose::
+With more verbosity::
 
-    >>> print_(system(os.path.join('bin', 'buildout') + ' annotate --verbose'), end='')
+    >>> print_(system(os.path.join('bin', 'buildout') + ' -v annotate'), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
