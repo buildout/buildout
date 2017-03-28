@@ -3539,7 +3539,7 @@ def test_suite():
                     (re.compile('setuptools'), 'setuptools'),
                     (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
                     (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
-                     'zc.\1 = >=1.99'),
+                     'zc.\\1 = >=1.99'),
                     ])
                 ) + manuel.capture.Manuel(),
             'buildout.txt',

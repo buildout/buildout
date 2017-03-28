@@ -4,7 +4,9 @@ Change History
 2.9.3 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add more verbosity to ``annotate`` results with ``-v``
+
+- Select one or more sections with arguments after ``buildout annotate``.
 
 
 2.9.2 (2017-03-06)

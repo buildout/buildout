@@ -809,7 +809,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     develop-eggs-directory= develop-eggs
         DEFAULT_VALUE
     directory= /sample-buildout
@@ -833,7 +833,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     offline= false
         DEFAULT_VALUE
     parts= data-dir
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
     prefer-final= true
@@ -853,9 +853,178 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     <BLANKLINE>
     [data-dir]
     path= foo bins
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     recipe= recipes:mkdir
-        /sample-buildout/buildout.cfg
+        buildout.cfg
+    <BLANKLINE>
+    [versions]
+    zc.buildout = >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg = >=1.99
+        DEFAULT_VALUE
+    <BLANKLINE>
+
+The ``annotate`` command is sensitive to the verbosity flag. 
+You get more information about the way values are computed::
+
+    >>> print_(system(buildout+ ' -v annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = *
+    <BLANKLINE>
+    allow-picked-versions= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    bin-directory= bin
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = bin
+    <BLANKLINE>
+    develop= recipes
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = recipes
+    <BLANKLINE>
+    develop-eggs-directory= develop-eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = develop-eggs
+    <BLANKLINE>
+    directory= /sample-buildout
+    <BLANKLINE>
+       AS COMPUTED_VALUE
+       SET VALUE = /sample-buildout
+    <BLANKLINE>
+    eggs-directory= /sample-buildout/eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       DIRECTORY VALUE = /sample-buildout/eggs
+       AS DEFAULT_VALUE
+       SET VALUE = eggs
+    <BLANKLINE>
+    executable= ...
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = ...
+    <BLANKLINE>
+    find-links=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    install-from-cache= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    installed= .installed.cfg
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = .installed.cfg
+    <BLANKLINE>
+    log-format=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    log-level= INFO
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = INFO
+    <BLANKLINE>
+    newest= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    offline= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    parts= data-dir
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = data-dir
+    <BLANKLINE>
+    parts-directory= parts
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = parts
+    <BLANKLINE>
+    prefer-final= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    python= buildout
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = buildout
+    <BLANKLINE>
+    show-picked-versions= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    socket-timeout=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    update-versions-file=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    use-dependency-links= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    verbosity= 10
+    <BLANKLINE>
+       AS COMMAND_LINE_VALUE
+       SET VALUE = 10
+    <BLANKLINE>
+    versions= versions
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = versions
+    <BLANKLINE>
+    <BLANKLINE>
+    [data-dir]
+    path= foo bins
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = foo bins
+    <BLANKLINE>
+    recipe= recipes:mkdir
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = recipes:mkdir
+    <BLANKLINE>
+    <BLANKLINE>
+    [versions]
+    ...
+
+The output of the ``annotate`` command can be very long.
+You can restrict the output to some sections by passing section names as arguments::
+
+    >>> print_(system(buildout+ ' annotate versions'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
     <BLANKLINE>
     [versions]
     zc.buildout= >=1.99
@@ -1384,48 +1553,119 @@ operations::
     option= a1 a2
     a3 a4
     a5
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
-    +=  /sample-buildout/extension2.cfg
+        base.cfg
+    +=  extension1.cfg
+    +=  extension2.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part2]
     option= b1 b2 b3 b4
-        /sample-buildout/base.cfg
-    -=  /sample-buildout/extension1.cfg
-    -=  /sample-buildout/extension2.cfg
+        base.cfg
+    -=  extension1.cfg
+    -=  extension2.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part3]
     option= c1 c2
     c3 c4 c5
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
+        base.cfg
+    +=  extension1.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part4]
     option= d2
     d3
     d1
     d4
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
-    -=  /sample-buildout/extension1.cfg
+        base.cfg
+    +=  extension1.cfg
+    -=  extension1.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part5]
     option= h1 h2
-        /sample-buildout/extension1.cfg
+        extension1.cfg
     [versions]
     zc.buildout= >=1.99
         DEFAULT_VALUE
     zc.recipe.egg= >=1.99
         DEFAULT_VALUE
     <BLANKLINE>
+
+With more verbosity::
+
+    >>> print_(system(os.path.join('bin', 'buildout') + ' -v annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    ...
+    [part1]
+    option= a1 a2
+    a3 a4
+    a5
+    <BLANKLINE>
+       IN extension2.cfg
+       ADD VALUE = a5
+       IN extension1.cfg
+       ADD VALUE = a3 a4
+       IN base.cfg
+       SET VALUE = a1 a2
+    <BLANKLINE>
+    ...
+    [part2]
+    option= b1 b2 b3 b4
+    <BLANKLINE>
+       IN extension2.cfg
+       REMOVE VALUE = b1 b2 b3
+       IN extension1.cfg
+       REMOVE VALUE = b1 b2
+       IN base.cfg
+       SET VALUE = b1 b2 b3 b4
+    <BLANKLINE>
+    ...
+    [part3]
+    option=
+       c1 c2
+       c3 c4 c5
+    <BLANKLINE>
+       IN extension1.cfg
+       ADD VALUE = c3 c4 c5
+       IN base.cfg
+       SET VALUE = c1 c2
+    <BLANKLINE>
+    ...
+    [part4]
+    option=
+       d2
+       d3
+       d1
+       d4
+    <BLANKLINE>
+       IN extension1.cfg
+       REMOVE VALUE = d5
+       IN extension1.cfg
+       ADD VALUE =
+          d1
+          d4
+       IN base.cfg
+       SET VALUE =
+          d2
+          d3
+          d5
+    <BLANKLINE>
+    ...
+    [part5]
+    option= h1 h2
+    <BLANKLINE>
+       IN extension1.cfg
+       SET VALUE = h1 h2
+    <BLANKLINE>
+    ...
 
 Cleanup::
 
