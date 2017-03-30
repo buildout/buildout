@@ -90,6 +90,9 @@ Buildout command-line options
 Buildout commands
 -----------------
 
+
+.. _annotate-command:
+
 annotate
 ________
 
@@ -115,20 +118,20 @@ where they came from. Try it!
         DEFAULT_VALUE
     ...
 
-.. _bootstrap-command:
-
+Increase the verbosity of the output to display all steps that compute the final values used by buildout.
 
 .. code-block:: console
 
    buildout -v annotate
 
-Increase the verbosity of the output to display all steps that compute the final values used by buildout.
+Pass one or more section names as arguments to display annotation only for the given sections.
 
 .. code-block:: console
 
    buildout annotate versions
   
-You can pass one or more section names as arguments to display annotation only for the given sections.
+
+.. _bootstrap-command:
 
 bootstrap
 _________
