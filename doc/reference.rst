@@ -122,13 +122,13 @@ where they came from. Try it!
 
    buildout -v annotate
 
-  Increase the verbosity of the output to display all steps that compute the final values used by buildout.
+Increase the verbosity of the output to display all steps that compute the final values used by buildout.
 
 .. code-block:: console
 
    buildout annotate versions
   
-  You can pass one or more section names as arguments to display annotation only for the given sections.
+You can pass one or more section names as arguments to display annotation only for the given sections.
 
 bootstrap
 _________
