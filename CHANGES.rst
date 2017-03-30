@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.3 (unreleased)
+2.9.3 (2017-03-30)
 ==================
 
 - Add more verbosity to ``annotate`` results with ``-v``
