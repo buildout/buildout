@@ -4,7 +4,7 @@ Change History
 2.9.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Disabled patching of FancyURLopener in the download.py if used Python>=3.3.
 
 
 2.9.3 (2017-03-30)
