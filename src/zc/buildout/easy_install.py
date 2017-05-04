@@ -1593,11 +1593,11 @@ def call_easy_install(spec, dest, index=None, links=None):
         '-mZUNx']
 
     if index is not None:
-        args.append('--index-url=' + index)
+        args.extend(['-i', index])
 
     if links is not None:
         for link in links:
-            args.append('--find-links=' + link)
+            args.extend(['-f', link])
 
     args.extend(['-d', dest])
 
