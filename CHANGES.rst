@@ -4,8 +4,8 @@ Change History
 2.9.4 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Respect index-url and find-links when calling easy install for
+  setup-required dependencies.
 
 2.9.3 (2017-03-30)
 ==================
