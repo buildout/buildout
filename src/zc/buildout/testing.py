@@ -25,6 +25,7 @@ except ImportError:
 
 import errno
 import logging
+from multiprocessing import Process
 import os
 import pkg_resources
 import random
@@ -46,8 +47,9 @@ print_ = zc.buildout.buildout.print_
 fsync = getattr(os, 'fsync', lambda fileno: None)
 is_win32 = sys.platform == 'win32'
 
-setuptools_location = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')).location
+def read(path='out', *rest):
+    with open(os.path.join(path, *rest)) as f:
+        return f.read()
 
 def cat(dir, *names):
     path = os.path.join(dir, *names)
@@ -58,6 +60,17 @@ def cat(dir, *names):
         path = path+'-script.py'
     with open(path) as f:
         print_(f.read(), end='')
+
+def eqs(a, *b):
+    a = set(a); b = set(b)
+    return None if a == b else (a - b, b - a)
+
+def clear_here():
+    for name in os.listdir('.'):
+        if os.path.isfile(name) or os.path.islink(name):
+            os.remove(name)
+        else:
+            shutil.rmtree(name)
 
 def ls(dir, *subs):
     if subs:
@@ -149,7 +162,10 @@ def _runsetup(setup, *args):
         os.chdir(os.path.dirname(setup))
         zc.buildout.easy_install.call_subprocess(
             [sys.executable, setup] + args,
-            env=dict(os.environ, PYTHONPATH=setuptools_location))
+            env=dict(os.environ,
+                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
+                     ),
+            )
         if os.path.exists('build'):
             rmtree('build')
     finally:
@@ -181,14 +197,21 @@ def wait_until(label, func, *args, **kw):
 
 class TestOptions(zc.buildout.buildout.Options):
 
+    def __init__(self, *args):
+        zc.buildout.buildout.Options.__init__(self, *args)
+        self._created = []
+
     def initialize(self):
         pass
 
 class Buildout(zc.buildout.buildout.Buildout):
 
     def __init__(self):
+        for name in 'eggs', 'parts':
+            if not os.path.exists(name):
+                os.mkdir(name)
         zc.buildout.buildout.Buildout.__init__(
-            self, '', [('buildout', 'directory', os.getcwd())])
+            self, '', [('buildout', 'directory', os.getcwd())], False)
 
     Options = TestOptions
 
@@ -212,6 +235,9 @@ def buildoutSetUp(test):
             root_logger.removeHandler(handler)
         for handler in handlers_before_set_up:
             root_logger.addHandler(handler)
+        bo_logger = logging.getLogger('zc.buildout')
+        for handler in bo_logger.handlers[:]:
+            bo_logger.removeHandler(handler)
     register_teardown(restore_root_logger_handlers)
 
     base = tempfile.mkdtemp('buildoutSetUp')
@@ -538,3 +564,37 @@ ignore_not_upgrading = (
     re.compile(
     'Not upgrading because not running a local buildout command.\n'
     ), '')
+
+def run_buildout(command):
+    # Make sure we don't get .buildout
+    os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
+    args = command.split()
+    import pkg_resources
+    buildout = pkg_resources.load_entry_point(
+        'zc.buildout', 'console_scripts', args[0])
+    buildout(args[1:])
+
+def run_from_process(target, *args, **kw):
+    sys.stdout = sys.stderr = open('out', 'w')
+    target(*args, **kw)
+
+def run_in_process(*args, **kwargs):
+    process = Process(target=run_from_process, args=args, kwargs=kwargs)
+    process.daemon = True
+    process.start()
+    process.join(99)
+    if process.is_alive() or process.exitcode:
+        with open('out') as f:
+            print(f.read())
+
+def run_buildout_in_process(command='buildout'):
+    command = command.split(' ', 1)
+    command.insert(
+        1,
+        " use-dependency-links=false"
+        # Leaving this here so we can uncomment to see what's going on.
+        #" log-format=%(asctime)s____%(levelname)s_%(message)s -vvv"
+        " index=" + __file__ + 'nonexistent' # hide index
+        )
+    command = ' '.join(command)
+    run_in_process(run_buildout, command)

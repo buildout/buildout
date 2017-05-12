@@ -59,7 +59,7 @@ If we run the buildout, we'll see the eggs installed from the link
 server as usual:
 
     >>> print_(system(buildout), end='')
-    GET 200 /
+    GET ...
     GET 200 /demo-0.2-py2.4.egg
     GET 200 /demoneeded-1.1.zip
     Installing eggs.
@@ -89,7 +89,7 @@ If we remove the installed eggs from eggs directory and re-run the buildout:
     ...         remove('eggs', f)
 
     >>> print_(system(buildout), end='')
-    GET 200 /
+    GET ...
     Updating eggs.
     Getting distribution for 'demo==0.2'.
     Got demo 0.2.

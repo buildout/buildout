@@ -98,7 +98,8 @@ Now we can run the buildout and make sure all attempts to dist.plone.org fails::
 Test for issues
 ---------------
 
-Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212::
+Test for 1.0.5 breakage as in
+https://bugs.launchpad.net/zc.buildout/+bug/239212::
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... '''
@@ -114,8 +115,7 @@ Test for 1.0.5 breakage as in https://bugs.launchpad.net/zc.buildout/+bug/239212
     >>> print_('XX'); print_(system(buildout), end='') # doctest: +ELLIPSIS
     X...
     Unused options for buildout: 'foo'.
-    Installing python.
-    Generated script '/sample-buildout/bin/buildout'.
+    Installing python...
     Generated interpreter '/sample-buildout/bin/python'.
 
 The bug 239212 above would have got us an *AttributeError* on

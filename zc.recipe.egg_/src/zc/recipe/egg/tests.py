@@ -41,6 +41,7 @@ def test_suite():
         doctest.DocFileSuite(
             'README.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -59,6 +60,7 @@ def test_suite():
         doctest.DocFileSuite(
             'api.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -79,6 +81,7 @@ def test_suite():
         doctest.DocFileSuite(
             'custom.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
@@ -86,7 +89,7 @@ def test_suite():
                 (re.compile("(d  ((ext)?demo(needed)?|other)"
                             "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
-                (re.compile('extdemo.c\n.+\\extdemo.exp\n'), ''),
+                (re.compile('extdemo.c\n.+\\\\extdemo.exp\n'), ''),
                 (re.compile(
                     r'zip_safe flag not set; analyzing archive contents.*\n'),
                  ''),

@@ -61,9 +61,6 @@ def print_(*args, **kw):
 
 realpath = zc.buildout.easy_install.realpath
 
-pkg_resources_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')).location
-
 _isurl = re.compile('([a-zA-Z0-9+.-]+)://').match
 
 class MissingOption(zc.buildout.UserError, KeyError):
@@ -78,48 +75,171 @@ class MissingSection(zc.buildout.UserError, KeyError):
         return "The referenced section, %r, was not defined." % self.args[0]
 
 
-def _annotate_section(section, note):
+def _annotate_section(section, source):
     for key in section:
-        section[key] = (section[key], note)
+        section[key] = SectionKey(section[key], source)
     return section
+
+
+class SectionKey(object):
+    def __init__(self, value, source):
+        self.history = []
+        self.value = value
+        self.addToHistory("SET", value, source)
+
+    @property
+    def source(self):
+        return self.history[-1].source
+
+    def overrideValue(self, sectionkey):
+        self.value = sectionkey.value
+        if sectionkey.history[-1].operation not in ['ADD', 'REMOVE']:
+            self.addToHistory("OVERRIDE", sectionkey.value, sectionkey.source)
+
+    def setDirectory(self, value):
+        self.value = value
+        self.addToHistory("DIRECTORY", value, self.source)
+
+    def addToValue(self, added, source):
+        subvalues = self.value.split('\n') + added.split('\n')
+        self.value = "\n".join(subvalues)
+        self.addToHistory("ADD", added, source)
+
+    def removeFromValue(self, removed, source):
+        subvalues = [
+            v
+            for v in self.value.split('\n')
+            if v not in removed.split('\n')
+        ]
+        self.value = "\n".join(subvalues)
+        self.addToHistory("REMOVE", removed, source)
+
+    def addToHistory(self, operation, value, source):
+        item = HistoryItem(operation, value, source)
+        self.history.append(item)
+
+    def printAll(self, key, basedir, verbose):
+        self.printKeyAndValue(key)
+        if verbose:
+            self.printVerbose(basedir)
+        else:
+            self.printTerse(basedir)
+
+    def printKeyAndValue(self, key):
+        lines = self.value.splitlines()
+        if len(lines) <= 1:
+            args = [key, "="]
+            if self.value:
+                args.append(" ")
+                args.append(self.value)
+            print_(*args, sep='')
+        else:
+            print_(key, "= ", lines[0], sep='')
+            for line in lines[1:]:
+                print_(line)
+
+    def printVerbose(self, basedir):
+        print_()
+        for item in reversed(self.history):
+            item.printAll(basedir)
+        print_()
+
+    def printTerse(self, basedir):
+        toprint = []
+        history = copy.deepcopy(self.history)
+        while history:
+            next = history.pop()
+            if next.operation in ["ADD", "REMOVE"]:
+                next.printShort(toprint, basedir)
+            else:
+                next.printShort(toprint, basedir)
+                break
+
+        for line in reversed(toprint):
+            if line.strip():
+                print_(line)
+
+    def __repr__(self):
+        return "<SectionKey value=%s source=%s>" % (
+            " ".join(self.value.split('\n')), self.source)
+
+
+class HistoryItem(object):
+    def __init__(self, operation, value, source):
+        self.operation = operation
+        self.value = value
+        self.source = source
+
+    def printShort(self, toprint, basedir):
+        source = self.source_for_human(basedir)
+        if self.operation in ["OVERRIDE", "SET", "DIRECTORY"]:
+            toprint.append("    " + source)
+        elif self.operation == "ADD":
+            toprint.append("+=  " + source)
+        elif self.operation == "REMOVE":
+            toprint.append("-=  " + source)
+
+    def printOperation(self):
+        lines = self.value.splitlines()
+        if len(lines) <= 1:
+            print_("  ", self.operation, "VALUE =", self.value)
+        else:
+            print_("  ", self.operation, "VALUE =")
+            for line in lines:
+                print_("  ", "  ", line)
+
+    def printSource(self, basedir):
+        if self.source in (
+            'DEFAULT_VALUE', 'COMPUTED_VALUE', 'COMMAND_LINE_VALUE'
+        ):
+            prefix = "AS"
+        else:
+            prefix = "IN"
+        print_("  ", prefix, self.source_for_human(basedir))
+
+    def source_for_human(self, basedir):
+        if self.source.startswith(basedir):
+            return os.path.relpath(self.source, basedir)
+        else:
+            return self.source
+
+    def printAll(self, basedir):
+        self.printSource(basedir)
+        self.printOperation()
+
+    def __repr__(self):
+        return "<HistoryItem operation=%s value=%s source=%s>" % (
+            self.operation, " ".join(self.value.split('\n')), self.source)
+
 
 def _annotate(data, note):
     for key in data:
         data[key] = _annotate_section(data[key], note)
     return data
 
-def _print_annotate(data):
+
+def _print_annotate(data, verbose, chosen_sections, basedir):
     sections = list(data.keys())
     sections.sort()
     print_()
     print_("Annotated sections")
     print_("="*len("Annotated sections"))
     for section in sections:
-        print_()
-        print_('[%s]' % section)
-        keys = list(data[section].keys())
-        keys.sort()
-        for key in keys:
-            value, notes = data[section][key]
-            keyvalue = "%s= %s" % (key, value)
-            print_(keyvalue)
-            line = '   '
-            for note in notes.split():
-                if note == '[+]':
-                    line = '+= '
-                elif note == '[-]':
-                    line = '-= '
-                else:
-                    print_(line, note)
-                    line = '   '
-    print_()
+        if (not chosen_sections) or (section in chosen_sections):
+            print_()
+            print_('[%s]' % section)
+            keys = list(data[section].keys())
+            keys.sort()
+            for key in keys:
+                sectionkey = data[section][key]
+                sectionkey.printAll(key, basedir, verbose)
 
 
 def _unannotate_section(section):
     for key in section:
-        value, note = section[key]
-        section[key] = value
+        section[key] = section[key].value
     return section
+
 
 def _unannotate(data):
     for key in data:
@@ -167,6 +287,7 @@ _buildout_default_options = _annotate_section({
     'use-dependency-links': 'true',
     }, 'DEFAULT_VALUE')
 
+
 class Buildout(DictMixin):
 
     def __init__(self, config_file, cloptions,
@@ -176,12 +297,13 @@ class Buildout(DictMixin):
         __doing__ = 'Initializing.'
 
         # default options
-        data = dict(buildout=_buildout_default_options.copy())
+        _buildout_default_options_copy = copy.deepcopy(
+            _buildout_default_options)
+        data = dict(buildout=_buildout_default_options_copy)
         self._buildout_dir = os.getcwd()
 
         if config_file and not _isurl(config_file):
             config_file = os.path.abspath(config_file)
-            base = os.path.dirname(config_file)
             if not os.path.exists(config_file):
                 if command == 'init':
                     self._init_config(config_file, args)
@@ -189,7 +311,8 @@ class Buildout(DictMixin):
                     # Sigh. This model of a buildout instance
                     # with methods is breaking down. :(
                     config_file = None
-                    data['buildout']['directory'] = ('.', 'COMPUTED_VALUE')
+                    data['buildout']['directory'] = SectionKey(
+                        '.', 'COMPUTED_VALUE')
                 else:
                     raise zc.buildout.UserError(
                         "Couldn't open %s" % config_file)
@@ -198,19 +321,16 @@ class Buildout(DictMixin):
                     "%r already exists." % config_file)
 
             if config_file:
-                data['buildout']['directory'] = (os.path.dirname(config_file),
-                    'COMPUTED_VALUE')
-        else:
-            base = None
-
+                data['buildout']['directory'] = SectionKey(
+                    os.path.dirname(config_file), 'COMPUTED_VALUE')
 
         cloptions = dict(
-            (section, dict((option, (value, 'COMMAND_LINE_VALUE'))
+            (section, dict((option, SectionKey(value, 'COMMAND_LINE_VALUE'))
                            for (_, option, value) in v))
             for (section, v) in itertools.groupby(sorted(cloptions),
                                                   lambda v: v[0])
             )
-        override = cloptions.get('buildout', {}).copy()
+        override = copy.deepcopy(cloptions.get('buildout', {}))
 
         # load user defaults, which override defaults
         if user_defaults:
@@ -221,32 +341,35 @@ class Buildout(DictMixin):
                     os.path.expanduser('~'), '.buildout')
             user_config = os.path.join(buildout_home, 'default.cfg')
             if os.path.exists(user_config):
+                data_buildout_copy = copy.deepcopy(data['buildout'])
                 _update(data, _open(os.path.dirname(user_config), user_config,
-                                    [], data['buildout'].copy(), override,
+                                    [], data_buildout_copy, override,
                                     set()))
 
         # load configuration files
         if config_file:
+            data_buildout_copy = copy.deepcopy(data['buildout'])
             _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data['buildout'].copy(), override, set()))
+                                data_buildout_copy, override, set()))
 
         # apply command-line options
         _update(data, cloptions)
 
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
-            data['buildout']['versions'] = ('versions', 'DEFAULT_VALUE')
+            data['buildout']['versions'] = SectionKey(
+                'versions', 'DEFAULT_VALUE')
             if 'versions' not in data:
                 data['versions'] = {}
 
         # Default versions:
-        versions_section_name = data['buildout']['versions'][0]
+        versions_section_name = data['buildout']['versions'].value
         if versions_section_name:
             versions = data[versions_section_name]
         else:
             versions = {}
         versions.update(
-            dict((k, (v, 'DEFAULT_VALUE'))
+            dict((k, SectionKey(v, 'DEFAULT_VALUE'))
                  for (k, v) in (
                      # Prevent downgrading due to prefer-final:
                      ('zc.buildout',
@@ -265,7 +388,9 @@ class Buildout(DictMixin):
         # file location
         for name in ('download-cache', 'eggs-directory', 'extends-cache'):
             if name in data['buildout']:
-                origdir, src = data['buildout'][name]
+                sectionkey = data['buildout'][name]
+                origdir = sectionkey.value
+                src = sectionkey.source
                 if '${' in origdir:
                     continue
                 if not os.path.isabs(origdir):
@@ -273,7 +398,7 @@ class Buildout(DictMixin):
                                'COMPUTED_VALUE',
                                'COMMAND_LINE_VALUE'):
                         if 'directory' in data['buildout']:
-                            basedir = data['buildout']['directory'][0]
+                            basedir = data['buildout']['directory'].value
                         else:
                             basedir = self._buildout_dir
                     else:
@@ -288,7 +413,7 @@ class Buildout(DictMixin):
                     if not os.path.isabs(absdir):
                         absdir = os.path.join(basedir, absdir)
                     absdir = os.path.abspath(absdir)
-                    data['buildout'][name] = (absdir, src)
+                    sectionkey.setDirectory(absdir)
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
@@ -368,7 +493,7 @@ class Buildout(DictMixin):
             versions = self[versions_section_name]
         else:
             # remove annotations
-            versions = dict((k, v[0]) for (k, v) in versions.items())
+            versions = dict((k, v.value) for (k, v) in versions.items())
         options['versions'] # refetching section name just to avoid a warning
         self.versions = versions
         zc.buildout.easy_install.default_versions(versions)
@@ -387,7 +512,14 @@ class Buildout(DictMixin):
 
         download_cache = options.get('download-cache')
         extends_cache = options.get('extends-cache')
+
+        if bool_option(options, 'abi-tag-eggs', 'false'):
+            from zc.buildout.pep425tags import get_abi_tag
+            options['eggs-directory'] = os.path.join(
+                options['eggs-directory'], get_abi_tag())
+
         eggs_cache = options.get('eggs-directory')
+
         for cache in [download_cache, extends_cache, eggs_cache]:
             if cache:
                 cache = os.path.join(options['directory'], cache)
@@ -435,12 +567,10 @@ class Buildout(DictMixin):
 
         # Now copy buildout and setuptools eggs, and record destination eggs:
         entries = []
-        for name in 'setuptools', 'zc.buildout':
-            r = pkg_resources.Requirement.parse(name)
-            dist = pkg_resources.working_set.find(r)
+        for dist in zc.buildout.easy_install.buildout_and_setuptools_dists:
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 dest = os.path.join(self['buildout']['develop-eggs-directory'],
-                                    name+'.egg-link')
+                                    dist.key + '.egg-link')
                 open(dest, 'w').write(dist.location)
                 entries.append(dist.location)
             else:
@@ -734,7 +864,7 @@ class Buildout(DictMixin):
         __doing__ = 'Setting up buildout directories'
 
         # Create buildout directories
-        for name in ('bin', 'parts', 'eggs', 'develop-eggs'):
+        for name in ('bin', 'parts', 'develop-eggs'):
             d = self['buildout'][name+'-directory']
             if not os.path.exists(d):
                 self._logger.info('Creating directory %r.', d)
@@ -752,7 +882,8 @@ class Buildout(DictMixin):
         dest = self['buildout']['develop-eggs-directory']
         old_files = os.listdir(dest)
 
-        env = dict(os.environ, PYTHONPATH=pkg_resources_loc)
+        env = dict(os.environ,
+                   PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath)
         here = os.getcwd()
         try:
             try:
@@ -1090,7 +1221,6 @@ class Buildout(DictMixin):
         fd, tsetup = tempfile.mkstemp()
         try:
             os.write(fd, (zc.buildout.easy_install.runsetup_template % dict(
-                setuptools=pkg_resources_loc,
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
@@ -1104,9 +1234,15 @@ class Buildout(DictMixin):
     runsetup = setup # backward compat.
 
     def annotate(self, args=None):
-        _print_annotate(self._annotated)
+        verbose = self['buildout'].get('verbosity', 0) != 0
+        section = None
+        if args is None:
+            sections = []
+        else:
+            sections = args
+        _print_annotate(self._annotated, verbose, sections, self._buildout_dir)
 
-    def print_options(self):
+    def print_options(self, base_path=None):
         for section in sorted(self._data):
             if section == 'buildout' or section == self['buildout']['versions']:
                 continue
@@ -1116,6 +1252,9 @@ class Buildout(DictMixin):
                     v = '\n  ' + v.replace('\n', '\n  ')
                 else:
                     v = ' '+v
+
+                if base_path:
+                    v = v.replace(os.getcwd(), base_path)
                 print_("%s =%s" % (k, v))
 
     def __getitem__(self, section):
@@ -1235,6 +1374,10 @@ class Options(DictMixin):
         if name == 'buildout':
             return # buildout section can never be a part
 
+        for dname in self.get('<part-dependencies>', '').split():
+            # force use of dependencies in buildout:
+            self.buildout[dname]
+
         if self.get('recipe'):
             self.initialize()
             self.buildout._parts.append(name)
@@ -1270,7 +1413,7 @@ class Options(DictMixin):
                 result.update(self._do_extend_raw(iname, raw, doing))
 
             result = _annotate_section(result, "")
-            data = _annotate_section(data.copy(), "")
+            data = _annotate_section(copy.deepcopy(data), "")
             _update_section(result, data)
             result = _unannotate_section(result)
             result.pop('<', None)
@@ -1396,7 +1539,7 @@ class Options(DictMixin):
         return len(self.keys())
 
     def copy(self):
-        result = self._raw.copy()
+        result = copy.deepcopy(self._raw)
         result.update(self._cooked)
         result.update(self._data)
         return result
@@ -1564,7 +1707,8 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     Recursively open other files based on buildout options found.
     """
     _update_section(dl_options, override)
-    _dl_options = _unannotate_section(dl_options.copy())
+    dl_options_copy = copy.deepcopy(dl_options)
+    _dl_options = _unannotate_section(dl_options_copy)
     newest = bool_option(_dl_options, 'newest', 'false')
     fallback = newest and not (filename in downloaded)
     download = zc.buildout.download.Download(
@@ -1693,30 +1837,36 @@ def _update_section(s1, s2):
     # in section 2 overriding those in section 1. If there are += or -=
     # operators in section 2, process these to add or substract items (delimited
     # by newlines) from the preexisting values.
-    s2 = s2.copy() # avoid mutating the second argument, which is unexpected
+    s2 = copy.deepcopy(s2) # avoid mutating the second argument, which is unexpected
     # Sort on key, then on the addition or substraction operator (+ comes first)
     for k, v in sorted(s2.items(), key=lambda x: (x[0].rstrip(' +'), x[0][-1])):
-        v2, note2 = v
         if k.endswith('+'):
             key = k.rstrip(' +')
+            implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been defined locally too.
-            v1, note1 = s2.get(key, s1.get(key, ("", "")))
-            newnote = ' [+] '.join((note1, note2)).strip()
-            s2[key] = "\n".join((v1).split('\n') +
-                v2.split('\n')), newnote
+            section_key = s2.get(key, s1.get(key, implicit_value))
+            section_key.addToValue(v.value, v.source)
+            s2[key] = section_key
             del s2[k]
         elif k.endswith('-'):
             key = k.rstrip(' -')
+            implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been set by a += operation first
-            v1, note1 = s2.get(key, s1.get(key, ("", "")))
-            newnote = ' [-] '.join((note1, note2)).strip()
-            s2[key] = ("\n".join(
-                [v for v in v1.split('\n')
-                   if v not in v2.split('\n')]), newnote)
+            section_key = s2.get(key, s1.get(key, implicit_value))
+            section_key.removeFromValue(v.value, v.source)
+            s2[key] = section_key
             del s2[k]
 
-    s1.update(s2)
+    _update_verbose(s1, s2)
     return s1
+
+def _update_verbose(s1, s2):
+    for key, v2 in s2.items():
+        if key in s1:
+            v1 = s1[key]
+            v1.overrideValue(v2)
+        else:
+            s1[key] = v2
 
 def _update(d1, d2):
     for section in d2:
@@ -1775,54 +1925,21 @@ Usage: buildout [options] [assignments] [command [command arguments]]
 
 Options:
 
-  -h, --help
-
-     Print this message and exit.
-
-  --version
-
-     Print buildout version number and exit.
-
-  -v
-
-     Increase the level of verbosity.  This option can be used multiple times.
-
-  -q
-
-     Decrease the level of verbosity.  This option can be used multiple times.
-
   -c config_file
 
-     Specify the path to the buildout configuration file to be used.
-     This defaults to the file named "buildout.cfg" in the current
-     working directory.
+    Specify the path to the buildout configuration file to be used.
+    This defaults to the file named "buildout.cfg" in the current
+    working directory.
 
-  -t socket_timeout
+  -D
 
-     Specify the socket timeout in seconds.
+    Debug errors.  If an error occurs, then the post-mortem debugger
+    will be started. This is especially useful for debuging recipe
+    problems.
 
-  -U
+  -h, --help
 
-     Don't read user defaults.
-
-  -o
-
-    Run in off-line mode.  This is equivalent to the assignment
-    buildout:offline=true.
-
-  -O
-
-    Run in non-off-line mode.  This is equivalent to the assignment
-    buildout:offline=false.  This is the default buildout mode.  The
-    -O option would normally be used to override a true offline
-    setting in a configuration file.
-
-  -n
-
-    Run in newest mode.  This is equivalent to the assignment
-    buildout:newest=true.  With this setting, which is the default,
-    buildout will try to find the newest versions of distributions
-    available that satisfy its requirements.
+    Print this message and exit.
 
   -N
 
@@ -1831,11 +1948,25 @@ Options:
     new distributions if installed distributions satisfy it's
     requirements.
 
-  -D
+  -q
 
-    Debug errors.  If an error occurs, then the post-mortem debugger
-    will be started. This is especially useful for debuging recipe
-    problems.
+    Decrease the level of verbosity.  This option can be used multiple times.
+
+  -t socket_timeout
+
+    Specify the socket timeout in seconds.
+
+  -U
+
+    Don't read user defaults.
+
+  -v
+
+    Increase the level of verbosity.  This option can be used multiple times.
+
+  --version
+
+    Print buildout version number and exit.
 
 Assignments are of the form: section:option=value and are used to
 provide configuration options that override those given in the
@@ -1846,17 +1977,10 @@ Options and assignments can be interspersed.
 
 Commands:
 
-  install [parts]
+  install
 
-    Install parts.  If no command arguments are given, then the parts
-    definition from the configuration file is used.  Otherwise, the
-    arguments specify the parts to be installed.
-
-    Note that the semantics differ depending on whether any parts are
-    specified.  If parts are specified, then only those parts will be
-    installed. If no parts are specified, then the parts specified by
-    the buildout parts option will be installed along with all of
-    their dependencies.
+    Install the parts specified in the buildout configuration.  This is
+    the default command if no command is specified.
 
   bootstrap
 
@@ -1864,11 +1988,16 @@ Commands:
     the buildout and setuptools eggs and, creating a basic directory
     structure and a buildout-local buildout script.
 
-  init
+  init [requirements]
 
-    Initialize a buildout, creating a buildout.cfg file if it doesn't
-    exist and then performing the same actions as for the buildout
+    Initialize a buildout, creating a minimal buildout.cfg file if it doesn't
+    exist and then performing the same actions as for the bootstrap
     command.
+
+    If requirements are supplied, then the generated configuration
+    will include an interpreter script that requires them.  This
+    provides an easy way to quickly set up a buildout to experiment
+    with some packages.
 
   setup script [setup command and options]
 
@@ -1886,7 +2015,6 @@ Commands:
     alphabetically. For each section, all key-value pairs are displayed,
     sorted alphabetically, along with the origin of the value (file name or
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
-
 """
 
 def _help():

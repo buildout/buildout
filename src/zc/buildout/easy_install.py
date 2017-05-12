@@ -74,19 +74,17 @@ if has_distribute and not has_setuptools:
              " you have the latest version downloaded from"
              " https://bootstrap.pypa.io/bootstrap-buildout.py")
 
-setuptools_loc = pkg_resources.working_set.find(
-    pkg_resources.Requirement.parse('setuptools')
-    ).location
-
-# Include buildout and setuptools eggs in paths
-buildout_and_setuptools_path = [
-    setuptools_loc,
-    pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('zc.buildout')).location,
-    ]
+# Include buildout and setuptools eggs in paths.  We get this
+# initially from the entire working set.  Later, we'll use the install
+# function to narrow to just the buildout and setuptools paths.
+buildout_and_setuptools_path = [d.location for d in pkg_resources.working_set]
+setuptools_path = buildout_and_setuptools_path
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
+
+def wheel_to_egg(dist, dest):
+    raise zc.buildout.UserError("Wheels are not supported")
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -171,6 +169,51 @@ def _execute_permission():
 
 _easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
 
+def get_namespace_package_paths(dist):
+    """
+    Generator of the expected pathname of each __init__.py file of the
+    namespaces of a distribution.
+    """
+    base = [dist.location]
+    init = ['__init__.py']
+    for namespace in dist.get_metadata_lines('namespace_packages.txt'):
+        yield os.path.join(*(base + namespace.split('.') + init))
+
+def namespace_packages_need_pkg_resources(dist):
+    if os.path.isfile(dist.location):
+        # Zipped egg, with namespaces, surely needs setuptools
+        return True
+    # If they have `__init__.py` files that use pkg_resources and don't
+    # fallback to using `pkgutil`, then they need setuptools/pkg_resources:
+    for path in get_namespace_package_paths(dist):
+        if os.path.isfile(path):
+            with open(path, 'rb') as f:
+                source = f.read()
+                if (source and
+                        b'pkg_resources' in source and
+                        not b'pkgutil' in source):
+                    return True
+    return False
+
+def dist_needs_pkg_resources(dist):
+    """
+    A distribution needs setuptools/pkg_resources added as requirement if:
+
+        * It has namespace packages declared with:
+        - `pkg_resources.declare_namespace()`
+        * Those namespace packages don't fall back to `pkgutil`
+        * It doesn't have `setuptools/pkg_resources` as requirement already
+    """
+
+    return (
+        dist.has_metadata('namespace_packages.txt') and
+        # This will need to change when `pkg_resources` gets its own
+        # project:
+        'setuptools' not in {r.project_name for r in dist.requires()} and
+        namespace_packages_need_pkg_resources(dist)
+    )
+
+
 class Installer:
 
     _versions = {}
@@ -193,10 +236,11 @@ class Installer:
                  newest=True,
                  versions=None,
                  use_dependency_links=None,
-                 allow_hosts=('*',)
+                 allow_hosts=('*',),
+                 check_picked=True,
                  ):
         assert executable == sys.executable, (executable, sys.executable)
-        self._dest = dest
+        self._dest = dest if dest is None else pkg_resources.normalize_path(dest)
         self._allow_hosts = allow_hosts
 
         if self._install_from_cache:
@@ -208,24 +252,55 @@ class Installer:
 
         if use_dependency_links is not None:
             self._use_dependency_links = use_dependency_links
-        self._links = links = list(_fix_file_links(links))
+        self._links = links = list(self._fix_file_links(links))
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
 
         self._index_url = index
         path = (path and path[:] or []) + buildout_and_setuptools_path
-        if dest is not None and dest not in path:
-            path.insert(0, dest)
         self._path = path
         if self._dest is None:
             newest = False
         self._newest = newest
-        self._env = pkg_resources.Environment(path)
+        self._env = self._make_env()
         self._index = _get_index(index, links, self._allow_hosts)
         self._requirements_and_constraints = []
+        self._check_picked = check_picked
 
         if versions is not None:
             self._versions = normalize_versions(versions)
+
+    def _make_env(self):
+        full_path = self._get_dest_dist_paths() + self._path
+        env = pkg_resources.Environment(full_path)
+        # this needs to be called whenever self._env is modified (or we could
+        # make an Environment subclass):
+        self._eggify_env_dest_dists(env, self._dest)
+        return env
+
+    def _env_rescan_dest(self):
+        self._env.scan(self._get_dest_dist_paths())
+        self._eggify_env_dest_dists(self._env, self._dest)
+
+    def _get_dest_dist_paths(self):
+        dest = self._dest
+        if dest is None:
+            return []
+        eggs = glob.glob(os.path.join(dest, '*.egg'))
+        dists = [os.path.dirname(dist_info) for dist_info in
+                 glob.glob(os.path.join(dest, '*', '*.dist-info'))]
+        return list(set(eggs + dists))
+
+    @staticmethod
+    def _eggify_env_dest_dists(env, dest):
+        """
+        Make sure everything found under `dest` is seen as an egg, even if it's
+        some other kind of dist.
+        """
+        for project_name in env:
+            for dist in env[project_name]:
+                if os.path.dirname(dist.location) == dest:
+                    dist.precedence = pkg_resources.EGG_DIST
 
     def _version_conflict_information(self, name):
         """Return textual requirements/constraint information for debug purposes
@@ -269,7 +344,7 @@ class Installer:
 
         if self._prefer_final:
             fdists = [dist for dist in dists
-                      if _final_version(dist.parsed_version)
+                      if self._final_version(dist.parsed_version)
                       ]
             if fdists:
                 # There are final dists, so only use those
@@ -300,8 +375,8 @@ class Installer:
             return best_we_have, None
 
         if self._prefer_final:
-            if _final_version(best_available.parsed_version):
-                if _final_version(best_we_have.parsed_version):
+            if self._final_version(best_available.parsed_version):
+                if self._final_version(best_we_have.parsed_version):
                     if (best_we_have.parsed_version
                         <
                         best_available.parsed_version
@@ -310,7 +385,7 @@ class Installer:
                 else:
                     return None, best_available
             else:
-                if (not _final_version(best_we_have.parsed_version)
+                if (not self._final_version(best_we_have.parsed_version)
                     and
                     (best_we_have.parsed_version
                      <
@@ -330,47 +405,16 @@ class Installer:
             str(req))
         return best_we_have, None
 
-    def _load_dist(self, dist):
-        dists = pkg_resources.Environment(dist.location)[dist.project_name]
-        assert len(dists) == 1
-        return dists[0]
-
-    def _call_easy_install(self, spec, ws, dest, dist):
+    def _call_easy_install(self, spec, dest, dist):
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            path = setuptools_loc
-
-            args = [sys.executable, '-c',
-                    ('import sys; sys.path[0:0] = [%r]; ' % path) +
-                    _easy_install_cmd, '-mZUNxd', tmp]
-            level = logger.getEffectiveLevel()
-            if level > 0:
-                args.append('-q')
-            elif level < 0:
-                args.append('-v')
-
-            args.append(spec)
-
-            if level <= logging.DEBUG:
-                logger.debug('Running easy_install:\n"%s"\npath=%s\n',
-                             '" "'.join(args), path)
-
-            sys.stdout.flush() # We want any pending output first
-
-            exit_code = subprocess.call(list(args))
+            paths = call_easy_install(spec, tmp)
 
             dists = []
-            env = pkg_resources.Environment([tmp])
+            env = pkg_resources.Environment(paths)
             for project in env:
                 dists.extend(env[project])
-
-            if exit_code:
-                logger.error(
-                    "An error occurred when trying to install %s. "
-                    "Look above this message for any errors that "
-                    "were output by easy_install.",
-                    dist)
 
             if not dists:
                 raise zc.buildout.UserError("Couldn't install: %s" % dist)
@@ -397,9 +441,7 @@ class Installer:
 
             result = []
             for d in dists:
-                newloc = _move_to_eggs_dir_and_compile(d, dest)
-                [d] = pkg_resources.Environment([newloc])[d.project_name]
-                result.append(d)
+                result.append(_move_to_eggs_dir_and_compile(d, dest))
 
             return result
 
@@ -428,7 +470,7 @@ class Installer:
         # result if it is non empty.
         if self._prefer_final:
             fdists = [dist for dist in dists
-                      if _final_version(dist.parsed_version)
+                      if self._final_version(dist.parsed_version)
                       ]
             if fdists:
                 # There are final dists, so only use those
@@ -466,8 +508,10 @@ class Installer:
         if (download_cache
             and (realpath(os.path.dirname(dist.location)) == download_cache)
             ):
+            logger.debug("Download cache has %s at: %s", dist, dist.location)
             return dist
 
+        logger.debug("Fetching %s from: %s", dist, dist.location)
         new_location = self._index.download(dist.location, tmp)
         if (download_cache
             and (realpath(new_location) == realpath(dist.location))
@@ -480,7 +524,7 @@ class Installer:
 
         return dist.clone(location=new_location)
 
-    def _get_dist(self, requirement, ws, for_buildout_run=False):
+    def _get_dist(self, requirement, ws):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
@@ -516,34 +560,13 @@ class Installer:
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
-                if dist.precedence == pkg_resources.EGG_DIST:
-                    # It's already an egg, just fetch it into the dest
-                    newloc = _move_to_eggs_dir_and_compile(dist, self._dest)
-
-                    # Getting the dist from the environment causes the
-                    # distribution meta data to be read.  Cloning isn't
-                    # good enough.
-                    dists = pkg_resources.Environment([newloc])[
-                        dist.project_name]
-                else:
-                    # It's some other kind of dist.  We'll let easy_install
-                    # deal with it:
-                    dists = self._call_easy_install(
-                        dist.location, ws, self._dest, dist)
-                    for dist in dists:
-                        if for_buildout_run:
-                            # ws is the global working set and we're
-                            # installing buildout, setuptools, extensions or
-                            # recipes. Make sure that whatever correct version
-                            # we've just installed is the active version,
-                            # hence the ``replace=True``.
-                            ws.add(dist, replace=True)
+                dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
 
             finally:
                 if tmp != self._download_cache:
                     shutil.rmtree(tmp)
 
-            self._env.scan([self._dest])
+            self._env_rescan_dest()
             dist = self._env.best_match(requirement, ws)
             logger.info("Got %s.", dist)
 
@@ -551,22 +574,32 @@ class Installer:
             dists = [dist]
 
         if not self._install_from_cache and self._use_dependency_links:
-            for dist in dists:
-                if dist.has_metadata('dependency_links.txt'):
-                    for link in dist.get_metadata_lines('dependency_links.txt'):
-                        link = link.strip()
-                        if link not in self._links:
-                            logger.debug('Adding find link %r from %s',
-                                         link, dist)
-                            self._links.append(link)
-                            self._index = _get_index(self._index_url,
-                                                     self._links,
-                                                     self._allow_hosts)
+            self._add_dependency_links_from_dists(dists)
 
+        if self._check_picked:
+            self._check_picked_requirement_versions(requirement, dists)
+
+        return dists
+
+    def _add_dependency_links_from_dists(self, dists):
+        reindex = False
+        links = self._links
         for dist in dists:
-            # Check whether we picked a version and, if we did, report it:
-            if not (
-                dist.precedence == pkg_resources.DEVELOP_DIST
+            if dist.has_metadata('dependency_links.txt'):
+                for link in dist.get_metadata_lines('dependency_links.txt'):
+                    link = link.strip()
+                    if link not in links:
+                        logger.debug('Adding find link %r from %s',
+                                     link, dist)
+                        links.append(link)
+                        reindex = True
+        if reindex:
+            self._index = _get_index(self._index_url, links, self._allow_hosts)
+
+    def _check_picked_requirement_versions(self, requirement, dists):
+        """ Check whether we picked a version and, if we did, report it """
+        for dist in dists:
+            if not (dist.precedence == pkg_resources.DEVELOP_DIST
                 or
                 (len(requirement.specs) == 1
                  and
@@ -578,31 +611,25 @@ class Installer:
 
                 if not self._allow_picked_versions:
                     raise zc.buildout.UserError(
-                        'Picked: %s = %s' % (dist.project_name, dist.version)
+                        'Picked: %s = %s' % (dist.project_name,
+                                             dist.version)
                         )
 
-        return dists
-
     def _maybe_add_setuptools(self, ws, dist):
-        if dist.has_metadata('namespace_packages.txt'):
-            for r in dist.requires():
-                if r.project_name in ('setuptools', 'setuptools'):
-                    break
-            else:
-                # We have a namespace package but no requirement for setuptools
-                if dist.precedence == pkg_resources.DEVELOP_DIST:
-                    logger.warn(
-                        "Develop distribution: %s\n"
-                        "uses namespace packages but the distribution "
-                        "does not require setuptools.",
-                        dist)
-                requirement = self._constrain(
-                    pkg_resources.Requirement.parse('setuptools')
-                    )
-                if ws.find(requirement) is None:
-                    for dist in self._get_dist(requirement, ws):
-                        ws.add(dist)
-
+        if dist_needs_pkg_resources(dist):
+            # We have a namespace package but no requirement for setuptools
+            if dist.precedence == pkg_resources.DEVELOP_DIST:
+                logger.warn(
+                    "Develop distribution: %s\n"
+                    "uses namespace packages but the distribution "
+                    "does not require setuptools.",
+                    dist)
+            requirement = self._constrain(
+                pkg_resources.Requirement.parse('setuptools')
+                )
+            if ws.find(requirement) is None:
+                for dist in self._get_dist(requirement, ws):
+                    ws.add(dist)
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""
@@ -625,10 +652,6 @@ class Installer:
             "Base installation request: %s" % repr(specs)[1:-1])
 
         for_buildout_run = bool(working_set)
-        path = self._path
-        dest = self._dest
-        if dest is not None and dest not in path:
-            path.insert(0, dest)
 
         requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
                         for spec in specs]
@@ -639,8 +662,7 @@ class Installer:
             ws = working_set
 
         for requirement in requirements:
-            for dist in self._get_dist(requirement, ws,
-                                       for_buildout_run=for_buildout_run):
+            for dist in self._get_dist(requirement, ws):
                 ws.add(dist)
                 self._maybe_add_setuptools(ws, dist)
 
@@ -684,13 +706,12 @@ class Installer:
                     if not for_buildout_run:
                         raise VersionConflict(err, ws)
             if dist is None:
-                if dest:
+                if self._dest:
                     logger.debug('Getting required %r', str(req))
                 else:
                     logger.debug('Adding required %r', str(req))
-                _log_requirement(ws, req)
-                for dist in self._get_dist(req, ws,
-                                           for_buildout_run=for_buildout_run):
+                self._log_requirement(ws, req)
+                for dist in self._get_dist(req, ws):
                     ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
@@ -703,7 +724,8 @@ class Installer:
             extra_requirements = dist.requires(req.extras)[::-1]
             for extra_requirement in extra_requirements:
                 self._requirements_and_constraints.append(
-                    "Requirement of %s: %s" % (current_requirement, extra_requirement))
+                    "Requirement of %s: %s" % (
+                        current_requirement, extra_requirement))
             requirements.extend(extra_requirements)
 
             processed[req] = True
@@ -767,9 +789,7 @@ class Installer:
                 setuptools.command.setopt.edit_config(
                     setup_cfg, dict(build_ext=build_ext))
 
-                dists = self._call_easy_install(
-                    base, pkg_resources.WorkingSet(),
-                    self._dest, dist)
+                dists = self._call_easy_install(base, self._dest, dist)
 
                 return [dist.location for dist in dists]
             finally:
@@ -778,6 +798,38 @@ class Installer:
         finally:
             if tmp != self._download_cache:
                 shutil.rmtree(tmp)
+
+    def _fix_file_links(self, links):
+        for link in links:
+            if link.startswith('file://') and link[-1] != '/':
+                if os.path.isdir(link[7:]):
+                    # work around excessive restriction in setuptools:
+                    link += '/'
+            yield link
+
+    def _log_requirement(self, ws, req):
+        if (not logger.isEnabledFor(logging.DEBUG) and
+            not Installer._store_required_by):
+            # Sorting the working set and iterating over it's requirements
+            # is expensive, so short circuit the work if it won't even be
+            # logged.  When profiling a simple buildout with 10 parts with
+            # identical and large working sets, this resulted in a
+            # decrease of run time from 93.411 to 15.068 seconds, about a
+            # 6 fold improvement.
+            return
+
+        ws = list(ws)
+        ws.sort()
+        for dist in ws:
+            if req in dist.requires():
+                logger.debug("  required by %s." % dist)
+                req_ = str(req)
+                if req_ not in Installer._required_by:
+                    Installer._required_by[req_] = set()
+                Installer._required_by[req_].add(str(dist.as_requirement()))
+
+    def _final_version(self, parsed_version):
+        return not parsed_version.is_prerelease
 
 
 def normalize_versions(versions):
@@ -847,6 +899,7 @@ def install(specs, dest,
             use_dependency_links=None, allow_hosts=('*',),
             include_site_packages=None,
             allowed_eggs_from_site_packages=None,
+            check_picked=True,
             ):
     assert executable == sys.executable, (executable, sys.executable)
     assert include_site_packages is None
@@ -855,9 +908,17 @@ def install(specs, dest,
     installer = Installer(dest, links, index, sys.executable,
                           always_unzip, path,
                           newest, versions, use_dependency_links,
-                          allow_hosts=allow_hosts)
+                          allow_hosts=allow_hosts,
+                          check_picked=check_picked)
     return installer.install(specs, working_set)
 
+buildout_and_setuptools_dists = list(install(['zc.buildout'], None,
+                                             check_picked=False))
+buildout_and_setuptools_path = [d.location
+                                for d in buildout_and_setuptools_dists]
+setuptools_path = [d.location
+                   for d in install(['setuptools'], None, check_picked=False)]
+setuptools_pythonpath = os.pathsep.join(setuptools_path)
 
 def build(spec, dest, build_ext,
           links=(), index=None,
@@ -973,7 +1034,6 @@ def develop(setup, dest,
         undo.append(lambda: os.close(fd))
 
         os.write(fd, (runsetup_template % dict(
-            setuptools=setuptools_loc,
             setupdir=directory,
             setup=setup,
             __file__ = setup,
@@ -1014,6 +1074,7 @@ def working_set(specs, executable, path=None,
     assert allowed_eggs_from_site_packages is None
 
     return install(specs, None, path=path)
+
 
 
 def scripts(reqs, working_set, executable, dest=None,
@@ -1065,6 +1126,11 @@ def scripts(reqs, working_set, executable, dest=None,
                 for name in dist.metadata_listdir('scripts'):
                     if dist.metadata_isdir('scripts/' + name):
                         # Probably Python 3 __pycache__ directory.
+                        continue
+                    if name.lower().endswith('.exe'):
+                        # windows: scripts are implemented with 2 files
+                        #          the .exe gets also into metadata_listdir
+                        #          get_metadata chokes on the binary
                         continue
                     contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
@@ -1396,19 +1462,19 @@ if _interactive:
 
 runsetup_template = """
 import sys
-sys.path.insert(0, %(setupdir)r)
-sys.path.insert(0, %(setuptools)r)
+sys.path.insert(0, %%(setupdir)r)
+sys.path[0:0] = %r
 
 import os, setuptools
 
-__file__ = %(__file__)r
+__file__ = %%(__file__)r
 
-os.chdir(%(setupdir)r)
-sys.argv[0] = %(setup)r
+os.chdir(%%(setupdir)r)
+sys.argv[0] = %%(setup)r
 
-with open(%(setup)r, 'U') as f:
-    exec(compile(f.read(), %(setup)r, 'exec'))
-"""
+with open(%%(setup)r, 'U') as f:
+    exec(compile(f.read(), %%(setup)r, 'exec'))
+""" % setuptools_path
 
 
 class VersionConflict(zc.buildout.UserError):
@@ -1442,38 +1508,6 @@ class MissingDistribution(zc.buildout.UserError):
     def __str__(self):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
-
-def _log_requirement(ws, req):
-    if (not logger.isEnabledFor(logging.DEBUG) and
-        not Installer._store_required_by):
-        # Sorting the working set and iterating over it's requirements
-        # is expensive, so short circuit the work if it won't even be
-        # logged.  When profiling a simple buildout with 10 parts with
-        # identical and large working sets, this resulted in a
-        # decrease of run time from 93.411 to 15.068 seconds, about a
-        # 6 fold improvement.
-        return
-
-    ws = list(ws)
-    ws.sort()
-    for dist in ws:
-        if req in dist.requires():
-            logger.debug("  required by %s." % dist)
-            req_ = str(req)
-            if req_ not in Installer._required_by:
-                Installer._required_by[req_] = set()
-            Installer._required_by[req_].add(str(dist.as_requirement()))
-
-def _fix_file_links(links):
-    for link in links:
-        if link.startswith('file://') and link[-1] != '/':
-            if os.path.isdir(link[7:]):
-                # work around excessive restriction in setuptools:
-                link += '/'
-        yield link
-
-def _final_version(parsed_version):
-    return not parsed_version.is_prerelease
 
 def redo_pyc(egg):
     if not os.path.isdir(egg):
@@ -1542,6 +1576,89 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
+def call_easy_install(spec, dest):
+    """
+    Call `easy_install` from setuptools as a subprocess to install a
+    distribution specified by `spec` into `dest`.
+    Returns all the paths inside `dest` created by the above.
+    """
+    path = setuptools_path
+
+    args = [sys.executable, '-c',
+            ('import sys; sys.path[0:0] = %r; ' % path) +
+            _easy_install_cmd, '-mZUNxd', dest]
+    level = logger.getEffectiveLevel()
+    if level > 0:
+        args.append('-q')
+    elif level < 0:
+        args.append('-v')
+
+    args.append(spec)
+
+    if level <= logging.DEBUG:
+        logger.debug('Running easy_install:\n"%s"\npath=%s\n',
+                        '" "'.join(args), path)
+
+    sys.stdout.flush() # We want any pending output first
+
+    exit_code = subprocess.call(list(args))
+
+    if exit_code:
+        logger.error(
+            "An error occurred when trying to install %s. "
+            "Look above this message for any errors that "
+            "were output by easy_install.",
+            spec)
+    return glob.glob(os.path.join(dest, '*'))
+
+
+def unpack_egg(location, dest):
+    # Buildout 2 no longer installs zipped eggs,
+    # so we always want to unpack it.
+    dest = os.path.join(dest, os.path.basename(location))
+    setuptools.archive_util.unpack_archive(location, dest)
+
+
+WHEEL_TO_EGG_WARNING = """
+Using unpack_wheel() shim over the deprecated wheel_to_egg() hook.
+Please update your wheel extension implementation for one that installs a .whl
+handler in %s.UNPACKERS
+""".strip() % (__name__,)
+
+def unpack_wheel(location, dest):
+    # Deprecated backward compatibility shim. Please do not use.
+    logger.warning(WHEEL_TO_EGG_WARNING)
+    basename = os.path.basename(location)
+    dists = setuptools.package_index.distros_for_location(location, basename)
+    # `wheel_to_egg()` might generate zipped eggs, so we have to make sure we
+    # get unpacked eggs in the end:
+    tmp_dest = tempfile.mkdtemp(dir=dest)
+    wheel_to_egg(list(dists)[0], tmp_dest)
+    [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
+    unpack_egg(egg, dest)
+    shutil.rmtree(tmp_dest)
+    
+
+UNPACKERS = {
+    '.egg': unpack_egg,
+    '.whl': unpack_wheel,
+}
+
+
+def _get_matching_dist_in_location(dist, location):
+    """
+    Check if `locations` contain only the one intended dist.
+    Return the dist with metadata in the new location.
+    """
+    # Getting the dist from the environment causes the
+    # distribution meta data to be read.  Cloning isn't
+    # good enough.
+    env = pkg_resources.Environment([location])
+    dists = [ d for project_name in env for d in env[project_name] ]
+    dist_infos = [ (d.project_name, d.version) for d in dists ]
+    if dist_infos == [(dist.project_name, dist.version)]:
+        return dists.pop()
+
 def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
 
@@ -1553,7 +1670,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     running in parallel.  So we copy to a temporary directory first.
     See discussion at https://github.com/buildout/buildout/issues/307
 
-    We return the new location.
+    We return the new distribution with properly loaded metadata.
     """
     # First make sure the destination directory exists.  This could suffer from
     # the same kind of race condition as the rest: if we check that it does not
@@ -1565,23 +1682,26 @@ def _move_to_eggs_dir_and_compile(dist, dest):
         if not os.path.isdir(dest):
             # Unknown reason.  Reraise original error.
             raise
-    newloc = os.path.join(
-        dest, os.path.basename(dist.location))
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
-        tmp_egg_dir = os.path.join(tmp_dest, os.path.basename(dist.location))
-        if os.path.isdir(dist.location):
-            # We got a directory. It must have been obtained locally.
+        if (os.path.isdir(dist.location) and
+                dist.precedence >= pkg_resources.BINARY_DIST):
+            # We got a pre-built directory. It must have been obtained locally.
             # Just copy it.
-            shutil.copytree(dist.location, tmp_egg_dir)
+            tmp_loc = os.path.join(tmp_dest, os.path.basename(dist.location))
+            shutil.copytree(dist.location, tmp_loc)
         else:
-            # It is a zipped egg.  Buildout 2 no longer installs zipped eggs,
-            # so we always want to unpack it.
-            setuptools.archive_util.unpack_archive(
-                dist.location, tmp_egg_dir)
-        # We have copied the egg. Now try to rename/move it.
+            # It is an archive of some sort.
+            # Figure out how to unpack it, or fall back to easy_install.
+            _, ext = os.path.splitext(dist.location)
+            unpacker = UNPACKERS.get(ext, call_easy_install)
+            unpacker(dist.location, tmp_dest)
+            [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
+
+        # We have installed the dist. Now try to rename/move it.
+        newloc = os.path.join(dest, os.path.basename(tmp_loc))
         try:
-            os.rename(tmp_egg_dir, newloc)
+            os.rename(tmp_loc, newloc)
         except OSError:
             # Might be for various reasons.  If it is because newloc already
             # exists, we can investigate.
@@ -1589,7 +1709,8 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 # No, it is a different reason.  Give up.
                 raise
             # Try to use it as environment and check if our project is in it.
-            if not pkg_resources.Environment([newloc])[dist.project_name]:
+            newdist = _get_matching_dist_in_location(dist, newloc)
+            if newdist is None:
                 # Path exists, but is not our package.  We could
                 # try something, but it seems safer to bail out
                 # with the original error.
@@ -1605,7 +1726,9 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             # There were no problems during the rename.
             # Do the compile step.
             redo_pyc(newloc)
+            newdist = _get_matching_dist_in_location(dist, newloc)
+            assert newdist is not None  # newloc above is missing our dist?!
     finally:
         # Remember that temporary directories must be removed
         shutil.rmtree(tmp_dest)
-    return newloc
+    return newdist

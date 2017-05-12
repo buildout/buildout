@@ -1,6 +1,6 @@
-Meta-recipe support
-===================
-
+============
+Meta-recipes
+============
 
 Buildout recipes provide reusable Python modules for common
 configuration tasks. The most widely used recipes tend to provide
@@ -179,7 +179,7 @@ There are a few things to note about this example:
 - An exception will be raised if a section already exists.
 
 Testing
--------
+=======
 
 Now, let's test our meta recipe.  We'll test it without actually
 running buildout. Rather, we'll use a specialized buildout provided by
@@ -196,7 +196,7 @@ tested:
 After running the recipe, we should see the buildout database
 populated by the recipe:
 
-    >>> buildout.print_options()
+    >>> buildout.print_options(base_path='/sample-buildout')
     [ctl]
     chkconfig = 345 99 10
     deployment = deployment

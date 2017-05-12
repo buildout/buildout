@@ -1,6 +1,7 @@
 .installed.cfg
 bin/
 build/
+include/
 develop-eggs/
 eggs/
 parts/

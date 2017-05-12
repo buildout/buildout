@@ -52,8 +52,12 @@ The ``bin`` directory contains scripts::
     >>> ls(sample_buildout, 'bin')
     -  buildout
 
+The ``eggs`` directory has installed distributions:
+
     >>> ls(sample_buildout, 'eggs')
+    d...
     -  setuptools-0.7-py3.3.egg
+    ...
     -  zc.buildout.egg-link
 
 The ``develop-eggs`` and ``parts`` directories are initially empty::
@@ -805,7 +809,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     develop-eggs-directory= develop-eggs
         DEFAULT_VALUE
     directory= /sample-buildout
@@ -829,7 +833,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     offline= false
         DEFAULT_VALUE
     parts= data-dir
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     parts-directory= parts
         DEFAULT_VALUE
     prefer-final= true
@@ -849,9 +853,178 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
     <BLANKLINE>
     [data-dir]
     path= foo bins
-        /sample-buildout/buildout.cfg
+        buildout.cfg
     recipe= recipes:mkdir
-        /sample-buildout/buildout.cfg
+        buildout.cfg
+    <BLANKLINE>
+    [versions]
+    zc.buildout = >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg = >=1.99
+        DEFAULT_VALUE
+    <BLANKLINE>
+
+The ``annotate`` command is sensitive to the verbosity flag. 
+You get more information about the way values are computed::
+
+    >>> print_(system(buildout+ ' -v annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = *
+    <BLANKLINE>
+    allow-picked-versions= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    bin-directory= bin
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = bin
+    <BLANKLINE>
+    develop= recipes
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = recipes
+    <BLANKLINE>
+    develop-eggs-directory= develop-eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = develop-eggs
+    <BLANKLINE>
+    directory= /sample-buildout
+    <BLANKLINE>
+       AS COMPUTED_VALUE
+       SET VALUE = /sample-buildout
+    <BLANKLINE>
+    eggs-directory= /sample-buildout/eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       DIRECTORY VALUE = /sample-buildout/eggs
+       AS DEFAULT_VALUE
+       SET VALUE = eggs
+    <BLANKLINE>
+    executable= ...
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = ...
+    <BLANKLINE>
+    find-links=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    install-from-cache= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    installed= .installed.cfg
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = .installed.cfg
+    <BLANKLINE>
+    log-format=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    log-level= INFO
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = INFO
+    <BLANKLINE>
+    newest= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    offline= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    parts= data-dir
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = data-dir
+    <BLANKLINE>
+    parts-directory= parts
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = parts
+    <BLANKLINE>
+    prefer-final= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    python= buildout
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = buildout
+    <BLANKLINE>
+    show-picked-versions= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    socket-timeout=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    update-versions-file=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    use-dependency-links= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    verbosity= 10
+    <BLANKLINE>
+       AS COMMAND_LINE_VALUE
+       SET VALUE = 10
+    <BLANKLINE>
+    versions= versions
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = versions
+    <BLANKLINE>
+    <BLANKLINE>
+    [data-dir]
+    path= foo bins
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = foo bins
+    <BLANKLINE>
+    recipe= recipes:mkdir
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE = recipes:mkdir
+    <BLANKLINE>
+    <BLANKLINE>
+    [versions]
+    ...
+
+The output of the ``annotate`` command can be very long.
+You can restrict the output to some sections by passing section names as arguments::
+
+    >>> print_(system(buildout+ ' annotate versions'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
     <BLANKLINE>
     [versions]
     zc.buildout= >=1.99
@@ -1138,6 +1311,17 @@ relative to the ``myfiles`` section.
     though ``<=`` may look like a new operator, it's still just the familiar
     ``key = value`` syntax.
 
+.. cleanup buildout
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts =
+    ... """)
+
+    >>> _ = system(buildout)
+
 Extending sections (macros) - Adding and removing options
 ---------------------------------------------------------
 
@@ -1202,7 +1386,6 @@ Set up a buildout configuration for this extension.
     >>> os.chdir(sample_buildout)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/demo'
-    ....
 
 Verify option values.
 
@@ -1222,133 +1405,6 @@ Cleanup.
 
     >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
     >>> rmdir(sample_buildout, 'demo')
-
-Conditional sections
---------------------
-
-Sometimes, you need different configuration in different environments
-(different operating systems, or different versions of Python).  To
-make this easier, you can define environment-specific options by
-providing conditional sections::
-
-    [ctl]
-    suffix =
-
-    [ctl:windows]
-    suffix = .bat
-
-.. -> conf
-
-    >>> import zc.buildout.configparser
-    >>> zc.buildout.configparser.parse(
-    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=True))
-    {'ctl': {'suffix': '.bat'}}
-    >>> zc.buildout.configparser.parse(
-    ...     StringIO.StringIO(conf), 'test', lambda : dict(windows=False))
-    {'ctl': {'suffix': ''}}
-
-In this tiny example, we've defined a ``ctl:suffix`` option that's
-``.bat`` on Windows and an empty string elsewhere.
-
-A conditional section has a colon and then a Python expression after
-the name.  If the Python expression result is true, the section
-options from the section are included.  If the value is false, the
-section is ignored.
-
-Some things to note:
-
-- If there is no exception, then options from the section are
-  included.
-
-- Sections and options can be repeated.  If an option is repeated, the
-  last value is used. In the example above, on Windows, the second
-  ``suffix`` option overrides the first.  If the order of the sections
-  was reversed, the conditional section would have no effect.
-
-In addition to the normal built-ins, the expression has access to
-global variables that make common cases short and descriptive as shown
-below
-
-sys
-  the ``sys`` module
-
-os
-  the ``os`` module
-
-platform
-  the ``platform`` module
-
-re
-  The ``re`` module
-
-python2
-  We're running Python 2
-
-python3
-  We're running Python 3
-
-python26
-  We're running Python 2.6
-
-python27
-  We're running Python 2.7
-
-python32
-  We're running Python 3.2
-
-python33
-  We're running Python 3.3
-
-sys_version
-  ``sys.version.lower()``
-
-pypy
-  We're running PyPy
-
-jython
-  We're running Jython
-
-iron
-  We're running Iron Python
-
-cpython
-  We're not running PyPy, Jython, or Iron Python
-
-sys_platform
-  ``str(sys.platform).lower()``
-
-linux
-  We're running on linux
-
-windows
-  We're running on Windows
-
-cygwin
-  We're running on cygwin
-
-solaris
-  We're running on solaris
-
-macosx
-  We're running on Mac OS X
-
-posix
-  We're running on a POSIX-compatible system
-
-bits32
-  We're running on a 32-bit system.
-
-bits64
-  We're running on a 64-bit system.
-
-little_endian
-  We're running on a little-endian system
-
-big_endian
-  We're running on a little-endian system
-
-Expressions must not contain either the ``#`` or the ``;`` character.
-
 
 Adding and removing options
 ---------------------------
@@ -1497,48 +1553,119 @@ operations::
     option= a1 a2
     a3 a4
     a5
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
-    +=  /sample-buildout/extension2.cfg
+        base.cfg
+    +=  extension1.cfg
+    +=  extension2.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part2]
     option= b1 b2 b3 b4
-        /sample-buildout/base.cfg
-    -=  /sample-buildout/extension1.cfg
-    -=  /sample-buildout/extension2.cfg
+        base.cfg
+    -=  extension1.cfg
+    -=  extension2.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part3]
     option= c1 c2
     c3 c4 c5
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
+        base.cfg
+    +=  extension1.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part4]
     option= d2
     d3
     d1
     d4
-        /sample-buildout/base.cfg
-    +=  /sample-buildout/extension1.cfg
-    -=  /sample-buildout/extension1.cfg
+        base.cfg
+    +=  extension1.cfg
+    -=  extension1.cfg
     recipe=
-        /sample-buildout/base.cfg
+        base.cfg
     <BLANKLINE>
     [part5]
     option= h1 h2
-        /sample-buildout/extension1.cfg
+        extension1.cfg
     [versions]
     zc.buildout= >=1.99
         DEFAULT_VALUE
     zc.recipe.egg= >=1.99
         DEFAULT_VALUE
     <BLANKLINE>
+
+With more verbosity::
+
+    >>> print_(system(os.path.join('bin', 'buildout') + ' -v annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    ...
+    [part1]
+    option= a1 a2
+    a3 a4
+    a5
+    <BLANKLINE>
+       IN extension2.cfg
+       ADD VALUE = a5
+       IN extension1.cfg
+       ADD VALUE = a3 a4
+       IN base.cfg
+       SET VALUE = a1 a2
+    <BLANKLINE>
+    ...
+    [part2]
+    option= b1 b2 b3 b4
+    <BLANKLINE>
+       IN extension2.cfg
+       REMOVE VALUE = b1 b2 b3
+       IN extension1.cfg
+       REMOVE VALUE = b1 b2
+       IN base.cfg
+       SET VALUE = b1 b2 b3 b4
+    <BLANKLINE>
+    ...
+    [part3]
+    option=
+       c1 c2
+       c3 c4 c5
+    <BLANKLINE>
+       IN extension1.cfg
+       ADD VALUE = c3 c4 c5
+       IN base.cfg
+       SET VALUE = c1 c2
+    <BLANKLINE>
+    ...
+    [part4]
+    option=
+       d2
+       d3
+       d1
+       d4
+    <BLANKLINE>
+       IN extension1.cfg
+       REMOVE VALUE = d5
+       IN extension1.cfg
+       ADD VALUE =
+          d1
+          d4
+       IN base.cfg
+       SET VALUE =
+          d2
+          d3
+          d5
+    <BLANKLINE>
+    ...
+    [part5]
+    option= h1 h2
+    <BLANKLINE>
+       IN extension1.cfg
+       SET VALUE = h1 h2
+    <BLANKLINE>
+    ...
 
 Cleanup::
 
@@ -2645,7 +2772,7 @@ database is shown::
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
-    <BLANKLINE>
+    ...
     Configuration data:
     [buildout]
     allow-hosts = *
@@ -2680,6 +2807,15 @@ database is shown::
 All of these options can be overridden by configuration files or by
 command-line assignments.  We've discussed most of these options
 already, but let's review them and touch on some we haven't discussed:
+
+``abi-tag-eggs``
+    Add an `ABI tag
+    <https://www.python.org/dev/peps/pep-0425/#abi-tag>`_ to the
+    directory name given by the ``eggs-directory`` option.  This is
+    useful when switching between python implementations when details
+    of the implementation aren't reflected in egg names.  It also has
+    the side benefit of making eggs directories smaller, because eggs
+    for different Python versions are in different directories.
 
 ``allow-hosts``
     On some environments the links visited by ``zc.buildout`` can be forbidden
@@ -2901,7 +3037,9 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
+    d...
     -  setuptools-0.7-py2.3.egg
+    ...
     -  zc.buildout-1.0-py2.3.egg
 
 (We list both the ``eggs`` and ``develop-eggs`` directories because the

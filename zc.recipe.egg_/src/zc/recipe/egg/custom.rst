@@ -192,7 +192,7 @@ Let's define a script that uses out ext demo:
     Develop: '/sample-buildout/demo'
     Updating extdemo.
     Installing demo.
-    Generated script '/sample-buildout/bin/demo'.
+    Generated script '/sample-buildout/bin/demo'...
 
 When we run the script, we'll 42 printed:
 

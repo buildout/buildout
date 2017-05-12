@@ -13,7 +13,7 @@
 #
 ##############################################################################
 from zc.buildout.buildout import print_
-from zope.testing import renormalizing
+from zope.testing import renormalizing, setupstack
 
 import doctest
 import manuel.capture
@@ -341,6 +341,7 @@ If we use the verbose switch, we can see where requirements are coming from:
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
+    ...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
@@ -464,6 +465,7 @@ We do not need to run in verbose mode for that to work:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
+    ...
     <BLANKLINE>
     # Required by:
     # sampley==1
@@ -607,21 +609,33 @@ def create_sections_on_command_line():
 def test_help():
     """
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')+' -h'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
+    ...
       -h, --help
     ...
 
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              +' --help'))
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     Usage: buildout [options] [assignments] [command [command arguments]]
     <BLANKLINE>
     Options:
     <BLANKLINE>
+      -c config_file
+    <BLANKLINE>
+        Specify the path to the buildout configuration file to be used.
+        This defaults to the file named "buildout.cfg" in the current
+        working directory.
+    ...
       -h, --help
     ...
     """
@@ -821,12 +835,15 @@ and we will get setuptools included in the working set.
     ...        'zc.buildout.easy_install', level=logging.WARNING)
     >>> logging.getLogger('zc.buildout.easy_install').propagate = False
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['foox'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> def get_working_set(*project_names):
+    ...     paths = [join(sample_buildout, 'eggs'),
+    ...              join(sample_buildout, 'develop-eggs')]
+    ...     return [
+    ...        dist.project_name
+    ...        for dist in zc.buildout.easy_install.working_set(
+    ...            project_names, sys.executable, paths)
+    ...     ]
+    >>> get_working_set('foox')
     ['foox', 'setuptools']
 
     >>> print_(handler)
@@ -836,34 +853,48 @@ and we will get setuptools included in the working set.
 
     >>> handler.clear()
 
-On the other hand, if we have a regular egg, rather than a develop egg:
+On the other hand, if we have a zipped egg, rather than a develop egg:
 
     >>> os.remove(join('develop-eggs', 'foox.egg-link'))
 
-    >>> _ = system(join('bin', 'buildout') + ' setup foo bdist_egg -d'
-    ...            + join(sample_buildout, 'eggs'))
-
+    >>> _ = system(join('bin', 'buildout') + ' setup foo bdist_egg')
+    >>> foox_dist = join('foo', 'dist')
+    >>> import glob
+    >>> [foox_egg] = glob.glob(join(foox_dist, 'foox-*.egg'))
+    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs'))
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
 
     >>> ls('eggs') # doctest: +ELLIPSIS
+    d...
     -  foox-0.0.0-py2.4.egg
+    ...
     d  setuptools.eggpyN.N.egg
     ...
 
 We do not get a warning, but we do get setuptools included in the working set:
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['foox'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> get_working_set('foox')
     ['foox', 'setuptools']
 
     >>> print_(handler, end='')
 
-We get the same behavior if the it is a dependency that uses a
+Likewise for an unzipped egg:
+
+    >>> foox_egg_basename = os.path.basename(foox_egg)
+    >>> os.remove(join(sample_buildout, 'eggs', foox_egg_basename))
+    >>> _ = zc.buildout.easy_install.install(
+    ...     ['foox'], join(sample_buildout, 'eggs'), links=[foox_dist],
+    ...     index='file://' + foox_dist)
+    >>> ls('develop-eggs')
+    -  zc.recipe.egg.egg-link
+
+    >>> get_working_set('foox')
+    ['foox', 'setuptools']
+
+    >>> print_(handler, end='')
+
+We get the same behavior if it is a dependency that uses a
 namespace package.
 
 
@@ -886,12 +917,7 @@ namespace package.
     Develop: '/sample-buildout/foo'
     Develop: '/sample-buildout/bar'
 
-    >>> [dist.project_name
-    ...  for dist in zc.buildout.easy_install.working_set(
-    ...    ['bar'], sys.executable,
-    ...    [join(sample_buildout, 'eggs'),
-    ...     join(sample_buildout, 'develop-eggs'),
-    ...     ])]
+    >>> get_working_set('bar')
     ['bar', 'foox', 'setuptools']
 
     >>> print_(handler, end='')
@@ -899,6 +925,32 @@ namespace package.
       Develop distribution: foox 0.0.0
     uses namespace packages but the distribution does not require setuptools.
 
+On the other hand, if the distribution uses ``pkgutil.extend_path()`` to
+implement its namespaces, even if just as fallback from the absence of
+``pkg_resources``, then ``setuptools`` should not be added as requirement to
+its unzipped egg:
+
+    >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
+    >>> namespace_init = join(foox_installed_egg, 'stuff', '__init__.py')
+    >>> write(namespace_init,
+    ... """try:
+    ...     __import__('pkg_resources').declare_namespace(__name__)
+    ... except ImportError:
+    ...     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+    ... """)
+
+    >>> os.remove(join('develop-eggs', 'foox.egg-link'))
+    >>> os.remove(join('develop-eggs', 'bar.egg-link'))
+    >>> get_working_set('foox')
+    ['foox']
+
+The same goes for packages using PEP420 namespaces
+
+    >>> os.remove(namespace_init)
+    >>> get_working_set('foox')
+    ['foox']
+
+Cleanup:
 
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
     >>> handler.uninstall()
@@ -1747,6 +1799,7 @@ def install_source_dist_with_bad_py():
     ...
 
     >>> ls('eggs') # doctest: +ELLIPSIS
+    d...
     d  badegg-1-py2.4.egg
     ...
 
@@ -2042,6 +2095,7 @@ def dealing_with_extremely_insane_dependencies():
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
+    ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
     Develop: '/sample-buildout/pack2'
@@ -2469,7 +2523,7 @@ Distribution setup scripts can import modules in the distribution directory:
     """
 
 def dont_pick_setuptools_if_version_is_specified_when_required_by_src_dist():
-    """
+    r"""
 When installing a source distribution, we got setuptools without
 honoring our version specification.
 
@@ -2491,14 +2545,15 @@ honoring our version specification.
     ... allow-picked-versions = false
     ...
     ... [versions]
-    ... setuptools = %s
+    ... wtf = %s
     ... foo = 1
     ...
     ... [foo]
     ... recipe = zc.recipe.egg
     ... eggs = foo
-    ... ''' % pkg_resources.working_set.find(
-    ...    pkg_resources.Requirement.parse('setuptools')).version)
+    ... ''' % ('\n'.join(
+    ...     '%s = %s' % (d.key, d.version)
+    ...     for d in zc.buildout.easy_install.buildout_and_setuptools_dists)))
 
     >>> print_(system(buildout), end='')
     Installing foo.
@@ -2867,7 +2922,7 @@ def want_new_zcrecipeegg():
     ... eggs = demo
     ... ''')
     >>> print_(system(join('bin', 'buildout')), end='') # doctest: +ELLIPSIS
-    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'.
+    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'...
     While:
       Installing.
       Getting section egg.
@@ -2932,6 +2987,7 @@ def bootstrap_honors_relative_paths():
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
+      ...
       join(base, 'eggs/setuptools-0.7-py2.7.egg'),
       ...
       ]
@@ -3025,8 +3081,122 @@ def parse_with_section_expr():
 
     """
 
+def test_abi_tag_eggs():
+    r"""
+    >>> mkdir('..', 'bo')
+    >>> cd('..', 'bo')
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = egg
+    ... abi-tag-eggs = true
+    ... [egg]
+    ... recipe = zc.recipe.egg
+    ... eggs = demo
+    ... ''')
+    >>> _ = system(join('..', 'sample-buildout', 'bin', 'buildout')
+    ...            + ' bootstrap')
+    >>> _ = system(join('bin', 'buildout'))
+    >>> ls('.')
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    >>> from zc.buildout.pep425tags import get_abi_tag
+    >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
+    d...
+    d  setuptools-34.0.3-py3.5.egg
+    ...
+    """
+
+def test_buildout_doesnt_keep_adding_itself_to_versions():
+    r"""
+    We were constantly writing to versions.cfg for buildout and setuptools
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts =
+    ... extends = versions.cfg
+    ... show-picked-versions = true
+    ... update-versions-file = versions.cfg
+    ... extends = versions.cfg
+    ... ''')
+    >>> write('versions.cfg',
+    ... '''[versions]
+    ... ''')
+    >>> _ = system(join('bin', 'buildout'))
+    >>> with open('versions.cfg') as f:
+    ...     versions = f.read()
+    >>> _ = system(join('bin', 'buildout'))
+
+    On the first run, some pins were added:
+
+    >>> cat('versions.cfg') # doctest: +ELLIPSIS
+    [versions]
+    <BLANKLINE>
+    # Added by buildout...
+    setuptools = 34.0.3
+    ...
+    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout'))
+
+    Subsequent runs didn't add additional text:
+
+    >>> with open('versions.cfg') as f:
+    ...     versions == f.read()
+    True
+    """
+
 if sys.platform == 'win32':
     del buildout_honors_umask # umask on dohs is academic
+
+class UnitTests(unittest.TestCase):
+
+    @property
+    def globs(self):
+        return self.__dict__
+
+    def setUp(self):
+        easy_install_SetUp(self)
+        import setuptools.package_index
+        setuptools.package_index.EXTENSIONS.append('.whl')
+        import zc.buildout.easy_install
+        self.orig_wheel_to_egg = zc.buildout.easy_install.wheel_to_egg
+
+    def tearDown(self):
+        import zc.buildout.easy_install
+        zc.buildout.testing.buildoutTearDown(self)
+        import setuptools.package_index
+        setuptools.package_index.EXTENSIONS.remove('.whl')
+        zc.buildout.easy_install.wheel_to_egg = self.orig_wheel_to_egg
+
+    def test_wheel_to_egg(self):
+        [egg_name] = [n for n in os.listdir(self.sample_eggs)
+                  if n.startswith('demo-0.3-')]
+        path = os.path.join(self.sample_eggs, egg_name)
+        os.rename(path, os.path.join(self.sample_eggs, 'demo-0.3.whl'))
+
+        import zc.buildout.easy_install
+        installer = zc.buildout.easy_install.Installer(
+            os.path.join(self.sample_buildout, 'eggs'),
+            index = self.sample_eggs)
+
+        # Can't install because the original hook is in place:
+        with self.assertRaises(zc.buildout.UserError):
+            installer.install(['demo'])
+
+        def wheel_to_egg(dist, dest):
+            newloc = os.path.join(dest, egg_name)
+            shutil.copy(dist.location, newloc)
+            return pkg_resources.Distribution.from_filename(newloc)
+        zc.buildout.easy_install.wheel_to_egg = wheel_to_egg
+        egg_dir = os.path.join(self.sample_buildout, 'eggs')
+        self.assertFalse(egg_name in os.listdir(egg_dir))
+        installer.install(['demo'])
+        self.assertTrue(egg_name in os.listdir(egg_dir))
+
 
 ######################################################################
 
@@ -3273,9 +3443,7 @@ def getWorkingSetWithBuildoutEgg(test):
              os.path.join(os.path.dirname(dist.location), 'setup.py'),
              '-q', 'bdist_egg', '-d', eggs],
             env=dict(os.environ,
-                     PYTHONPATH=pkg_resources.working_set.find(
-                         pkg_resources.Requirement.parse('setuptools')
-                         ).location,
+                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
                      ),
             )
         os.chdir(here)
@@ -3297,15 +3465,18 @@ def updateSetup(test):
     test.globs['new_releases'] = new_releases
     ws = getWorkingSetWithBuildoutEgg(test)
     # now let's make the new releases
-    makeNewRelease('zc.buildout', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'zc.buildout'))
-    makeNewRelease('setuptools', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'setuptools'))
+    for dist in zc.buildout.easy_install.buildout_and_setuptools_dists:
+        makeNewRelease(dist.key, ws, new_releases)
+        os.mkdir(os.path.join(new_releases, dist.key))
 
-bootstrap_py = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.dirname(__file__)))),
-    'bootstrap', 'bootstrap.py')
+def ancestor(path, level):
+    while level > 0:
+        path = os.path.dirname(path)
+        level -= 1
+
+    return path
+
+bootstrap_py = os.path.join(ancestor(__file__, 4), 'bootstrap', 'bootstrap.py')
 
 def bootstrapSetup(test):
     buildout_txt_setup(test)
@@ -3336,6 +3507,7 @@ def test_suite():
             'configparser.test'),
         manuel.testing.TestSuite(
             manuel.doctest.Manuel(
+                optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
@@ -3367,10 +3539,10 @@ def test_suite():
                     (re.compile('setuptools'), 'setuptools'),
                     (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
                     (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
-                     'zc.\1 = >=1.99'),
+                     'zc.\\1 = >=1.99'),
                     ])
                 ) + manuel.capture.Manuel(),
-            'buildout.txt', 'meta-recipes.txt',
+            'buildout.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             ),
@@ -3378,6 +3550,7 @@ def test_suite():
             'runsetup.txt', 'repeatable.txt', 'setup.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -3434,6 +3607,7 @@ def test_suite():
             'update.txt',
             setUp=updateSetup,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
                             '-py\d.\d.egg'),
@@ -3463,6 +3637,7 @@ def test_suite():
             'allowhosts.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_path,
@@ -3582,9 +3757,54 @@ def test_suite():
                 ),
                ])
             ),
-        doctest.DocFileSuite(
-            'testing_bugfix.txt'),
+        doctest.DocFileSuite('testing_bugfix.txt'),
+        unittest.makeSuite(UnitTests),
     ]
+
+    docdir = os.path.join(ancestor(__file__, 4), 'doc')
+    if os.path.exists(docdir) and not sys.platform.startswith('win'):
+        # Note that the purpose of the documentation tests are mainly
+        # to test the documentation, not to test buildout.
+
+        def docSetUp(test):
+
+            def write(text, *path):
+                with open(os.path.join(*path), 'w') as f:
+                    f.write(text)
+
+            test.globs.update(
+                run_buildout=zc.buildout.testing.run_buildout_in_process,
+                yup=lambda cond, orelse='Nope': None if cond else orelse,
+                nope=lambda cond, orelse='Nope': orelse if cond else None,
+                eq=lambda a, b: None if a == b else (a, b),
+                eqs=zc.buildout.testing.eqs,
+                read=zc.buildout.testing.read,
+                write=write,
+                ls=lambda d='.', *rest: os.listdir(os.path.join(d, *rest)),
+                join=os.path.join,
+                clear_here=zc.buildout.testing.clear_here,
+                os=os,
+                )
+            setupstack.setUpDirectory(test)
+
+        test_suite.append(
+            manuel.testing.TestSuite(
+                manuel.doctest.Manuel(
+                    optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+                    ) + manuel.capture.Manuel(),
+                os.path.join(docdir, 'getting-started.rst'),
+                os.path.join(docdir, 'reference.rst'),
+                os.path.join(docdir, 'topics', 'bootstrapping.rst'),
+                os.path.join(docdir, 'topics', 'implicit-parts.rst'),
+                os.path.join(
+                    docdir,
+                    'topics', 'variables-extending-and-substitutions.rst'),
+                os.path.join(docdir, 'topics', 'writing-recipes.rst'),
+                os.path.join(docdir, 'topics', 'optimizing.rst'),
+                os.path.join(docdir, 'topics', 'meta-recipes.rst'),
+                setUp=docSetUp, tearDown=setupstack.tearDown
+                ))
+
 
     # adding bootstrap.txt doctest to the suite
     # only if bootstrap.py is present
