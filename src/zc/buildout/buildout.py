@@ -1269,7 +1269,10 @@ class Options(DictMixin):
                     raise zc.buildout.UserError("No section named %r" % iname)
                 result.update(self._do_extend_raw(iname, raw, doing))
 
-            result.update(data)
+            result = _annotate_section(result, "")
+            data = _annotate_section(data.copy(), "")
+            _update_section(result, data)
+            result = _unannotate_section(result)
             result.pop('<', None)
             return result
         finally:

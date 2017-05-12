@@ -242,13 +242,15 @@ we'll get an error:
     ...     versions = dict(demo='0.2', demoneeded='1.0'))
     Traceback (most recent call last):
     ...
-    IncompatibleConstraintError: Bad constraint 0.2 demo>0.2
+    IncompatibleConstraintError: The requirement ('demo>0.2') is not allowed by your [versions] constraint (0.2)
 
     >>> print_(handler)
     zc.buildout.easy_install DEBUG
       Installing 'demo >0.2'.
-    zc.buildout.easy_install ERROR
-      The constraint, 0.2, is not consistent with the requirement, 'demo>0.2'.
+    zc.buildout.easy_install INFO
+      Version and requirements information containing demo:
+      [versions] constraint on demo: 0.2
+      Base installation request: 'demo >0.2'
 
     >>> handler.clear()
 
@@ -835,7 +837,7 @@ to pass a common base directory of the scripts and eggs:
 
     >>> scripts = zc.buildout.easy_install.scripts(
     ...    ['demo'], ws, sys.executable, join(bo, 'bin'), dict(demo='run'),
-    ...    extra_paths=[ba, join(bo, 'bar')],
+    ...    extra_paths=[ba, join(bo, 'bar'), bo],
     ...    interpreter='py',
     ...    relative_paths=bo)
 
@@ -854,6 +856,7 @@ to pass a common base directory of the scripts and eggs:
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
+      base,
       ]
     <BLANKLINE>
     import eggrecipedemo
@@ -887,6 +890,7 @@ We specified an interpreter and its paths are adjusted too:
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
+      base,
       ]
     <BLANKLINE>
     _interactive = True
@@ -1000,6 +1004,43 @@ for. Buildout doesn't crash on that:
     ...     ['du_zipped'], ws, sys.executable, distbin2)
     >>> ls(distbin2)
     -  distutilsscript
+
+Installing develop eggs sadly means that setuptools doesn't record distutils
+scripts in the metadata. We try to detect such scripts anyhow:
+
+    >>> dev_distutils_dir = tmpdir('dev_distutils_dir')
+    >>> dev_distutils_dest = tmpdir('dev_distutils_dest')
+    >>> dev_eggs_dir = os.path.join(dev_distutils_dest, 'develop-eggs')
+    >>> bin_dir = os.path.join(dev_distutils_dest, 'bin')
+    >>> os.mkdir(dev_eggs_dir)
+    >>> os.mkdir(bin_dir)
+    >>> write(dev_distutils_dir, 'distutilsscript2',
+    ...     '#!/usr/bin/python\n'
+    ...     '# -*- coding: utf-8 -*-\n'
+    ...     '"""Module docstring."""\n'
+    ...     'from __future__ import print_statement\n'
+    ...     'import os\n'
+    ...     'import sys; sys.stdout.write("distutils!\\n")\n'
+    ...     )
+    >>> write(dev_distutils_dir, 'setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name="foo2",
+    ...       scripts=['distutilsscript2'])
+    ... ''')
+    >>> zc.buildout.easy_install.develop(
+    ...   dev_distutils_dir, dev_eggs_dir)
+    '/dev_distutils_dest/develop-eggs/foo2.egg-link'
+    >>> ws = zc.buildout.easy_install.working_set(
+    ...     ['foo2'], sys.executable, [dev_eggs_dir])
+    >>> scripts = zc.buildout.easy_install.scripts(
+    ...     ['foo2'], ws, sys.executable, dest=bin_dir)
+    >>> if sys.platform == 'win32':
+    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2.exe'),
+    ...                 os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2-script.py')]
+    ... else:
+    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2')]
+    True
 
 
 Handling custom build options for extensions provided in source distributions

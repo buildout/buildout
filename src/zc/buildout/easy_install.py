@@ -86,6 +86,7 @@ buildout_and_setuptools_path = [
     ]
 
 FILE_SCHEME = re.compile('file://', re.I).match
+DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -221,9 +222,27 @@ class Installer:
         self._newest = newest
         self._env = pkg_resources.Environment(path)
         self._index = _get_index(index, links, self._allow_hosts)
+        self._requirements_and_constraints = []
 
         if versions is not None:
             self._versions = normalize_versions(versions)
+
+    def _version_conflict_information(self, name):
+        """Return textual requirements/constraint information for debug purposes
+
+        We do a very simple textual search, as that filters out most
+        extraneous information witout missing anything.
+
+        """
+        output = [
+            "Version and requirements information containing %s:" % name]
+        version_constraint = self._versions.get(name)
+        if version_constraint:
+            output.append(
+                "[versions] constraint on %s: %s" % (name, version_constraint))
+        output += [line for line in self._requirements_and_constraints
+                   if name.lower() in line.lower()]
+        return '\n  '.join(output)
 
     def _satisfied(self, req, source=None):
         dists = [dist for dist in self._env[req.project_name] if dist in req]
@@ -378,16 +397,8 @@ class Installer:
 
             result = []
             for d in dists:
-                newloc = os.path.join(dest, os.path.basename(d.location))
-                if os.path.exists(newloc):
-                    if os.path.isdir(newloc):
-                        shutil.rmtree(newloc)
-                    else:
-                        os.remove(newloc)
-                os.rename(d.location, newloc)
-
+                newloc = _move_to_eggs_dir_and_compile(d, dest)
                 [d] = pkg_resources.Environment([newloc])[d.project_name]
-
                 result.append(d)
 
             return result
@@ -507,19 +518,7 @@ class Installer:
 
                 if dist.precedence == pkg_resources.EGG_DIST:
                     # It's already an egg, just fetch it into the dest
-
-                    newloc = os.path.join(
-                        self._dest, os.path.basename(dist.location))
-
-                    if os.path.isdir(dist.location):
-                        # we got a directory. It must have been
-                        # obtained locally.  Just copy it.
-                        shutil.copytree(dist.location, newloc)
-                    else:
-                        setuptools.archive_util.unpack_archive(
-                            dist.location, newloc)
-
-                    redo_pyc(newloc)
+                    newloc = _move_to_eggs_dir_and_compile(dist, self._dest)
 
                     # Getting the dist from the environment causes the
                     # distribution meta data to be read.  Cloning isn't
@@ -532,7 +531,6 @@ class Installer:
                     dists = self._call_easy_install(
                         dist.location, ws, self._dest, dist)
                     for dist in dists:
-                        redo_pyc(dist.location)
                         if for_buildout_run:
                             # ws is the global working set and we're
                             # installing buildout, setuptools, extensions or
@@ -607,14 +605,24 @@ class Installer:
 
 
     def _constrain(self, requirement):
+        """Return requirement with optional [versions] constraint added."""
         constraint = self._versions.get(requirement.project_name.lower())
         if constraint:
-            requirement = _constrained_requirement(constraint, requirement)
+            try:
+                requirement = _constrained_requirement(constraint,
+                                                       requirement)
+            except IncompatibleConstraintError:
+                logger.info(self._version_conflict_information(
+                    requirement.project_name.lower()))
+                raise
+
         return requirement
 
     def install(self, specs, working_set=None):
 
         logger.debug('Installing %s.', repr(specs)[1:-1])
+        self._requirements_and_constraints.append(
+            "Base installation request: %s" % repr(specs)[1:-1])
 
         for_buildout_run = bool(working_set)
         path = self._path
@@ -687,11 +695,17 @@ class Installer:
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.
+                logger.info(self._version_conflict_information(req.key))
                 raise VersionConflict(
                     pkg_resources.VersionConflict(dist, req), ws)
 
             best[req.key] = dist
-            requirements.extend(dist.requires(req.extras)[::-1])
+            extra_requirements = dist.requires(req.extras)[::-1]
+            for extra_requirement in extra_requirements:
+                self._requirements_and_constraints.append(
+                    "Requirement of %s: %s" % (current_requirement, extra_requirement))
+            requirements.extend(extra_requirements)
+
             processed[req] = True
         return ws
 
@@ -756,9 +770,6 @@ class Installer:
                 dists = self._call_easy_install(
                     base, pkg_resources.WorkingSet(),
                     self._dest, dist)
-
-                for dist in dists:
-                    redo_pyc(dist.location)
 
                 return [dist.location for dist in dists]
             finally:
@@ -859,13 +870,13 @@ def build(spec, dest, build_ext,
     return installer.build(spec, build_ext)
 
 
-
 def _rm(*paths):
     for path in paths:
         if os.path.isdir(path):
             shutil.rmtree(path)
         elif os.path.exists(path):
             os.remove(path)
+
 
 def _copyeggs(src, dest, suffix, undo):
     result = []
@@ -881,6 +892,53 @@ def _copyeggs(src, dest, suffix, undo):
     undo.pop()
 
     return result[0]
+
+
+_develop_distutils_scripts = {}
+
+
+def _detect_distutils_scripts(directory):
+    """Record detected distutils scripts from develop eggs
+
+    ``setup.py develop`` doesn't generate metadata on distutils scripts, in
+    contrast to ``setup.py install``. So we have to store the information for
+    later.
+
+    """
+    dir_contents = os.listdir(directory)
+    egginfo_filenames = [filename for filename in dir_contents
+                         if filename.endswith('.egg-link')]
+    if not egginfo_filenames:
+        return
+    egg_name = egginfo_filenames[0].replace('.egg-link', '')
+    marker = 'EASY-INSTALL-DEV-SCRIPT'
+    scripts_found = []
+    for filename in dir_contents:
+        if filename.endswith('.exe'):
+            continue
+        filepath = os.path.join(directory, filename)
+        if not os.path.isfile(filepath):
+            continue
+        with open(filepath) as fp:
+            dev_script_content = fp.read()
+        if marker in dev_script_content:
+            # The distutils bin script points at the actual file we need.
+            for line in dev_script_content.splitlines():
+                match = DUNDER_FILE_PATTERN.search(line)
+                if match:
+                    # The ``__file__ =`` line in the generated script points
+                    # at the actual distutils script we need.
+                    actual_script_filename = match.group('filename')
+                    with open(actual_script_filename) as fp:
+                        actual_script_content = fp.read()
+                    scripts_found.append([filename, actual_script_content])
+
+    if scripts_found:
+        logger.debug(
+            "Distutils scripts found for develop egg %s: %s",
+            egg_name, scripts_found)
+        _develop_distutils_scripts[egg_name] = scripts_found
+
 
 def develop(setup, dest,
             build_ext=None,
@@ -924,7 +982,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : shutil.rmtree(tmp3))
 
-        args = [executable,  tsetup, '-q', 'develop', '-mxN', '-d', tmp3]
+        args = [executable,  tsetup, '-q', 'develop', '-mN', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
@@ -936,7 +994,7 @@ def develop(setup, dest,
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
         call_subprocess(args)
-
+        _detect_distutils_scripts(tmp3)
         return _copyeggs(tmp3, dest, '.egg-link', undo)
 
     finally:
@@ -956,6 +1014,7 @@ def working_set(specs, executable, path=None,
     assert allowed_eggs_from_site_packages is None
 
     return install(specs, None, path=path)
+
 
 def scripts(reqs, working_set, executable, dest=None,
             scripts=None,
@@ -1002,12 +1061,20 @@ def scripts(reqs, working_set, executable, dest=None,
             # distutils/setuptools, except by placing the original scripts in
             # /EGG-INFO/scripts/.
             if dist.metadata_isdir('scripts'):
+                # egg-info metadata from installed egg.
                 for name in dist.metadata_listdir('scripts'):
                     if dist.metadata_isdir('scripts/' + name):
                         # Probably Python 3 __pycache__ directory.
                         continue
                     contents = dist.get_metadata('scripts/' + name)
                     distutils_scripts.append((name, contents))
+            elif dist.key in _develop_distutils_scripts:
+                # Development eggs don't have metadata about scripts, so we
+                # collected it ourselves in develop()/ and
+                # _detect_distutils_scripts().
+                for name, contents in _develop_distutils_scripts[dist.key]:
+                    distutils_scripts.append((name, contents))
+
         else:
             entry_points.append(req)
 
@@ -1097,6 +1164,8 @@ def _relative_path(common, path):
 def _relativitize(path, script, relative_paths):
     if path == script:
         raise AssertionError("path == script")
+    if path == relative_paths:
+        return "base"
     common = os.path.dirname(os.path.commonprefix([path, script]))
     if (common == relative_paths or
         common.startswith(os.path.join(relative_paths, ''))
@@ -1446,7 +1515,9 @@ def _constrained_requirement(constraint, requirement):
             assert constraint.startswith('==')
             constraint = constraint[2:]
         if constraint not in requirement:
-            bad_constraint(constraint, requirement)
+            msg = ("The requirement (%r) is not allowed by your [versions] "
+                   "constraint (%s)" % (str(requirement), constraint))
+            raise IncompatibleConstraintError(msg)
 
         # Sigh, copied from Requirement.__str__
         extras = ','.join(requirement.extras)
@@ -1470,7 +1541,71 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
-def bad_constraint(constraint, requirement):
-    logger.error("The constraint, %s, is not consistent with the "
-                 "requirement, %r.", constraint, str(requirement))
-    raise IncompatibleConstraintError("Bad constraint", constraint, requirement)
+
+def _move_to_eggs_dir_and_compile(dist, dest):
+    """Move distribution to the eggs destination directory.
+
+    And compile the py files, if we have actually moved the dist.
+
+    Its new location is expected not to exist there yet, otherwise we
+    would not be calling this function: the egg is already there.  But
+    the new location might exist at this point if another buildout is
+    running in parallel.  So we copy to a temporary directory first.
+    See discussion at https://github.com/buildout/buildout/issues/307
+
+    We return the new location.
+    """
+    # First make sure the destination directory exists.  This could suffer from
+    # the same kind of race condition as the rest: if we check that it does not
+    # exist, and we then create it, it will fail when a second buildout is
+    # doing the same thing.
+    try:
+        os.makedirs(dest)
+    except OSError:
+        if not os.path.isdir(dest):
+            # Unknown reason.  Reraise original error.
+            raise
+    newloc = os.path.join(
+        dest, os.path.basename(dist.location))
+    tmp_dest = tempfile.mkdtemp(dir=dest)
+    try:
+        tmp_egg_dir = os.path.join(tmp_dest, os.path.basename(dist.location))
+        if os.path.isdir(dist.location):
+            # We got a directory. It must have been obtained locally.
+            # Just copy it.
+            shutil.copytree(dist.location, tmp_egg_dir)
+        else:
+            # It is a zipped egg.  Buildout 2 no longer installs zipped eggs,
+            # so we always want to unpack it.
+            setuptools.archive_util.unpack_archive(
+                dist.location, tmp_egg_dir)
+        # We have copied the egg. Now try to rename/move it.
+        try:
+            os.rename(tmp_egg_dir, newloc)
+        except OSError:
+            # Might be for various reasons.  If it is because newloc already
+            # exists, we can investigate.
+            if not os.path.exists(newloc):
+                # No, it is a different reason.  Give up.
+                raise
+            # Try to use it as environment and check if our project is in it.
+            if not pkg_resources.Environment([newloc])[dist.project_name]:
+                # Path exists, but is not our package.  We could
+                # try something, but it seems safer to bail out
+                # with the original error.
+                raise
+            # newloc looks okay to use.  Do print a warning.
+            logger.warn(
+                "Path %s unexpectedly already exists.\n"
+                "Maybe a buildout running in parallel has added it. "
+                "We will accept it.\n"
+                "If this contains a wrong package, please remove it yourself.",
+                newloc)
+        else:
+            # There were no problems during the rename.
+            # Do the compile step.
+            redo_pyc(newloc)
+    finally:
+        # Remember that temporary directories must be removed
+        shutil.rmtree(tmp_dest)
+    return newloc

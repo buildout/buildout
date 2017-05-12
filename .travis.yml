@@ -1,10 +1,8 @@
 language: python
 env:
-    - PYTHON_VER=2.6
     - PYTHON_VER=2.7
-    - PYTHON_VER=3.2
-    - PYTHON_VER=3.3
     - PYTHON_VER=3.4
+    - PYTHON_VER=3.5
 
 sudo: false
 cache:

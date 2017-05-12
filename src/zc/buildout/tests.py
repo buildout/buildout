@@ -97,7 +97,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
     Installing...
     Develop: '/sample-buildout/foo'
     in: '/sample-buildout/foo'
-    ... -q develop -mxN -d /sample-buildout/develop-eggs/...
+    ... -q develop -mN -d /sample-buildout/develop-eggs/...
 
 
     """
@@ -306,6 +306,9 @@ Now, let's create a buildout that requires y and z:
     Installing eggs.
     Getting distribution for 'demoneeded==1.1'.
     Got demoneeded 1.1.
+    Version and requirements information containing demoneeded:
+      Requirement of samplez: demoneeded==1.1
+      Requirement of sampley: demoneeded==1.0
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -355,6 +358,9 @@ If we use the verbose switch, we can see where requirements are coming from:
     Getting required 'sampley'
       required by sampleb 1.
     We have a develop egg: sampley 1
+    Version and requirements information containing demoneeded:
+      Requirement of samplez: demoneeded==1.1
+      Requirement of sampley: demoneeded==1.0
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -3539,6 +3545,10 @@ def test_suite():
                  "Unused options for buildout: 'scripts' 'eggs'."),
                 # Python 3.4 changed the wording of NameErrors
                 (re.compile('NameError: global name'), 'NameError: name'),
+                # fix for test_distutils_scripts_using_import_are_properly_parsed
+                # and test_distutils_scripts_using_from_are_properly_parsed
+                # win32 apparently adds a " around sys.executable
+                (re.compile('#!"python"'), '#!python'),
                 ]),
             ),
         zc.buildout.rmtree.test_suite(),

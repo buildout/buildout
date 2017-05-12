@@ -1,2 +1,2 @@
-recursive-include src/zc *.txt
-include *.txt
+recursive-include src/zc *.rst
+include *.rst

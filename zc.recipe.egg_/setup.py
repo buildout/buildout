@@ -14,7 +14,7 @@
 """Setup for zc.recipe.egg package
 """
 
-version = '2.0.3.dev0'
+version = '2.0.4.dev0'
 
 import os
 from setuptools import setup, find_packages
@@ -30,18 +30,18 @@ setup(
     author_email = "jim@zope.com",
     description = "Recipe for installing Python package distributions as eggs",
     long_description = (
-        read('README.txt')
+        read('README.rst')
         + '\n' +
-        read('CHANGES.txt')
+        read('CHANGES.rst')
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'README.txt')
+        read('src', 'zc', 'recipe', 'egg', 'README.rst')
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'custom.txt')
+        read('src', 'zc', 'recipe', 'egg', 'custom.rst')
         + '\n' +
-        read('src', 'zc', 'recipe', 'egg', 'api.txt')
+        read('src', 'zc', 'recipe', 'egg', 'api.rst')
         + '\n' +
         'Download\n'
         '*********\n'

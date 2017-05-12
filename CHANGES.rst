@@ -1,10 +1,97 @@
 Change History
 **************
 
-2.4.4 (unreleased)
+2.6.0 (unreleased)
 ==================
 
 - Disabled patching of FancyURLopener in the download.py if used Python>=3.3.
+
+
+2.5.3 (2016-09-05)
+==================
+
+- After a dist is fetched and put into its final place, compile its
+  python files.  No longer wait with compiling until all dists are in
+  place.  This is related to the change below about not removing an
+  existing egg.  [maurits]
+
+- Do not remove an existing egg.  When installing an egg to a location
+  that already exists, keep the current location (directory or file).
+  This can only happen when the location at first did not exist and
+  this changed during the buildout run.  We used to remove the
+  previous location, but this could cause problems when running two
+  buildouts at the same time, when they try to install the same new
+  egg.  Fixes #307.  [maurits]
+
+- In ``zc.buildout.testing.system``, set ``TERM=dumb`` in the environment.
+  This avoids invisible control characters popping up in some terminals,
+  like ``xterm``.  Note that this may affect tests by buildout recipes.
+  [maurits]
+
+- Removed Python 2.6 and 3.2 support.
+  [do3cc]
+
+
+2.5.2 (2016-06-07)
+==================
+
+- Fixed ``-=`` and ``+=`` when extending sections. See #161.
+  [puittenbroek]
+
+
+2.5.1 (2016-04-06)
+==================
+
+- Fix python 2 for downloading external config files with basic auth in the
+  URL. Fixes #257.
+
+
+2.5.0 (2015-11-16)
+==================
+
+- Added more elaborate version and requirement information when there's a
+  version conflict. Previously, you could get a report of a version conflict
+  without information about which dependency requested the conflicing
+  requirement.
+
+  Now all this information is logged and displayed in case of an error.
+  [reinout]
+
+- Dropped 3.2 support (at least in the automatic tests) as setuptools will
+  soon stop supporting it. Added python 3.5 to the automatic tests.
+  [reinout]
+
+
+2.4.7 (2015-10-29)
+==================
+
+- Fix for #279. Distutils script detection previously broke on windows with
+  python 3 because it errored on ``.exe`` files.
+  [reinout]
+
+
+2.4.6 (2015-10-28)
+==================
+
+- Relative paths are now also correctly generated for the current directory
+  ("develop = .").
+  [youngking]
+
+
+2.4.5 (2015-10-14)
+==================
+
+- More complete fix for #24. Distutils scripts are now also generated for
+  develop eggs.
+  [reinout]
+
+
+2.4.4 (2015-10-02)
+==================
+
+- zc.buildout is now also released as a wheel. (Note: buildout itself doesn't
+  support installing wheels yet.)
+  [graingert]
 
 
 2.4.3 (2015-09-03)
