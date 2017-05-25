@@ -1821,7 +1821,7 @@ def _dir_hash(dir):
 def _dists_sig(dists):
     seen = set()
     result = []
-    for dist in dists:
+    for dist in sorted(dists):
         if dist in seen:
             continue
         seen.add(dist)

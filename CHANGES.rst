@@ -4,7 +4,14 @@ Change History
 2.9.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Sort the distributions used to compute ``__buildout_signature__`` to
+  ensure reproducibility under Python 3 or under Python 2 when ``-R``
+  is used on ``PYTHONHASHSEED`` is set to ``random``. Fixes `issue 392
+  <https://github.com/buildout/buildout/issues/392>`_.
+
+  **NOTE**: This may cause existing ``.installed.cfg`` to be
+  considered outdated and lead to parts being reinstalled spuriously
+  under Python 2.
 
 
 2.9.3 (2017-03-30)
