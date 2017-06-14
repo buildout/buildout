@@ -499,7 +499,7 @@ options.
 Section names
 -------------
 
-A section begins with a section and and, optionally, a condition in
+A section begins with a section and, optionally, a condition in
 square braces (``[`` and ``]``).
 
 A name can consist of any characters other than whitespace, square

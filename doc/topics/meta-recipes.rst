@@ -152,7 +152,7 @@ So now, let's see the meta recipe that automates this::
     >>> exec(source)
 
 The meta recipe just adds parts to the buildout. It does this by
-setting items and and calling the ``parse`` method.  The ``parse``
+setting items and calling the ``parse`` method.  The ``parse``
 method just takes a string in buildout configuration syntax.  It's
 useful when we want to add static, or nearly static part data.  The
 setting items syntax is useful when we have non-trivial computation
