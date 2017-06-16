@@ -341,12 +341,12 @@ If we use the verbose switch, we can see where requirements are coming from:
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
-    ...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
     Develop: '/sample-buildout/sampleb'
-    ...Installing eggs.
+    ...
+    Installing eggs.
     Installing 'samplea', 'samplez'.
     We have a develop egg: samplea 1
     We have a develop egg: samplez 1
@@ -465,7 +465,6 @@ We do not need to run in verbose mode for that to work:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
-    ...
     <BLANKLINE>
     # Required by:
     # sampley==1
@@ -866,9 +865,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
     -  zc.recipe.egg.egg-link
 
     >>> ls('eggs') # doctest: +ELLIPSIS
-    d...
     -  foox-0.0.0-py2.4.egg
-    ...
     d  setuptools.eggpyN.N.egg
     ...
 
@@ -1799,7 +1796,6 @@ def install_source_dist_with_bad_py():
     ...
 
     >>> ls('eggs') # doctest: +ELLIPSIS
-    d...
     d  badegg-1-py2.4.egg
     ...
 
@@ -2095,13 +2091,13 @@ def dealing_with_extremely_insane_dependencies():
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
-    ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
     Develop: '/sample-buildout/pack2'
     Develop: '/sample-buildout/pack3'
     Develop: '/sample-buildout/pack4'
-    ...Installing pack1.
+    ...
+    Installing pack1.
     Installing 'pack0'.
     We have a develop egg: pack0 0.0.0
     Getting required 'pack4'
@@ -2989,7 +2985,6 @@ def bootstrap_honors_relative_paths():
     sys.path[0:0] = [
       ...
       join(base, 'eggs/setuptools-0.7-py2.7.egg'),
-      ...
       ]
     <BLANKLINE>
     import zc.buildout.buildout
@@ -3105,9 +3100,7 @@ def test_abi_tag_eggs():
     d  parts
     >>> from zc.buildout.pep425tags import get_abi_tag
     >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
-    d...
     d  setuptools-34.0.3-py3.5.egg
-    ...
     """
 
 def test_buildout_doesnt_keep_adding_itself_to_versions():
@@ -3138,7 +3131,6 @@ def test_buildout_doesnt_keep_adding_itself_to_versions():
     <BLANKLINE>
     # Added by buildout...
     setuptools = 34.0.3
-    ...
     >>> _ = system(join('bin', 'buildout'))
     >>> _ = system(join('bin', 'buildout'))
 
