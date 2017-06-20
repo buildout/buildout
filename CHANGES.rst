@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.4 (unreleased)
+2.9.4 (2017-06-20)
 ==================
 
 - Sort the distributions used to compute ``__buildout_signature__`` to
