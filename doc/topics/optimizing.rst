@@ -34,7 +34,7 @@ Buildout work better:
     >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
     >>> eqs([n.split('-', 1)[0]
     ...      for n in ls('home', '.buildout', 'eggs', abieggs)],
-    ...     'bobo', 'WebOb')
+    ...     'bobo', 'WebOb', 'six')
 
 You might be wondering why these settings aren't the default, if
 they're recommended for everyone.  They probably *should* be the
