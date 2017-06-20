@@ -77,6 +77,9 @@ def ls(dir, *subs):
         dir = os.path.join(dir, *subs)
     names = sorted(os.listdir(dir))
     for name in names:
+        # If we're running under coverage, elide coverage files
+        if os.getenv("COVERAGE_PROCESS_START") and name.startswith('.coverage.'):
+            continue
         if os.path.isdir(os.path.join(dir, name)):
             print_('d ', end=' ')
         elif os.path.islink(os.path.join(dir, name)):
@@ -291,6 +294,38 @@ def buildoutSetUp(test):
     # Create the develop-eggs dir, which didn't get created the usual
     # way due to the trick above:
     os.mkdir('develop-eggs')
+
+    if os.getenv("COVERAGE_PROCESS_START"):
+        # The user has requested subprocess code coverage. Since we will be changing
+        # directories, we need to make sure this path is absolute, which means
+        # we need to temporarily return to our starting directory.
+        os.chdir(here)
+        path_to_coveragerc = os.path.abspath(os.environ['COVERAGE_PROCESS_START'])
+        os.chdir(sample)
+        assert os.path.isfile(path_to_coveragerc), path_to_coveragerc
+        os.environ['COVERAGE_PROCESS_START'] = path_to_coveragerc
+
+        # Before we return to the current directory and destroy the
+        # temporary working directory, we need to copy all the coverage files
+        # back so that they can be `coverage combine`d.
+        def copy_coverage_files():
+            coveragedir = os.path.dirname(path_to_coveragerc)
+            import glob
+            for f in glob.glob('.coverage*'):
+                shutil.copy(f, coveragedir)
+        __tear_downs.insert(0, copy_coverage_files)
+
+
+        # Now we must modify the newly created bin/buildout to
+        # actually begin coverage.
+        with open('bin/buildout') as f:
+            import textwrap
+            lines = f.read().splitlines()
+            assert lines[1] == '', lines
+            lines[1] = 'import coverage; coverage.process_startup()'
+
+        with open('bin/buildout', 'w') as f:
+            f.write('\n'.join(lines))
 
     def start_server(path):
         port, thread = _start_server(path, name=path)

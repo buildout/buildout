@@ -13,6 +13,8 @@ Change History
   considered outdated and lead to parts being reinstalled spuriously
   under Python 2.
 
+- Add support code for doctests to be able to easily measure code
+  coverage. See `issue 397 <https://github.com/buildout/buildout/issues/397>`_.
 
 2.9.3 (2017-03-30)
 ==================

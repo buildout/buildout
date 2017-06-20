@@ -96,7 +96,7 @@ number of names to the test namespace:
     down at the end of the test.  The server URL is returned.
 
     You can cause the server to start and stop logging it's output
-    using: 
+    using:
 
        >>> get(server_url+'enable_server_logging')
 
@@ -119,6 +119,37 @@ number of names to the test namespace:
     and placing the result in the given destination
     directory.  If the setup argument is a directory, then the
     setup.py file in that directory is used.
+
+Code Coverage Measurement
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``buildoutSetUp`` prepares a new ``bin/buildout`` executable for
+doctests to run. Because this is will run in a subprocess, there are
+some extra steps needed to collect code coverage data for buildout and
+buildout recipes. This function does most of the heavy lifting for
+you, you only need to do a few things.
+
+First, you need to define a coverage configuration ('.coveragerc')
+which specifies that multiple different runs should be collected::
+
+    [run]
+    source = my.egg.name
+    parallel = true
+
+Second, when you invoke the test runner, you need to define the
+``COVERAGE_PROCESS_START`` environment variable to point to this
+configuration and invoke it with coverage::
+
+    COVERAGE_PROCESS_START=.coveragerc coverage run -m zope.testrunner --test-path=src
+
+Finally, after the tests have finished, you need to combine the
+resulting coverage data files and then you can produce reports::
+
+    coverage combine
+    coverage report
+
+.. caution:: You must be working in an environment (e.g., a virtual
+			 environment) that has coverage already installed.
 
 ``zc.buildout.testing.buildoutTearDown(test)``
 ----------------------------------------------
