@@ -19,7 +19,7 @@ import os
 import re
 import sys
 import zc.buildout.easy_install
-import zipfile
+
 
 class Eggs(object):
 
@@ -43,13 +43,13 @@ class Eggs(object):
 
         allow_hosts = b_options['allow-hosts']
         allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
-                               if host.strip()!=''])
+                            if host.strip() != ''])
         self.allow_hosts = allow_hosts
 
         options['eggs-directory'] = b_options['eggs-directory']
-        options['_e'] = options['eggs-directory'] # backward compat.
+        options['_e'] = options['eggs-directory']  # backward compat.
         options['develop-eggs-directory'] = b_options['develop-eggs-directory']
-        options['_d'] = options['develop-eggs-directory'] # backward compat.
+        options['_d'] = options['develop-eggs-directory']  # backward compat.
 
     def working_set(self, extra=()):
         """Separate method to just get the working set
@@ -57,7 +57,6 @@ class Eggs(object):
         This is intended for reuse by similar recipes.
         """
         options = self.options
-        b_options = self.buildout['buildout']
 
         # Backward compat. :(
         options['executable'] = sys.executable
@@ -91,13 +90,14 @@ class Eggs(object):
 
     update = install
 
+
 class Scripts(Eggs):
 
     def __init__(self, buildout, name, options):
         super(Scripts, self).__init__(buildout, name, options)
 
         options['bin-directory'] = buildout['buildout']['bin-directory']
-        options['_b'] = options['bin-directory'] # backward compat.
+        options['_b'] = options['bin-directory']  # backward compat.
 
         self.extra_paths = [
             os.path.join(buildout['buildout']['directory'], p.strip())
@@ -106,7 +106,6 @@ class Scripts(Eggs):
             ]
         if self.extra_paths:
             options['extra-paths'] = '\n'.join(self.extra_paths)
-
 
         relative_paths = options.get(
             'relative-paths',
@@ -122,6 +121,7 @@ class Scripts(Eggs):
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
+
     def install(self):
         reqs, ws = self.working_set()
         options = self.options
@@ -165,6 +165,7 @@ class Scripts(Eggs):
         return ()
 
     update = install
+
 
 def get_bool(options, name, default=False):
     value = options.get(name)
