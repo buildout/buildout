@@ -109,6 +109,16 @@ def test_suite():
                  ''),
                 ]),
             ),
+        doctest.DocFileSuite(
+            'working_set_caching.rst',
+            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
+            checker=renormalizing.RENormalizing([
+               zc.buildout.testing.normalize_path,
+               zc.buildout.testing.normalize_endings,
+               zc.buildout.testing.not_found,
+               ])
+            ),
         ))
     return suite
 

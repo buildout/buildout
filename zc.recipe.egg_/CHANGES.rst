@@ -4,7 +4,8 @@ Change History
 2.0.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix #153: buildout should cache working set environments
+  [rafaelbco]
 
 
 2.0.3 (2015-10-02)
