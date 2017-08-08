@@ -43,6 +43,8 @@ setup(
         + '\n' +
         read('src', 'zc', 'recipe', 'egg', 'api.rst')
         + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'working_set_caching.rst')
+        + '\n' +
         'Download\n'
         '*********\n'
         ),
