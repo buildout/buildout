@@ -209,7 +209,7 @@ def dist_needs_pkg_resources(dist):
         dist.has_metadata('namespace_packages.txt') and
         # This will need to change when `pkg_resources` gets its own
         # project:
-        'setuptools' not in {r.project_name for r in dist.requires()} and
+        'setuptools' not in (r.project_name for r in dist.requires()) and
         namespace_packages_need_pkg_resources(dist)
     )
 
