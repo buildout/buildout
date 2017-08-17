@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.4 (unreleased)
+2.0.4 (2017-08-17)
 ==================
 
 - Fix #153: buildout should cache working set environments
