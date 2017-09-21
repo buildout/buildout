@@ -317,8 +317,8 @@ When everything is pinned, no output is generated:
     recipe v2
 
 The Python package index is case-insensitive. Both
-http://pypi.python.org/simple/Django/ and
-http://pypi.python.org/simple/dJaNgO/ work. And distributions aren't always
+https://pypi.python.org/simple/Django/ and
+https://pypi.python.org/simple/dJaNgO/ work. And distributions aren't always
 naming themselves consistently case-wise. So all version names are normalized
 and case differences won't impact the pinning:
 
