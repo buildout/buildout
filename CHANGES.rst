@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.5 (unreleased)
+2.9.5 (2017-09-22)
 ==================
 
 - Use HTTPS for PyPI's index.  PyPI redirects HTTP to HTTPS by default
