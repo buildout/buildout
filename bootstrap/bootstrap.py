@@ -21,6 +21,8 @@ use the -c option to specify an alternate configuration file.
 import os, shutil, sys, tempfile, urllib, urllib2, subprocess
 from optparse import OptionParser
 
+__version__ = '1.x-2017-10-27'
+
 if sys.platform == 'win32':
     def quote(c):
         if ' ' in c:
