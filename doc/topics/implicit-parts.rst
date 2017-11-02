@@ -15,7 +15,7 @@ are dependencies of the named parts.  For example, in
    [server]
    => app
    recipe = zc.zdaemonrecipe
-   program = $buildout:bin-directory}/app ${config:location}
+   program = ${buildout:bin-directory}/app ${config:location}
 
    [app]
    recipe = zc.recipe.egg
