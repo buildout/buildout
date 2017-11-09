@@ -11,3 +11,5 @@ python*/
 *.egg-info
 dist
 .tox
+.coverage
+.coverage.*

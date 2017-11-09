@@ -55,9 +55,7 @@ The ``bin`` directory contains scripts::
 The ``eggs`` directory has installed distributions:
 
     >>> ls(sample_buildout, 'eggs')
-    d...
     -  setuptools-0.7-py3.3.egg
-    ...
     -  zc.buildout.egg-link
 
 The ``develop-eggs`` and ``parts`` directories are initially empty::
@@ -368,7 +366,7 @@ Error reporting
 
 If a user makes an error the error needs to be reported, and work needs
 to stop.  This is accomplished by logging a detailed error message and
-then raising a 
+then raising a
 ``zc.buildout.UserError`` exception (or a subclass of this exception).
 Raising an error other than a
 ``UserError`` still displays the error, but labels it as a bug in the
@@ -864,7 +862,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         DEFAULT_VALUE
     <BLANKLINE>
 
-The ``annotate`` command is sensitive to the verbosity flag. 
+The ``annotate`` command is sensitive to the verbosity flag.
 You get more information about the way values are computed::
 
     >>> print_(system(buildout+ ' -v annotate'), end='')
@@ -2772,7 +2770,7 @@ database is shown::
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
-    ...
+    <BLANKLINE>
     Configuration data:
     [buildout]
     allow-hosts = *
@@ -2870,8 +2868,8 @@ already, but let's review them and touch on some we haven't discussed:
    This can be a relative path, which is
    interpreted relative to the directory option.
 
-   .. warning:: 
-   
+   .. warning::
+
      Eggs in this directory should *never* be modified.
 
 ``find-links``
@@ -2941,7 +2939,7 @@ already, but let's review them and touch on some we haven't discussed:
     command-line option.  See also the ``offline`` option.
 
 ``offline``
-    The ``offline`` option goes a bit further than the ``newest`` option.  
+    The ``offline`` option goes a bit further than the ``newest`` option.
     If the
     buildout ``offline`` option is given a value of ``true``, the buildout and
     recipes that are aware of the option will avoid doing network access.
@@ -2960,7 +2958,7 @@ already, but let's review them and touch on some we haven't discussed:
     Currently, when searching for new releases, the newest available
     release is used.  This isn't usually ideal, as you may get a
     development release or alpha releases not ready to be widely used.
-    You can request that final releases be preferred using the 
+    You can request that final releases be preferred using the
     ``prefer-final`` option in the ``buildout`` section::
 
       [buildout]
@@ -3037,9 +3035,7 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
-    d...
     -  setuptools-0.7-py2.3.egg
-    ...
     -  zc.buildout-1.0-py2.3.egg
 
 (We list both the ``eggs`` and ``develop-eggs`` directories because the

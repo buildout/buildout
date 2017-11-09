@@ -1,11 +1,26 @@
 Change History
 **************
 
-2.9.4 (unreleased)
+2.9.5 (unreleased)
 ==================
 
 - Disabled patching of FancyURLopener in the download.py if used Python>=3.3.
 
+
+2.9.4 (2017-06-20)
+==================
+
+- Sort the distributions used to compute ``__buildout_signature__`` to
+  ensure reproducibility under Python 3 or under Python 2 when ``-R``
+  is used on ``PYTHONHASHSEED`` is set to ``random``. Fixes `issue 392
+  <https://github.com/buildout/buildout/issues/392>`_.
+
+  **NOTE**: This may cause existing ``.installed.cfg`` to be
+  considered outdated and lead to parts being reinstalled spuriously
+  under Python 2.
+
+- Add support code for doctests to be able to easily measure code
+  coverage. See `issue 397 <https://github.com/buildout/buildout/issues/397>`_.
 
 2.9.3 (2017-03-30)
 ==================

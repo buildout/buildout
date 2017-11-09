@@ -131,7 +131,6 @@ specifying a versions section:
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
-    ...
     Installing 'spam'.
     We have the best distribution that satisfies 'spam'.
     Picked: spam = 2.
@@ -154,7 +153,6 @@ If we run the buildout with the versions section:
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
-    ...
     Installing 'spam'.
     We have the distribution that satisfies 'spam==1'.
     Uninstalling foo.
@@ -186,7 +184,6 @@ versions for.
     We have a develop egg: zc.buildout 1.0.0.
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.6
-    ...
     Installing 'spam >0'.
     We have the distribution that satisfies 'spam==1'.
     Uninstalling foo.
@@ -296,11 +293,8 @@ versions it picked at the end of its run:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
-    ...
     setuptools = 0.6.99
-    ...
     spam = 2
-    ...
 
 When everything is pinned, no output is generated:
 
@@ -321,7 +315,6 @@ When everything is pinned, no output is generated:
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Updating foo.
     recipe v2
-    ...
 
 The Python package index is case-insensitive. Both
 http://pypi.python.org/simple/Django/ and
@@ -346,7 +339,6 @@ and case differences won't impact the pinning:
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Updating foo.
     recipe v2
-    ...
 
 Sometimes it is handy to have a separate file with versions. This is a regular
 buildout file with a single ``[versions]`` section. You include it by
@@ -372,7 +364,6 @@ extending from that versions file:
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Updating foo.
     recipe v2
-    ...
 
 If not everything is pinned and buildout has to pick versions, you can tell
 buildout to append the versions to your versions file. It simply appends them
@@ -401,9 +392,7 @@ at the end.
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
-    ...
     spam = 2
-    ...
     Picked versions have been written to my_versions.cfg
 
 The versions file now contains the extra pin:
@@ -411,12 +400,9 @@ The versions file now contains the extra pin:
     >>> print_(open('my_versions.cfg').read()) # doctest: +ELLIPSIS
     <BLANKLINE>
     ...
-    <BLANKLINE>
     # Added by buildout at YYYY-MM-DD hh:mm:ss.dddddd
-    ...
     spam = 2
     <BLANKLINE>
-    ...
 
 And re-running buildout doesn't report any picked versions anymore:
 
@@ -453,13 +439,12 @@ The versions file contains the extra pin:
 
     >>> print_(open('my_versions.cfg').read()) # doctest: +ELLIPSIS
     <BLANKLINE>
+    [versions]
     ...
     <BLANKLINE>
     # Added by buildout at YYYY-MM-DD hh:mm:ss.dddddd
-    ...
     spam = 2
     <BLANKLINE>
-    ...
 
 Because buildout now includes buildout-versions' (and part of the older
 buildout.dumppickedversions') functionality, it warns if these extensions are

@@ -256,7 +256,7 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
     >>> eqs([n.split('-', 1)[0]
     ...      for n in ls('home', '.buildout', 'eggs', abieggs)],
-    ...     'bobo', 'WebOb')
+    ...     'bobo', 'WebOb', 'six')
 
     >>> clear_here()
 
