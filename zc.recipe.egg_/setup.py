@@ -14,7 +14,7 @@
 """Setup for zc.recipe.egg package
 """
 
-version = '2.0.4.dev0'
+version = '2.0.5.dev0'
 
 import os
 from setuptools import setup, find_packages
@@ -42,6 +42,8 @@ setup(
         read('src', 'zc', 'recipe', 'egg', 'custom.rst')
         + '\n' +
         read('src', 'zc', 'recipe', 'egg', 'api.rst')
+        + '\n' +
+        read('src', 'zc', 'recipe', 'egg', 'working_set_caching.rst')
         + '\n' +
         'Download\n'
         '*********\n'

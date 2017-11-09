@@ -14,14 +14,17 @@
 """Install packages as eggs
 """
 
+import copy
 import logging
 import os
 import re
 import sys
 import zc.buildout.easy_install
-import zipfile
+
 
 class Eggs(object):
+
+    _WORKING_SET_CACHE_ATTR_NAME = '_zc_recipe_egg_working_set_cache'
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
@@ -43,13 +46,13 @@ class Eggs(object):
 
         allow_hosts = b_options['allow-hosts']
         allow_hosts = tuple([host.strip() for host in allow_hosts.split('\n')
-                               if host.strip()!=''])
+                            if host.strip() != ''])
         self.allow_hosts = allow_hosts
 
         options['eggs-directory'] = b_options['eggs-directory']
-        options['_e'] = options['eggs-directory'] # backward compat.
+        options['_e'] = options['eggs-directory']  # backward compat.
         options['develop-eggs-directory'] = b_options['develop-eggs-directory']
-        options['_d'] = options['develop-eggs-directory'] # backward compat.
+        options['_d'] = options['develop-eggs-directory']  # backward compat.
 
     def working_set(self, extra=()):
         """Separate method to just get the working set
@@ -57,31 +60,27 @@ class Eggs(object):
         This is intended for reuse by similar recipes.
         """
         options = self.options
-        b_options = self.buildout['buildout']
+        buildout_section = self.buildout['buildout']
 
         # Backward compat. :(
         options['executable'] = sys.executable
 
-        distributions = [
+        orig_distributions = [
             r.strip()
             for r in options.get('eggs', self.name).split('\n')
-            if r.strip()]
-        orig_distributions = distributions[:]
-        distributions.extend(extra)
+            if r.strip()
+            ]
 
-        if self.buildout['buildout'].get('offline') == 'true':
-            ws = zc.buildout.easy_install.working_set(
-                distributions,
-                [options['develop-eggs-directory'], options['eggs-directory']]
-                )
-        else:
-            ws = zc.buildout.easy_install.install(
-                distributions, options['eggs-directory'],
-                links=self.links,
-                index=self.index,
-                path=[options['develop-eggs-directory']],
-                newest=self.buildout['buildout'].get('newest') == 'true',
-                allow_hosts=self.allow_hosts)
+        ws = self._working_set(
+            distributions=orig_distributions + list(extra),
+            develop_eggs_dir=options['develop-eggs-directory'],
+            eggs_dir=options['eggs-directory'],
+            offline=(buildout_section.get('offline') == 'true'),
+            newest=(buildout_section.get('newest') == 'true'),
+            links=self.links,
+            index=self.index,
+            allow_hosts=self.allow_hosts,
+            )
 
         return orig_distributions, ws
 
@@ -91,13 +90,81 @@ class Eggs(object):
 
     update = install
 
+    def _working_set(
+        self,
+        distributions,
+        eggs_dir,
+        develop_eggs_dir,
+        offline=False,
+        newest=True,
+        links=(),
+        index=None,
+        allow_hosts=('*',),
+    ):
+        """Helper function to build a working set.
+
+        Return an instance of `pkg_resources.WorkingSet`.
+
+        Results are cached. The cache key is composed by all the arguments
+        passed to the function. See also `self._get_cache_storage()`.
+        """
+        cache_storage = self._get_cache_storage()
+        cache_key = (
+            tuple(distributions),
+            eggs_dir,
+            develop_eggs_dir,
+            offline,
+            newest,
+            tuple(links),
+            index,
+            tuple(allow_hosts),
+        )
+        if cache_key not in cache_storage:
+            if offline:
+                ws = zc.buildout.easy_install.working_set(
+                    distributions,
+                    [develop_eggs_dir, eggs_dir]
+                    )
+            else:
+                ws = zc.buildout.easy_install.install(
+                    distributions, eggs_dir,
+                    links=links,
+                    index=index,
+                    path=[develop_eggs_dir],
+                    newest=newest,
+                    allow_hosts=allow_hosts)
+            cache_storage[cache_key] = ws
+
+        # `pkg_resources.WorkingSet` instances are mutable, so we need to return
+        # a copy.
+        return copy.deepcopy(cache_storage[cache_key])
+
+    def _get_cache_storage(self):
+        """Return a mapping where to store generated working sets.
+
+        The cache storage is stored in an attribute of `self.buildout` with
+        name given by `self._WORKING_SET_CACHE_ATTR_NAME`.
+        """
+        cache_storage = getattr(
+            self.buildout,
+            self._WORKING_SET_CACHE_ATTR_NAME,
+            None)
+        if cache_storage is None:
+            cache_storage = {}
+            setattr(
+                self.buildout,
+                self._WORKING_SET_CACHE_ATTR_NAME,
+                cache_storage)
+        return cache_storage
+
+
 class Scripts(Eggs):
 
     def __init__(self, buildout, name, options):
         super(Scripts, self).__init__(buildout, name, options)
 
         options['bin-directory'] = buildout['buildout']['bin-directory']
-        options['_b'] = options['bin-directory'] # backward compat.
+        options['_b'] = options['bin-directory']  # backward compat.
 
         self.extra_paths = [
             os.path.join(buildout['buildout']['directory'], p.strip())
@@ -106,7 +173,6 @@ class Scripts(Eggs):
             ]
         if self.extra_paths:
             options['extra-paths'] = '\n'.join(self.extra_paths)
-
 
         relative_paths = options.get(
             'relative-paths',
@@ -122,6 +188,7 @@ class Scripts(Eggs):
     parse_entry_point = re.compile(
         '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
+
     def install(self):
         reqs, ws = self.working_set()
         options = self.options
@@ -165,6 +232,7 @@ class Scripts(Eggs):
         return ()
 
     update = install
+
 
 def get_bool(options, name, default=False):
     value = options.get(name)
