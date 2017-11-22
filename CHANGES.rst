@@ -4,7 +4,8 @@ Change History
 2.9.6 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed: could not install eggs when sdist file name and package name had different
+  case.
 
 
 2.9.5 (2017-09-22)

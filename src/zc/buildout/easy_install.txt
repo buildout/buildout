@@ -104,6 +104,7 @@ We have a link server that has a number of eggs:
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
+    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 
@@ -183,6 +184,7 @@ Let's put the setting back to the default.
     >>> zc.buildout.easy_install.prefer_final(True)
     False
 
+
 We can supply additional distributions.  We can also supply
 specifications for distributions that would normally be found via
 dependencies.  We might do this to specify a specific version.
@@ -206,6 +208,38 @@ dependencies.  We might do this to specify a specific version.
     d  demoneeded-1.2rc1-py2.4.egg
     d  other-1.0-py2.4.egg
 
+    >>> rmdir(dest)
+
+Case issues
+-----------
+
+Let's install an egg with case naming issues.
+Specifically, the sdist file is lower case while the name of the package is uppercase.
+
+Let's enable server logging to check that the lower case file is downloaded.
+
+    >>> _ = get(link_server + 'enable_server_logging')
+    GET 200 /enable_server_logging
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['MIXEDCASE'], dest,
+    ...     links=[link_server], index=link_server+'index/')
+    GET 404 /index/MIXEDCASE/
+    GET 200 /mixedcase-0.5.zip
+    GET 200 /demoneeded-1.1.zip
+
+Let's check that the uppercase dist is installed.
+
+    >>> for dist in ws:
+    ...     print_(dist)
+    MIXEDCASE 0.5
+    demoneeded 1.1
+    >>> ls(dest)
+    d  MIXEDCASE-0.5-pyN.N.egg
+    d  demoneeded-1.1-py2.4.egg
+
+And cleanup.
+
+    >>> _ = get(link_server + 'disable_server_logging')
     >>> rmdir(dest)
 
 Specifying version information independent of requirements
@@ -1170,6 +1204,7 @@ Let's update our link server with a new version of extdemo:
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>
     <a href="index/">index/</a><br>
+    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
     <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
     </body></html>
 

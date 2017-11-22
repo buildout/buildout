@@ -38,6 +38,7 @@ We have a link server that has a number of distributions:
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
+    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
     <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
     </body></html>
 
