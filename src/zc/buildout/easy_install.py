@@ -406,10 +406,10 @@ class Installer:
         return best_we_have, None
 
     def _call_easy_install(self, spec, dest, dist):
-
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            paths = call_easy_install(spec, tmp)
+            paths = call_easy_install(
+                spec, tmp, index=self._index_url, links=self._links)
 
             dists = []
             env = pkg_resources.Environment(paths)
@@ -560,7 +560,10 @@ class Installer:
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
-                dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
+                dists = [
+                    _move_to_eggs_dir_and_compile(
+                        dist, self._dest,
+                        index=self._index_url, links=self._links)]
 
             finally:
                 if tmp != self._download_cache:
@@ -732,7 +735,6 @@ class Installer:
         return ws
 
     def build(self, spec, build_ext):
-
         requirement = self._constrain(pkg_resources.Requirement.parse(spec))
 
         dist, avail = self._satisfied(requirement, 1)
@@ -1576,7 +1578,7 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
-def call_easy_install(spec, dest):
+def call_easy_install(spec, dest, index=None, links=None):
     """
     Call `easy_install` from setuptools as a subprocess to install a
     distribution specified by `spec` into `dest`.
@@ -1584,9 +1586,21 @@ def call_easy_install(spec, dest):
     """
     path = setuptools_path
 
-    args = [sys.executable, '-c',
-            ('import sys; sys.path[0:0] = %r; ' % path) +
-            _easy_install_cmd, '-mZUNxd', dest]
+    args = [
+        sys.executable,
+        '-c',
+        ('import sys; sys.path[0:0] = %r; ' % path) + _easy_install_cmd,
+        '-mZUNx']
+
+    if index is not None:
+        args.extend(['-i', index])
+
+    if links is not None:
+        for link in links:
+            args.extend(['-f', link])
+
+    args.extend(['-d', dest])
+
     level = logger.getEffectiveLevel()
     if level > 0:
         args.append('-q')
@@ -1637,7 +1651,7 @@ def unpack_wheel(location, dest):
     [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
     unpack_egg(egg, dest)
     shutil.rmtree(tmp_dest)
-    
+
 
 UNPACKERS = {
     '.egg': unpack_egg,
@@ -1659,7 +1673,7 @@ def _get_matching_dist_in_location(dist, location):
     if dist_infos == [(dist.project_name, dist.version)]:
         return dists.pop()
 
-def _move_to_eggs_dir_and_compile(dist, dest):
+def _move_to_eggs_dir_and_compile(dist, dest, index=None, links=None):
     """Move distribution to the eggs destination directory.
 
     And compile the py files, if we have actually moved the dist.
@@ -1694,8 +1708,12 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             # It is an archive of some sort.
             # Figure out how to unpack it, or fall back to easy_install.
             _, ext = os.path.splitext(dist.location)
-            unpacker = UNPACKERS.get(ext, call_easy_install)
-            unpacker(dist.location, tmp_dest)
+            unpacker = UNPACKERS.get(ext, None)
+            if unpacker is None:
+                call_easy_install(
+                    dist.location, tmp_dest, index=index, links=links)
+            else:
+                unpacker(dist.location, tmp_dest)
             [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
 
         # We have installed the dist. Now try to rename/move it.
