@@ -48,6 +48,8 @@ build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 	ls -l eggs
 	ls -l eggs/zope.testrunner*
+	ls -l eggs/zope.testrunner*/zope
+	ls -l eggs/zope.testrunner*/zope/testrunner
 	bin/py -c "import sys;import pprint;pprint.pprint(sys.path)"
 
 clean:
