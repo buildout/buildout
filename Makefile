@@ -46,6 +46,8 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 
 build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
+        ls -l eggs
+	ls -l eggs/zope.testrunner*
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
