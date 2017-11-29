@@ -51,6 +51,7 @@ build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	ls -l eggs/zope.testrunner*/zope
 	ls -l eggs/zope.testrunner*/zope/testrunner
 	bin/py -c "import sys;import pprint;pprint.pprint(sys.path)"
+	cat bin/test
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
