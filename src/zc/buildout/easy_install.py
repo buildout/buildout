@@ -1637,11 +1637,11 @@ def unpack_wheel(location, dest):
     [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
     unpack_egg(egg, dest)
     shutil.rmtree(tmp_dest)
-    
+
 
 UNPACKERS = {
     '.egg': unpack_egg,
-    '.whl': unpack_wheel,
+    '.whl': unpack_egg,  # Since 38.2, setuptools handles wheels, too.
 }
 
 
