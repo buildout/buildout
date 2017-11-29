@@ -4,7 +4,10 @@ Change History
 2.9.6 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Setuptools 38.2.0 started supporting wheels. This interfered with buildout's
+  recent support for `buildout.wheel
+  <https://github.com/buildout/buildout.wheel>`_. Setuptools is the default
+  now, but you can still use the buildout.wheel if you want.
 
 
 2.9.5 (2017-09-22)
