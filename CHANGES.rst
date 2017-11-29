@@ -4,10 +4,15 @@ Change History
 2.9.6 (unreleased)
 ==================
 
-- Setuptools 38.2.0 started supporting wheels. This interfered with buildout's
-  recent support for `buildout.wheel
-  <https://github.com/buildout/buildout.wheel>`_. Setuptools is the default
-  now, but you can still use the buildout.wheel if you want.
+- Setuptools 38.2.0 started supporting wheels. Through setuptools, buildout
+  now also supports wheels!
+
+  This setuptools change interfered with buildout's recent support for
+  `buildout.wheel <https://github.com/buildout/buildout.wheel>`_, resulting in
+  a sudden "Wheels are not supported" error message (see `issue 435
+  <https://github.com/buildout/buildout/issues/425>`_). Fixed by making
+  setuptools the default, though you can still use the buildout.wheel if you
+  want.
 
 
 2.9.5 (2017-09-22)
