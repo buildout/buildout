@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.9.6 (unreleased)
+2.9.6 (2017-12-01)
 ==================
 
 - Fixed: could not install eggs when sdist file name and package name had different
