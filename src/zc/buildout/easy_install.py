@@ -1624,7 +1624,7 @@ def unpack_egg(location, dest):
 
 WHEEL_WARNING = """
 *.whl file detected (%s), you'll need setuptools > 38.2.3 for that
-or an extension like buildout.wheel
+or an extension like buildout.wheel > 0.2.0.
 """
 
 
@@ -1633,7 +1633,7 @@ def unpack_wheel(location, dest):
         wheel = Wheel(location)
         wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
     else:
-        logger.warning(WHEEL_WARNING, location)
+        logger.error(WHEEL_WARNING, location)
 
 
 UNPACKERS = {
