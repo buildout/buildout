@@ -46,12 +46,8 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 
 build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
-	ls -l eggs
-	ls -l eggs/zope.testrunner*
-	ls -l eggs/zope.testrunner*/zope
-	ls -l eggs/zope.testrunner*/zope/testrunner
-	bin/py -c "import sys;import pprint;pprint.pprint(sys.path)"
-	cat bin/test
+	echo "copying namespace __init__, temporary hack"
+	cp eggs/zope.exception*/zope/__init__.py eggs/zope.testrunner/zope/
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
