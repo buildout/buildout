@@ -8,12 +8,6 @@ Buildout
    :alt: Travis CI build report
    :target: https://travis-ci.org/buildout/buildout
 
-.. image:: http://winbot.zope.org/buildstatusimage?builder=zc_buildout_dev%20py_270_win32%20master&number=-1
-   :width: 82px
-   :height: 13px
-   :alt: winbot build report
-   :target: http://winbot.zope.org/builders/zc_buildout_dev%20py_270_win32%20master/builds/-1
-
 Buildout is a project designed to solve 2 problems:
 
 1. Application-centric assembly and deployment
