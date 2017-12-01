@@ -3704,7 +3704,6 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite('testing_bugfix.txt'),
-        unittest.makeSuite(UnitTests),
     ]
 
     docdir = os.path.join(ancestor(__file__, 4), 'doc')
