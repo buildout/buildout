@@ -47,7 +47,7 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 	echo "copying namespace __init__, temporary hack"
-	cp eggs/zope.exception*/zope/__init__.py eggs/zope.testrunner/zope/
+	cp eggs/zope.exception*/zope/__init__.py eggs/zope.testrunner*/zope/
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
