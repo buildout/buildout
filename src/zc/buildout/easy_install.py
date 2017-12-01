@@ -89,9 +89,6 @@ setuptools_path = buildout_and_setuptools_path
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
 
-def wheel_to_egg(dist, dest):
-    raise zc.buildout.UserError("Wheels are not supported")
-
 class _Monkey(object):
     def __init__(self, module, **kw):
         mdict = self._mdict = module.__dict__
