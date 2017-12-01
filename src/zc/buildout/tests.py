@@ -3168,7 +3168,8 @@ class UnitTests(unittest.TestCase):
         [egg_name] = [n for n in os.listdir(self.sample_eggs)
                   if n.startswith('demo-0.3-')]
         path = os.path.join(self.sample_eggs, egg_name)
-        os.rename(path, os.path.join(self.sample_eggs, 'demo-0.3.whl'))
+        os.rename(path, os.path.join(self.sample_eggs,
+                                     'demo-0.3-py2.py3-none-any.whl'))
 
         import zc.buildout.easy_install
         installer = zc.buildout.easy_install.Installer(
