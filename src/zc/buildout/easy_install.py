@@ -1655,8 +1655,8 @@ def _get_matching_dist_in_location(dist, location):
     # good enough.
     env = pkg_resources.Environment([location])
     dists = [ d for project_name in env for d in env[project_name] ]
-    dist_infos = [ (d.project_name, d.version) for d in dists ]
-    if dist_infos == [(dist.project_name, dist.version)]:
+    dist_infos = [ (d.project_name.lower(), d.version) for d in dists ]
+    if dist_infos == [(dist.project_name.lower(), dist.version)]:
         return dists.pop()
 
 def _move_to_eggs_dir_and_compile(dist, dest):

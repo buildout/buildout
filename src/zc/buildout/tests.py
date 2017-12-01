@@ -3265,6 +3265,25 @@ def create_sample_eggs(test, executable=sys.executable):
                 )
             zc.buildout.testing.bdist_egg(tmp, dest)
 
+        write(tmp, 'mixedcase.py', 'def f():\n  pass')
+        write(
+            tmp, 'setup.py',
+            "from setuptools import setup\n"
+            "setup(name='MIXEDCASE', py_modules=['mixedcase'],"
+            " author='bob', url='bob', author_email='bob',"
+            " install_requires = 'demoneeded',"
+            " zip_safe=True, version='0.5')\n"
+            )
+        zc.buildout.testing.sdist(tmp, dest)
+        # rename file to lower case 
+        # to test issues between file and package name
+        curdir = os.getcwd()
+        os.chdir(dest)
+        for file in os.listdir(dest):
+            if "MIXEDCASE" in file:
+                os.rename(file, file.lower())
+        os.chdir(curdir)
+
         write(tmp, 'eggrecipebigdemo.py', 'import eggrecipedemo')
         write(
             tmp, 'setup.py',
