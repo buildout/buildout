@@ -37,6 +37,12 @@ import tempfile
 import zc.buildout
 import warnings
 
+try:
+    from setuptools.wheel import Wheel
+    SETUPTOOLS_SUPPORTS_WHEELS = True
+except ImportError:
+    SETUPTOOLS_SUPPORTS_WHEELS = False
+
 warnings.filterwarnings(
     'ignore', '.+is being parsed as a legacy, non PEP 440, version')
 
@@ -1619,29 +1625,23 @@ def unpack_egg(location, dest):
     setuptools.archive_util.unpack_archive(location, dest)
 
 
-WHEEL_TO_EGG_WARNING = """
-Using unpack_wheel() shim over the deprecated wheel_to_egg() hook.
-Please update your wheel extension implementation for one that installs a .whl
-handler in %s.UNPACKERS
-""".strip() % (__name__,)
+WHEEL_WARNING = """
+*.whl file detected (%s), you'll need setuptools > 38.2.0 for that
+or an extension like buildout.wheel
+"""
+
 
 def unpack_wheel(location, dest):
-    # Deprecated backward compatibility shim. Please do not use.
-    logger.warning(WHEEL_TO_EGG_WARNING)
-    basename = os.path.basename(location)
-    dists = setuptools.package_index.distros_for_location(location, basename)
-    # `wheel_to_egg()` might generate zipped eggs, so we have to make sure we
-    # get unpacked eggs in the end:
-    tmp_dest = tempfile.mkdtemp(dir=dest)
-    wheel_to_egg(list(dists)[0], tmp_dest)
-    [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
-    unpack_egg(egg, dest)
-    shutil.rmtree(tmp_dest)
+    if SETUPTOOLS_SUPPORTS_WHEELS:
+        wheel = Wheel(location)
+        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
+    else:
+        logger.warning(WHEEL_WARNING, location)
 
 
 UNPACKERS = {
     '.egg': unpack_egg,
-    '.whl': unpack_egg,  # Since 38.2, setuptools handles wheels, too.
+    '.whl': unpack_wheel,
 }
 
 
