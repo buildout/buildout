@@ -38,8 +38,12 @@ import zc.buildout
 import warnings
 
 try:
-    from setuptools.wheel import Wheel
-    SETUPTOOLS_SUPPORTS_WHEELS = True
+    from setuptools.wheel import Wheel  # This is the important import
+    from setuptools import __version__ as setuptools_version
+    # Now we need to check if we have at least 38.2.3 for namespace support.
+    SETUPTOOLS_SUPPORTS_WHEELS = (
+        pkg_resources.SetuptoolsVersion(setuptools_version) >=
+        pkg_resources.SetuptoolsVersion('38.2.3'))
 except ImportError:
     SETUPTOOLS_SUPPORTS_WHEELS = False
 
