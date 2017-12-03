@@ -1637,7 +1637,7 @@ def unpack_wheel(location, dest):
         wheel = Wheel(location)
         wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
     else:
-        logger.error(WHEEL_WARNING, location)
+        raise zc.buildout.UserError(WHEEL_WARNING % location)
 
 
 UNPACKERS = {
