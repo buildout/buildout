@@ -4,7 +4,8 @@ Change History
 2.0.5 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix #429: added sorting of working set by priority of different
+  type of paths (develop-eggs-directory, eggs-directory, other paths).
 
 
 2.0.4 (2017-08-17)
