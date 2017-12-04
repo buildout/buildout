@@ -1,8 +1,8 @@
 Change History
 **************
 
-2.9.7 (unreleased)
-==================
+2.10.0 (2017-12-04)
+===================
 
 - Setuptools 38.2.0 started supporting wheels. Through setuptools, buildout
   now also supports wheels! You need at least version 38.2.3 to get proper
