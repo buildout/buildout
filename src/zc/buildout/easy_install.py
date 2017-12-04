@@ -37,6 +37,16 @@ import tempfile
 import zc.buildout
 import warnings
 
+try:
+    from setuptools.wheel import Wheel  # This is the important import
+    from setuptools import __version__ as setuptools_version
+    # Now we need to check if we have at least 38.2.3 for namespace support.
+    SETUPTOOLS_SUPPORTS_WHEELS = (
+        pkg_resources.SetuptoolsVersion(setuptools_version) >=
+        pkg_resources.SetuptoolsVersion('38.2.3'))
+except ImportError:
+    SETUPTOOLS_SUPPORTS_WHEELS = False
+
 warnings.filterwarnings(
     'ignore', '.+is being parsed as a legacy, non PEP 440, version')
 
@@ -82,9 +92,6 @@ setuptools_path = buildout_and_setuptools_path
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
-
-def wheel_to_egg(dist, dest):
-    raise zc.buildout.UserError("Wheels are not supported")
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -1619,25 +1626,19 @@ def unpack_egg(location, dest):
     setuptools.archive_util.unpack_archive(location, dest)
 
 
-WHEEL_TO_EGG_WARNING = """
-Using unpack_wheel() shim over the deprecated wheel_to_egg() hook.
-Please update your wheel extension implementation for one that installs a .whl
-handler in %s.UNPACKERS
-""".strip() % (__name__,)
+WHEEL_WARNING = """
+*.whl file detected (%s), you'll need setuptools >= 38.2.3 for that
+or an extension like buildout.wheel > 0.2.0.
+"""
+
 
 def unpack_wheel(location, dest):
-    # Deprecated backward compatibility shim. Please do not use.
-    logger.warning(WHEEL_TO_EGG_WARNING)
-    basename = os.path.basename(location)
-    dists = setuptools.package_index.distros_for_location(location, basename)
-    # `wheel_to_egg()` might generate zipped eggs, so we have to make sure we
-    # get unpacked eggs in the end:
-    tmp_dest = tempfile.mkdtemp(dir=dest)
-    wheel_to_egg(list(dists)[0], tmp_dest)
-    [egg] = glob.glob(os.path.join(tmp_dest, '*.egg'))
-    unpack_egg(egg, dest)
-    shutil.rmtree(tmp_dest)
-    
+    if SETUPTOOLS_SUPPORTS_WHEELS:
+        wheel = Wheel(location)
+        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
+    else:
+        raise zc.buildout.UserError(WHEEL_WARNING % location)
+
 
 UNPACKERS = {
     '.egg': unpack_egg,
