@@ -5,7 +5,8 @@ Change History
 ==================
 
 - Setuptools 38.2.0 started supporting wheels. Through setuptools, buildout
-  now also supports wheels!
+  now also supports wheels! You need at least version 38.2.3 to get proper
+  namespace support.
 
   This setuptools change interfered with buildout's recent support for
   `buildout.wheel <https://github.com/buildout/buildout.wheel>`_, resulting in
