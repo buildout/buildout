@@ -13,6 +13,7 @@
 ##############################################################################
 """Buildout download infrastructure"""
 
+import sys
 try:
     from hashlib import md5
 except ImportError:
@@ -24,10 +25,10 @@ try:
     from urllib.parse import urlparse
     from urllib import request
 
-    class PatchedURLopener(FancyURLopener):
-        http_error_default = URLopener.http_error_default
-
-    request._urlopener = PatchedURLopener()  # Ook! Monkey patch!
+    if sys.version_info[:2] < (3, 3):
+        class PatchedURLopener(FancyURLopener):
+            http_error_default = URLopener.http_error_default
+        request._urlopener = PatchedURLopener()  # Ook! Monkey patch!
 
 except ImportError:
     # Python 2
