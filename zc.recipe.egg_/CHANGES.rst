@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.5 (unreleased)
+2.0.5 (2017-12-04)
 ==================
 
 - Fixed #429: added sorting of working set by priority of different
