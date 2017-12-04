@@ -4,14 +4,14 @@ Change History
 2.0.5 (unreleased)
 ==================
 
-- Fix #429: added sorting of working set by priority of different
+- Fixed #429: added sorting of working set by priority of different
   type of paths (develop-eggs-directory, eggs-directory, other paths).
 
 
 2.0.4 (2017-08-17)
 ==================
 
-- Fix #153: buildout should cache working set environments
+- Fixed #153: buildout should cache working set environments
   [rafaelbco]
 
 
@@ -34,7 +34,7 @@ Change History
 2.0.1 (2013-09-05)
 ==================
 
-- Accomodate ``zc.buildout`` switch to post-merge ``setuptools``.
+- Accomodated ``zc.buildout`` switch to post-merge ``setuptools``.
 
 2.0.0 (2013-04-02)
 ==================
