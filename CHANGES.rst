@@ -1,10 +1,17 @@
 Change History
 **************
 
-2.9.6 (unreleased)
+2.9.7 (unreleased)
 ==================
 
 - Disabled patching of FancyURLopener in the download.py if used Python>=3.3.
+
+
+2.9.6 (2017-12-01)
+==================
+
+- Fixed: could not install eggs when sdist file name and package name had different
+  case.
 
 
 2.9.5 (2017-09-22)
