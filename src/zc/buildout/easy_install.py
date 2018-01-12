@@ -568,6 +568,9 @@ class Installer:
                         "Couldn't download distribution %s." % avail)
 
                 dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
+                for _d in dists:
+                    if _d not in ws:
+                        ws.add(_d, replace=True)
 
             finally:
                 if tmp != self._download_cache:
@@ -575,10 +578,14 @@ class Installer:
 
             self._env_rescan_dest()
             dist = self._env.best_match(requirement, ws)
+
             logger.info("Got %s.", dist)
 
         else:
             dists = [dist]
+            if dist not in ws:
+                ws.add(dist)
+
 
         if not self._install_from_cache and self._use_dependency_links:
             self._add_dependency_links_from_dists(dists)
@@ -635,8 +642,7 @@ class Installer:
                 pkg_resources.Requirement.parse('setuptools')
                 )
             if ws.find(requirement) is None:
-                for dist in self._get_dist(requirement, ws):
-                    ws.add(dist)
+                self._get_dist(requirement, ws)
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""
@@ -670,7 +676,6 @@ class Installer:
 
         for requirement in requirements:
             for dist in self._get_dist(requirement, ws):
-                ws.add(dist)
                 self._maybe_add_setuptools(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
@@ -719,7 +724,6 @@ class Installer:
                     logger.debug('Adding required %r', str(req))
                 self._log_requirement(ws, req)
                 for dist in self._get_dist(req, ws):
-                    ws.add(dist)
                     self._maybe_add_setuptools(ws, dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency.

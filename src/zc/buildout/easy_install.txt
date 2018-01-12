@@ -125,8 +125,8 @@ The working set contains the distributions we retrieved.
 
     >>> for dist in ws:
     ...     print_(dist)
-    demo 0.2
     demoneeded 1.1
+    demo 0.2
 
 We got demoneeded because it was a dependency of demo.
 
@@ -169,8 +169,8 @@ The old setting is returned.
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/')
     >>> for dist in ws:
     ...     print_(dist)
-    demo 0.4rc1
     demoneeded 1.2rc1
+    demo 0.4rc1
 
     >>> ls(dest)
     d  demo-0.2-py2.4.egg
@@ -195,9 +195,9 @@ dependencies.  We might do this to specify a specific version.
 
     >>> for dist in ws:
     ...     print_(dist)
-    demo 0.3
-    other 1.0
     demoneeded 1.0
+    other 1.0
+    demo 0.3
 
     >>> ls(dest)
     d  demo-0.2-py2.4.egg
@@ -231,8 +231,8 @@ Let's check that the uppercase dist is installed.
 
     >>> for dist in ws:
     ...     print_(dist)
-    MIXEDCASE 0.5
     demoneeded 1.1
+    MIXEDCASE 0.5
     >>> ls(dest)
     d  MIXEDCASE-0.5-pyN.N.egg
     d  demoneeded-1.1-py2.4.egg
@@ -256,7 +256,7 @@ then the versions numbers will be used.
     ...     ['demo'], dest, links=[link_server], index=link_server+'index/',
     ...     versions = dict(demo='0.2', demoneeded='1.0'))
     >>> [d.version for d in ws]
-    ['0.2', '1.0']
+    ['1.0', '0.2']
 
 In this example, we specified a version for demoneeded, even though we
 didn't define a requirement for it.  The versions specified apply to
@@ -890,8 +890,8 @@ to pass a common base directory of the scripts and eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.3-pyN.N.egg'),
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
       base,
@@ -924,12 +924,13 @@ We specified an interpreter and its paths are adjusted too:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.3-pyN.N.egg'),
       join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
+      join(base, 'eggs/demo-0.3-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
       base,
       ]
+    <BLANKLINE>
     <BLANKLINE>
     _interactive = True
     if len(sys.argv) > 1:
