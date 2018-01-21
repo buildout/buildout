@@ -4,7 +4,9 @@ Change History
 2.10.1 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Installed packages are added to the working set immediately. This helps in
+  some corner cases that occur when system packages have versions that
+  conflict with our specified versions.
 
 
 2.10.0 (2017-12-04)
