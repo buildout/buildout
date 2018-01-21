@@ -89,9 +89,9 @@ of extra requirements to be included in the working set.
     Egg requirements:
     demo<0.3
     Working set:
-    demo 0.2
-    other 1.0
     demoneeded 1.1
+    other 1.0
+    demo 0.2
     extra paths: []
 
 We can see that the options were augmented with additional data

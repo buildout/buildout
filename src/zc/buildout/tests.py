@@ -2018,8 +2018,8 @@ def bug_61890_file_urls_dont_seem_to_work_in_find_dash_links():
 
     >>> for dist in ws:
     ...     print_(dist)
-    demo 0.2
     demoneeded 1.1
+    demo 0.2
 
     >>> ls(dest)
     d  demo-0.2-py2.4.egg
@@ -3229,7 +3229,7 @@ def create_sample_eggs(test, executable=sys.executable):
             " zip_safe=True, version='0.5')\n"
             )
         zc.buildout.testing.sdist(tmp, dest)
-        # rename file to lower case 
+        # rename file to lower case
         # to test issues between file and package name
         curdir = os.getcwd()
         os.chdir(dest)
