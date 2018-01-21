@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.10.1 (unreleased)
+2.11.0 (2018-01-21)
 ===================
 
 - Installed packages are added to the working set immediately. This helps in
