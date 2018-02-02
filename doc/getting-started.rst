@@ -322,7 +322,7 @@ More than just a package installer
 ==================================
 
 The example shown above illustrates how Buildout is more than just a
-package installer, like ``pip``. Using Buildout recipes, we can
+package installer such as ``pip``. Using Buildout recipes, we can
 install custom scripts and configuration files, and much more. For
 example, we could use `configure and make
 <https://pypi.python.org/pypi/zc.recipe.cmmi>`_ to install non-Python
@@ -349,7 +349,7 @@ Buildout environment
 --------------------
 
 A Buildout environment includes the operating system and the Python
-installation it's run with. The more a buildout depends on its
+installation Buildout is executed with. The more a buildout depends on its
 environment, the more variation is likely between builds.
 
 If a Python installation is shared, packages installed by one
@@ -405,7 +405,7 @@ run without this option.
 Pinned versions
 _______________
 
-You can also pin required versions in two ways.  You can specify them
+You can also pin required versions, and so so in two ways.  You can specify them
 where you list them, as in:
 
 .. code-block:: ini
@@ -432,7 +432,7 @@ where you list them, as in:
 
 In this example, we've requested a version of bobo less than 5.0.
 
-The more common way to pin version is using a ``versions`` section:
+The more common way to pin a version is using a ``versions`` section:
 
 .. code-block:: ini
 
@@ -462,7 +462,7 @@ The more common way to pin version is using a ``versions`` section:
    >>> nope('bobo = 2.3.0' in read('out'))
 
 Larger projects may need to pin many versions, so it's common to put
-versions in their own file:
+version requirements in their own file:
 
 .. code-block:: ini
 
@@ -486,9 +486,7 @@ versions in their own file:
    >>> write(src, 'buildout.cfg')
 
 Here, we've used the Buildout ``extends`` option to say that
-configurations should be read from the named file (or files) and that
-configuration in the current file should override configuration in the
-extended files.  To continue the example, our ``versions.cfg`` file
+configurations should be read from the named file (or files). These configurations will override and/or extend the current file from which these are loaded (in this case, ``buildout.cfg``).  To continue the example, our ``versions.cfg`` file
 might look like:
 
 .. code-block:: ini
@@ -539,7 +537,7 @@ With ``update-versions-file``, whenever Buildout gets the newest
 version for a requirement (subject to requirement constraints), it
 appends the version to the named file, along with a comment saying
 when and why the requirement is installed.  If you later want to
-upgrade a dependency, just edit this file with the new version, or to
+upgrade a dependency, manually update this file with the new version. Alternatively,
 remove the entry altogether and Buildout will add a new entry the next
 time it runs.
 
@@ -560,10 +558,10 @@ integration tests, you want to be sure that you can reproduce the
 tested configuration.
 
 You shouldn't pin versions for a component, such as a library, because
-doing so inhibits the ability for users of your component to integrate it
+doing so inhibits the ability of users of your component to integrate it
 with their dependencies, which may overlap with yours.  If you know
-that your component only works a range of versions of some dependency,
-the express the range in your project requirements. Don't require
+that your component only works for a specific range of versions of some dependency,
+set the range in your project requirements. Don't require
 specific versions.
 
 .. _unpinning-versions:
@@ -642,7 +640,7 @@ facilitates this with the ``develop`` option:
 
 .. -> develop_snippet
 
-The ``develop`` option takes one more more paths to project `setup.py
+The ``develop`` option takes one or more paths to project `setup.py
 <https://docs.python.org/3.6/distutils/setupscript.html>`_ files or,
 more commonly, directories containing them. Buildout then creates
 "develop eggs" [#develop-eggs]_ for the corresponding projects.
@@ -676,7 +674,7 @@ example::
    >>> write(src, 'setup.py')
 
 We suggest copying and modifying the example above, using it as
-boilerplate.  As is probably clear, the setup arguments used:
+boilerplate.  As is probably clear, the setup arguments used are:
 
 name
    The name of your application. This is the name you'll use in
@@ -760,7 +758,7 @@ details, as well as let you know about features not touched on here.
    more in the topic on :ref:`Buildout and packaging
    <buildout_and_packaging>`.
 
-.. [#configparser] Buildout uses a variation (fork) of standard
+.. [#configparser] Buildout uses a variation (fork) of the standard
    ``ConfigParser`` module and follows (mostly) the same parsing
    rules.
 
