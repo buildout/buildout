@@ -25,7 +25,7 @@ It's important that given a project configuration, two checkouts of the
 configuration in the same environment (operating system, Python
 version) should produce the same result, regardless of their history.
 
-For example, is someone has been working on a project for a long time,
+For example, if someone has been working on a project for a long time,
 and has committed their changes to a version control system, they
 should be able tell a colleague to check out their project and run
 buildout and the resulting build should have the same result as the
@@ -34,7 +34,7 @@ build in the original working area.
 Componentization
 ================
 
-We believe that software should be self contained, or at least, that
+We believe that software should be self-contained, or at least, that
 it should be possible.  The tools for satisfying the software
 responsibilities should largely reside within the software project
 itself.
@@ -58,7 +58,7 @@ Automation
 ==========
 
 Software deployment should be highly automated.  It should be possible
-to checkout a project and with a single simple command (or two), get a
+to checkout a project with a single simple command (or two) and get a
 working system.  This is necessary to achieve the goals of
 repeatability and componentization and generally not to waste people's
 time.
