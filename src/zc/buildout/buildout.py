@@ -571,7 +571,8 @@ class Buildout(DictMixin):
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 dest = os.path.join(self['buildout']['develop-eggs-directory'],
                                     dist.key + '.egg-link')
-                open(dest, 'w').write(dist.location)
+                with open(dest, 'w') as fh:
+                    fh.write(dist.location)
                 entries.append(dist.location)
             else:
                 dest = os.path.join(self['buildout']['eggs-directory'],
