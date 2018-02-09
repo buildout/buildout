@@ -349,7 +349,7 @@ Buildout environment
 --------------------
 
 A Buildout environment includes the operating system and the Python
-installation Buildout is executed with. The more a buildout depends on its
+installation Buildout is run with. The more a buildout depends on its
 environment, the more variation is likely between builds.
 
 If a Python installation is shared, packages installed by one
@@ -405,7 +405,7 @@ run without this option.
 Pinned versions
 _______________
 
-You can also pin required versions, and so so in two ways.  You can specify them
+You can also pin required versions, and do so in two ways.  You can specify them
 where you list them, as in:
 
 .. code-block:: ini
@@ -537,7 +537,7 @@ With ``update-versions-file``, whenever Buildout gets the newest
 version for a requirement (subject to requirement constraints), it
 appends the version to the named file, along with a comment saying
 when and why the requirement is installed.  If you later want to
-upgrade a dependency, manually update this file with the new version. Alternatively,
+upgrade a dependency, edi this file with the new version. Alternatively,
 remove the entry altogether and Buildout will add a new entry the next
 time it runs.
 
