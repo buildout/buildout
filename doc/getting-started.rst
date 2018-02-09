@@ -486,7 +486,12 @@ version requirements in their own file:
    >>> write(src, 'buildout.cfg')
 
 Here, we've used the Buildout ``extends`` option to say that
-configurations should be read from the named file (or files). These configurations will override and/or extend the current file from which these are loaded (in this case, ``buildout.cfg``).  To continue the example, our ``versions.cfg`` file
+configurations should be read from ``versions.cfg`` (it's
+allowed to specify several files in ``extend``). Cconfigurations 
+should be read from the named file (or files) and the
+configuration in the current file should override configuration in the
+extended files. 
+To continue the example, our ``versions.cfg`` file
 might look like:
 
 .. code-block:: ini
