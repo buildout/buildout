@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.1 (unreleased)
+2.11.1 (2018-03-01)
 ===================
 
 - Made upgrade check more robust. When using extensions, the improvement
