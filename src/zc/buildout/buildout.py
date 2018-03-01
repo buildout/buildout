@@ -1083,10 +1083,13 @@ class Buildout(DictMixin):
             )
 
         upgraded = []
+        # The setuptools/zc.buildout locations at the time we started was
+        # recorded in easy_install.py. We use that here to check if we've been
+        # upgraded.
+        start_locations = zc.buildout.easy_install.buildout_and_setuptools_path
         for project in 'zc.buildout', 'setuptools':
             req = pkg_resources.Requirement.parse(project)
-            project_location = pkg_resources.working_set.find(req).location
-            if ws.find(req).location != project_location:
+            if ws.find(req).location not in start_locations:
                 upgraded.append(ws.find(req))
 
         if not upgraded:
