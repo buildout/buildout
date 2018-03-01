@@ -4,7 +4,9 @@ Change History
 2.11.1 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Made upgrade check more robust. When using extensions, the improvement
+  introduced in 2.11 could prevent buildout from restarting itself when it
+  upgraded setuptools.
 
 
 2.11.0 (2018-01-21)
