@@ -4,7 +4,7 @@ Change History
 2.11.2 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Fix #442 issue. [enkidulan]
 
 
 2.11.1 (2018-03-01)
