@@ -4,7 +4,8 @@ Change History
 2.11.2 (unreleased)
 ===================
 
-- Fix #442 issue. [enkidulan]
+- Fix for the #442 issue: AttributeError on
+  ``pkg_resources.SetuptoolsVersion``.
 
 
 2.11.1 (2018-03-01)
