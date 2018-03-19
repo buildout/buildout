@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.2 (unreleased)
+2.11.2 (2018-03-19)
 ===================
 
 - Fix for the #442 issue: AttributeError on
