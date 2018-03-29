@@ -1835,7 +1835,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
     return result
 
 
-ignore_directories = '.svn', 'CVS', '__pycache__'
+ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
 _dir_hashes = {}
 def _dir_hash(dir):
     dir_hash = _dir_hashes.get(dir, None)
