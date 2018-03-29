@@ -1236,7 +1236,7 @@ def changes_in_svn_or_CVS_dont_affect_sig():
     """
 
 If we have a develop recipe, it's signature shouldn't be affected to
-changes in .svn or CVS directories.
+changes in .git, .svn or CVS directories.
 
     >>> mkdir('recipe')
     >>> write('recipe', 'setup.py',
@@ -1268,12 +1268,14 @@ changes in .svn or CVS directories.
     Develop: '/sample-buildout/recipe'
     Installing foo.
 
+    >>> mkdir('recipe', '.git')
     >>> mkdir('recipe', '.svn')
     >>> mkdir('recipe', 'CVS')
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
     Develop: '/sample-buildout/recipe'
     Updating foo.
 
+    >>> write('recipe', '.git', 'x', '1')
     >>> write('recipe', '.svn', 'x', '1')
     >>> write('recipe', 'CVS', 'x', '1')
 
