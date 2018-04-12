@@ -3176,7 +3176,7 @@ using the `index` option::
   ...
   index = https://index.example.com/
 
-This index, or the default of https://pypi.python.org/simple/ if no
+This index, or the default of https://pypi.org/simple/ if no
 index is specified, will always be searched for distributions unless
 running buildout with options that prevent searching for
 distributions. The latest version of the distribution that meets the

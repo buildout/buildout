@@ -129,7 +129,7 @@ Pass one or more section names as arguments to display annotation only for the g
 .. code-block:: console
 
    buildout annotate versions
-  
+
 
 .. _bootstrap-command:
 
@@ -200,8 +200,8 @@ doesn't have setuptools installed.  Normally today, setuptools *is*
 installed and you can just run setup scripts that use setuptools directly.
 
 Note that if you want to build and upload a package to the `standard
-package index <https://pypi.python.org/pypi>`_ you should consider
-using `zest.releaser <https://pypi.python.org/pypi/zest.releaser>`_,
+package index <https://pypi.org>`_ you should consider
+using `zest.releaser <https://pypi.org/project/zest.releaser>`_,
 which automates many aspects of software release including checking
 meta data, building releases and making version-control tags.
 
@@ -353,7 +353,7 @@ index
   <https://packaging.python.org/distributing/#name>`_ containing
   distributions for those projects.
 
-  If this isn't set, then ``https://pypi.python.org/simple/`` is used.
+  If this isn't set, then ``https://pypi.org/simple/`` is used.
 
 .. _install-from-cache-mode:
 

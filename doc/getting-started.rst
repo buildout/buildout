@@ -124,7 +124,7 @@ recipe
   will implement the part.  The value is a Python distribution
   requirement, as would be used with ``pip``.  In this case, we've
   specified `zc.recipe.egg
-  <https://pypi.python.org/pypi/zc.recipe.egg>`_ which is the name of
+  <https://pypi.org/project/zc.recipe.egg/>`_ which is the name of
   a Python project that provides a number of recipe implementations.
 
 eggs
@@ -186,9 +186,9 @@ Generating configuration and custom scripts
 
 The ``bobo`` program doesn't daemonize itself. Rather, it's meant to
 be used with a dedicated daemonizer like `zdaemon
-<https://pypi.python.org/pypi/zdaemon>`_ or `supervisord
+<https://pypi.org/project/zdaemon>`_ or `supervisord
 <http://supervisord.org/>`_.  We'll use a `recipe to set up zdaemon
-<https://pypi.python.org/pypi/zc.zdaemonrecipe>`_.  Our Buildout
+<https://pypi.org/project/zc.zdaemonrecipe>`_.  Our Buildout
 configuration becomes:
 
 .. code-block:: ini
@@ -325,7 +325,7 @@ The example shown above illustrates how Buildout is more than just a
 package installer such as ``pip``. Using Buildout recipes, we can
 install custom scripts and configuration files, and much more. For
 example, we could use `configure and make
-<https://pypi.python.org/pypi/zc.recipe.cmmi>`_ to install non-Python
+<https://pypi.org/project/zc.recipe.cmmi>`_ to install non-Python
 software from source, we could run JavaScript builders, or do anything
 else that can be automated with Python.
 
@@ -487,10 +487,10 @@ version requirements in their own file:
 
 Here, we've used the Buildout ``extends`` option to say that
 configurations should be read from ``versions.cfg`` (it's
-allowed to specify several files in ``extend``). Cconfigurations 
+allowed to specify several files in ``extend``). Cconfigurations
 should be read from the named file (or files) and the
 configuration in the current file should override configuration in the
-extended files. 
+extended files.
 To continue the example, our ``versions.cfg`` file
 might look like:
 
@@ -741,7 +741,7 @@ To get an interactive Python prompt, or you can run a script with it:
 If you need to work on multiple interdependent projects at the same
 time, you can name multiple directories in the ``develop`` option,
 typically pointing to multiple check outs.  A popular Buildout
-extension, `mr.developer <https://pypi.python.org/pypi/mr.developer>`_,
+extension, `mr.developer <https://pypi.org/project/mr.developer>`_,
 automates this process.
 
 Where to go from here?
@@ -777,11 +777,11 @@ details, as well as let you know about features not touched on here.
 .. [#finding-hundreds] You can list Buildout-related software,
    consisting mostly of Buildout recipes, using the
    `Framework :: Buildout
-   <https://pypi.python.org/pypi?:action=browse&show=all&c=512>`_
+   <https://pypi.org/search/?q=&o=&c=Framework+%3A%3A+Buildout>`_
    classifier search. These results miss recipes that don't provide
    classifier meta data.  Generally you can find a recipe for a task by
    searching the name of the task and the "recipe" in the `package
-   index <https://pypi.python.org/pypi>`_.
+   index <https://pypi.org/>`_.
 
 .. [#hypocritical] It's a little hypocritical to recommend installing
    Buildout into an otherwise clean environment, which is why Buildout

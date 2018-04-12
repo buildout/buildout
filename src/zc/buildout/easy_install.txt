@@ -46,7 +46,7 @@ index
    The URL of an index server, or almost any other valid URL. :)
 
    If not specified, the Python Package Index,
-   https://pypi.python.org/simple/, is used.  You can specify an
+   https://pypi.org/simple/, is used.  You can specify an
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
@@ -1112,7 +1112,7 @@ index
    The URL of an index server, or almost any other valid URL. :)
 
    If not specified, the Python Package Index,
-   https://pypi.python.org/simple/, is used.  You can specify an
+   https://pypi.org/simple/, is used.  You can specify an
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,

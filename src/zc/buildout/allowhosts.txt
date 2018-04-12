@@ -46,7 +46,7 @@ local files::
     ... develop = allowdemo
     ... parts = eggs
     ... allow-hosts =
-    ...     pypi.python.org
+    ...     pypi.org
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs

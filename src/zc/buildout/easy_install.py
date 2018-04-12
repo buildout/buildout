@@ -56,7 +56,7 @@ def realpath(path):
 
 default_index_url = os.environ.get(
     'buildout-testing-index-url',
-    'https://pypi.python.org/simple',
+    'https://pypi.org/simple',
     )
 
 logger = logging.getLogger('zc.buildout.easy_install')

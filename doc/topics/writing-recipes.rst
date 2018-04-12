@@ -496,7 +496,7 @@ More realistically:
 
 - You might use a test runner like nose or pytest.  There are `recipes
   that can help set this up
-  <https://pypi.python.org/pypi?%3Aaction=search&term=test+runner+buildout+recipe&>`_.
+  <https://pypi.org/search/?q=test+runner+buildout+recipe>`_.
   We just used the test runner built into ``unittest``.
 
 ``zc.buildout.testing`` reference
