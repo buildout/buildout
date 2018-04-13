@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.3 (unreleased)
+2.11.3 (2018-04-13)
 ===================
 
 - Update to use the new PyPI at https://pypi.org/.
