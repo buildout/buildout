@@ -4,7 +4,7 @@ Change History
 2.11.3 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Update to use the new PyPI at https://pypi.org/.
 
 
 2.11.2 (2018-03-19)

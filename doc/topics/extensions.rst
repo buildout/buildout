@@ -16,4 +16,4 @@ and often experimental ways.  Use the ``extensions`` option in the
   ...
 
 Some other examples of extensions can be found in the `standard
-package index <https://pypi.python.org/pypi?:action=browse&c=512&c=546>`_.
+package index <https://pypi.org/search/?q=&o=&c=Framework+%3A%3A+Buildout+%3A%3A+Extension>`_.

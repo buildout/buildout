@@ -109,7 +109,7 @@ incompatible version of setuptools, because Buildout and setuptools
 were evolving rapidly, sometimes in lock step.
 
 This approach fails from time to time, due to changes in setuptools or
-`the package index <https://pypi.python.org/pypi>`_ and has been a
+`the package index <https://pypi.org/>`_ and has been a
 source of breakage when automated systems depended on it.
 
 It's also possible that this approach will stop being supported.
