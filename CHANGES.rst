@@ -4,7 +4,8 @@ Change History
 2.11.4 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Fix `issue 451 <https://github.com/buildout/buildout/issues/451>`:
+  distributions with a two-digit version can be installed.
 
 
 2.11.3 (2018-04-13)
