@@ -12,6 +12,9 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+from __future__ import print_function
+import unittest
+
 from zc.buildout.buildout import print_
 from zope.testing import renormalizing, setupstack
 
@@ -33,6 +36,116 @@ import zipfile
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
     os_path_sep *= 2
+
+
+class TestEasyInstall(unittest.TestCase):
+
+    # The contents of a zipped egg, created by setuptools:
+    # from setuptools import setup
+    # setup(
+    #    name='TheProject',
+    #    version='3.3',
+    # )
+    #
+    # (we can't run setuptools at runtime, it may not be installed)
+    EGG_DATA = (
+        b'PK\x03\x04\x14\x00\x00\x00\x08\x00q8\xa8Lg0\xb7ix\x00\x00\x00\xb6\x00'
+        b'\x00\x00\x11\x00\x00\x00EGG-INFO/PKG-INFO\xf3M-ILI,I\xd4\rK-*'
+        b'\xce\xcc\xcf\xb3R0\xd43\xe0\xf2K\xccM\xb5R\x08\xc9H\r(\xca\xcfJM'
+        b'.\xe1\x82\xcb\x1a\xeb\x19s\x05\x97\xe6\xe6&\x16UZ)\x84\xfay\xfb\xf9\x87\xfb'
+        b'qy\xe4\xe7\xa6\xea\x16$\xa6\xa7"\x84\x1cKK2\xf2\x8b\xd0\xf9\xba\xa9\xb9\x89'
+        b'\x999\x08Q\x9f\xcc\xe4\xd4\xbcb$m.\xa9\xc5\xc9E\x99\x05%`\xbb`\x82\x019\x89%'
+        b'i\xf9E\xb9\x08\x11\x00PK\x03\x04\x14\x00\x00\x00\x08\x00q8\xa8L61\xa1'
+        b'XL\x00\x00\x00\x87\x00\x00\x00\x14\x00\x00\x00EGG-INFO/SOURCES.txt\x0b\xc9H'
+        b'\r(\xca\xcfJM.\xd1KMO\xd7\xcd\xccK\xcb\xd7\x0f\xf0v\xd7\xf5\xf4s'
+        b'\xf3\xe7\n\xc1"\x19\xec\x1f\x1a\xe4\xec\x1a\xacWRQ\x82U>%\xb5 5/%5/\xb92>\'3'
+        b'/\xbb\x18\xa7\xc2\x92\xfc\x82\xf8\x9c\xd4\xb2\xd4\x1c\x90\n\x00PK\x03'
+        b'\x04\x14\x00\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00\x00\x01'
+        b'\x00\x00\x00\x1d\x00\x00\x00EGG-INFO/dependency_links.txt\xe3\x02\x00P'
+        b'K\x03\x04\x14\x00\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00'
+        b'\x00\x01\x00\x00\x00\x16\x00\x00\x00EGG-INFO/top_level.txt\xe3\x02\x00PK'
+        b'\x03\x04\x14\x00\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00\x00'
+        b'\x01\x00\x00\x00\x11\x00\x00\x00EGG-INFO/zip-safe\xe3\x02\x00PK\x01\x02'
+        b'\x14\x03\x14\x00\x00\x00\x08\x00q8\xa8Lg0\xb7ix\x00\x00\x00\xb6\x00\x00\x00'
+        b'\x11\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa4\x81\x00\x00\x00\x00EG'
+        b'G-INFO/PKG-INFOPK\x01\x02\x14\x03\x14\x00\x00\x00\x08\x00q8\xa8L61\xa1XL'
+        b'\x00\x00\x00\x87\x00\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00'
+        b'\x00\x00\x00\xa4\x81\xa7\x00\x00\x00EGG-INFO/SOURCES.txtPK\x01'
+        b'\x02\x14\x03\x14\x00\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00'
+        b'\x00\x01\x00\x00\x00\x1d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        b'\x00\xa4\x81%\x01\x00\x00EGG-INFO/dependency_links.txtPK\x01\x02'
+        b'\x14\x03\x14\x00\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00\x00'
+        b'\x01\x00\x00\x00\x16\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        b'\xa4\x81c\x01\x00\x00EGG-INFO/top_level.txtPK\x01\x02\x14\x03\x14\x00'
+        b'\x00\x00\x08\x00q8\xa8L\x93\x06\xd72\x03\x00\x00\x00\x01\x00\x00\x00'
+        b'\x11\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa4\x81\x9a\x01\x00\x00EG'
+        b'G-INFO/zip-safePK\x05\x06\x00\x00\x00\x00\x05\x00\x05\x00O\x01\x00\x00\xcc'
+        b'\x01\x00\x00\x00\x00'
+    )
+
+    def setUp(self):
+        self.cwd = os.getcwd()
+        self.temp_dir = tempfile.mkdtemp('.buildouttest')
+        self.project_dir = os.path.join(self.temp_dir, 'TheProject')
+        self.project_dist_dir = os.path.join(self.temp_dir, 'dist')
+        os.mkdir(self.project_dist_dir)
+        self.egg_path = os.path.join(self.project_dist_dir, 'TheProject.egg')
+        os.mkdir(self.project_dir)
+        self.setup_path = os.path.join(self.project_dir, 'setup.py')
+        os.chdir(self.temp_dir)
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+        shutil.rmtree(self.temp_dir)
+
+    def _make_egg(self):
+        with open(self.egg_path, 'wb') as f:
+            f.write(self.EGG_DATA)
+
+
+    def _get_distro_and_egg_path(self):
+        # Returns a distribution with a version of '3.3.0',
+        # but an egg with a version of '3.3'
+        self._make_egg()
+        from distutils.dist import Distribution
+        dist = Distribution()
+        dist.project_name = 'TheProject'
+        dist.version = '3.3.0'
+        dist.parsed_version = pkg_resources.parse_version(dist.version)
+
+        return dist, self.egg_path
+
+    def test_get_matching_dist_in_location_uses_parsed_version(self):
+        # https://github.com/buildout/buildout/pull/452
+        # An egg built with the version '3.3' should match a distribution
+        # looking for '3.3.0'
+        dist, location = self._get_distro_and_egg_path()
+
+        result = zc.buildout.easy_install._get_matching_dist_in_location(
+            dist,
+            self.project_dist_dir
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result.version, '3.3')
+
+    def test_move_to_eggs_dir_and_compile(self):
+        # https://github.com/buildout/buildout/pull/452
+        # An egg built with the version '3.3' should match a distribution
+        # looking for '3.3.0'
+
+        dist, location = self._get_distro_and_egg_path()
+        dist.location = location
+
+        dest = os.path.join(self.temp_dir, 'NewLoc')
+
+        result = zc.buildout.easy_install._move_to_eggs_dir_and_compile(
+            dist,
+            dest
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.version, '3.3')
+        self.assertIn(dest, result.location)
 
 
 def develop_w_non_setuptools_setup_scripts():
@@ -3788,4 +3901,9 @@ def test_suite():
                ]),
             ))
 
+    test_suite.append(unittest.defaultTestLoader.loadTestsFromName(__name__))
+
     return unittest.TestSuite(test_suite)
+
+if __name__ == '__main__':
+    unittest.main()
