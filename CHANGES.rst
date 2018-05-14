@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.4 (unreleased)
+2.11.4 (2018-05-14)
 ===================
 
 - Fix for `issue 451 <https://github.com/buildout/buildout/issues/451>`:
