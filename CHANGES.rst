@@ -4,8 +4,9 @@ Change History
 2.11.4 (unreleased)
 ===================
 
-- Fix `issue 451 <https://github.com/buildout/buildout/issues/451>`:
-  distributions with a two-digit version can be installed.
+- Fix for `issue 451 <https://github.com/buildout/buildout/issues/451>`:
+  distributions with a version number that normalizes to a shorter version
+  number (3.3.0 to 3.3, for instance) can be installed now.
 
 
 2.11.3 (2018-04-13)
