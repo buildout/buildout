@@ -1655,13 +1655,16 @@ def _get_matching_dist_in_location(dist, location):
     Check if `locations` contain only the one intended dist.
     Return the dist with metadata in the new location.
     """
-    # Getting the dist from the environment causes the
-    # distribution meta data to be read.  Cloning isn't
-    # good enough.
+    # Getting the dist from the environment causes the distribution
+    # meta data to be read. Cloning isn't good enough. We must compare
+    # dist.parsed_version, not dist.version, because one or the other
+    # may be normalized (e.g., 3.3 becomes 3.3.0 when downloaded from
+    # PyPI.)
+
     env = pkg_resources.Environment([location])
     dists = [ d for project_name in env for d in env[project_name] ]
-    dist_infos = [ (d.project_name.lower(), d.version) for d in dists ]
-    if dist_infos == [(dist.project_name.lower(), dist.version)]:
+    dist_infos = [ (d.project_name.lower(), d.parsed_version) for d in dists ]
+    if dist_infos == [(dist.project_name.lower(), dist.parsed_version)]:
         return dists.pop()
 
 def _move_to_eggs_dir_and_compile(dist, dest):
