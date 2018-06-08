@@ -35,6 +35,7 @@ import subprocess
 import sys
 import tempfile
 import zc.buildout
+import zc.buildout.rmtree
 import warnings
 
 try:
@@ -453,7 +454,7 @@ class Installer:
             return result
 
         finally:
-            shutil.rmtree(tmp)
+            zc.buildout.rmtree.rmtree(tmp)
 
     def _obtain(self, requirement, source=None):
         # initialize out index for this project:
@@ -574,7 +575,7 @@ class Installer:
 
             finally:
                 if tmp != self._download_cache:
-                    shutil.rmtree(tmp)
+                    zc.buildout.rmtree.rmtree(tmp)
 
             self._env_rescan_dest()
             dist = self._env.best_match(requirement, ws)
@@ -804,11 +805,11 @@ class Installer:
 
                 return [dist.location for dist in dists]
             finally:
-                shutil.rmtree(build_tmp)
+                zc.buildout.rmtree.rmtree(build_tmp)
 
         finally:
             if tmp != self._download_cache:
-                shutil.rmtree(tmp)
+                zc.buildout.rmtree.rmtree(tmp)
 
     def _fix_file_links(self, links):
         for link in links:
@@ -945,7 +946,7 @@ def build(spec, dest, build_ext,
 def _rm(*paths):
     for path in paths:
         if os.path.isdir(path):
-            shutil.rmtree(path)
+            zc.buildout.rmtree.rmtree(path)
         elif os.path.exists(path):
             os.remove(path)
 
@@ -1051,7 +1052,7 @@ def develop(setup, dest,
             )).encode())
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
-        undo.append(lambda : shutil.rmtree(tmp3))
+        undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
         args = [executable,  tsetup, '-q', 'develop', '-mN', '-d', tmp3]
 
@@ -1738,5 +1739,5 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             assert newdist is not None  # newloc above is missing our dist?!
     finally:
         # Remember that temporary directories must be removed
-        shutil.rmtree(tmp_dest)
+        zc.buildout.rmtree.rmtree(tmp_dest)
     return newdist

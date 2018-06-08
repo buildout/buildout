@@ -16,13 +16,15 @@
 import shutil
 import os
 import doctest
+import time
 
 def rmtree (path):
     """
-    A variant of shutil.rmtree which tries hard to be successful
+    A variant of shutil.rmtree which tries hard to be successful.
     On windows shutil.rmtree aborts when it tries to delete a
-    read only file.
-    This tries to chmod the file to writeable and retries before giving up.
+    read only file or a file which is still handled by another
+    process (e.g. antivirus scanner). This tries to chmod the
+    file to writeable and retries 10 times before giving up.
 
     >>> from tempfile import mkdtemp
 
@@ -55,7 +57,18 @@ def rmtree (path):
     """
     def retry_writeable (func, path, exc):
         os.chmod (path, 384) # 0600
-        func (path)
+        tries = 10
+        while tries:
+            try:
+                func (path)
+                break
+            except OSError:
+                tries -= 1
+                time.sleep(0.1)
+        else:
+            # tried 10 times without success, thus
+            # finally rethrow the last exception
+            raise
 
     shutil.rmtree (path, onerror = retry_writeable)
 
