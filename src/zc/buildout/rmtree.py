@@ -57,13 +57,11 @@ def rmtree (path):
     """
     def retry_writeable (func, path, exc):
         os.chmod (path, 384) # 0600
-        tries = 10
-        while tries:
+        for i in range(10):
             try:
                 func (path)
                 break
             except OSError:
-                tries -= 1
                 time.sleep(0.1)
         else:
             # tried 10 times without success, thus
