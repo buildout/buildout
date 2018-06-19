@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.5 (unreleased)
+2.11.5 (2018-06-19)
 ===================
 
 - Fix for `issue 295 <https://github.com/buildout/buildout/issues/295>`. On
