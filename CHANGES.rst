@@ -4,7 +4,8 @@ Change History
 2.11.5 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Fix for `issue 295 <https://github.com/buildout/buildout/issues/295>`. On
+  windows, deletion of temporary egg files is more robust now.
 
 
 2.11.4 (2018-05-14)
