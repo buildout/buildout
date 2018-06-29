@@ -23,9 +23,19 @@ try:
     from urllib.request import FancyURLopener, URLopener, urlretrieve
     from urllib.parse import urlparse
     from urllib import request
+    import warnings
 
     class PatchedURLopener(FancyURLopener):
         http_error_default = URLopener.http_error_default
+
+        def __init__(self, *args, **kwargs):
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                # This creates a DeprecationWarning on 3.6:
+                # PatchedURLopener style of invoking requests is deprecated.
+                # Use newer urlopen functions/methods.
+                # Said warning breaks our doctests.
+                super(PatchedURLopener, self).__init__(*args, **kwargs)
 
     request._urlopener = PatchedURLopener()  # Ook! Monkey patch!
 

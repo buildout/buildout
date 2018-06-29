@@ -178,7 +178,7 @@ def parse(fp, fpname, exp_globals=dict):
                     tail = tail.replace(';', '#') if tail else ''
                     # un-escape literal # and ; . Do not use a
                     # string-escape decode
-                    expr = expression.replace(r'\x23','#').replace(r'x3b', ';')
+                    expr = expression.replace(r'\x23','#').replace(r'\x3b', ';')
                     # rebuild a valid Python expression wrapped in a list
                     expr = head + expr + tail
                     # lazily populate context only expression

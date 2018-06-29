@@ -18,7 +18,8 @@ import os
 from setuptools import setup
 
 def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+    with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
+        return f.read()
 
 long_description= read('README.rst') + '\n' + read('CHANGES.rst')
 

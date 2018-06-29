@@ -3347,3 +3347,7 @@ We see that our extension is loaded and executed::
     ext ['buildout', 'versions']
     Develop: '/sample-bootstrapped/demo'
     unload ['buildout', 'versions']
+
+..
+
+    >>> stop_server(server_url)

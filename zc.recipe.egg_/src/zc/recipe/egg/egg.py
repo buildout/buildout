@@ -214,7 +214,7 @@ class Scripts(Eggs):
             assert relative_paths == 'false'
 
     parse_entry_point = re.compile(
-        '([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
+        r'([^=]+)=(\w+(?:[.]\w+)*):(\w+(?:[.]\w+)*)$'
         ).match
 
     def install(self):

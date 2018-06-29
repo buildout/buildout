@@ -892,8 +892,8 @@ class Buildout(DictMixin):
                     setup = self._buildout_path(setup)
                     files = glob.glob(setup)
                     if not files:
-                        self._logger.warn("Couldn't develop %r (not found)",
-                                          setup)
+                        self._logger.warning("Couldn't develop %r (not found)",
+                                             setup)
                     else:
                         files.sort()
                     for setup in files:
@@ -1107,8 +1107,8 @@ class Buildout(DictMixin):
         if (realpath(os.path.abspath(sys.argv[0])) != should_run):
             self._logger.debug("Running %r.", realpath(sys.argv[0]))
             self._logger.debug("Local buildout is %r.", should_run)
-            self._logger.warn("Not upgrading because not running a local "
-                              "buildout command.")
+            self._logger.warning("Not upgrading because not running a local "
+                                 "buildout command.")
             return
 
         self._logger.info("Upgraded:\n  %s;\nrestarting.",
@@ -1463,7 +1463,7 @@ class Options(DictMixin):
 
     _template_split = re.compile('([$]{[^}]*})').split
     _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
-    _valid = re.compile('\${[-a-zA-Z0-9 ._]*:[-a-zA-Z0-9 ._]+}$').match
+    _valid = re.compile(r'\${[-a-zA-Z0-9 ._]*:[-a-zA-Z0-9 ._]+}$').match
     def _sub(self, template, seen):
         value = self._template_split(template)
         subs = []
@@ -1562,7 +1562,7 @@ class Options(DictMixin):
                     elif os.path.isfile(p):
                         os.remove(p)
                     else:
-                        self.buildout._logger.warn("Couldn't clean up %r.", p)
+                        self.buildout._logger.warning("Couldn't clean up %r.", p)
                 raise
         finally:
             self._created = None
@@ -1920,9 +1920,9 @@ def _check_for_unused_options_in_section(buildout, section):
     unused = [option for option in sorted(options._raw)
               if option not in options._data]
     if unused:
-        buildout._logger.warn("Unused options for %s: %s."
-                              % (section, ' '.join(map(repr, unused)))
-                              )
+        buildout._logger.warning("Unused options for %s: %s."
+                                 % (section, ' '.join(map(repr, unused)))
+        )
 
 _usage = """\
 Usage: buildout [options] [assignments] [command [command arguments]]

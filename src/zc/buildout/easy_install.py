@@ -63,7 +63,7 @@ default_index_url = os.environ.get(
 logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
-is_source_encoding_line = re.compile('coding[:=]\s*([-\w.]+)').search
+is_source_encoding_line = re.compile(r'coding[:=]\s*([-\w.]+)').search
 # Source encoding regex from http://www.python.org/dev/peps/pep-0263/
 
 is_win32 = sys.platform == 'win32'
@@ -634,7 +634,7 @@ class Installer:
         if dist_needs_pkg_resources(dist):
             # We have a namespace package but no requirement for setuptools
             if dist.precedence == pkg_resources.DEVELOP_DIST:
-                logger.warn(
+                logger.warning(
                     "Develop distribution: %s\n"
                     "uses namespace packages but the distribution "
                     "does not require setuptools.",

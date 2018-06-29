@@ -131,6 +131,19 @@ def system(command, input='', with_exit_code=False):
     # https://github.com/buildout/buildout/pull/311
     # http://bugs.python.org/issue19884
     env = dict(os.environ, TERM='dumb')
+
+    # Beginning in Python 3.4, 'U' mode to open() is deprecated.
+    # Python 3.7 changes the way deprecations are shown for main
+    # modules, and introduces $PYTHONDEVMODE which turns on warnigs in
+    # more places. If that's done, this leads many of our doctests to
+    # break; some code path through executing setup.py does this, but
+    # it's not in our code. Unfortunately, normalizing this printed
+    # line away doesn't work, it just produces a blank line. We resort
+    # to turning that warning off.
+    warnings = env.get('PYTHONWARNINGS', '')
+    env['PYTHONWARNINGS'] = "ignore:'U' mode is deprecated:DeprecationWarning::," + warnings
+
+
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
@@ -150,6 +163,7 @@ def system(command, input='', with_exit_code=False):
         # Use the with_exit_code=True parameter when you want to test the exit
         # code of the command you're running.
         output += 'EXIT CODE: %s' % p.wait()
+    p.wait()
     return output
 
 def get(url):
@@ -358,6 +372,7 @@ def buildoutSetUp(test):
         sdist = sdist,
         bdist_egg = bdist_egg,
         start_server = start_server,
+        stop_server = stop_server,
         buildout = os.path.join(sample, 'bin', 'buildout'),
         wait_until = wait_until,
         print_ = print_,
@@ -395,6 +410,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if '__stop__' in self.path:
+            self.__server.server_close()
             raise SystemExit
 
         def k():
@@ -466,6 +482,7 @@ def _run(tree, port):
     server_address = ('localhost', port)
     httpd = Server(tree, server_address, Handler)
     httpd.serve_forever()
+    httpd.server_close()
 
 def get_port():
     for i in range(10):
@@ -578,10 +595,10 @@ if sys.version_info > (2, ):
         re.compile('(\n?)d  __pycache__\n'), '\\1')
 else:
     normalize___pycache__ = (
-        re.compile('(\n?)-  \S+\.pyc\n'), '\\1')
+        re.compile(r'(\n?)-  \S+\.pyc\n'), '\\1')
 
 normalize_egg_py = (
-    re.compile('-py\d[.]\d(-\S+)?.egg'),
+    re.compile(r'-py\d[.]\d(-\S+)?.egg'),
     '-pyN.N.egg',
     )
 

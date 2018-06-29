@@ -33,7 +33,7 @@ First, an example that illustrates a well-formed configuration::
   b    += 1
 
   [s3]; comment
-  x =           a b        
+  x =           a b
 
 .. -> text
 
@@ -92,9 +92,9 @@ otherwise empty section) is blank.  For example:"
      'versions': {}}
 
 
-Sections headers can contain an optional arbitrary Python expression. 
+Sections headers can contain an optional arbitrary Python expression.
 When the expression evaluates to false the whole section is skipped.
-Several sections can have the same name with different expressions, enabling 
+Several sections can have the same name with different expressions, enabling
 conditional exclusion of sections::
 
   [s1: 2 + 2 == 4] # this expression is true [therefore "this section" _will_ be NOT skipped
@@ -106,7 +106,7 @@ conditional exclusion of sections::
   [   s2 : 41 + 1 == 42  ]  # a comment: this expression is [true], so this section will be kept
   long = b
 
-  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] ;# Complex expressions are [possible!];, though they should not be (abused:) 
+  [s3:2 in map(lambda i:i*2, [i for i in range(10)])] ;# Complex expressions are [possible!];, though they should not be (abused:)
   # this section will not be skipped
   long = c
 
@@ -117,11 +117,11 @@ conditional exclusion of sections::
 
 
 Title line optional trailing comments are separated by a hash '#' or semicolon
-';' character.  The expression is an arbitrary expression with one restriction: 
-it cannot contain a literal hash '#' or semicolon ';' character: these need to be 
+';' character.  The expression is an arbitrary expression with one restriction:
+it cannot contain a literal hash '#' or semicolon ';' character: these need to be
 string-escaped.
-The comment can contain arbitrary characters, including brackets that are also 
-used to mark the end of a section header and may be ambiguous to recognize in 
+The comment can contain arbitrary characters, including brackets that are also
+used to mark the end of a section header and may be ambiguous to recognize in
 some cases. For example, valid sections lines include::
 
   [ a ]
@@ -170,7 +170,7 @@ some cases. For example, valid sections lines include::
 
 
 
-A title line optional trailing comment be separated by a hash or semicolon 
+A title line optional trailing comment be separated by a hash or semicolon
 character. The following are valid semicolon-separated comments::
 
   [ a ]  ;semicolon comment are supported for lines without expressions ]
@@ -226,10 +226,10 @@ The following sections with hash comment separators are valid too::
      'e': {'e': '1'}}
 
 
-However, explicit semicolon and hash characters are invalid in expressions and 
+However, explicit semicolon and hash characters are invalid in expressions and
 must be escaped or this triggers an error. In the rare case where a hash '#' or
-semicolon ';' would be needed in an expression literal, you can use the 
-string-escaped representation of these characters:  use '\x23' for hash '#' and 
+semicolon ';' would be needed in an expression literal, you can use the
+string-escaped representation of these characters:  use '\x23' for hash '#' and
 '\x3b' for semicolon ';' to avoid evaluation errors.
 These expressions are valid and use escaped hash and semicolons in literals::
 
@@ -256,11 +256,11 @@ And using unescaped semicolon and hash characters in expressions triggers an err
     ... except zc.buildout.configparser.MissingSectionHeaderError: pass # success
 
 
-One of the typical usage of expression is to have buildout parts that are 
-operating system or platform-specific.  The configparser.parse function has an 
-optional exp_globals argument.  This is a callable returning a mapping of 
-objects made available to the evaluation context of the expression. Here we add 
-the platform and sys modules to the evaluation context, so we can access 
+One of the typical usage of expression is to have buildout parts that are
+operating system or platform-specific.  The configparser.parse function has an
+optional exp_globals argument.  This is a callable returning a mapping of
+objects made available to the evaluation context of the expression. Here we add
+the platform and sys modules to the evaluation context, so we can access
 platform and sys modules functions and objects in our expressions ::
 
   [s1: str(platform.python_version_tuple()[0]) in ('2', '3',)] # this expression is true, the major versions of python are either 2 or 3
@@ -280,8 +280,8 @@ platform and sys modules functions and objects in our expressions ::
     {'s1': {'a': '1'}, 's2': {'long': 'b'}}
 
 
-Some limited (but hopefully sane and sufficient) default modules and 
-pre-computed common expressions available to an expression when the parser in 
+Some limited (but hopefully sane and sufficient) default modules and
+pre-computed common expressions available to an expression when the parser in
 called by buildout::
 
 
@@ -290,20 +290,20 @@ called by buildout::
   a = 1
 
   # major and minor python versions, yes even python 3.5 and 3.6 are there , prospectively
-  # comment: this expression "is true" and not that long expression cannot span several lines 
-  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , python31 , python32 , python33 , python34 , python35 , python36]) ] 
+  # comment: this expression "is true" and not that long expression cannot span several lines
+  [s2: any([python2, python3, python24 , python25 , python26 , python27 , python30 , python31 , python32 , python33 , python34 , python35 , python36]) ]
   b = 1
 
   # common python interpreter types
   [s3:cpython or pypy or jython or ironpython]  # a comment: this expression is likely always true, so this section will be kept
-  c = 1 
+  c = 1
 
   # common operating systems
-  [s4:linux or windows or cygwin or macosx or solaris or posix or True]  
+  [s4:linux or windows or cygwin or macosx or solaris or posix or True]
   d = 1
 
   # common bitness and endianness
-  [s5:bits32 or bits64 or little_endian or big_endian]  
+  [s5:bits32 or bits64 or little_endian or big_endian]
   e = 1
 
 .. -> text

@@ -97,6 +97,8 @@ And then run it:
    >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
    ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
    >>> os.chdir('..')
+   >>> p.stdout.close()
+   >>> p.stderr.close()
 
 It will download the software needed to run Buildout and install it in
 the current directory.
@@ -167,6 +169,8 @@ This can be used with the bootstrapping script as well:
    ...     print(p.stderr.read())
    >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
    ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
+   >>> p.stdout.close()
+   >>> p.stderr.close()
 
 This creates an empty Buildout configuration:
 
@@ -220,4 +224,3 @@ command above would generate a buildout configuration file:
 
 This can provide an easy way to experiment with a package without
 adding it to your Python environment or creating a virtualenv.
-
