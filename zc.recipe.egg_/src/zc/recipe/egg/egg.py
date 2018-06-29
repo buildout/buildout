@@ -84,7 +84,7 @@ class Eggs(object):
             links=self.links,
             index=self.index,
             allow_hosts=self.allow_hosts,
-            allow_unknown_extras=bool_option(buildout['buildout'], 'allow-unknown-extras')
+            allow_unknown_extras=bool_option(buildout_section, 'allow-unknown-extras')
             )
 
         return orig_distributions, ws

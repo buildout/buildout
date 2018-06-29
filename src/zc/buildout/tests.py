@@ -3712,7 +3712,7 @@ def test_suite():
 
         doctest.DocFileSuite(
             'easy_install.txt', 'downloadcache.txt', 'dependencylinks.txt',
-            'allowhosts.txt',
+            'allowhosts.txt', 'allow-unknown-extras.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
