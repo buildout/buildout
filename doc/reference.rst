@@ -231,6 +231,11 @@ allow-picked-versions, default: 'true'
   Indicate whether it should be possible to install requirements whose
   `versions aren't pinned <pinned-versions>`.
 
+allow-unknown-extras, default: 'false'
+  Specify whether requirements that specify an extra not provided by
+  the target distribution should be allowed. When this is false, such
+  a requirement is an error.
+
 bin-directory, default: bin
   The directory where generated scripts should be installed. If this
   is a relative path, it's evaluated relative to the buildout

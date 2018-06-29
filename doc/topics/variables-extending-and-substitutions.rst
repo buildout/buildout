@@ -107,6 +107,7 @@ with the later (right/bottom) configurations overriding earlier
     a = 11
     allow-hosts = *
     allow-picked-versions = true
+    allow-unknown-extras = false
     b = 21
     bin-directory = ...
     c = 31

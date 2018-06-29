@@ -4,20 +4,23 @@ Change History
 2.11.6 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Add a new buildout option ``allow-unknown-extras`` to enable
+  installing requirements that specify extras that do not exist. This
+  needs a corresponding update to zc.recipe.egg. See `issue 457
+  <https://github.com/buildout/buildout/issues/457>`_.
 
 
 2.11.5 (2018-06-19)
 ===================
 
-- Fix for `issue 295 <https://github.com/buildout/buildout/issues/295>`. On
+- Fix for `issue 295 <https://github.com/buildout/buildout/issues/295>`_. On
   windows, deletion of temporary egg files is more robust now.
 
 
 2.11.4 (2018-05-14)
 ===================
 
-- Fix for `issue 451 <https://github.com/buildout/buildout/issues/451>`:
+- Fix for `issue 451 <https://github.com/buildout/buildout/issues/451>`_:
   distributions with a version number that normalizes to a shorter version
   number (3.3.0 to 3.3, for instance) can be installed now.
 
