@@ -23,6 +23,8 @@ import re
 import sys
 import zc.buildout.easy_install
 
+from zc.buildout.buildout import bool_option
+
 
 class Eggs(object):
 
@@ -82,6 +84,7 @@ class Eggs(object):
             links=self.links,
             index=self.index,
             allow_hosts=self.allow_hosts,
+            allow_unknown_extras=bool_option(buildout['buildout'], 'allow-unknown-extras')
             )
 
         return orig_distributions, ws
@@ -127,6 +130,7 @@ class Eggs(object):
         links=(),
         index=None,
         allow_hosts=('*',),
+        allow_unknown_extras=False,
     ):
         """Helper function to build a working set.
 
@@ -145,6 +149,7 @@ class Eggs(object):
             tuple(links),
             index,
             tuple(allow_hosts),
+            allow_unknown_extras,
         )
         if cache_key not in cache_storage:
             if offline:
@@ -159,7 +164,8 @@ class Eggs(object):
                     index=index,
                     path=[develop_eggs_dir],
                     newest=newest,
-                    allow_hosts=allow_hosts)
+                    allow_hosts=allow_hosts,
+                    allow_unknown_extras=allow_unknown_extras)
             ws = self._sort_working_set(ws)
             cache_storage[cache_key] = ws
 

@@ -3730,9 +3730,7 @@ def test_suite():
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
                  '\\1-  \\2\n'),
-                (re.compile(r'^(\w+\.)*(UnknownExtra: )'),
-                 '\2'),
-                ]+(sys.version_info < (2, 5) and [
+               ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
                   (re.compile('.*Error: what does not exist.*', re.S), ''),

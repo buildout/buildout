@@ -736,20 +736,29 @@ class Installer(object):
                     pkg_resources.VersionConflict(dist, req), ws)
 
             best[req.key] = dist
-            if self._allow_unknown_extras:
-                missing_requested = sorted(
-                    set(req.extras) - set(dist.extras)
+
+            missing_requested = sorted(
+                set(req.extras) - set(dist.extras)
+            )
+            for missing in missing_requested:
+                logger.warning(
+                    '%s does not provide the extra \'%s\'',
+                    dist, missing
                 )
-                for missing in missing_requested:
-                    logger.warning(
-                        '%s does not provide the extra \'%s\'',
-                        dist, missing
+
+            if missing_requested:
+                if not self._allow_unknown_extras:
+                    raise zc.buildout.UserError(
+                        "Couldn't find the required extras. Add 'allow-unknown-extras=true' "
+                        "to the [buildout] configuration if this is acceptable."
                     )
+
                 extra_requirements = sorted(
                     set(dist.extras) & set(req.extras)
                 )
             else:
                 extra_requirements = dist.requires(req.extras)[::-1]
+
             for extra_requirement in extra_requirements:
                 self._requirements_and_constraints.append(
                     "Requirement of %s: %s" % (
