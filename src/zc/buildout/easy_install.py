@@ -749,8 +749,13 @@ class Installer(object):
             if missing_requested:
                 if not self._allow_unknown_extras:
                     raise zc.buildout.UserError(
-                        "Couldn't find the required extras. Add 'allow-unknown-extras=true' "
-                        "to the [buildout] configuration if this is acceptable."
+                        "Couldn't find the required extra. "
+                        "This means the requirement is incorrect. "
+                        "If the requirement is itself from software you "
+                        "requested, then there might be a bug in "
+                        "requested software. You can ignore this by "
+                        "using 'allow-unknown-extras=true', however "
+                        "that may simply cause needed software to be omitted."
                     )
 
                 extra_requirements = sorted(

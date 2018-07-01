@@ -225,7 +225,7 @@ is an error.
     ...     index=link_server+'index/')
     Traceback (most recent call last):
     ...
-    UserError: Couldn't find the required extras. Add 'allow-unknown-extras=true' to the [buildout] configuration if this is acceptable.
+    UserError: Couldn't find the required extra...
 
 We can pass the ``allow_unknown_extras`` argument to force the
 installation to proceed.
