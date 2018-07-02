@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.0.6 (unreleased)
+2.0.6 (2018-07-02)
 ==================
 
 - Added extra keyword argument ``allow_unknown_extras`` to support zc.buildout
