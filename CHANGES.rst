@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.11.6 (unreleased)
+2.12.0 (2018-07-02)
 ===================
 
 - Add a new buildout option ``allow-unknown-extras`` to enable
