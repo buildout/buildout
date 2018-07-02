@@ -9,6 +9,8 @@ Change History
   needs a corresponding update to zc.recipe.egg. See `issue 457
   <https://github.com/buildout/buildout/issues/457>`_.
 
+  zc.recipe.egg has been updated to 2.0.6 for this change.
+
 
 2.11.5 (2018-06-19)
 ===================
