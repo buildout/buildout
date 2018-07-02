@@ -3712,7 +3712,7 @@ def test_suite():
 
         doctest.DocFileSuite(
             'easy_install.txt', 'downloadcache.txt', 'dependencylinks.txt',
-            'allowhosts.txt',
+            'allowhosts.txt', 'allow-unknown-extras.txt',
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
@@ -3730,7 +3730,7 @@ def test_suite():
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
                  '\\1-  \\2\n'),
-                ]+(sys.version_info < (2, 5) and [
+               ]+(sys.version_info < (2, 5) and [
                   (re.compile('.*No module named runpy.*', re.S), ''),
                   (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
                   (re.compile('.*Error: what does not exist.*', re.S), ''),

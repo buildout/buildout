@@ -63,7 +63,7 @@ default_index_url = os.environ.get(
 logger = logging.getLogger('zc.buildout.easy_install')
 
 url_match = re.compile('[a-z0-9+.-]+://').match
-is_source_encoding_line = re.compile('coding[:=]\s*([-\w.]+)').search
+is_source_encoding_line = re.compile(r'coding[:=]\s*([-\w.]+)').search
 # Source encoding regex from http://www.python.org/dev/peps/pep-0263/
 
 is_win32 = sys.platform == 'win32'
@@ -222,7 +222,7 @@ def dist_needs_pkg_resources(dist):
     )
 
 
-class Installer:
+class Installer(object):
 
     _versions = {}
     _required_by = {}
@@ -233,6 +233,7 @@ class Installer:
     _use_dependency_links = True
     _allow_picked_versions = True
     _store_required_by = False
+    _allow_unknown_extras = False
 
     def __init__(self,
                  dest=None,
@@ -246,10 +247,12 @@ class Installer:
                  use_dependency_links=None,
                  allow_hosts=('*',),
                  check_picked=True,
+                 allow_unknown_extras=False,
                  ):
         assert executable == sys.executable, (executable, sys.executable)
         self._dest = dest if dest is None else pkg_resources.normalize_path(dest)
         self._allow_hosts = allow_hosts
+        self._allow_unknown_extras = allow_unknown_extras
 
         if self._install_from_cache:
             if not self._download_cache:
@@ -733,7 +736,34 @@ class Installer:
                     pkg_resources.VersionConflict(dist, req), ws)
 
             best[req.key] = dist
-            extra_requirements = dist.requires(req.extras)[::-1]
+
+            missing_requested = sorted(
+                set(req.extras) - set(dist.extras)
+            )
+            for missing in missing_requested:
+                logger.warning(
+                    '%s does not provide the extra \'%s\'',
+                    dist, missing
+                )
+
+            if missing_requested:
+                if not self._allow_unknown_extras:
+                    raise zc.buildout.UserError(
+                        "Couldn't find the required extra. "
+                        "This means the requirement is incorrect. "
+                        "If the requirement is itself from software you "
+                        "requested, then there might be a bug in "
+                        "requested software. You can ignore this by "
+                        "using 'allow-unknown-extras=true', however "
+                        "that may simply cause needed software to be omitted."
+                    )
+
+                extra_requirements = sorted(
+                    set(dist.extras) & set(req.extras)
+                )
+            else:
+                extra_requirements = dist.requires(req.extras)[::-1]
+
             for extra_requirement in extra_requirements:
                 self._requirements_and_constraints.append(
                     "Requirement of %s: %s" % (
@@ -912,6 +942,7 @@ def install(specs, dest,
             include_site_packages=None,
             allowed_eggs_from_site_packages=None,
             check_picked=True,
+            allow_unknown_extras=False,
             ):
     assert executable == sys.executable, (executable, sys.executable)
     assert include_site_packages is None
@@ -921,7 +952,8 @@ def install(specs, dest,
                           always_unzip, path,
                           newest, versions, use_dependency_links,
                           allow_hosts=allow_hosts,
-                          check_picked=check_picked)
+                          check_picked=check_picked,
+                          allow_unknown_extras=allow_unknown_extras)
     return installer.install(specs, working_set)
 
 buildout_and_setuptools_dists = list(install(['zc.buildout'], None,

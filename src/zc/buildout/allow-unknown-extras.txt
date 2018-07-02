@@ -1,0 +1,65 @@
+======================
+ Allow Unknown Extras
+======================
+
+Sometimes we need to allow unknown extras.
+
+The ``allow-unknown-extras`` option lets us do that in a buildout
+configuration, just as we can directly calling ``easy_install``
+works exactly like the one provided in ``easy_install``.
+
+Let's create a develop egg that requires a bogus extra.
+
+    >>> mkdir(sample_buildout, 'allowdemo')
+    >>> write(sample_buildout, 'allowdemo', 'dependencydemo.py',
+    ...       'import eggrecipekss.core')
+    >>> write(sample_buildout, 'allowdemo', 'setup.py',
+    ... '''from setuptools import setup; setup(
+    ...     name='allowdemo', py_modules=['dependencydemo'],
+    ...     zip_safe=True, version='1')
+    ... ''')
+
+Now let's configure the buildout to use the develop egg with a bogus extra.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = allowdemo
+    ... parts = eggs
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = allowdemo[bad_extra]
+    ... ''')
+
+Now we can run the buildout and see that it fails:
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Develop: '/sample-buildout/allowdemo'
+    Installing eggs...
+    ...
+    While:
+      Installing eggs.
+    Error: Couldn't find the required extra...
+
+If we flip the option on, the buildout succeeds
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... develop = allowdemo
+    ... parts = eggs
+    ... allow-unknown-extras = true
+    ...
+    ... [eggs]
+    ... recipe = zc.recipe.egg:eggs
+    ... eggs = allowdemo[bad_extra]
+    ... ''')
+
+
+Now we can run the buildout and only get a warning::
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Develop: '/sample-buildout/allowdemo'
+    Installing eggs...
+    allowdemo 1 does not provide the extra 'bad_extra'

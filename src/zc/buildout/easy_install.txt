@@ -86,6 +86,10 @@ relative_paths
    allows scripts to work when scripts and eggs are moved, as long as
    they are both moved in the same way.
 
+allow_unknown_extras
+    Install the requirements, even if one of them specifies an
+    extra not provided by the distribution.
+
 The install method returns a working set containing the distributions
 needed to meet the given requirements.
 
@@ -207,6 +211,32 @@ dependencies.  We might do this to specify a specific version.
     d  demoneeded-1.1-py2.4.egg
     d  demoneeded-1.2rc1-py2.4.egg
     d  other-1.0-py2.4.egg
+
+    >>> rmdir(dest)
+
+Unknown extras
+--------------
+
+Attempting to install a requirement with an extra it doesn't provide
+is an error.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo[unknown_extra]'], dest, links=[link_server],
+    ...     index=link_server+'index/')
+    Traceback (most recent call last):
+    ...
+    UserError: Couldn't find the required extra...
+
+We can pass the ``allow_unknown_extras`` argument to force the
+installation to proceed.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ...     ['demo[unknown_extra]'], dest, links=[link_server],
+    ...     index=link_server+'index/',
+    ...     allow_unknown_extras=True)
+
+    >>> ls(dest)
+    d  demo-0.3-py2.4.egg
 
     >>> rmdir(dest)
 

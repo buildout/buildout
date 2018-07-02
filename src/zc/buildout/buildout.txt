@@ -804,6 +804,8 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         DEFAULT_VALUE
     allow-picked-versions= true
         DEFAULT_VALUE
+    allow-unknown-extras= false
+        DEFAULT_VALUE
     bin-directory= bin
         DEFAULT_VALUE
     develop= recipes
@@ -881,6 +883,11 @@ You get more information about the way values are computed::
     <BLANKLINE>
        AS DEFAULT_VALUE
        SET VALUE = true
+    <BLANKLINE>
+    allow-unknown-extras= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
     <BLANKLINE>
     bin-directory= bin
     <BLANKLINE>
@@ -2775,6 +2782,7 @@ database is shown::
     [buildout]
     allow-hosts = *
     allow-picked-versions = true
+    allow-unknown-extras = false
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout

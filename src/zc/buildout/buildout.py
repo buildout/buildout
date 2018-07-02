@@ -285,6 +285,7 @@ _buildout_default_options = _annotate_section({
     'socket-timeout': '',
     'update-versions-file': '',
     'use-dependency-links': 'true',
+    'allow-unknown-extras': 'false',
     }, 'DEFAULT_VALUE')
 
 
