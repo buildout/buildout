@@ -4,7 +4,8 @@ Change History
 2.0.7 (unreleased)
 ==================
 
-- Nothing changed yet.
+- For the 2.0.6 change, we require zc.buildout 2.12.0. The `install_requires`
+  in `setup.py` now also says that.
 
 
 2.0.6 (2018-07-02)
