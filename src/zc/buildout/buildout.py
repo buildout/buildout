@@ -378,7 +378,7 @@ class Buildout(DictMixin):
                           pkg_resources.Requirement.parse('zc.buildout')
                           ).version),
                      # Use 2, even though not final
-                     ('zc.recipe.egg', '>=2.0.0a3'),
+                     ('zc.recipe.egg', '>=2.0.6'),
                      )
                  if k not in versions
                  ))
