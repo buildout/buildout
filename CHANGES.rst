@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.12.1 (unreleased)
+2.12.1 (2018-07-02)
 ===================
 
 - zc.buildout now explicitly requests zc.recipe.egg >=2.0.6 now.
