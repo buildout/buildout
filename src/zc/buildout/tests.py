@@ -3031,14 +3031,14 @@ def want_new_zcrecipeegg():
     ... eggs = demo
     ... ''')
     >>> print_(system(join('bin', 'buildout')), end='') # doctest: +ELLIPSIS
-    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'...
+    Getting distribution for 'zc.recipe.egg<2dev,>=2.0.6'...
     While:
       Installing.
       Getting section egg.
       Initializing section egg.
       Installing recipe zc.recipe.egg <2dev.
-      Getting distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'.
-    Error: Couldn't find a distribution for 'zc.recipe.egg<2dev,>=2.0.0a3'.
+      Getting distribution for 'zc.recipe.egg<2dev,>=2.0.6'.
+    Error: Couldn't find a distribution for 'zc.recipe.egg<2dev,>=2.0.6'.
     """
 
 def macro_inheritance_bug():
