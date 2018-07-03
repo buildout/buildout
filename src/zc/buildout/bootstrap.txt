@@ -19,7 +19,9 @@ Make sure the bootstrap script actually works::
     ... [buildout]
     ... parts =
     ... ''')
-    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> with open(bootstrap_py) as f:
+    ...     bootstrap_py_contents = f.read()
+    >>> write('bootstrap.py', bootstrap_py_contents)
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
     ...     'bootstrap.py')); print_('X') # doctest: +ELLIPSIS
@@ -52,7 +54,7 @@ By default it gets the latest version::
     >>> buildout_script = join(sample_buildout, 'bin', 'buildout')
     >>> if sys.platform.startswith('win'):
     ...     buildout_script += '-script.py'
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-22.0.0...egg',
@@ -83,7 +85,7 @@ Now let's try with ``2.0.0``, which happens to exist::
 
 Let's make sure the generated ``buildout`` script uses it::
 
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',
@@ -103,7 +105,7 @@ Now let's try with ``31.0.0``, which happens to exist::
 
 Let's make sure the generated ``buildout`` script uses it::
 
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-...egg',
@@ -121,7 +123,7 @@ which happens to exist::
 
 Let's make sure the generated ``buildout`` script uses it::
 
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',
@@ -153,7 +155,7 @@ specify the setuptools version, and to reuse the setuptools zipfile::
     >>> os.path.exists('setuptools-32.1.0.zip')
     True
 
-    >>> print_(open(buildout_script).read()) # doctest: +ELLIPSIS
+    >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
       '/sample/eggs/zc.buildout-2.0.0...egg',

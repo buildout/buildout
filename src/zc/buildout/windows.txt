@@ -28,7 +28,7 @@ can't delete.
     ...             os.makedirs (self.location)
     ...
     ...         name = os.path.join (self.location, 'readonly.txt')
-    ...         open (name, 'w').write ('this is a read only file')
+    ...         with open (name, 'w') as f: f.write ('this is a read only file')
     ...         os.chmod(name, 256)
     ...         return ()
     ...

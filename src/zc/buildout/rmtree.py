@@ -40,7 +40,7 @@ def rmtree (path):
     Now create a file ...
 
     >>> foo = os.path.join (d, 'foo')
-    >>> _ = open (foo, 'w').write ('huhu')
+    >>> with open (foo, 'w') as f: _ = f.write ('huhu')
 
     and make it unwriteable
 
@@ -75,4 +75,3 @@ def test_suite():
 
 if "__main__" == __name__:
     doctest.testmod()
-

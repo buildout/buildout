@@ -20,15 +20,8 @@ except ImportError:
 
 try:
     # Python 3
-    from urllib.request import FancyURLopener, URLopener, urlretrieve
+    from urllib.request import urlretrieve
     from urllib.parse import urlparse
-    from urllib import request
-
-    class PatchedURLopener(FancyURLopener):
-        http_error_default = URLopener.http_error_default
-
-    request._urlopener = PatchedURLopener()  # Ook! Monkey patch!
-
 except ImportError:
     # Python 2
     import base64

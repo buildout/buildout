@@ -637,7 +637,7 @@ class Installer(object):
         if dist_needs_pkg_resources(dist):
             # We have a namespace package but no requirement for setuptools
             if dist.precedence == pkg_resources.DEVELOP_DIST:
-                logger.warn(
+                logger.warning(
                     "Develop distribution: %s\n"
                     "uses namespace packages but the distribution "
                     "does not require setuptools.",

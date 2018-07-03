@@ -20,7 +20,8 @@ Some people pass buildout settings to bootstrap.
     ... [buildout]
     ... parts =
     ... ''')
-    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> with open(bootstrap_py) as f: bootstrap_py_contents = f.read()
+    >>> write('bootstrap.py', bootstrap_py_contents)
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable) +
     ...     ' bootstrap.py buildout:directory=' + top +
@@ -43,7 +44,8 @@ They might do it with init, but no worries:
     >>> os.chdir(top)
     >>> mkdir(top, 'buildout')
     >>> os.chdir(top)
-    >>> write('bootstrap.py', open(bootstrap_py).read())
+    >>> with open(bootstrap_py) as f: bootstrap_py_contents = f.read()
+    >>> write('bootstrap.py', bootstrap_py_contents)
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable) +
     ...     ' bootstrap.py buildout:directory=' + top +

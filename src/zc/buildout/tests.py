@@ -380,9 +380,10 @@ setup(name=%r, version=%r,
 
 def make_dist_that_requires(dest, name, requires=[], version=1, egg=''):
     os.mkdir(os.path.join(dest, name))
-    open(os.path.join(dest, name, 'setup.py'), 'w').write(
-        make_dist_that_requires_setup_py_template
-        % (name, version, requires)
+    with open(os.path.join(dest, name, 'setup.py'), 'w') as f:
+        f.write(
+            make_dist_that_requires_setup_py_template
+            % (name, version, requires)
         )
 
 def show_who_requires_when_there_is_a_conflict():
@@ -616,7 +617,7 @@ the comparison with the saved value works correctly.
     ...         options['format'] = '%3d'
     ...
     ...     def install(self):
-    ...         open('t', 'w').write('t')
+    ...         with open('t', 'w') as f: f.write('t')
     ...         return 't'
     ...
     ...     update = install
@@ -2002,6 +2003,7 @@ if sys.version_info > (2, 4):
         ...     p.stdin.close()
         ...     print_(p.stdout.read().decode())
         ...     print_('Exit:', bool(p.wait()))
+        ...     p.stdout.close()
 
         >>> call(buildout)
         <BLANKLINE>
@@ -2336,11 +2338,12 @@ def create_egg(name, version, dest, install_requires=None,
     else:
         requires = ''
     try:
-        open(os.path.join(d, 'setup.py'), 'w').write(
-            'from setuptools import setup\n'
-            'setup(name=%r, version=%r, extras_require=%r, zip_safe=True,\n'
-            '      %s %s py_modules=["setup"]\n)'
-            % (name, str(version), extras, requires, links)
+        with open(os.path.join(d, 'setup.py'), 'w') as f:
+            f.write(
+                'from setuptools import setup\n'
+                'setup(name=%r, version=%r, extras_require=%r, zip_safe=True,\n'
+                '      %s %s py_modules=["setup"]\n)'
+                % (name, str(version), extras, requires, links)
             )
         zc.buildout.testing.bdist_egg(d, sys.executable, os.path.abspath(dest))
     finally:
@@ -2786,7 +2789,8 @@ def make_sure_versions_dont_cancel_extras():
     """
     There was a bug that caused extras in requirements to be lost.
 
-    >>> _ = open('setup.py', 'w').write('''
+    >>> with open('setup.py', 'w') as f:
+    ...    _ = f.write('''
     ... from setuptools import setup
     ... setup(name='extraversiondemo', version='1.0',
     ...       url='x', author='x', author_email='x',
@@ -3478,7 +3482,7 @@ def buildout_txt_setup(test):
         os.path.join(eggs, 'zc.recipe.egg'),
         )
 
-egg_parse = re.compile('([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
+egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d).egg$'
                        ).match
 def makeNewRelease(project, ws, dest, version='99.99'):
     dist = ws.find(pkg_resources.Requirement.parse(project))
@@ -3500,9 +3504,11 @@ def makeNewRelease(project, ws, dest, version='99.99'):
     else:
         shutil.copytree(dist.location, dest)
         info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
-        info = open(info_path).read().replace("Version: %s" % oldver,
-                                              "Version: %s" % version)
-        open(info_path, 'w').write(info)
+        with open(info_path) as f:
+            info = f.read().replace("Version: %s" % oldver,
+                                    "Version: %s" % version)
+        with open(info_path, 'w') as f:
+            f.write(info)
 
 def getWorkingSetWithBuildoutEgg(test):
     sample_buildout = test.globs['sample_buildout']
@@ -3578,7 +3584,9 @@ normalize_S = (
     '#!/usr/local/bin/python2.7',
     )
 
+
 def test_suite():
+
     test_suite = [
         manuel.testing.TestSuite(
             manuel.doctest.Manuel() + manuel.capture.Manuel(),
@@ -3594,17 +3602,17 @@ def test_suite():
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.adding_find_link,
                     # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
-                    (re.compile('__buildout_signature__ = recipes-\S+'),
+                    (re.compile(r'__buildout_signature__ = recipes-\S+'),
                      '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-                    (re.compile('executable = [\S ]+python\S*', re.I),
+                    (re.compile(r'executable = [\S ]+python\S*', re.I),
                      'executable = python'),
-                    (re.compile('[-d]  (setuptools|setuptools)-\S+[.]egg'),
+                    (re.compile(r'[-d]  (setuptools|setuptools)-\S+[.]egg'),
                      'setuptools.egg'),
-                    (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+                    (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
                      'zc.buildout.egg'),
-                    (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-                    (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-                    (re.compile('Picked: (\S+) = \S+'),
+                    (re.compile(r'creating \S*setup.cfg'), 'creating setup.cfg'),
+                    (re.compile(r'hello\%ssetup' % os.path.sep), 'hello/setup'),
+                    (re.compile(r'Picked: (\S+) = \S+'),
                      'Picked: \\1 = V.V'),
                     (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
                      'We have a develop egg: zc.buildout X.X.'),
@@ -3615,7 +3623,7 @@ def test_suite():
                      '[Errno 17] File exists: '
                      ),
                     (re.compile('setuptools'), 'setuptools'),
-                    (re.compile('Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
+                    (re.compile(r'Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
                     (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
                      'zc.\\1 = >=1.99'),
                     ])
@@ -3639,20 +3647,20 @@ def test_suite():
                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                # (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
                #  ''),
-               (re.compile('__buildout_signature__ = recipes-\S+'),
+               (re.compile(r'__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+               (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-               (re.compile('Picked: (\S+) = \S+'),
+               (re.compile(r'creating \S*setup.cfg'), 'creating setup.cfg'),
+               (re.compile(r'hello\%ssetup' % os.path.sep), 'hello/setup'),
+               (re.compile(r'Picked: (\S+) = \S+'),
                 'Picked: \\1 = V.V'),
                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
-               (re.compile('WindowsError'), 'OSError'),
-               (re.compile('setuptools = \S+'), 'setuptools = 0.7.99'),
+               (re.compile(r'WindowsError'), 'OSError'),
+               (re.compile(r'setuptools = \S+'), 'setuptools = 0.7.99'),
                (re.compile(r'\[Error 17\] Cannot create a file '
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
@@ -3688,7 +3696,7 @@ def test_suite():
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                            '-py\d.\d.egg'),
+                            r'-py\d.\d.egg'),
                  '\\1.egg'),
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
@@ -3726,7 +3734,7 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 normalize_bang,
                 normalize_S,
-                (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+                (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
                  '\\1-  \\2\n'),
@@ -3771,18 +3779,18 @@ def test_suite():
                 zc.buildout.testing.adding_find_link,
                 normalize_bang,
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
-                (re.compile("buildout: Running \S*setup.py"),
+                (re.compile(r"buildout: Running \S*setup.py"),
                  'buildout: Running setup.py'),
-                (re.compile('setuptools-\S+-'),
+                (re.compile(r'setuptools-\S+-'),
                  'setuptools.egg'),
-                (re.compile('zc.buildout-\S+-'),
+                (re.compile(r'zc.buildout-\S+-'),
                  'zc.buildout.egg'),
-                (re.compile('setuptools = \S+'), 'setuptools = 0.7.99'),
-                (re.compile('File "\S+one.py"'),
+                (re.compile(r'setuptools = \S+'), 'setuptools = 0.7.99'),
+                (re.compile(r'File "\S+one.py"'),
                  'File "one.py"'),
                 (re.compile(r'We have a develop egg: (\S+) (\S+)'),
                  r'We have a develop egg: \1 V'),
-                (re.compile('Picked: setuptools = \S+'),
+                (re.compile(r'Picked: setuptools = \S+'),
                  'Picked: setuptools = V'),
                 (re.compile('[-d]  setuptools'), '-  setuptools'),
                 (re.compile(r'\\[\\]?'), '/'),
@@ -3816,14 +3824,14 @@ def test_suite():
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.testing.not_found,
                zc.buildout.testing.adding_find_link,
-               (re.compile('__buildout_signature__ = recipes-\S+'),
+               (re.compile(r'__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
-               (re.compile('[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
-               (re.compile('zc.buildout(-\S+)?[.]egg(-link)?'),
+               (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
+               (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('creating \S*setup.cfg'), 'creating setup.cfg'),
-               (re.compile('hello\%ssetup' % os.path.sep), 'hello/setup'),
-               (re.compile('Picked: (\S+) = \S+'),
+               (re.compile(r'creating \S*setup.cfg'), 'creating setup.cfg'),
+               (re.compile(r'hello\%ssetup' % os.path.sep), 'hello/setup'),
+               (re.compile(r'Picked: (\S+) = \S+'),
                 'Picked: \\1 = V.V'),
                (re.compile(r'We have a develop egg: zc.buildout (\S+)'),
                 'We have a develop egg: zc.buildout X.X.'),

@@ -50,9 +50,9 @@ def test_suite():
                zc.buildout.tests.normalize_bang,
                zc.buildout.tests.normalize_S,
                zc.buildout.testing.not_found,
-               (re.compile('[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
+               (re.compile(r'[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
-               (re.compile('[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
+               (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])
@@ -66,15 +66,15 @@ def test_suite():
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
                (re.compile('__buildout_signature__ = '
-                           'sample-\S+\s+'
-                           'zc.recipe.egg-\S+\s+'
-                           'setuptools-\S+\s+'
-                           'zc.buildout-\S+\s*'
+                           r'sample-\S+\s+'
+                           r'zc.recipe.egg-\S+\s+'
+                           r'setuptools-\S+\s+'
+                           r'zc.buildout-\S+\s*'
                            ),
                 '__buildout_signature__ = sample- zc.recipe.egg-'),
-               (re.compile('find-links = http://localhost:\d+/'),
+               (re.compile(r'find-links = http://localhost:\d+/'),
                 'find-links = http://localhost:8080/'),
-               (re.compile('index = http://localhost:\d+/index'),
+               (re.compile(r'index = http://localhost:\d+/index'),
                 'index = http://localhost:8080/index'),
                ])
             ),
@@ -87,7 +87,7 @@ def test_suite():
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.not_found,
                 (re.compile("(d  ((ext)?demo(needed)?|other)"
-                            "-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                            r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
                 (re.compile('extdemo.c\n.+\\\\extdemo.exp\n'), ''),
                 (re.compile(
