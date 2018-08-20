@@ -42,6 +42,9 @@ a minimal configuration:
 
    >>> write(src, 'buildout.cfg')
 
+By default, Buildout looks for a file named ``buildout.cfg`` to find its configuration.
+The configuration hereabove is thus stored in ``buildout.cfg``.
+
 A minimal (and useless) Buildout configuration has a ``buildout`` section
 with a ``parts`` option.  If we run Buildout:
 
