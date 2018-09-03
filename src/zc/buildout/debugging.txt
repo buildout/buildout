@@ -56,12 +56,13 @@ And create a buildout that uses it:
 
 If we run the buildout, we'll get an error:
 
-    >>> print_(system(buildout), end='')
+    >>> print_(system(buildout, with_exit_code=True), end='')
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     While:
       Installing data-dir.
     Error: Missing option: data-dir:directory
+    EXIT CODE: 1
 
 
 If we want to debug the error, we can add the -D option. Here's we'll
@@ -71,7 +72,7 @@ supply some input:
     ... up
     ... p sorted(self.options.keys())
     ... q
-    ... """), end='')
+    ... """, with_exit_code=True), end='')
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     > /zc/buildout/buildout.py(925)__getitem__()
@@ -95,3 +96,4 @@ supply some input:
     MissingOption: Missing option: data-dir:directory
     <BLANKLINE>
     Starting pdb:
+    EXIT CODE: 1

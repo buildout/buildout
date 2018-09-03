@@ -2149,7 +2149,7 @@ def main(args=None):
                 else:
                     sys.stderr.write(_internal_error_template)
                     traceback.print_exception(*exc_info)
-                    sys.exit(1)
+            sys.exit(1)
 
     finally:
         logging.shutdown()
