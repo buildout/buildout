@@ -4,7 +4,7 @@ Change History
 2.12.2 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Exit program with error code on error when running with ``-D``.
 
 
 2.12.1 (2018-07-02)
