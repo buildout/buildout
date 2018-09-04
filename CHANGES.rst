@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.12.2 (unreleased)
+2.12.2 (2018-09-04)
 ===================
 
 - Upon an error, buildout exits with a non-zero exit code. This now also works
