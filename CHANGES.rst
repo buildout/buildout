@@ -4,7 +4,10 @@ Change History
 2.12.2 (unreleased)
 ===================
 
-- Exit program with error code on error when running with ``-D``.
+- Upon an error, buildout exits with a non-zero exit code. This now also works
+  when running with ``-D``.
+
+- Fixed most 'Deprecation' and 'Resource' warnings.
 
 
 2.12.1 (2018-07-02)
