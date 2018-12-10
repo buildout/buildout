@@ -848,7 +848,7 @@ class Buildout(DictMixin):
         __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
 
-        # run uuinstall recipe
+        # run uninstall recipe
         recipe, entry = _recipe(installed_part_options[part])
         try:
             uninstaller = _install_and_load(
