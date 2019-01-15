@@ -1238,6 +1238,27 @@ class Buildout(DictMixin):
 
     runsetup = setup # backward compat.
 
+    def query(self, args=None):
+        if args is None or len(args) != 1:
+            _error('The query command requires a single argument.')
+        option = args[0]
+        option = option.split(':')
+        if len(option) == 1:
+            option = 'buildout', option[0]
+        elif len(option) != 2:
+            _error('Invalid option:', args[0])
+        section, option = option
+        verbose = self['buildout'].get('verbosity', 0) != 0
+        if verbose:
+            print_('${%s:%s}' % (section, option))
+        try:
+            print_(self._raw[section][option])
+        except KeyError:
+            if section in self._raw:
+                _error('Key not found:', option)
+            else:
+                _error('Section not found:', section)
+
     def annotate(self, args=None):
         verbose = self['buildout'].get('verbosity', 0) != 0
         section = None
@@ -2020,6 +2041,10 @@ Commands:
     alphabetically. For each section, all key-value pairs are displayed,
     sorted alphabetically, along with the origin of the value (file name or
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
+
+  query section:key
+    
+    Display value of given section key pair.
 """
 
 def _help():
@@ -2115,7 +2140,7 @@ def main(args=None):
         command = args.pop(0)
         if command not in (
             'install', 'bootstrap', 'runsetup', 'setup', 'init',
-            'annotate',
+            'annotate', 'query',
             ):
             _error('invalid command:', command)
     else:
