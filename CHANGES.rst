@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.12.3 (unreleased)
+2.13.0 (2019-01-17)
 ===================
 
 - Get information about the configuration with new command ``buildout query``.
