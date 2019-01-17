@@ -4,7 +4,7 @@ Change History
 2.12.3 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Get information about the configuration with new command ``buildout query``.
 
 
 2.12.2 (2018-09-04)

@@ -50,6 +50,19 @@ if PY3:
 else:
     text_type = unicode
 
+
+def command(method):
+    method.buildout_command = True
+    return method
+
+
+def commands(cls):
+    for name, method in cls.__dict__.items():
+        if hasattr(method, "buildout_command"):
+            cls.COMMANDS.add(name)
+    return cls
+
+
 def _print_options(sep=' ', end='\n', file=None):
     return sep, end, file
 
@@ -289,7 +302,10 @@ _buildout_default_options = _annotate_section({
     }, 'DEFAULT_VALUE')
 
 
+@commands
 class Buildout(DictMixin):
+
+    COMMANDS = set()
 
     def __init__(self, config_file, cloptions,
                  user_defaults=True,
@@ -555,6 +571,7 @@ class Buildout(DictMixin):
             return name
         return os.path.join(self._buildout_dir, name)
 
+    @command
     def bootstrap(self, args):
         __doing__ = 'Bootstrapping.'
 
@@ -628,11 +645,13 @@ class Buildout(DictMixin):
             f.write('[buildout]\nparts =\n')
         f.close()
 
+    @command
     def init(self, args):
         self.bootstrap(())
         if args:
             self.install(())
 
+    @command
     def install(self, install_args):
         __doing__ = 'Installing.'
 
@@ -1210,6 +1229,7 @@ class Buildout(DictMixin):
             print_("Picked versions have been written to " +
                    self.update_versions_file)
 
+    @command
     def setup(self, args):
         if not args:
             raise zc.buildout.UserError(
@@ -1236,8 +1256,33 @@ class Buildout(DictMixin):
             os.close(fd)
             os.remove(tsetup)
 
-    runsetup = setup # backward compat.
+    @command
+    def runsetup(self, args):
+        self.setup(args)
 
+    @command
+    def query(self, args=None):
+        if args is None or len(args) != 1:
+            _error('The query command requires a single argument.')
+        option = args[0]
+        option = option.split(':')
+        if len(option) == 1:
+            option = 'buildout', option[0]
+        elif len(option) != 2:
+            _error('Invalid option:', args[0])
+        section, option = option
+        verbose = self['buildout'].get('verbosity', 0) != 0
+        if verbose:
+            print_('${%s:%s}' % (section, option))
+        try:
+            print_(self._raw[section][option])
+        except KeyError:
+            if section in self._raw:
+                _error('Key not found:', option)
+            else:
+                _error('Section not found:', section)
+
+    @command
     def annotate(self, args=None):
         verbose = self['buildout'].get('verbosity', 0) != 0
         section = None
@@ -2020,6 +2065,10 @@ Commands:
     alphabetically. For each section, all key-value pairs are displayed,
     sorted alphabetically, along with the origin of the value (file name or
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
+
+  query section:key
+    
+    Display value of given section key pair.
 """
 
 def _help():
@@ -2113,10 +2162,7 @@ def main(args=None):
 
     if args:
         command = args.pop(0)
-        if command not in (
-            'install', 'bootstrap', 'runsetup', 'setup', 'init',
-            'annotate',
-            ):
+        if command not in Buildout.COMMANDS:
             _error('invalid command:', command)
     else:
         command = 'install'
