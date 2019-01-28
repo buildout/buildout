@@ -171,7 +171,25 @@ the default command if no command is specified.
    exists for backward compatibility, but may be dropped in the
    future.
 
+.. _query-command:
 
+query [section:]key
+___________________
+
+Display the value of any buildout configuration option
+
+.. code-block:: console
+
+   buildout query buildout:parts
+
+When you query the ``buildout`` section, you can pass the key only. For instance,
+
+.. code-block:: console
+
+   buildout query parts
+   
+is equivalent to the command above.
+   
 setup PATH SETUP-COMMANDS
 _________________________
 
