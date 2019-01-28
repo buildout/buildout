@@ -93,8 +93,8 @@ Buildout commands
 
 .. _annotate-command:
 
-annotate
-________
+annotate [sections]
+___________________
 
 Display the buildout configuration options, including their values and
 where they came from. Try it!
