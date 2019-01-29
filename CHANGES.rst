@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.1 (unreleased)
+2.13.1 (2019-01-29)
 ===================
 
 - Documentation update for the new ``buildout query`` command.
