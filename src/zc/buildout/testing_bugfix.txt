@@ -9,7 +9,7 @@ The buildout testing set up runs a buildout which adds a
 remove it. This can disturb other tests of packages reusing
 zc.buildout.testing.
 
-The handers before calling set up are:
+The handlers before calling set up are:
 
     >>> import logging
     >>> len(logging.getLogger().handlers)
