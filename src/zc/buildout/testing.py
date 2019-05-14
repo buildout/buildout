@@ -606,6 +606,9 @@ normalize_exception_type_for_python_2_and_3 = (
     re.compile(r'^(\w+\.)*([A-Z][A-Za-z0-9]+Error: )'),
     '\2')
 
+normalize_open_in_generated_script = (
+    re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
+
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
 
 # Setuptools now pulls in dependencies when installed.
