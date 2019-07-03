@@ -1467,15 +1467,20 @@ def _pyscript(path, dest, rsetup, initialization=''):
     generated.append(dest)
     return generated
 
+if sys.version_info[0] < 3:
+    universal_newline_option = ", 'U'"
+else:
+    universal_newline_option = ''
+
 py_script_template = script_header + '''\
 
-%(relative_paths_setup)s
+%%(relative_paths_setup)s
 import sys
 
 sys.path[0:0] = [
-  %(path)s
+  %%(path)s
   ]
-%(initialization)s
+%%(initialization)s
 
 _interactive = True
 if len(sys.argv) > 1:
@@ -1496,13 +1501,13 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        with open(__file__, 'U') as __file__f:
+        with open(__file__%s) as __file__f:
             exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
     __import__("code").interact(banner="", local=globals())
-'''
+''' % universal_newline_option
 
 runsetup_template = """
 import sys
@@ -1516,9 +1521,9 @@ __file__ = %%(__file__)r
 os.chdir(%%(setupdir)r)
 sys.argv[0] = %%(setup)r
 
-with open(%%(setup)r, 'U') as f:
+with open(%%(setup)r%s) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
-""" % setuptools_path
+""" % (setuptools_path, universal_newline_option)
 
 
 class VersionConflict(zc.buildout.UserError):

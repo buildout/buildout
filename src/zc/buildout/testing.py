@@ -132,18 +132,6 @@ def system(command, input='', with_exit_code=False):
     # http://bugs.python.org/issue19884
     env = dict(os.environ, TERM='dumb')
 
-    # Beginning in Python 3.4, 'U' mode to open() is deprecated.
-    # Python 3.7 changes the way deprecations are shown for main
-    # modules, and introduces $PYTHONDEVMODE which turns on warnigs in
-    # more places. If that's done, this leads many of our doctests to
-    # break; some code path through executing setup.py does this, but
-    # it's not in our code. Unfortunately, normalizing this printed
-    # line away doesn't work, it just produces a blank line. We resort
-    # to turning that warning off.
-    warnings = env.get('PYTHONWARNINGS', '')
-    env['PYTHONWARNINGS'] = "ignore:'U' mode is deprecated:DeprecationWarning::," + warnings
-
-
     p = subprocess.Popen(command,
                          shell=True,
                          stdin=subprocess.PIPE,
@@ -605,6 +593,9 @@ normalize_egg_py = (
 normalize_exception_type_for_python_2_and_3 = (
     re.compile(r'^(\w+\.)*([A-Z][A-Za-z0-9]+Error: )'),
     '\2')
+
+normalize_open_in_generated_script = (
+    re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
 

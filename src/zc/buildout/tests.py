@@ -3730,6 +3730,7 @@ def test_suite():
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_egg_py,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
+                zc.buildout.testing.normalize_open_in_generated_script,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.not_found,
                 normalize_bang,
