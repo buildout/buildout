@@ -4,7 +4,7 @@ Change History
 2.13.2 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Fixed DeprecationWarning on python 3.7: "'U' mode is deprecated".
 
 
 2.13.1 (2019-01-29)
