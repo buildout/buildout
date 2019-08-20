@@ -4,7 +4,8 @@ Change History
 2.13.3 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Fix DeprecationWarning about MutableMapping.
+  (`#484 <https://github.com/buildout/buildout/issues/484>_`)
 
 
 2.13.2 (2019-07-03)

@@ -23,9 +23,9 @@ except ImportError:
     from md5 import md5
 
 try:
-    from UserDict import DictMixin
+    from collections.abc import MutableMapping as DictMixin
 except ImportError:
-    from collections import MutableMapping as DictMixin
+    from UserDict import DictMixin
 
 import zc.buildout.configparser
 import copy
@@ -2067,7 +2067,7 @@ Commands:
     COMPUTED_VALUE, DEFAULT_VALUE, COMMAND_LINE_VALUE).
 
   query section:key
-    
+
     Display value of given section key pair.
 """
 
