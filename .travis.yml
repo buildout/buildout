@@ -20,7 +20,8 @@ notifications:
     - buildout-development@googlegroups.com
 
 install:
-    - export COVERAGE_PROCESS_START=
+    - travis_retry pip install -U tox
 
 script:
+    - export COVERAGE_PROCESS_START=
     - travis_retry tox
