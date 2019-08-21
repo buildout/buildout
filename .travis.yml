@@ -1,25 +1,26 @@
 language: python
-env:
-    - PYTHON_VER=2.7
-    - PYTHON_VER=3.4
-    - PYTHON_VER=3.5
-    - PYTHON_VER=3.6
+dist: xenial
 
-sudo: false
+matrix:
+    include:
+        - python: "2.7"
+          env: TOXENV=py27
+        - python: "3.4"
+          env: TOXENV=py34
+        - python: "3.5"
+          env: TOXENV=py35
+        - python: "3.6"
+          env: TOXENV=py36
+
 cache:
-  directories:
-  - pythons
-# Note on this cache directories: "make build" downloads pythons elsewhere,
-# but installs the compiled bin/lib/share in pythons/pythonx.y/ .
+  pip: true
 
 notifications:
   email:
     - buildout-development@googlegroups.com
 
 install:
-    - ls -al pythons
     - export COVERAGE_PROCESS_START=
-    - deactivate
-    - make build
 
-script: make test
+script:
+    - travis_retry tox
