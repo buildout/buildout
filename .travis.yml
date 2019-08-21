@@ -12,9 +12,6 @@ matrix:
         - python: "3.6"
           env: TOXENV=py36
 
-cache:
-  pip: true
-
 notifications:
   email:
     - buildout-development@googlegroups.com
