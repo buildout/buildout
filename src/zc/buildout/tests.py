@@ -3593,6 +3593,7 @@ def test_suite():
             'configparser.test'),
         manuel.testing.TestSuite(
             manuel.doctest.Manuel(
+                verbose=True, trace=True,
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
                     zc.buildout.testing.normalize_path,
