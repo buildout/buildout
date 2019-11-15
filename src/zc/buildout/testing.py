@@ -126,7 +126,7 @@ def clean_up_pyc(*path):
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
 def system(command, input='', with_exit_code=False):
-    # Some TERMinals, expecially xterm and its variants, add invisible control
+    # Some TERMinals, especially xterm and its variants, add invisible control
     # characters, which we do not want as they mess up doctests.  See:
     # https://github.com/buildout/buildout/pull/311
     # http://bugs.python.org/issue19884
