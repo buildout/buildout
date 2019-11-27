@@ -1,0 +1,36 @@
+name: Run tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        python-version: [2.7, 3.4, 3.5, 3.6]
+        os:
+        - ubuntu-16.04
+        - ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Cache pythons
+      uses: actions/cache@v1
+      with:
+        path: pythons
+        key: ${{ runner.OS }}-build-${{matrix.python-version}}
+    - name: Build python
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+        COVERAGE_PROCESS_START: ''
+      run: |
+        make build
+    - name: Run tests
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+        COVERAGE_PROCESS_START: ''
+      run: |
+        make test
