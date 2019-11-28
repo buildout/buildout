@@ -1,0 +1,48 @@
+name: Test generating scripts with setuptools head
+
+on:
+  schedule:
+    - cron:  '0 0,12 * * *'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [2.7, 3.5, 3.6, 3.7]
+        package: [zest.releaser, pyspf]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout setuptools
+      run: |
+        git clone https://github.com/pypa/setuptools.git
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Setup buildout virtualenv
+      run: |
+        make -f .github/workflows/Makefile sandbox/bin/buildout
+    - name: Use setuptools develop
+      env:
+        PYTHON_VERSION: ${{matrix.python-version}}
+      run: |
+        ./sandbox/bin/pip uninstall -y setuptools
+        cd setuptools
+        ../sandbox/bin/python bootstrap.py
+        ../sandbox/bin/python setup.py develop
+        ls ../sandbox/lib/python${PYTHON_VERSION}/site-packages
+    - name: Run buildout
+      env:
+        PACKAGE: ${{matrix.package}}
+      run: |
+        sandbox/bin/buildout -v -c .github/workflows/scripts.cfg annotate buildout
+        sandbox/bin/buildout -c .github/workflows/scripts.cfg
+    - name: Check eggs
+      run: |
+        ls -al sandbox/eggs
+        ls -al sandbox/downloads/dist
+

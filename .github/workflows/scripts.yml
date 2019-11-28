@@ -1,0 +1,33 @@
+name: Test generating scripts
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [2.7, 3.5, 3.6, 3.7]
+        package: [zest.releaser, pyspf]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Setup buildout virtualenv
+      run: |
+        make -f .github/workflows/Makefile sandbox/bin/buildout
+    - name: Run buildout
+      env:
+        PACKAGE: ${{matrix.package}}
+      run: |
+        sandbox/bin/buildout -v -c .github/workflows/scripts.cfg annotate buildout
+        sandbox/bin/buildout -c .github/workflows/scripts.cfg
+    - name: Check eggs
+      run: |
+        ls -al sandbox/eggs
+        ls -al sandbox/downloads/dist
