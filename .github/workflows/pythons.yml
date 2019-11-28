@@ -1,4 +1,4 @@
-name: Run tests
+name: Cache pythons
 
 on: [push]
 
@@ -17,28 +17,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Cache python
-      id: cache-python
+    - name: Cache pythons
       uses: actions/cache@v1
       with:
         path: pythons
         key: ${{ matrix.os }}-build-${{ matrix.python-version }}
     - name: Build python
-      if: steps.cache-python.outputs.cache-hit != 'true'
       env:
         PYTHON_VER: ${{matrix.python-version}}
         COVERAGE_PROCESS_START: ''
       run: |
         make python
-    - name: Setup for tests
-      env:
-        PYTHON_VER: ${{matrix.python-version}}
-        COVERAGE_PROCESS_START: ''
-      run: |
-        make build
-    - name: Run tests
-      env:
-        PYTHON_VER: ${{matrix.python-version}}
-        COVERAGE_PROCESS_START: ''
-      run: |
-        make test
