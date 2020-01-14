@@ -49,6 +49,9 @@ And create a buildout that uses it:
     ... develop = recipes
     ... parts = data-dir
     ...
+    ... [versions]
+    ... setuptools = 41.6.0
+    ...
     ... [data-dir]
     ... recipe = recipes:mkdir
     ... path = mystuff
