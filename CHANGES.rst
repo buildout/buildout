@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.3 (unreleased)
+2.13.3 (2020-02-11)
 ===================
 
 - Fix DeprecationWarning about MutableMapping.
