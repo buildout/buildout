@@ -5,7 +5,7 @@ Change History
 ===================
 
 - Fix DeprecationWarning about MutableMapping.
-  (`#484 <https://github.com/buildout/buildout/issues/484>_`)
+  (`#484 <https://github.com/buildout/buildout/issues/484>`_)
 
 
 2.13.2 (2019-07-03)
