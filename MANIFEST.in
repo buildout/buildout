@@ -1,6 +1,7 @@
 include *.py
 include *.rst
 include *.txt
+include .coveragerc
 recursive-include bootstrap *.py
 recursive-include specifications *.txt
 recursive-include src/zc *.test
