@@ -16,6 +16,14 @@
 This is different from a normal boostrapping process because the
 buildout egg itself is installed as a develop egg.
 """
+import sys
+
+if sys.version_info < (2, 7):
+    raise SystemError("Outside Python 2.7, no support for Python 2.x.")
+
+if sys.version_info > (3, ) and sys.version_info < (3, 5):
+    raise SystemError("No support for Python 3.x under 3.5.")
+
 
 import os, shutil, sys, subprocess
 
