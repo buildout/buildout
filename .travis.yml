@@ -1,4 +1,4 @@
-language: python
+dist: xenial
 env:
     - PYTHON_VER=2.7
     - PYTHON_VER=3.4
@@ -19,7 +19,6 @@ notifications:
 install:
     - ls -al pythons
     - export COVERAGE_PROCESS_START=
-    - deactivate
     - make build
 
 script: make test
