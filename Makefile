@@ -30,6 +30,7 @@ endif
 PYTHON_ARCHIVE ?= Python-$(PYTHON_MINOR)
 PYTHON_DOWNLOAD = https://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE).tgz
 PYTHON_EXE = python$(PYTHON_VER)
+CURRENT_PYTHON = $(shell cat $(PYTHON_PATH)/python_version.txt)
 
 .PHONY: all build test python
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
@@ -48,7 +49,12 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
-python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+check_version:
+	if [[ "$(CURRENT_PYTHON)" != "Python $(PYTHON_MINOR)" ]]; then rm $(PYTHON_PATH)/bin/$(PYTHON_EXE); fi 
+
+python: check_version $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+	$(PYTHON_PATH)/bin/$(PYTHON_EXE) --version 2> $(PYTHON_PATH)/python_version.txt
+
 
 build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
