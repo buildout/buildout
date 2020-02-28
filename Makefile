@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 HERE = $(shell pwd)
 PYTHON_VER ?= 2.7
 PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
