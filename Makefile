@@ -1,4 +1,3 @@
-SHELL := /bin/bash
 HERE = $(shell pwd)
 PYTHON_VER ?= 2.7
 PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
@@ -49,7 +48,12 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
+python_version:
+	mkdir -p $(PYTHON_PATH)
+	echo "$(PYTHON_MINOR)" > $(PYTHON_PATH)/python_version.txt
+
 python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+
 
 build: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
