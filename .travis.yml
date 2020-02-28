@@ -1,4 +1,6 @@
 dist: xenial
+language: minimal
+
 env:
     - PYTHON_VER=2.7
     - PYTHON_VER=3.4
