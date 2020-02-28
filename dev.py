@@ -73,6 +73,4 @@ if sys.platform.startswith('java'):
     # Jython needs the script to be called twice via sys.executable
     assert subprocess.Popen([sys.executable] + [bin_buildout]).wait() == 0
 
-if sys.version_info < (2, 6):
-    bin_buildout = [bin_buildout, '-c2.4.cfg']
 sys.exit(subprocess.Popen(bin_buildout).wait())
