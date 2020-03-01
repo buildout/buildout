@@ -17,11 +17,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Python minor version
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+      run: |
+        make python_version
     - name: Cache pythons
       uses: actions/cache@v1
       with:
         path: pythons
-        key: ${{ matrix.os }}-build-${{ matrix.python-version }}
+        key: ${{ matrix.os }}-build-${{ matrix.python-version }}-${{ hashFiles('**/python_version.txt') }}
     - name: Build python
       env:
         PYTHON_VER: ${{matrix.python-version}}
