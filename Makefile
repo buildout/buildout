@@ -49,6 +49,7 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE):
 	@echo "Finished installing Python"
 
 python_version:
+	mkdir -p $(PYTHON_PATH)
 	echo "$(PYTHON_MINOR)" > $(PYTHON_PATH)/python_version.txt
 
 python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
