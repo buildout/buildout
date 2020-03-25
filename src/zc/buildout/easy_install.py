@@ -175,7 +175,7 @@ def _execute_permission():
     return 0o777 - current_umask
 
 
-_easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
+_easy_install_cmd = 'from zc.buildout.setuptools_easy_install import main; main()'
 
 def get_namespace_package_paths(dist):
     """

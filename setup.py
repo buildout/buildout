@@ -30,6 +30,9 @@ buildout = %(name)s.buildout:main
 [zc.buildout]
 debug = %(name)s.testrecipes:Debug
 
+[distutils.commands]
+easy_install_in_zcb = zc.buildout.setuptools_easy_install:easy_install_in_zcb
+
 """ % dict(name=name)
 
 setup(
