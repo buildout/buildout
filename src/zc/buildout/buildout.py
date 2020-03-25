@@ -349,7 +349,7 @@ class Buildout(DictMixin):
             )
         override = copy.deepcopy(cloptions.get('buildout', {}))
 
-        extends_vars = {}
+        extends_vars = _unannotate_section(copy.deepcopy(cloptions.get(EXTENDS_VARS, {})))
 
         # load user defaults, which override defaults
         if user_defaults:
@@ -1821,16 +1821,17 @@ def _open(base, filename, seen, dl_options, override, downloaded, extends_vars):
         dl_options = _update_section(dl_options, result['buildout'])
 
     if extends:
+        extends_vars = update_extends_vars(result, extends_vars)
         extends = extends.split()
         expanded = expand_extends_vars(extends.pop(0), extends_vars)
         eresult = _open(base, expanded, seen, dl_options, override,
                         downloaded, extends_vars)
-        update_extends_vars(eresult, extends_vars)
+        extends_vars = update_extends_vars(eresult, extends_vars)
         for fname in extends:
             expanded = expand_extends_vars(fname, extends_vars)
             last_result = _open(base, expanded, seen, dl_options, override,
                     downloaded, extends_vars)
-            update_extends_vars(last_result, extends_vars)
+            extends_vars = update_extends_vars(eresult, extends_vars)
             _update(eresult, last_result)
 
         result = _update(eresult, result)
@@ -1841,13 +1842,10 @@ def _open(base, filename, seen, dl_options, override, downloaded, extends_vars):
 
 EXTENDS_VARS = 'extends_vars'
 
-def update_extends_vars(eresult, extends_vars):
-    if EXTENDS_VARS in eresult:
-        if extends_vars:
-            raise ValueError('Cannot load extends section twice')
-        else:
-            variables = _unannotate_section(copy.deepcopy(eresult[EXTENDS_VARS]))
-            extends_vars.update(variables)
+def update_extends_vars(result, extends_vars):
+    variables = _unannotate_section(copy.deepcopy(result.get(EXTENDS_VARS, {})))
+    variables.update(extends_vars)
+    return variables
 
 
 def expand_extends_vars(fname, extends_vars):
