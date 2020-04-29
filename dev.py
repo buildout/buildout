@@ -50,7 +50,7 @@ if '--no-clean' not in sys.argv:
             [sys.executable] + ['-m', 'pip', 'uninstall', '-y', 'setuptools', 'pip',  'wheel']
         ):
             raise SystemError(
-                "Buildout development with pre-installed pip and setuptools"
+                "Buildout development with pre-installed pip and setuptools\n"
                 "Could not uninstall with pip"
                 )
         return_code = subprocess.call(
@@ -79,7 +79,7 @@ def install_pip():
     except ImportError:
         from urllib2 import urlopen
 
-    tmp = tempfile.mkdtemp()
+    tmp = tempfile.mkdtemp(prefix='buildout-dev-')
     try:
         get_pip = os.path.join(tmp, 'get-pip.py')
         with open(get_pip, 'wb') as f:

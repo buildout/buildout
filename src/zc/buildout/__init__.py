@@ -100,7 +100,7 @@ def process_url(self, url, retrieve=False):
         link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
         links.append(link)
 
-    assert not set(pip_links) ^ set(links)
+    assert set(pip_links) == set(links)
 
     for link in plinks:
         if _check_link_requires_python(link, PY_VERSION_INFO):
