@@ -37,6 +37,8 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 import warnings
+import csv
+from pip._internal.utils.misc import FakeFile
 
 try:
     from setuptools.wheel import Wheel  # This is the important import
@@ -90,6 +92,7 @@ if has_distribute and not has_setuptools:
 # function to narrow to just the buildout and setuptools paths.
 buildout_and_setuptools_path = [d.location for d in pkg_resources.working_set]
 setuptools_path = buildout_and_setuptools_path
+pip_path = buildout_and_setuptools_path
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
@@ -175,7 +178,7 @@ def _execute_permission():
     return 0o777 - current_umask
 
 
-_easy_install_cmd = 'from setuptools.command.easy_install import main; main()'
+_pip_install_cmd = 'from pip._internal.cli.main import main; main()'
 
 def get_namespace_package_paths(dist):
     """
@@ -248,6 +251,7 @@ class Installer(object):
                  allow_hosts=('*',),
                  check_picked=True,
                  allow_unknown_extras=False,
+                 force_eggs=False,
                  ):
         assert executable == sys.executable, (executable, sys.executable)
         self._dest = dest if dest is None else pkg_resources.normalize_path(dest)
@@ -269,6 +273,8 @@ class Installer(object):
 
         self._index_url = index
         path = (path and path[:] or []) + buildout_and_setuptools_path
+        if force_eggs:
+            path = [p for p in path if not p.endswith('site-packages')]
         self._path = path
         if self._dest is None:
             newest = False
@@ -382,7 +388,7 @@ class Installer(object):
             logger.debug(
                 'There are no distros available that meet %r.\n'
                 'Using our best, %s.',
-                str(req), best_available)
+                str(req), best_we_have)
             return best_we_have, None
 
         if self._prefer_final:
@@ -416,11 +422,11 @@ class Installer(object):
             str(req))
         return best_we_have, None
 
-    def _call_easy_install(self, spec, dest, dist):
+    def _call_pip_install(self, spec, dest, dist):
 
         tmp = tempfile.mkdtemp(dir=dest)
         try:
-            paths = call_easy_install(spec, tmp)
+            paths = call_pip_install(spec, tmp)
 
             dists = []
             env = pkg_resources.Environment(paths)
@@ -617,16 +623,14 @@ class Installer(object):
     def _check_picked_requirement_versions(self, requirement, dists):
         """ Check whether we picked a version and, if we did, report it """
         for dist in dists:
-            if not (dist.precedence == pkg_resources.DEVELOP_DIST
-                or
-                (len(requirement.specs) == 1
+            is_develop = dist.precedence == pkg_resources.DEVELOP_DIST
+            has_version = (len(requirement.specs) == 1
                  and
                  requirement.specs[0][0] == '==')
-                ):
+            if not is_develop and not has_version:
                 logger.debug('Picked: %s = %s',
                              dist.project_name, dist.version)
                 self._picked_versions[dist.project_name] = dist.version
-
                 if not self._allow_picked_versions:
                     raise zc.buildout.UserError(
                         'Picked: %s = %s' % (dist.project_name,
@@ -831,7 +835,7 @@ class Installer(object):
                 setuptools.command.setopt.edit_config(
                     setup_cfg, dict(build_ext=build_ext))
 
-                dists = self._call_easy_install(base, self._dest, dist)
+                dists = self._call_pip_install(base, self._dest, dist)
 
                 return [dist.location for dist in dists]
             finally:
@@ -943,6 +947,7 @@ def install(specs, dest,
             allowed_eggs_from_site_packages=None,
             check_picked=True,
             allow_unknown_extras=False,
+            force_eggs=False,
             ):
     assert executable == sys.executable, (executable, sys.executable)
     assert include_site_packages is None
@@ -953,16 +958,37 @@ def install(specs, dest,
                           newest, versions, use_dependency_links,
                           allow_hosts=allow_hosts,
                           check_picked=check_picked,
-                          allow_unknown_extras=allow_unknown_extras)
+                          allow_unknown_extras=allow_unknown_extras,
+                          force_eggs=force_eggs,
+                          )
     return installer.install(specs, working_set)
 
-buildout_and_setuptools_dists = list(install(['zc.buildout'], None,
-                                             check_picked=False))
+global_env = pkg_resources.Environment()
+global_ws = pkg_resources.WorkingSet()
+
+def get_best_dist(req):
+    return global_env.best_match(pkg_resources.Requirement.parse(req),
+            global_ws)
+
+_all_dists = {}
+for req in ['zc.buildout', 'pip', 'setuptools']:
+    _all_dists[req] = get_best_dist(req)
+
+buildout_and_setuptools_dists = [
+    _all_dists[req] for req in ['zc.buildout', 'pip', 'setuptools']
+]
+
 buildout_and_setuptools_path = [d.location
                                 for d in buildout_and_setuptools_dists]
-setuptools_path = [d.location
-                   for d in install(['setuptools'], None, check_picked=False)]
-setuptools_pythonpath = os.pathsep.join(setuptools_path)
+pip_path = [
+    _all_dists[req].location
+    for req in ['pip', 'setuptools']
+    ]
+pip_pythonpath = os.pathsep.join(pip_path)
+
+setuptools_path = pip_path
+setuptools_pythonpath = pip_pythonpath
+
 
 def build(spec, dest, build_ext,
           links=(), index=None,
@@ -1625,17 +1651,17 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
-def call_easy_install(spec, dest):
+def call_pip_install(spec, dest):
     """
-    Call `easy_install` from setuptools as a subprocess to install a
+    Call `pip install` from a subprocess to install a
     distribution specified by `spec` into `dest`.
     Returns all the paths inside `dest` created by the above.
     """
-    path = setuptools_path
+    path = pip_path
 
     args = [sys.executable, '-c',
             ('import sys; sys.path[0:0] = %r; ' % path) +
-            _easy_install_cmd, '-mZUNxd', dest]
+            _pip_install_cmd, 'install', '--no-deps', '-t', dest]
     level = logger.getEffectiveLevel()
     if level > 0:
         args.append('-q')
@@ -1645,7 +1671,7 @@ def call_easy_install(spec, dest):
     args.append(spec)
 
     if level <= logging.DEBUG:
-        logger.debug('Running easy_install:\n"%s"\npath=%s\n',
+        logger.debug('Running pip install:\n"%s"\npath=%s\n',
                         '" "'.join(args), path)
 
     sys.stdout.flush() # We want any pending output first
@@ -1658,7 +1684,106 @@ def call_easy_install(spec, dest):
             "Look above this message for any errors that "
             "were output by easy_install.",
             spec)
-    return glob.glob(os.path.join(dest, '*'))
+
+    split_entries = [os.path.splitext(entry) for entry in os.listdir(dest)]
+    try:
+        distinfo_dir = [
+            base + ext for base, ext in split_entries if ext == ".dist-info"
+        ][0]
+    except IndexError:
+        logger.error(
+            "No .dist-info directory after installing %s",
+            spec)
+        raise
+
+    return make_egg_after_pip_install(dest, distinfo_dir)
+
+
+def make_egg_after_pip_install(dest, distinfo_dir):
+    """build properly named egg directory"""
+
+    # `pip install` does not build the namespace aware __init__.py files
+    # but they are needed in egg directories.
+    # Add them before moving files setup by pip
+    ns_file = os.path.join(dest, distinfo_dir, 'namespace_packages.txt')
+    if os.path.exists(ns_file):
+        with open(ns_file) as f:
+            namespace_packages = [
+                line.strip().replace('.', os.path.sep)
+                for line in f.readlines()
+            ]
+
+        for namespace_package in namespace_packages:
+            init_py_file = os.path.join(dest, namespace_package, '__init__.py')
+            with open(init_py_file, 'w') as f:
+                f.write(
+                    "__import__('pkg_resources').declare_namespace(__name__)"
+                )
+
+    # Remove `bin` directory if needed
+    # as there is no way to avoid script installation
+    # when running `pip install`
+    ep_file = os.path.join(dest, distinfo_dir, 'entry_points.txt')
+    if os.path.exists(ep_file):
+        with open(ep_file) as f:
+            if "console_scripts" in f.read():
+                bin_dir = os.path.join(dest, 'bin')
+                if os.path.exists(bin_dir):
+                    shutil.rmtree(bin_dir)
+
+    # Make properly named new egg dir
+    distro = [d for d in pkg_resources.find_distributions(dest)][0]
+    egg_name = distro.egg_name() + '.egg'
+    egg_dir = os.path.join(dest, egg_name)
+    os.mkdir(egg_dir)
+
+    # Move ".dist-info" dir into new egg dir
+    os.rename(
+        os.path.join(dest, distinfo_dir),
+        os.path.join(egg_dir, distinfo_dir)
+    )
+
+    with open(os.path.join(egg_dir, distinfo_dir, 'top_level.txt')) as f:
+        top_levels = filter(
+            (lambda x: len(x) != 0),
+            [line.strip() for line in f.readlines()]
+            )
+
+    # Move all top_level modules or packages
+    for top_level in top_levels:
+        # as package
+        top_level_dir = os.path.join(dest, top_level)
+        if os.path.exists(top_level_dir):
+            shutil.move(top_level_dir, egg_dir)
+            continue
+        # as module
+        top_level_py = top_level_dir + '.py'
+        if os.path.exists(top_level_py):
+            shutil.move(top_level_py, egg_dir)
+            top_level_pyc = top_level_dir + '.pyc'
+            if os.path.exists(top_level_pyc):
+                shutil.move(top_level_pyc, egg_dir)
+            continue
+
+    def get_all_files(it):
+        r = csv.reader(FakeFile(it))
+        for row in r:
+            path = os.path.join(egg_dir, row[0])
+            yield row[0]
+
+    with open(os.path.join(egg_dir, distinfo_dir, 'RECORD')) as f:
+        all_files = get_all_files(f.readlines())
+
+    # There might be some c extensions left over
+    for entry in all_files:
+        if entry.endswith('.pyc') or entry.endswith('.pyo'):
+            continue
+        dest_entry = os.path.join(dest, entry)
+        egg_entry = os.path.join(egg_dir, entry)
+        if os.path.exists(dest_entry) and not os.path.exists(egg_entry):
+            os.rename(dest_entry, egg_entry)
+
+    return [egg_dir]
 
 
 def unpack_egg(location, dest):
@@ -1730,6 +1855,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             raise
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
+        installed_with_pip = False
         if (os.path.isdir(dist.location) and
                 dist.precedence >= pkg_resources.BINARY_DIST):
             # We got a pre-built directory. It must have been obtained locally.
@@ -1740,9 +1866,13 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             # It is an archive of some sort.
             # Figure out how to unpack it, or fall back to easy_install.
             _, ext = os.path.splitext(dist.location)
-            unpacker = UNPACKERS.get(ext, call_easy_install)
-            unpacker(dist.location, tmp_dest)
-            [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
+            if ext in UNPACKERS:
+                unpacker = UNPACKERS[ext]
+                unpacker(dist.location, tmp_dest)
+                [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
+            else:
+                [tmp_loc] = call_pip_install(dist.location, tmp_dest)
+                installed_with_pip = True
 
         # We have installed the dist. Now try to rename/move it.
         newloc = os.path.join(dest, os.path.basename(tmp_loc))
@@ -1777,4 +1907,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_dest)
+    if installed_with_pip:
+        newdist.precedence = pkg_resources.EGG_DIST
     return newdist

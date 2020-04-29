@@ -50,6 +50,7 @@ if PY3:
 else:
     text_type = unicode
 
+BUILDOUT_EGGS = ('zc.buildout', 'setuptools', 'pip')
 
 def command(method):
     method.buildout_command = True
@@ -903,8 +904,6 @@ class Buildout(DictMixin):
         dest = self['buildout']['develop-eggs-directory']
         old_files = os.listdir(dest)
 
-        env = dict(os.environ,
-                   PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath)
         here = os.getcwd()
         try:
             try:
@@ -1085,35 +1084,75 @@ class Buildout(DictMixin):
         root_logger.setLevel(level)
         self._log_level = level
 
-    def _maybe_upgrade(self):
-        # See if buildout or setuptools need to be upgraded.
-        # If they do, do the upgrade and restart the buildout process.
-        __doing__ = 'Checking for upgrades.'
-
-        if not self.newest:
-            return
-
-        ws = zc.buildout.easy_install.install(
-            ('zc.buildout', 'setuptools'),
-            self['buildout']['eggs-directory'],
-            links = self['buildout'].get('find-links', '').split(),
-            index = self['buildout'].get('index'),
-            path = [self['buildout']['develop-eggs-directory']],
-            allow_hosts = self._allow_hosts
-            )
-
+    def _compute_upgraded(self, projects, ws):
         upgraded = []
         # The setuptools/zc.buildout locations at the time we started was
         # recorded in easy_install.py. We use that here to check if we've been
         # upgraded.
         start_locations = zc.buildout.easy_install.buildout_and_setuptools_path
-        for project in 'zc.buildout', 'setuptools':
+        for project in projects:
             req = pkg_resources.Requirement.parse(project)
             if ws.find(req).location not in start_locations:
                 upgraded.append(ws.find(req))
+        return upgraded
+
+    def _maybe_upgrade(self):
+        # See if buildout or setuptools need to be upgraded.
+        # If they do, do the upgrade and restart the buildout process.
+        __doing__ = 'Checking for upgrades.'
+        self._logger.debug(__doing__)
+
+        if not self.newest:
+            return
+
+        ws = zc.buildout.easy_install.install(
+            BUILDOUT_EGGS,
+            self['buildout']['eggs-directory'],
+            links = self['buildout'].get('find-links', '').split(),
+            index = self['buildout'].get('index'),
+            path = [self['buildout']['develop-eggs-directory']],
+            allow_hosts = self._allow_hosts,
+            )
+
+        upgraded = self._compute_upgraded(BUILDOUT_EGGS, ws)
+
+        egg_dir = self['buildout']['eggs-directory']
+        devel_egg_dir = self['buildout']['develop-eggs-directory']
+
+        egg_dirs = (egg_dir, devel_egg_dir)
+
+        enforced_eggs = []
+        for project in BUILDOUT_EGGS:
+            req = pkg_resources.Requirement.parse(project)
+            location = ws.find(req).location
+            if not location.startswith(egg_dir) and not location.startswith(devel_egg_dir):
+                enforced_eggs.append(project)
+
+        if enforced_eggs:
+            __doing__ = 'Checking for eggs to enforce.'
+            self._logger.debug(__doing__)
+
+            egg_ws = pkg_resources.WorkingSet(egg_dirs)
+
+            ws = zc.buildout.easy_install.install(
+                enforced_eggs,
+                self['buildout']['eggs-directory'],
+                links = self['buildout'].get('find-links', '').split(),
+                index = self['buildout'].get('index'),
+                path = [self['buildout']['develop-eggs-directory']],
+                allow_hosts = self._allow_hosts,
+                working_set=egg_ws,
+                force_eggs=True,
+                )
+
+            upgraded += self._compute_upgraded(enforced_eggs, ws)
+
+        upgraded = list(set(upgraded))
 
         if not upgraded:
             return
+
+        upgraded.sort()
 
         __doing__ = 'Upgrading.'
 
@@ -1131,7 +1170,7 @@ class Buildout(DictMixin):
                                  "buildout command.")
             return
 
-        self._logger.info("Upgraded:\n  %s;\nrestarting.",
+        self._logger.info("Upgraded:\n  %s;\nRestarting.",
                           ",\n  ".join([("%s version %s"
                                        % (dist.project_name, dist.version)
                                        )

@@ -55,7 +55,8 @@ The ``bin`` directory contains scripts::
 The ``eggs`` directory has installed distributions:
 
     >>> ls(sample_buildout, 'eggs')
-    -  setuptools-0.7-py3.3.egg
+    d  pip.egg
+    -  setuptools-0.7-py2.3.egg
     -  zc.buildout.egg-link
 
 The ``develop-eggs`` and ``parts`` directories are initially empty::
@@ -2838,11 +2839,9 @@ database is shown::
     ... """)
 
     >>> print_(system(buildout+' -vv'), end='') # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'setuptools'.
-    We have a develop egg: zc.buildout 1.0.0.
-    We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.7
-    <BLANKLINE>
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
+    ...
     Configuration data:
     [buildout]
     allow-hosts = *
@@ -3108,6 +3107,7 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
+    d  pip.egg
     -  setuptools-0.7-py2.3.egg
     -  zc.buildout-1.0-py2.3.egg
 

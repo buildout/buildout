@@ -195,7 +195,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     >>> print_(system(join('bin', 'buildout')+' -vv'), end='')
     ... # doctest: +ELLIPSIS
-    Installing...
+    Checking...
     Develop: '/sample-buildout/foo'
     ...
     Installed /sample-buildout/foo
@@ -207,7 +207,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     >>> print_(system(join('bin', 'buildout')+' -vvv'), end='')
     ... # doctest: +ELLIPSIS
-    Installing...
+    Checking...
     Develop: '/sample-buildout/foo'
     in: '/sample-buildout/foo'
     ... -q develop -mN -d /sample-buildout/develop-eggs/...
@@ -451,10 +451,7 @@ if we hadn't required sampley ourselves:
 If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
-    We have a develop egg: zc.buildout 1.0.0
-    We have the best distribution that satisfies 'setuptools'.
-    Picked: setuptools = 0.7
+    Checking ...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
@@ -531,7 +528,7 @@ that we can't find. when run in verbose mode
     ... ''')
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing ...
+    Checking ...
     Installing 'samplea'.
     We have a develop egg: samplea 1
     Getting required 'sampleb'
@@ -579,6 +576,7 @@ We do not need to run in verbose mode for that to work:
     Versions had to be automatically picked.
     The following part definition lists the versions picked:
     [versions]
+    pip = 12.0
     <BLANKLINE>
     # Required by:
     # sampley==1
@@ -711,7 +709,8 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
     ...
     [foo]
     bar = 1
@@ -980,6 +979,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     -  foox-0.0.0-py2.4.egg
+    ...
     d  setuptools.eggpyN.N.egg
     ...
 
@@ -1344,7 +1344,7 @@ def o_option_sets_offline():
     """
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')+' -vvo'), end='')
     ... # doctest: +ELLIPSIS
-    <BLANKLINE>
+    Checking for upgrades.
     ...
     offline = true
     ...
@@ -1903,11 +1903,9 @@ def install_source_dist_with_bad_py():
     Getting distribution for 'badegg'.
     Got badegg 1.
     Installing bo.
-    ...
-    SyntaxError: ...'return' outside function...
-    ...
-    SyntaxError: ...'return' outside function...
-    ...
+    Generated script '/sample-buildout/bin/bo'.
+    <BLANKLINE>
+    X
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
@@ -2202,10 +2200,12 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
     We have a develop egg: zc.buildout 1.0.0
     We have the best distribution that satisfies 'setuptools'.
     Picked: setuptools = 0.7
+    ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
     Develop: '/sample-buildout/pack2'
@@ -2485,7 +2485,8 @@ The default is prefer-final = true:
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
     ...
     Picked: demo = 0.3
     ...
@@ -2507,7 +2508,8 @@ We get the same behavior if we add prefer-final = true
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
     ...
     Picked: demo = 0.3
     ...
@@ -2529,7 +2531,8 @@ distributions:
     ... ''' % globals())
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'.
+    Checking for upgrades.
+    Installing 'zc.buildout', 'setuptools', 'pip'.
     ...
     Picked: demo = 0.4rc1
     ...
@@ -3208,7 +3211,7 @@ def test_abi_tag_eggs():
     ... ''')
     >>> _ = system(join('..', 'sample-buildout', 'bin', 'buildout')
     ...            + ' bootstrap')
-    >>> _ = system(join('bin', 'buildout'))
+    >>> _ = system(join('bin', 'buildout') + '-N')
     >>> ls('.')
     d  bin
     -  buildout.cfg
@@ -3217,6 +3220,7 @@ def test_abi_tag_eggs():
     d  parts
     >>> from zc.buildout.pep425tags import get_abi_tag
     >>> ls(join('eggs', get_abi_tag())) # doctest: +ELLIPSIS
+    d  pip-18.0.3-py3.5.egg
     d  setuptools-34.0.3-py3.5.egg
     """
 
@@ -3527,7 +3531,7 @@ def getWorkingSetWithBuildoutEgg(test):
              os.path.join(os.path.dirname(dist.location), 'setup.py'),
              '-q', 'bdist_egg', '-d', eggs],
             env=dict(os.environ,
-                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
+                     PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
             )
         os.chdir(here)
@@ -3601,6 +3605,8 @@ def test_suite():
                     zc.buildout.testing.normalize_egg_py,
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.adding_find_link,
+                    zc.buildout.testing.python27_warning,
+                    zc.buildout.testing.python27_warning_2,
                     # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                     (re.compile(r'__buildout_signature__ = recipes-\S+'),
                      '__buildout_signature__ = recipes-SSSSSSSSSSS'),
@@ -3608,6 +3614,8 @@ def test_suite():
                      'executable = python'),
                     (re.compile(r'[-d]  (setuptools|setuptools)-\S+[.]egg'),
                      'setuptools.egg'),
+                    (re.compile(r'pip-\S+[.]egg'), 'pip.egg'),
+                    (re.compile(r'wheel-\S+[.]egg'), 'wheel.egg'),
                     (re.compile(r'zc.buildout(-\S+)?[.]egg(-link)?'),
                      'zc.buildout.egg'),
                     (re.compile(r'creating \S*setup.cfg'), 'creating setup.cfg'),
@@ -3660,7 +3668,8 @@ def test_suite():
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile(r'WindowsError'), 'OSError'),
-               (re.compile(r'setuptools = \S+'), 'setuptools = 0.7.99'),
+               (re.compile(r'pip = \S+'), 'pip = 20.0.1'),
+               (re.compile(r'setuptools = \S+'), 'setuptools = 46.1.3'),
                (re.compile(r'\[Error 17\] Cannot create a file '
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
@@ -3711,9 +3720,10 @@ def test_suite():
                  ''),
                 (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
                 (re.compile(
-                    r'(zc.buildout|setuptools)( version)? \d+[.]\d+\S*'),
+                    r'(zc.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'),
                  '\\1 V.V'),
                 (re.compile('[-d]  setuptools'), '-  setuptools'),
+                (re.compile('[-d]  pip'), '-  pip'),
                 (re.compile(re.escape(os.path.sep)+'+'), '/'),
                ])
             ),
@@ -3733,6 +3743,8 @@ def test_suite():
                 zc.buildout.testing.normalize_open_in_generated_script,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.not_found,
+                zc.buildout.testing.python27_warning,
+                zc.buildout.testing.python27_warning_2,
                 normalize_bang,
                 normalize_S,
                 (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
@@ -3778,14 +3790,19 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 zc.buildout.testing.adding_find_link,
+                zc.buildout.testing.python27_warning,
+                zc.buildout.testing.python27_warning_2,
                 normalize_bang,
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile(r"buildout: Running \S*setup.py"),
                  'buildout: Running setup.py'),
+                (re.compile(r'pip-\S+-'),
+                 'pip.egg'),
                 (re.compile(r'setuptools-\S+-'),
                  'setuptools.egg'),
                 (re.compile(r'zc.buildout-\S+-'),
                  'zc.buildout.egg'),
+                (re.compile(r'pip = \S+'), 'pip = 20.0.0'),
                 (re.compile(r'setuptools = \S+'), 'setuptools = 0.7.99'),
                 (re.compile(r'File "\S+one.py"'),
                  'File "one.py"'),
@@ -3793,6 +3810,7 @@ def test_suite():
                  r'We have a develop egg: \1 V'),
                 (re.compile(r'Picked: setuptools = \S+'),
                  'Picked: setuptools = V'),
+                (re.compile('[-d]  pip'), '-  pip'),
                 (re.compile('[-d]  setuptools'), '-  setuptools'),
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile(

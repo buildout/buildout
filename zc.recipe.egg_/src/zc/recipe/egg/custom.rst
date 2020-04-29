@@ -155,9 +155,10 @@ Let's define a script that uses out ext demo:
     >>> mkdir('demo')
     >>> write('demo', 'demo.py',
     ... """
-    ... import extdemo, sys
+    ... import sys
     ... def print_(*args):
     ...     sys.stdout.write(' '.join(map(str, args)) + '\\n')
+    ... import extdemo, sys
     ... def main():
     ...     print_(extdemo.val)
     ... """)
@@ -229,13 +230,11 @@ We won't get an update.
     -  zc.recipe.egg.egg-link
 
 But if we run the buildout in the default on-line and newest modes, we
-will. This time we also get the test-variable message again, because the new
-version is imported:
+will.
 
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/demo'
     Updating extdemo.
-    zip_safe flag not set; analyzing archive contents...
     Updating demo.
     ...
 
@@ -341,16 +340,21 @@ Create our buildout:
     ... recipe = recipes:environ
     ...
     ... """ % dict(server=link_server))
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    Develop: '/sample-buildout/recipes'
-    Uninstalling demo.
-    Uninstalling extdemo.
-    Installing extdemo.
-    Have environment test-variable: foo
-    zip_safe flag not set; analyzing archive contents...
-    Installing checkenv.
+    >>> print_(system(buildout+' -vvv'), end='') # doctest: +ELLIPSIS
+    Checking for upgrades.
     ...
-
+    Develop: '/sample-buildout/recipes'
+    ...
+    Uninstalling demo.
+    ...
+    Uninstalling extdemo.
+    ...
+    Installing extdemo.
+    ...
+    Installing checkenv.
+    ...Running command python setup.py egg_info
+    ...Have environment test-variable: foo
+    ...
 
 The setup.py also printed out that we have set the environment `test-variable`
 to foo. After the buildout the variable is reset to its original value (i.e.
@@ -395,13 +399,18 @@ are interpolated with os.environ before the're set:
     ... recipe = recipes:environ
     ...
     ... """ % dict(server=link_server))
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    >>> print_(system(buildout+' -vvv'), end='') # doctest: +ELLIPSIS
+    Checking for upgrades.
+    ...
     Develop: '/sample-buildout/recipes'
+    ...
     Uninstalling extdemo.
+    ...
     Installing extdemo.
-    Have environment test-variable: foo:bar
-    zip_safe flag not set; analyzing archive contents...
+    ...
     Updating checkenv.
+    ...Running command python setup.py egg_info
+    ...Have environment test-variable: foo:bar
     ...
 
     >>> os.environ['test-variable']

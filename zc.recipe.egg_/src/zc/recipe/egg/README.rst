@@ -75,6 +75,7 @@ Now, if we look at the buildout eggs directory:
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    d  pip-20.0-py2.3.egg
     -  setuptools-0.7-py2.3.egg
     d  zc.buildout-1.0-py2.3.egg
 
@@ -264,6 +265,7 @@ We didn't get an update for demo:
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    d  pip-20.0-py2.3.egg
     -  setuptools-0.7-py2.3.egg
     d  zc.buildout-1.0-py2.3.egg
 
@@ -282,6 +284,7 @@ Then we'll get a new demo egg:
     d  demo-0.2-py2.3.egg
     d  demo-0.3-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    d  pip-20.0-py2.3.egg
     -  setuptools-0.7-py2.4.egg
     d  zc.buildout-1.0-py2.4.egg
 

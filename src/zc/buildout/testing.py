@@ -168,7 +168,7 @@ def _runsetup(setup, *args):
         zc.buildout.easy_install.call_subprocess(
             [sys.executable, setup] + args,
             env=dict(os.environ,
-                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
+                     PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
             )
         if os.path.exists('build'):
@@ -220,6 +220,32 @@ class Buildout(zc.buildout.buildout.Buildout):
 
     Options = TestOptions
 
+
+def keep_or_rmtree(base, tmp):
+    if os.environ.get('BUILDOUTKEEP', '') != 'keep':
+        rmtree(base)
+        rmtree(tmp)
+    else:
+        output(base, tmp)
+
+
+def output(base, tmp):
+    print('')
+    print('*' * 80)
+    print('')
+    print('DIRECTORY')
+    print('cd %s' % base)
+    print('FIND_LINKS')
+    print('cd %s' % tmp)
+    print('')
+    print('remove when done with:')
+    print('')
+    print('rm -rf %s' % base)
+    print('rm -rf %s' % tmp)
+    print('')
+    print('*' * 80)
+    print('')
+
 def buildoutSetUp(test):
 
     test.globs['__tear_downs'] = __tear_downs = []
@@ -247,7 +273,12 @@ def buildoutSetUp(test):
 
     base = tempfile.mkdtemp('buildoutSetUp')
     base = os.path.realpath(base)
-    register_teardown(lambda base=base: rmtree(base))
+
+    tmp = tempfile.mkdtemp('buildouttests')
+    if os.environ.get('BUILDOUTKEEP', '') == 'keep':
+        output(base, tmp)
+
+    register_teardown(lambda: keep_or_rmtree(base, tmp))
 
     old_home = os.environ.get('HOME')
     os.environ['HOME'] = os.path.join(base, 'bbbBadHome')
@@ -260,9 +291,6 @@ def buildoutSetUp(test):
 
     base = os.path.join(base, '_TEST_')
     os.mkdir(base)
-
-    tmp = tempfile.mkdtemp('buildouttests')
-    register_teardown(lambda: rmtree(tmp))
 
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
     os.environ['buildout-testing-index-url'] = (
@@ -598,6 +626,20 @@ normalize_open_in_generated_script = (
     re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
+
+python27_warning = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
+    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
+    'longer maintained. A future version of pip will drop support for Python '
+    '2.7. More details about Python 2 support in pip, can be found at '
+    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
+    '')
+
+python27_warning_2 = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
+    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
+    'longer maintained. pip 21.0 will drop support for Python 2.7 in January 2021. '
+    'More details about Python 2 support in pip, can be found at '
+    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
+    '')
 
 # Setuptools now pulls in dependencies when installed.
 adding_find_link = (re.compile(r"Adding find link '[^']+'"

@@ -33,7 +33,7 @@ Here's an example:
     >>> isinstance(ws, pkg_resources.WorkingSet)
     True
     >>> sorted(dist.project_name for dist in ws)
-    ['demo', 'demoneeded', 'setuptools', 'zc.buildout', 'zc.recipe.egg']
+    ['demo', 'demoneeded', 'pip', 'setuptools', 'zc.buildout', 'zc.recipe.egg']
 
 We'll monkey patch a method in the ``easy_install`` module in order to verify if
 the cache is working:

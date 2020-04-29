@@ -13,9 +13,108 @@
 ##############################################################################
 """Buildout package
 """
+from setuptools.extern.six.moves import urllib
+from setuptools.package_index import PackageIndex
+from setuptools.package_index import URL_SCHEME
+from setuptools.package_index import HREF
+from setuptools.package_index import distros_for_url
+from setuptools.package_index import htmldecode
+
+from pip._internal.index.collector import HTMLPage
+from pip._internal.index.collector import parse_links
+from pip._internal.index.package_finder import _check_link_requires_python
+from pip._internal.models.target_python import TargetPython
+from pip._vendor import six
+
+PY_VERSION_INFO = TargetPython().py_version_info
+
+
+def patch_PackageIndex():
+    setattr(PackageIndex, 'process_url', process_url)
+
+
+def process_url(self, url, retrieve=False):
+    """Evaluate a URL as a possible download, and maybe retrieve it"""
+    if url in self.scanned_urls and not retrieve:
+        return
+    self.scanned_urls[url] = True
+    if not URL_SCHEME(url):
+        self.process_filename(url)
+        return
+    else:
+        dists = list(distros_for_url(url))
+        if dists:
+            if not self.url_ok(url):
+                return
+            self.debug("Found link: %s", url)
+
+    if dists or not retrieve or url in self.fetched_urls:
+        list(map(self.add, dists))
+        return  # don't need the actual page
+
+    if not self.url_ok(url):
+        self.fetched_urls[url] = True
+        return
+
+    self.info("Reading %s", url)
+    self.fetched_urls[url] = True  # prevent multiple fetch attempts
+    tmpl = "Download error on %s: %%s -- Some packages may not be found!"
+    f = self.open_url(url, tmpl % url)
+    if f is None:
+        return
+    if isinstance(f, urllib.error.HTTPError) and f.code == 401:
+        self.info("Authentication error: %s" % f.msg)
+    self.fetched_urls[f.url] = True
+    if 'html' not in f.headers.get('content-type', '').lower():
+        f.close()  # not html, we can't process it
+        return
+
+    base = f.url  # handle redirects
+    page = f.read()
+    if isinstance(page, six.text_type):
+        page = page.encode('utf8')
+        charset = 'utf8'
+    else:
+        if isinstance(f, urllib.error.HTTPError):
+            # Errors have no charset, assume latin1:
+            charset = 'latin-1'
+        else:
+            try:
+                charset = f.headers.get_param('charset') or 'latin-1'
+            except AttributeError:
+                charset = f.headers.getparam('charset') or 'latin-1'
+    try:
+        html_page = HTMLPage(page, charset, base, cache_link_parsing=False)
+    except TypeError:
+        html_page = HTMLPage(page, charset, base)
+
+    plinks = list(parse_links(html_page))
+    pip_links = [l.url for l in plinks]
+    if not isinstance(page, str):
+        # In Python 3 and got bytes but want str.
+        page = page.decode(charset, "ignore")
+    f.close()
+
+    links = []
+    for match in HREF.finditer(page):
+        link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
+        links.append(link)
+
+    assert not set(pip_links) ^ set(links)
+
+    for link in plinks:
+        if _check_link_requires_python(link, PY_VERSION_INFO):
+            self.process_url(link.url)
+
+    if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
+        page = self.process_index(url, page)
+
+
+patch_PackageIndex()
+
 
 class UserError(Exception):
-    """Errors made by a user 
+    """Errors made by a user
     """
 
     def __str__(self):
