@@ -1,0 +1,24 @@
+OPENSSL = $(shell brew --prefix openssl)
+
+ifeq ($(PYTHON_VER),2.7)
+        BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib" CPPFLAGS="-I$(OPENSSL)/include"
+	PYTHON_CONFIGURE_ARGS ?=
+endif
+ifeq ($(PYTHON_VER),3.5)
+        BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib" CPPFLAGS="-I$(OPENSSL)/include"
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+ifeq ($(PYTHON_VER),3.6)
+        BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib" CPPFLAGS="-I$(OPENSSL)/include"
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+ifeq ($(PYTHON_VER),3.7)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip --with-openssl=$(OPENSSL)
+endif
+ifeq ($(PYTHON_VER),3.8)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip --with-openssl=$(OPENSSL)
+endif
+ifeq ($(PYTHON_VER),3.9)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip --with-openssl=$(OPENSSL)
+endif
+
