@@ -1,5 +1,5 @@
 HERE = $(shell pwd)
-PYTHON_VER ?= 2.7
+PYTHON_VER ?= 3.7
 PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
 PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
@@ -81,3 +81,8 @@ test:
 
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
+
+tox: python
+	virtualenv .
+	bin/pip install tox
+	bin/tox
