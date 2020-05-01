@@ -7,3 +7,7 @@ exclude_lines =
     pragma: no cover
     if __name__ == '__main__':
     raise NotImplementedError
+omit =
+    src/zc/buildout/testing.py
+    src/zc/buildout/tests.py
+    src/zc/buildout/testrecipes.py
