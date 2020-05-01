@@ -4,7 +4,7 @@ ARG PYTHON_VER
 ENV LC_CTYPE="en_US.UTF-8"
 RUN mkdir buildout
 WORKDIR /buildout
-COPY Makefile /buildout
+COPY Makefile Makefile.configure /buildout/
 RUN make PYTHON_VER=${PYTHON_VER} python
 COPY doc /buildout/doc
 COPY src /buildout/src
