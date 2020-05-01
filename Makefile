@@ -78,3 +78,6 @@ clean:
 
 test:
 	$(HERE)/bin/test -1 -vvv -c
+
+docker:
+	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
