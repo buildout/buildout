@@ -41,7 +41,7 @@ PYTHON_URL = https://www.python.org/ftp/python/$(PYTHON_MINOR)/$(PYTHON_ARCHIVE)
 PYTHON_EXE = python$(PYTHON_VER)
 PYTHON_DOWNLOAD = $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE).tgz
 
-.PHONY: all build test python
+.PHONY: all build test python tox docker all_pythons
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
 all: build
@@ -86,3 +86,10 @@ tox: python
 	virtualenv .
 	bin/pip install tox
 	bin/tox
+
+all_pythons:
+	$(MAKE) PYTHON_VER=2.7 python
+	$(MAKE) PYTHON_VER=3.5 python
+	$(MAKE) PYTHON_VER=3.6 python
+	$(MAKE) PYTHON_VER=3.7 python
+	$(MAKE) PYTHON_VER=3.8 python
