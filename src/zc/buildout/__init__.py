@@ -15,7 +15,6 @@
 """
 import os
 import sys
-from setuptools.extern.six.moves import urllib
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.package_index import HREF
@@ -27,6 +26,7 @@ from pip._internal.index.collector import parse_links
 from pip._internal.index.package_finder import _check_link_requires_python
 from pip._internal.models.target_python import TargetPython
 from pip._vendor import six
+from pip._vendor.six.moves import urllib
 
 
 def setup_coverage():
@@ -101,6 +101,7 @@ def process_url(self, url, retrieve=False):
             try:
                 charset = f.headers.get_param('charset') or 'latin-1'
             except AttributeError:
+                # Python 2
                 charset = f.headers.getparam('charset') or 'latin-1'
     try:
         html_page = HTMLPage(page, charset, base, cache_link_parsing=False)
