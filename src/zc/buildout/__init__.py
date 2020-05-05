@@ -13,6 +13,8 @@
 ##############################################################################
 """Buildout package
 """
+import os
+import sys
 from setuptools.extern.six.moves import urllib
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
@@ -25,6 +27,23 @@ from pip._internal.index.collector import parse_links
 from pip._internal.index.package_finder import _check_link_requires_python
 from pip._internal.models.target_python import TargetPython
 from pip._vendor import six
+
+
+def setup_coverage():
+    if not 'RUN_COVERAGE' in os.environ:
+        return
+    if ('COVERAGE_PROCESS_START' not in os.environ):
+        os.environ['COVERAGE_PROCESS_START'] = os.path.abspath('../../.coveragerc')
+    coveragerc = os.getenv('COVERAGE_PROCESS_START')
+    if coveragerc:
+        try:
+            import coverage
+            print("Coverage configured with %s" % coveragerc)
+            coverage.process_startup()
+        except ImportError:
+            print("You try to run coverage but coverage is not installed in your virtualenv.")
+            sys.exit(1)
+
 
 PY_VERSION_INFO = TargetPython().py_version_info
 
