@@ -1774,9 +1774,10 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     with open(os.path.join(egg_dir, distinfo_dir, 'RECORD')) as f:
         all_files = get_all_files(f.readlines())
 
+
     # There might be some c extensions left over
     for entry in all_files:
-        if entry.endswith('.pyc') or entry.endswith('.pyo'):
+        if _do_not_keep_leftover(entry):
             continue
         dest_entry = os.path.join(dest, entry)
         egg_entry = os.path.join(egg_dir, entry)
@@ -1784,6 +1785,17 @@ def make_egg_after_pip_install(dest, distinfo_dir):
             os.rename(dest_entry, egg_entry)
 
     return [egg_dir]
+
+
+SLASH_BIN_SLASH = os.path.join('', 'bin', '')
+
+
+def _do_not_keep_leftover(filename):
+    return (
+        filename.endswith('.pyc') or
+        filename.endswith('.pyo') or
+        SLASH_BIN_SLASH in filename
+    )
 
 
 def unpack_egg(location, dest):
