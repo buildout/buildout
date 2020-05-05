@@ -70,8 +70,11 @@ python_version:
 	mkdir -p $(PYTHON_PATH)
 	echo "$(PYTHON_MINOR)" > $(PYTHON_PATH)/python_version.txt
 
+download_python: $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE)/configure
+
 python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 
+# used by Dockerfile
 build: python
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 
@@ -85,8 +88,6 @@ ALL_COPY := $(subst $(HERE),$(VENV),$(SRC_FILES) $(DOC_FILES) $(RCP_FILES) $(ROO
 # Generate rules to map sources into targets
 $(foreach s,$(ALL_COPY),$(eval $s: $(VENV)/bin/$(PYTHON_EXE) $(subst $(VENV),$(HERE),$s)))
 
-docker:
-	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
 $(ALL_COPY):
 	@test -d "$(dir $@)" || mkdir -p $(dir $@)
 	@cp $(subst $(VENV),$(HERE),$@) $@
@@ -130,6 +131,10 @@ all_test:
 	$(MAKE) PYTHON_VER=3.6 test
 	$(MAKE) PYTHON_VER=3.7 test
 	$(MAKE) PYTHON_VER=3.8 test
+
+docker:
+	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
+	docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
