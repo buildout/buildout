@@ -23,6 +23,7 @@ from setuptools.package_index import htmldecode
 
 from pip._internal.index.collector import HTMLPage
 from pip._internal.index.collector import parse_links
+from pip._internal.index.collector import _clean_link
 from pip._internal.index.package_finder import _check_link_requires_python
 from pip._internal.models.target_python import TargetPython
 from pip._vendor import six
@@ -118,8 +119,9 @@ def process_url(self, url, retrieve=False):
     links = []
     for match in HREF.finditer(page):
         link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
-        links.append(link)
+        links.append(_clean_link(link))
 
+    # TODO: remove assertion and double index page parsing before releasing.
     assert set(pip_links) == set(links)
 
     for link in plinks:
