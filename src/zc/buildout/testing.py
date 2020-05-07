@@ -683,3 +683,19 @@ def run_buildout_in_process(command='buildout'):
         )
     command = ' '.join(command)
     run_in_process(run_buildout, command)
+
+
+def setup_coverage():
+    if 'RUN_COVERAGE' not in os.environ:
+        return
+    if ('COVERAGE_PROCESS_START' not in os.environ):
+        os.environ['COVERAGE_PROCESS_START'] = os.path.abspath('../../.coveragerc')
+    coveragerc = os.getenv('COVERAGE_PROCESS_START')
+    if coveragerc:
+        try:
+            import coverage
+            print("Coverage configured with %s" % coveragerc)
+            coverage.process_startup()
+        except ImportError:
+            print("You try to run coverage but coverage is not installed in your virtualenv.")
+            sys.exit(1)

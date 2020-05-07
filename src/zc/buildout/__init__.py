@@ -75,21 +75,6 @@ def patch_Distribution():
 patch_Distribution()
 
 
-def setup_coverage():
-    if not 'RUN_COVERAGE' in os.environ:
-        return
-    if ('COVERAGE_PROCESS_START' not in os.environ):
-        os.environ['COVERAGE_PROCESS_START'] = os.path.abspath('../../.coveragerc')
-    coveragerc = os.getenv('COVERAGE_PROCESS_START')
-    if coveragerc:
-        try:
-            import coverage
-            print("Coverage configured with %s" % coveragerc)
-            coverage.process_startup()
-        except ImportError:
-            print("You try to run coverage but coverage is not installed in your virtualenv.")
-            sys.exit(1)
-
 
 PY_VERSION_INFO = TargetPython().py_version_info
 
