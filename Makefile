@@ -135,6 +135,7 @@ all_test:
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
 	docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
+	docker run -e RUN_COVERAGE= centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)

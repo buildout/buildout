@@ -18,3 +18,4 @@ install:
 
 script:
     - docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv
+    - docker run -e RUN_COVERAGE= centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv
