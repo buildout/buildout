@@ -118,15 +118,21 @@ zc.buildout.easy_install.scripts(
     ['zc.buildout'], pkg_resources.working_set , sys.executable, 'bin')
 
 ######################################################################
-print('')
-print('Install coverage')
-print('')
-bin_pip = os.path.join('bin', 'pip')
-if subprocess.call(
-    [sys.executable] +
-    ['-m', 'pip', 'install', 'coverage'],
-    ):
-    raise RuntimeError("coverage install failed.")
+def install_coverage():
+    print('')
+    print('Install coverage')
+    print('')
+    bin_pip = os.path.join('bin', 'pip')
+    if subprocess.call(
+        [sys.executable] +
+        ['-m', 'pip', 'install', 'coverage'],
+        ):
+        raise RuntimeError("coverage install failed.")
+
+try:
+    import coverage
+except ImportError:
+    install_coverage()
 
 ######################################################################
 print('')
