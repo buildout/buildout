@@ -46,7 +46,7 @@ setup(
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
     install_requires = [
-        'setuptools>=8.0',
+        'setuptools>=41.6.0',
         'pip>=20.0.1',
     ],
     include_package_data = True,
