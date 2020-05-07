@@ -13,8 +13,6 @@
 ##############################################################################
 """Buildout package
 """
-import os
-import sys
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.package_index import HREF
