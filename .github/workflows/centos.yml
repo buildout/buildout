@@ -23,4 +23,4 @@ jobs:
         PYTHON_VER: ${{matrix.python-version}}
       run: |
         docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv
-        docker run -e RUN_COVERAGE= centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv
+	docker run centos_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= /buildout/bin/test -c -vvv -t abi; /buildout/bin/coverage combine; /buildout/bin/coverage report'
