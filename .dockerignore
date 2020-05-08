@@ -1,0 +1,11 @@
+pythons
+python_builds
+download_cache
+parts
+eggs
+venvs
+.cache
+lib
+**/__pycache__
+**/*.pyc
+.git
