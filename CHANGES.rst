@@ -4,7 +4,8 @@ Change History
 2.13.4 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Patch ``pkg_resources.Distribution`` to make install of unpinned versions quicker.
+  Most obvious with ``setuptools``.
 
 
 2.13.3 (2020-02-11)
