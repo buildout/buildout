@@ -13,9 +13,11 @@
 ##############################################################################
 """Buildout package
 """
+import zc.buildout.patches # NOQA
+
 
 class UserError(Exception):
-    """Errors made by a user 
+    """Errors made by a user
     """
 
     def __str__(self):
