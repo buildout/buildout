@@ -608,6 +608,12 @@ ignore_not_upgrading = (
     'Not upgrading because not running a local buildout command.\n'
     ), '')
 
+easy_install_deprecated = (
+    re.compile(
+    'WARNING: The easy_install command is deprecated and will be removed in a future version.\n'
+    ), '')
+
+
 def run_buildout(command):
     # Make sure we don't get .buildout
     os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
