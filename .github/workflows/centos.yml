@@ -1,0 +1,25 @@
+name: Buildout on Centos
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build container with Python ${{ matrix.python-version }}
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+      run: |
+        docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
+    - name: Test
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+      run: |
+        docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv

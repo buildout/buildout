@@ -1,0 +1,16 @@
+ifeq ($(PYTHON_VER),2.7)
+	PYTHON_CONFIGURE_ARGS ?=
+endif
+ifeq ($(PYTHON_VER),3.5)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+ifeq ($(PYTHON_VER),3.6)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+ifeq ($(PYTHON_VER),3.7)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+ifeq ($(PYTHON_VER),3.8)
+	PYTHON_CONFIGURE_ARGS ?= --without-ensurepip
+endif
+
