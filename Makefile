@@ -106,7 +106,6 @@ $(VENV)/bin/coverage: $(VENV)/bin/$(PYTHON_EXE)
 
 coverage: $(VENV)/bin/coverage $(VENV)/bin/test
 	RUN_COVERAGE= $(VENV)/bin/test $(testargs)
-	cd $(VENV) && bin/coverage combine && bin/coverage report
 
 test: $(VENV)/bin/test
 	$(VENV)/bin/test -1 -vvv -c $(testargs)
@@ -134,8 +133,7 @@ all_test:
 
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
-	docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
-	docker run centos_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= /buildout/bin/test -c -vvv -t abi; /buildout/bin/coverage combine; /buildout/bin/coverage report'
+	docker run centos_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
 
 clean:
 	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
