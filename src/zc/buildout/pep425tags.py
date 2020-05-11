@@ -111,11 +111,11 @@ def get_supported(versions=None, supplied_platform=None):
     """Return a list of supported tags for each version specified in
     `versions`.
 
-    :param versions: a list of string versions, of the form ["33", "32"], 
+    :param versions: a list of string versions, of the form ["33", "32"],
         or None. The first version will be assumed to support our ABI.
     """
     supported = []
-    
+
     # Versions must be given with respect to the preference
     if versions is None:
         versions = []
@@ -124,15 +124,15 @@ def get_supported(versions=None, supplied_platform=None):
         # Support all previous minor Python versions.
         for minor in range(version_info[-1], -1, -1):
             versions.append(''.join(map(str, major + (minor,))))
-            
+
     impl = get_abbr_impl()
-    
+
     abis = []
 
     abi = get_abi_tag()
     if abi:
         abis[0:0] = [abi]
- 
+
     abi3s = set()
     import imp
     for suffix in imp.get_suffixes():
@@ -147,20 +147,20 @@ def get_supported(versions=None, supplied_platform=None):
     if supplied_platform:
         platforms.append(supplied_platform)
     platforms.append(get_platform())
-    
+
     # Current version, current API (built specifically for our Python):
     for abi in abis:
         for arch in platforms:
             supported.append(('%s%s' % (impl, versions[0]), abi, arch))
-            
+
     # No abi / arch, but requires our implementation:
     for i, version in enumerate(versions):
         supported.append(('%s%s' % (impl, version), 'none', 'any'))
         if i == 0:
-            # Tagged specifically as being cross-version compatible 
+            # Tagged specifically as being cross-version compatible
             # (with just the major version specified)
-            supported.append(('%s%s' % (impl, versions[0][0]), 'none', 'any')) 
-    
+            supported.append(('%s%s' % (impl, versions[0][0]), 'none', 'any'))
+
     # Major Python version + platform; e.g. binaries not using the Python API
     supported.append(('py%s' % (versions[0][0]), 'none', arch))
 
@@ -169,5 +169,5 @@ def get_supported(versions=None, supplied_platform=None):
         supported.append(('py%s' % (version,), 'none', 'any'))
         if i == 0:
             supported.append(('py%s' % (version[0]), 'none', 'any'))
-        
+
     return supported
