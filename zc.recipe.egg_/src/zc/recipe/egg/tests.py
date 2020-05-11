@@ -50,10 +50,10 @@ def test_suite():
                zc.buildout.tests.normalize_bang,
                zc.buildout.tests.normalize_S,
                zc.buildout.testing.not_found,
-               zc.buildout.testing.easy_install_deprecated,
                (re.compile(r'[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
+               (re.compile(r'[d-]  pip-[^-]+-'), 'pip-X-'),
                (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])
@@ -66,7 +66,6 @@ def test_suite():
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
-               zc.buildout.testing.easy_install_deprecated,
                (re.compile('__buildout_signature__ = '
                            r'sample-\S+\s+'
                            r'zc.recipe.egg-\S+\s+'
@@ -88,28 +87,9 @@ def test_suite():
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.not_found,
-                zc.buildout.testing.easy_install_deprecated,
                 (re.compile("(d  ((ext)?demo(needed)?|other)"
                             r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),
-                (re.compile('extdemo.c\n.+\\\\extdemo.exp\n'), ''),
-                (re.compile(
-                    r'zip_safe flag not set; analyzing archive contents.*\n'),
-                 ''),
-                (re.compile(
-                    r'\n.*module references __file__'),
-                 ''),
-                (re.compile(''), ''),
-                (re.compile(
-                    "extdemo[.]c\n"
-                    "extdemo[.]obj : warning LNK4197: "
-                    "export 'initextdemo' specified multiple times; "
-                    "using first specification\n"
-                    "   Creating library build\\\\temp[.]win-amd64-2[.]"
-                    "[4567]\\\\Release\\\\extdemo[.]lib and object "
-                    "build\\\\temp[.]win-amd64-2[.][4567]\\\\Re"
-                    "lease\\\\extdemo[.]exp\n"),
-                 ''),
                 ]),
             ),
         doctest.DocFileSuite(
@@ -120,7 +100,6 @@ def test_suite():
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
-               zc.buildout.testing.easy_install_deprecated,
                ])
             ),
         ))

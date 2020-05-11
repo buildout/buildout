@@ -1,6 +1,6 @@
-name: Buildout on Centos
+name: Test in Centos container
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:

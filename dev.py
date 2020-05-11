@@ -23,43 +23,54 @@ for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
         os.mkdir(d)
 
+bin_buildout = os.path.join('bin', 'buildout')
+if os.path.isfile(bin_buildout):
+    os.remove(bin_buildout)
+
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
 ######################################################################
-# Make sure we have a relatively clean environment
-try:
-    import pkg_resources, setuptools
-except ImportError:
-    pass
-else:
-    raise SystemError(
-        "Buildout development with a pre-installed setuptools or "
-        "distribute is not supported.")
+def check_upgrade(package):
+    print('')
+    print('Check %s' % package)
+    print('')
 
+    try:
+        sys.stdout.flush()
+        output = subprocess.check_output(
+            [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
+        )
+        was_up_to_date = b"up-to-date" in output
+        if not was_up_to_date:
+            print(output.decode('utf8'))
+        return not was_up_to_date
+    except subprocess.CalledProcessError:
+        raise RuntimeError("Upgrade %s failed." % package)
+
+need_restart = False
+for package in ['pip', 'setuptools', 'wheel']:
+    did_upgrade = check_upgrade(package)
+    need_restart = need_restart or did_upgrade
+if need_restart:
+    print("Restart")
+    sys.stdout.flush()
+    return_code = subprocess.call(
+        [sys.executable] + sys.argv
+    )
+    sys.exit(return_code)
 ######################################################################
-# Install distribute
-ez = {}
-
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
-
-# XXX use a more permanent ez_setup.py URL when available.
-exec(urlopen('https://bootstrap.pypa.io/ez_setup.py').read(), ez)
-ez['use_setuptools'](to_dir='eggs', download_delay=0)
-
-import pkg_resources, setuptools
-setuptools_path = os.path.dirname(os.path.dirname(setuptools.__file__))
-
-######################################################################
-# Install buildout
+print('')
+print('Install buildout')
+print('')
+sys.stdout.flush()
 if subprocess.call(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    env=dict(os.environ, PYTHONPATH=setuptools_path)):
+    ):
     raise RuntimeError("buildout build failed.")
+
+import pkg_resources
 
 pkg_resources.working_set.add_entry('src')
 
@@ -67,12 +78,15 @@ import zc.buildout.easy_install
 zc.buildout.easy_install.scripts(
     ['zc.buildout'], pkg_resources.working_set , sys.executable, 'bin')
 
+######################################################################
+print('')
+print('Run buildout')
+print('')
 bin_buildout = os.path.join('bin', 'buildout')
 
 if sys.platform.startswith('java'):
     # Jython needs the script to be called twice via sys.executable
-    assert subprocess.Popen([sys.executable] + [bin_buildout]).wait() == 0
+    assert subprocess.Popen([sys.executable, bin_buildout, '-N']).wait() == 0
 
-if sys.version_info < (2, 6):
-    bin_buildout = [bin_buildout, '-c2.4.cfg']
+sys.stdout.flush()
 sys.exit(subprocess.Popen(bin_buildout).wait())

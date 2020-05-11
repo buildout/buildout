@@ -12,8 +12,7 @@ zc.buildout.testing.
 The handlers before calling set up are:
 
     >>> import logging
-    >>> len(logging.getLogger().handlers)
-    1
+    >>> count = len(logging.getLogger().handlers)
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS
     [<...NullHandler...>]
 
@@ -24,15 +23,15 @@ After calling it, a ``logging.StreamHandler`` was added:
     >>> test = doctest.DocTestParser().get_doctest(
     ...     '>>> x', {}, 'foo', 'foo.py', 0)
     >>> zc.buildout.testing.buildoutSetUp(test)
-    >>> len(logging.getLogger().handlers)
-    2
+    >>> len(logging.getLogger().handlers) == count + 1
+    True
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     [<...NullHandler...StreamHandler...>]
 
 But tear down removes the new logging handler:
 
     >>> zc.buildout.testing.buildoutTearDown(test)
-    >>> len(logging.getLogger().handlers)
-    1
+    >>> len(logging.getLogger().handlers) == count
+    True
     >>> logging.getLogger().handlers # doctest: +ELLIPSIS
     [<...NullHandler...>]

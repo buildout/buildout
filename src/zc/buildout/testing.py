@@ -25,7 +25,7 @@ except ImportError:
 
 import errno
 import logging
-from multiprocessing import Process
+from multiprocessing import get_context
 import os
 import pkg_resources
 import random
@@ -168,7 +168,7 @@ def _runsetup(setup, *args):
         zc.buildout.easy_install.call_subprocess(
             [sys.executable, setup] + args,
             env=dict(os.environ,
-                     PYTHONPATH=zc.buildout.easy_install.setuptools_pythonpath,
+                     PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
             )
         if os.path.exists('build'):
@@ -601,12 +601,6 @@ ignore_not_upgrading = (
     'Not upgrading because not running a local buildout command.\n'
     ), '')
 
-easy_install_deprecated = (
-    re.compile(
-    'WARNING: The easy_install command is deprecated and will be removed in a future version.\n'
-    ), '')
-
-
 def run_buildout(command):
     # Make sure we don't get .buildout
     os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
@@ -621,7 +615,8 @@ def run_from_process(target, *args, **kw):
     target(*args, **kw)
 
 def run_in_process(*args, **kwargs):
-    process = Process(target=run_from_process, args=args, kwargs=kwargs)
+    ctx = get_context('fork')
+    process = ctx.Process(target=run_from_process, args=args, kwargs=kwargs)
     process.daemon = True
     process.start()
     process.join(99)

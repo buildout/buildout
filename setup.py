@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = '2.13.4.dev0'
+version = '3.0.0.dev0'
 
 import os
 from setuptools import setup
@@ -47,6 +47,8 @@ setup(
     namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=8.0',
+        'pip',
+        'wheel',
     ],
     include_package_data = True,
     entry_points = entry_points,

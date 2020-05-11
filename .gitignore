@@ -6,6 +6,7 @@ develop-eggs/
 eggs/
 parts/
 python*/
+venvs/
 *.pyc
 *.egg
 *.egg-info
