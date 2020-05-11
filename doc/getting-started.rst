@@ -431,7 +431,7 @@ where you list them, as in:
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
    >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
-   >>> yup('bobo = 2.3.0' in read('out'))
+   >>> yup('bobo==2.3.0' in read('out'))
 
 In this example, we've requested a version of bobo less than 5.0.
 

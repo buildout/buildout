@@ -1,8 +1,10 @@
 Change History
 **************
 
-2.13.4 (unreleased)
-===================
+3.0.0 (unreleased)
+==================
+
+- Use ``pip install`` instead of deprecated ``setuptools.easy_install``.
 
 - Patch ``pkg_resources.Distribution`` to make install of unpinned versions quicker.
   Most obvious with ``setuptools``.

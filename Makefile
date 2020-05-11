@@ -44,8 +44,8 @@ PYTHON_DOWNLOAD = $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE).tgz
 
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
-all: test
-.PHONY: all download_python python build test docker clean
+all: all_test
+.PHONY: all download_python python build test docker clean all_pythons all_test
 
 # setup python from source
 $(PYTHON_DOWNLOAD):
@@ -74,12 +74,46 @@ python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 build: python
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 
+# copy to virtualenvs
+ROOT_FILES := $(HERE)/setup.py $(HERE)/setup.cfg $(HERE)/dev.py $(HERE)/README.rst $(HERE)/CHANGES.rst $(HERE)/buildout.cfg
+SRC_FILES := $(shell find $(HERE)/src ! -path '*egg-info*' \( -name '*.py' -o -name '*.txt' -o -name '*.test' \) )
+RCP_FILES := $(shell find $(HERE)/zc.recipe.egg_ ! -path '*egg-info*' \( -name '*.py' -o -name '*.txt' -o -name '*.rst' -o -name '*.cfg' -o -name '*.in' \) )
+DOC_FILES := $(shell find $(HERE)/doc -name '*.rst' -o -name '*.txt')
+
+ALL_COPY := $(subst $(HERE),$(VENV),$(SRC_FILES) $(DOC_FILES) $(RCP_FILES) $(ROOT_FILES))
+# Generate rules to map sources into targets
+$(foreach s,$(ALL_COPY),$(eval $s: $(VENV)/bin/$(PYTHON_EXE) $(subst $(VENV),$(HERE),$s)))
+
+$(ALL_COPY):
+	@mkdir -p $(dir $@)
+	@cp $(subst $(VENV),$(HERE),$@) $@
+
+$(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+	@command -v virtualenv >/dev/null 2>&1 || { echo "virtualenv required but not installed" >&2; exit 1; }
+	test -d "$(HERE)/venvs" || mkdir -p $(HERE)/venvs
+	virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
+
+$(VENV)/bin/test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
+	cd $(VENV) && bin/$(PYTHON_EXE) dev.py --no-clean
+
+test: $(VENV)/bin/test
+	$(VENV)/bin/test -c -vvv $(testargs)
+
+all_pythons:
+	$(MAKE) PYTHON_VER=3.5 python
+	$(MAKE) PYTHON_VER=3.6 python
+	$(MAKE) PYTHON_VER=3.7 python
+	$(MAKE) PYTHON_VER=3.8 python
+
+all_test:
+	$(MAKE) PYTHON_VER=3.5 test
+	$(MAKE) PYTHON_VER=3.6 test
+	$(MAKE) PYTHON_VER=3.7 test
+	$(MAKE) PYTHON_VER=3.8 test
+
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
 	docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
 
 clean:
-	rm -rf $(BUILD_DIRS) $(PYTHON_BUILD_DIR)
-
-test:
-	$(HERE)/bin/test -1 -vvv -c
+	rm -rf $(VENVS) $(PYTHON_BUILD_DIR) $(HERE)/pythons

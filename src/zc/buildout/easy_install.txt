@@ -345,7 +345,7 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install DEBUG
       Fetching demoneeded 1.1 from: http://.../demoneeded-1.1.zip
     zc.buildout.easy_install DEBUG
-      Running easy_install:...
+      Running pip install:...
     zc.buildout.easy_install INFO
       Got demoneeded 1.1.
     zc.buildout.easy_install DEBUG

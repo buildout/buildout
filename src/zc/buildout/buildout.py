@@ -1094,7 +1094,7 @@ class Buildout(DictMixin):
             return
 
         ws = zc.buildout.easy_install.install(
-            ('zc.buildout', 'setuptools'),
+            ('zc.buildout', 'setuptools', 'pip', 'wheel'),
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
@@ -1107,7 +1107,7 @@ class Buildout(DictMixin):
         # recorded in easy_install.py. We use that here to check if we've been
         # upgraded.
         start_locations = zc.buildout.easy_install.buildout_and_setuptools_path
-        for project in 'zc.buildout', 'setuptools':
+        for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
             req = pkg_resources.Requirement.parse(project)
             if ws.find(req).location not in start_locations:
                 upgraded.append(ws.find(req))
@@ -1131,7 +1131,7 @@ class Buildout(DictMixin):
                                  "buildout command.")
             return
 
-        self._logger.info("Upgraded:\n  %s;\nrestarting.",
+        self._logger.info("Upgraded:\n  %s;\nRestarting.",
                           ",\n  ".join([("%s version %s"
                                        % (dist.project_name, dist.version)
                                        )
