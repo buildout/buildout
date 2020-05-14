@@ -265,7 +265,7 @@ def buildoutSetUp(test):
     register_teardown(lambda: rmtree(tmp))
 
     zc.buildout.easy_install.default_index_url = 'file://'+tmp
-    os.environ['buildout-testing-index-url'] = (
+    os.environ['buildout_testing_index_url'] = (
         zc.buildout.easy_install.default_index_url)
 
     def tmpdir(name):

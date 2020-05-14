@@ -62,7 +62,7 @@ def realpath(path):
     return os.path.normcase(os.path.abspath(_oprp(path)))
 
 default_index_url = os.environ.get(
-    'buildout-testing-index-url',
+    'buildout_testing_index_url',
     'https://pypi.org/simple',
     )
 
