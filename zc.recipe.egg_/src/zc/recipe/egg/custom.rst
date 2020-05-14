@@ -229,7 +229,7 @@ We won't get an update.
     -  zc.recipe.egg.egg-link
 
 But if we run the buildout in the default on-line and newest modes, we
-will. This time we also get the test-variable message again, because the new
+will. This time we also get the test_environment_variable message again, because the new
 version is imported:
 
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
@@ -301,8 +301,8 @@ recipe was run.
     ...
     ...     def install(self):
     ...         logging.getLogger(self.name).info(
-    ...             'test-variable left over: %s' % (
-    ...                 'test-variable' in os.environ))
+    ...             'test_environment_variable left over: %s' % (
+    ...                 'test_environment_variable' in os.environ))
     ...         return []
     ...
     ...     def update(self):
@@ -328,7 +328,7 @@ Create our buildout:
     ... parts = extdemo checkenv
     ...
     ... [extdemo-env]
-    ... test-variable = foo
+    ... test_environment_variable = foo
     ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
@@ -346,13 +346,13 @@ Create our buildout:
     Uninstalling demo.
     Uninstalling extdemo.
     Installing extdemo.
-    Have environment test-variable: foo
+    Have environment test_environment_variable: foo
     zip_safe flag not set; analyzing archive contents...
     Installing checkenv.
     ...
 
 
-The setup.py also printed out that we have set the environment `test-variable`
+The setup.py also printed out that we have set the environment `test_environment_variable`
 to foo. After the buildout the variable is reset to its original value (i.e.
 removed).
 
@@ -360,14 +360,14 @@ When an environment variable has a value before zc.recipe.egg:custom is run,
 the original value will be restored:
 
     >>> import os
-    >>> os.environ['test-variable'] = 'bar'
+    >>> os.environ['test_environment_variable'] = 'bar'
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
     Updating extdemo.
     Updating checkenv.
-    checkenv: test-variable left over: True
+    checkenv: test_environment_variable left over: True
 
-    >>> os.environ['test-variable']
+    >>> os.environ['test_environment_variable']
     'bar'
 
 
@@ -382,7 +382,7 @@ are interpolated with os.environ before the're set:
     ... parts = extdemo checkenv
     ...
     ... [extdemo-env]
-    ... test-variable = foo:%%(test-variable)s
+    ... test_environment_variable = foo:%%(test_environment_variable)s
     ...
     ... [extdemo]
     ... recipe = zc.recipe.egg:custom
@@ -399,14 +399,14 @@ are interpolated with os.environ before the're set:
     Develop: '/sample-buildout/recipes'
     Uninstalling extdemo.
     Installing extdemo.
-    Have environment test-variable: foo:bar
+    Have environment test_environment_variable: foo:bar
     zip_safe flag not set; analyzing archive contents...
     Updating checkenv.
     ...
 
-    >>> os.environ['test-variable']
+    >>> os.environ['test_environment_variable']
     'bar'
-    >>> del os.environ['test-variable']
+    >>> del os.environ['test_environment_variable']
 
 
 Create a clean buildout.cfg w/o the checkenv recipe, and delete the recipe:

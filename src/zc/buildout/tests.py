@@ -3423,8 +3423,11 @@ extdemo_setup_py = r"""
 import os, sys
 from distutils.core import setup, Extension
 
-if os.environ.get('test-variable'):
-    print("Have environment test-variable: %%s" %% os.environ['test-variable'])
+if os.environ.get('test_environment_variable'):
+    print(
+        "Have environment test_environment_variable: %%s"
+        %% os.environ['test_environment_variable']
+    )
 
 setup(name = "extdemo", version = "%s", url="http://www.zope.org",
       author="Demo", author_email="demo@demo.com",
@@ -3462,7 +3465,7 @@ def easy_install_SetUp(test):
 def buildout_txt_setup(test):
     zc.buildout.testing.buildoutSetUp(test)
     mkdir = test.globs['mkdir']
-    eggs = os.environ['buildout-testing-index-url'][7:]
+    eggs = os.environ['buildout_testing_index_url'][7:]
     test.globs['sample_eggs'] = eggs
     create_sample_eggs(test)
 
