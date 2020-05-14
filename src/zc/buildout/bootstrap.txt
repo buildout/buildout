@@ -57,7 +57,7 @@ By default it gets the latest version::
     >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/zc.buildout-22.0.0...egg',
+      '/sample/eggs/zc.buildout-...egg',
       '/sample/eggs/setuptools-...egg'...
       ]...
 
@@ -75,11 +75,11 @@ Let's try with an unknown version::
     No local packages or...download links found for zc.buildout==UNKNOWN
     ...
 
-Now let's try with ``2.0.0``, which happens to exist::
+Now let's try with ``2.11.0``, which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --buildout-version 2.0.0')); print_('X')
+    ...     'bootstrap.py --buildout-version 2.11.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -88,7 +88,7 @@ Let's make sure the generated ``buildout`` script uses it::
     >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/zc.buildout-2.11.0...egg',
       '/sample/eggs/setuptools-...egg'...
       ]...
 
@@ -117,7 +117,7 @@ which happens to exist::
 
     >>> print_('X'); print_(system(
     ...     zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...     'bootstrap.py --setuptools-version 31.0.0 --buildout-version 2.0.0')); print_('X')
+    ...     'bootstrap.py --setuptools-version 31.0.0 --buildout-version 2.11.0')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Generated script '/sample/bin/buildout'...X
 
@@ -126,7 +126,7 @@ Let's make sure the generated ``buildout`` script uses it::
     >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/zc.buildout-2.11.0...egg',
       '/sample/eggs/setuptools-31.0.0...egg'...
       ]...
 
@@ -147,7 +147,7 @@ specify the setuptools version, and to reuse the setuptools zipfile::
 
     >>> print_('X'); print_(system(
     ...   zc.buildout.easy_install._safe_arg(sys.executable)+' '+
-    ...   'bootstrap.py --setuptools-version 32.1.0 --buildout-version 2.0.0 '+
+    ...   'bootstrap.py --setuptools-version 32.1.0 --buildout-version 2.11.0 '+
     ...   '--setuptools-to-dir .')); print_('X')
     ... # doctest: +ELLIPSIS
     X...Using local ez_setup.py...Generated script '/sample/bin/buildout'...X
@@ -158,7 +158,7 @@ specify the setuptools version, and to reuse the setuptools zipfile::
     >>> with open(buildout_script) as f: print_(f.read()) # doctest: +ELLIPSIS
     #...
     sys.path[0:0] = [
-      '/sample/eggs/zc.buildout-2.0.0...egg',
+      '/sample/eggs/zc.buildout-2.11.0...egg',
       '/sample/eggs/setuptools-32.1.0...egg'...
       ]...
 
