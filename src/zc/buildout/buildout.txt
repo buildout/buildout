@@ -1130,6 +1130,26 @@ allow us to see interactions with the buildout::
     ...     update = install
     ... """)
 
+    >>> write(sample_buildout, 'recipes', 'environ.py',
+    ... """
+    ... import sys
+    ... import os
+    ... class Environ:
+    ...
+    ...     def __init__(self, buildout, name, options):
+    ...         self.buildout = buildout
+    ...         self.options = options
+    ...
+    ...     def install(self):
+    ...         _ = self.options['name']
+    ...         sys.stdout.write('HOME %s\\n' % os.environ['HOME'])
+    ...         sys.stdout.write('USERPROFILE %s\\n' % os.environ['USERPROFILE'])
+    ...         sys.stdout.write('expanduser %s\\n' % os.path.expanduser('~'))
+    ...         return ()
+    ...
+    ...     update = install
+    ... """)
+
 This recipe doesn't actually create anything. The install method
 doesn't return anything, because it didn't create any files or
 directories.
@@ -1144,6 +1164,7 @@ We also have to update our setup script::
     ... [zc.buildout]
     ... mkdir = mkdir:Mkdir
     ... debug = debug:Debug
+    ... environ = environ:Environ
     ... ''')
     ... setup(name="recipes", entry_points=entry_points)
     ... """)
@@ -1846,6 +1867,10 @@ Here is a more elaborate example::
     ... [debug]
     ... recipe = recipes:debug
     ... name = base
+    ...
+    ... [environ]
+    ... recipe = recipes:environ
+    ... name = base
     ... """)
 
     >>> print_(system(buildout), end='')
@@ -1971,18 +1996,18 @@ reading the configuration file.  (``$HOME`` is the value of the ``HOME``
 environment variable. The ``/`` is replaced by the operating system file
 delimiter.)::
 
-    >>> old_home = os.environ['HOME']
     >>> home = tmpdir('home')
     >>> mkdir(home, '.buildout')
-    >>> write(home, '.buildout', 'default.cfg',
+    >>> default_cfg = join(home, '.buildout', 'default.cfg')
+    >>> write(default_cfg,
     ... """
     ... [debug]
     ... op1 = 1
     ... op7 = 7
     ... """)
 
-    >>> os.environ['HOME'] = home
-    >>> print_(system(buildout), end='')
+    >>> env = dict(HOME=home, USERPROFILE=home)
+    >>> print_(system(buildout, env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1999,7 +2024,7 @@ delimiter.)::
 A buildout command-line argument, ``-U``, can be used to suppress reading
 user defaults::
 
-    >>> print_(system(buildout + ' -U'), end='')
+    >>> print_(system(buildout + ' -U', env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2026,8 +2051,8 @@ appropriate set of defaults::
     ... op8 = eight!
     ... """)
 
-    >>> os.environ['BUILDOUT_HOME'] = alterhome
-    >>> print_(system(buildout), end='')
+    >>> env['BUILDOUT_HOME'] = alterhome
+    >>> print_(system(buildout, env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2045,7 +2070,7 @@ appropriate set of defaults::
 The ``-U`` argument still suppresses reading of the ``default.cfg`` file from
 ``BUILDOUT_HOME``::
 
-    >>> print_(system(buildout + ' -U'), end='')
+    >>> print_(system(buildout + ' -U', env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2057,9 +2082,6 @@ The ``-U`` argument still suppresses reading of the ``default.cfg`` file from
     op4 b3 4
     op5 b3base 5
     recipe recipes:debug
-
-    >>> os.environ['HOME'] = old_home
-    >>> del os.environ['BUILDOUT_HOME']
 
 Log level
 ---------
