@@ -1,0 +1,35 @@
+name: Tests on Windows, MacOS, or Ubuntu runners
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python_version: [2.7, 3.5, 3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: crazy-max/ghaction-chocolatey@v1
+      if: matrix.python_version == '2.7' && matrix.os == 'windows-latest'
+      with:
+        args: install vcpython27
+    - name: Set up Python ${{ matrix.python_version }}
+      uses: actions/setup-python@v2
+      with:
+        python_version: ${{ matrix.python_version }}
+    - name: Install dev environment
+      run: |
+        python dev.py
+    - name: Run tests
+      env:
+        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
+        TMP: ${{ env.HOME }}/AppData/Local/Temp
+        TEMP: ${{ env.HOME }}/AppData/Local/Temp
+      run: |
+        echo $TMPDIR
+        bin/test -c -vvv
