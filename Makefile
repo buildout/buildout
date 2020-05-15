@@ -45,7 +45,7 @@ PYTHON_DOWNLOAD = $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE).tgz
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
 all: all_test
-.PHONY: all download_python python build test docker clean all_pythons all_test
+.PHONY: all download_python python build test coverage docker docker_deb all_pythons all_test all_coverage
 
 # setup python from source
 $(PYTHON_DOWNLOAD):
@@ -75,7 +75,7 @@ build: python
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) dev.py
 
 # copy to virtualenvs
-ROOT_FILES := $(HERE)/setup.py $(HERE)/setup.cfg $(HERE)/dev.py $(HERE)/README.rst $(HERE)/CHANGES.rst $(HERE)/buildout.cfg
+ROOT_FILES := $(HERE)/setup.py $(HERE)/setup.cfg $(HERE)/dev.py $(HERE)/README.rst $(HERE)/CHANGES.rst $(HERE)/buildout.cfg $(HERE)/.coveragerc
 SRC_FILES := $(shell find $(HERE)/src ! -path '*egg-info*' \( -name '*.py' -o -name '*.txt' -o -name '*.test' \) )
 RCP_FILES := $(shell find $(HERE)/zc.recipe.egg_ ! -path '*egg-info*' \( -name '*.py' -o -name '*.txt' -o -name '*.rst' -o -name '*.cfg' -o -name '*.in' \) )
 DOC_FILES := $(shell find $(HERE)/doc -name '*.rst' -o -name '*.txt')
@@ -96,6 +96,12 @@ $(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/$(PYTHON_EXE)
 $(VENV)/bin/test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
 	cd $(VENV) && bin/$(PYTHON_EXE) dev.py --no-clean
 
+$(VENV)/bin/coverage: $(VENV)/bin/$(PYTHON_EXE)
+	$(VENV)/bin/pip install coverage
+
+coverage: $(VENV)/bin/coverage $(VENV)/bin/test
+	COVERAGE_REPORT= RUN_COVERAGE= $(VENV)/bin/test $(testargs)
+
 test: $(VENV)/bin/test
 	$(VENV)/bin/test -c -vvv $(testargs)
 
@@ -106,6 +112,13 @@ all_pythons:
 	$(MAKE) PYTHON_VER=3.7 python
 	$(MAKE) PYTHON_VER=3.8 python
 
+all_coverage:
+	$(MAKE) PYTHON_VER=2.7 coverage
+	$(MAKE) PYTHON_VER=3.5 coverage
+	$(MAKE) PYTHON_VER=3.6 coverage
+	$(MAKE) PYTHON_VER=3.7 coverage
+	$(MAKE) PYTHON_VER=3.8 coverage
+
 all_test:
 	$(MAKE) PYTHON_VER=2.7 test
 	$(MAKE) PYTHON_VER=3.5 test
@@ -115,7 +128,11 @@ all_test:
 
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
-	docker run centos_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv -t abi
+	docker run centos_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
+
+docker_deb:
+	docker build -f .github/workflows/Dockerfile-debian --tag debian_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
+	docker run debian_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
 
 clean:
 	rm -rf $(VENVS) $(PYTHON_BUILD_DIR) $(HERE)/pythons

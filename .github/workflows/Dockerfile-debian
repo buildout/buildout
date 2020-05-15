@@ -1,6 +1,6 @@
 FROM debian:stable-slim as debian-python
 RUN apt-get update
-RUN apt-get install -y make gcc openssl libffi-dev curl zlib1g-dev libssl-dev
+RUN apt-get install -y make gcc openssl libffi-dev curl zlib1g-dev libssl-dev libsqlite3-dev
 ARG PYTHON_VER
 ENV LANG C.UTF-8
 RUN mkdir buildout
@@ -13,5 +13,5 @@ ARG PYTHON_VER
 COPY doc /buildout/doc
 COPY src /buildout/src
 COPY zc.recipe.egg_ /buildout/zc.recipe.egg_
-COPY setup.* dev.py *.rst *.txt buildout.cfg /buildout/
+COPY setup.* dev.py *.rst *.txt buildout.cfg .coveragerc /buildout/
 RUN make PYTHON_VER=${PYTHON_VER} build
