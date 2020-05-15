@@ -22,4 +22,4 @@ jobs:
       env:
         PYTHON_VER: ${{matrix.python-version}}
       run: |
-        docker run debian_buildout:python${PYTHON_VER} /buildout/bin/test -c -vvv
+        docker run debian_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv'
