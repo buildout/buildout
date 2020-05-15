@@ -20,6 +20,7 @@ import shutil
 import sys
 import zc.buildout.tests
 import zc.buildout.testing
+from zc.buildout import WINDOWS
 
 import unittest
 
@@ -37,7 +38,7 @@ def setUp(test):
     zc.buildout.testing.install_develop('zc.recipe.egg', test)
 
 def test_suite():
-    suite = unittest.TestSuite((
+    suites = [
         doctest.DocFileSuite(
             'README.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
@@ -84,21 +85,6 @@ def test_suite():
                ])
             ),
         doctest.DocFileSuite(
-            'custom.rst',
-            setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
-            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
-            checker=renormalizing.RENormalizing([
-                zc.buildout.testing.normalize_path,
-                zc.buildout.testing.normalize_endings,
-                zc.buildout.testing.not_found,
-                zc.buildout.testing.python27_warning,
-                zc.buildout.testing.python27_warning_2,
-                (re.compile("(d  ((ext)?demo(needed)?|other)"
-                            r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
-                 '\\1V.V.egg'),
-                ]),
-            ),
-        doctest.DocFileSuite(
             'working_set_caching.rst',
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
@@ -108,7 +94,26 @@ def test_suite():
                zc.buildout.testing.not_found,
                ])
             ),
-        ))
+        ]
+    if not WINDOWS:
+        suites.append(
+            doctest.DocFileSuite(
+                'custom.rst',
+                setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
+                optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
+                checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.normalize_path,
+                    zc.buildout.testing.normalize_endings,
+                    zc.buildout.testing.not_found,
+                    zc.buildout.testing.python27_warning,
+                    zc.buildout.testing.python27_warning_2,
+                    (re.compile("(d  ((ext)?demo(needed)?|other)"
+                                r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                     '\\1V.V.egg'),
+                    ]),
+                )
+        )
+    suite = unittest.TestSuite(suites)
     return suite
 
 if __name__ == '__main__':

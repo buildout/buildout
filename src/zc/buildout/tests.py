@@ -145,7 +145,10 @@ class TestEasyInstall(unittest.TestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.version, '3.3')
-        self.assertIn(dest, result.location)
+        if zc.buildout.WINDOWS:
+            self.assertIn(dest.lower(), result.location)
+        else:
+            self.assertIn(dest, result.location)
 
 
 def develop_w_non_setuptools_setup_scripts():

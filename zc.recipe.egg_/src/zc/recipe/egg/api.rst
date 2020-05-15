@@ -147,5 +147,5 @@ recipe instance:
     demo 0.2
     other 1.0
     demoneeded 1.1
-    extra paths: ['/foo/bar', '/spam/eggs']
+    extra paths: ['.../foo/bar', '.../spam/eggs']
 
