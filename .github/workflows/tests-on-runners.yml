@@ -22,6 +22,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python_version: ${{ matrix.python_version }}
+    - name: Cache eggs
+      uses: actions/cache@v1.2.0
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-{{ matrix.python_version }}-eggs
     - name: Install dev environment
       run: |
         python dev.py

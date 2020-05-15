@@ -125,12 +125,14 @@ def clean_up_pyc(*path):
 ## FIXME - check for other platforms
 MUST_CLOSE_FDS = not sys.platform.startswith('win')
 
-def system(command, input='', with_exit_code=False):
+def system(command, input='', with_exit_code=False, env=None):
     # Some TERMinals, especially xterm and its variants, add invisible control
     # characters, which we do not want as they mess up doctests.  See:
     # https://github.com/buildout/buildout/pull/311
     # http://bugs.python.org/issue19884
-    env = dict(os.environ, TERM='dumb')
+    sub_env = dict(os.environ, TERM='dumb')
+    if env is not None:
+        sub_env.update(env)
 
     p = subprocess.Popen(command,
                          shell=True,
@@ -138,7 +140,7 @@ def system(command, input='', with_exit_code=False):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          close_fds=MUST_CLOSE_FDS,
-                         env=env)
+                         env=sub_env)
     i, o, e = (p.stdin, p.stdout, p.stderr)
     if input:
         i.write(input.encode())
