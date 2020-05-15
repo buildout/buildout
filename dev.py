@@ -16,8 +16,16 @@
 This is different from a normal boostrapping process because the
 buildout egg itself is installed as a develop egg.
 """
+import sys
 
-import os, shutil, sys, subprocess
+if sys.version_info < (2, 7):
+    raise SystemError("Outside Python 2.7, no support for Python 2.x.")
+
+if sys.version_info > (3, ) and sys.version_info < (3, 5):
+    raise SystemError("No support for Python 3.x under 3.5.")
+
+
+import os, shutil, sys, subprocess, tempfile
 
 for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
@@ -29,6 +37,40 @@ if os.path.isfile(bin_buildout):
 
 if os.path.isdir('build'):
     shutil.rmtree('build')
+
+
+#######################################################################
+def install_pip():
+    print('')
+    print('Install pip')
+    print('')
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
+
+    tmp = tempfile.mkdtemp(prefix='buildout-dev-')
+    try:
+        get_pip = os.path.join(tmp, 'get-pip.py')
+        with open(get_pip, 'wb') as f:
+           f.write(urlopen('https://bootstrap.pypa.io/get-pip.py').read())
+
+        sys.stdout.flush()
+        if subprocess.call([sys.executable, get_pip]):
+            raise RuntimeError("Failed to install pip.")
+    finally:
+        shutil.rmtree(tmp)
+    print("Restart")
+    sys.stdout.flush()
+    return_code = subprocess.call(
+        [sys.executable] + sys.argv
+    )
+    sys.exit(return_code)
+
+try:
+    import pip
+except ImportError:
+    install_pip()
 
 ######################################################################
 def check_upgrade(package):
@@ -76,7 +118,7 @@ pkg_resources.working_set.add_entry('src')
 
 import zc.buildout.easy_install
 zc.buildout.easy_install.scripts(
-    ['zc.buildout'], pkg_resources.working_set , sys.executable, 'bin')
+    ['zc.buildout'], pkg_resources.working_set, sys.executable, 'bin')
 
 ######################################################################
 print('')

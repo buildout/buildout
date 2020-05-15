@@ -4,6 +4,10 @@ Change History
 3.0.0 (unreleased)
 ==================
 
+- Add support for ``Requires-Python`` metadata.
+  Fragile monkeypatch that relies on ``pip._internal``.
+  Emits a warning when support is disabled due to changes in ``pip``.
+
 - Use ``pip install`` instead of deprecated ``setuptools.easy_install``.
 
 - Patch ``pkg_resources.Distribution`` to make install of unpinned versions quicker.

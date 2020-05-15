@@ -50,6 +50,8 @@ def test_suite():
                zc.buildout.tests.normalize_bang,
                zc.buildout.tests.normalize_S,
                zc.buildout.testing.not_found,
+               zc.buildout.testing.python27_warning,
+               zc.buildout.testing.python27_warning_2,
                (re.compile(r'[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
@@ -66,6 +68,8 @@ def test_suite():
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
+               zc.buildout.testing.python27_warning,
+               zc.buildout.testing.python27_warning_2,
                (re.compile('__buildout_signature__ = '
                            r'sample-\S+\s+'
                            r'zc.recipe.egg-\S+\s+'
@@ -87,6 +91,8 @@ def test_suite():
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.not_found,
+                zc.buildout.testing.python27_warning,
+                zc.buildout.testing.python27_warning_2,
                 (re.compile("(d  ((ext)?demo(needed)?|other)"
                             r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                  '\\1V.V.egg'),

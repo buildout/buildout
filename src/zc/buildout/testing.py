@@ -25,7 +25,7 @@ except ImportError:
 
 import errno
 import logging
-from multiprocessing import get_context
+import multiprocessing
 import os
 import pkg_resources
 import random
@@ -592,6 +592,20 @@ normalize_open_in_generated_script = (
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
 
+python27_warning = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
+    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
+    'longer maintained. A future version of pip will drop support for Python '
+    '2.7. More details about Python 2 support in pip, can be found at '
+    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
+    '')
+
+python27_warning_2 = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
+    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
+    'longer maintained. pip 21.0 will drop support for Python 2.7 in January 2021. '
+    'More details about Python 2 support in pip, can be found at '
+    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
+    '')
+
 # Setuptools now pulls in dependencies when installed.
 adding_find_link = (re.compile(r"Adding find link '[^']+'"
                                r" from setuptools .*\r?\n"), '')
@@ -615,8 +629,11 @@ def run_from_process(target, *args, **kw):
     target(*args, **kw)
 
 def run_in_process(*args, **kwargs):
-    ctx = get_context('fork')
-    process = ctx.Process(target=run_from_process, args=args, kwargs=kwargs)
+    try:
+        ctx = multiprocessing.get_context('fork')
+        process = ctx.Process(target=run_from_process, args=args, kwargs=kwargs)
+    except AttributeError:
+        process = multiprocessing.Process(target=run_from_process, args=args, kwargs=kwargs)
     process.daemon = True
     process.start()
     process.join(99)

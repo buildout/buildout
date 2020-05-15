@@ -100,12 +100,14 @@ test: $(VENV)/bin/test
 	$(VENV)/bin/test -c -vvv $(testargs)
 
 all_pythons:
+	$(MAKE) PYTHON_VER=2.7 python
 	$(MAKE) PYTHON_VER=3.5 python
 	$(MAKE) PYTHON_VER=3.6 python
 	$(MAKE) PYTHON_VER=3.7 python
 	$(MAKE) PYTHON_VER=3.8 python
 
 all_test:
+	$(MAKE) PYTHON_VER=2.7 test
 	$(MAKE) PYTHON_VER=3.5 test
 	$(MAKE) PYTHON_VER=3.6 test
 	$(MAKE) PYTHON_VER=3.7 test
