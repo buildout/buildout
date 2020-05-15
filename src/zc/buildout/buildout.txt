@@ -390,7 +390,7 @@ we'll get a user error, not a traceback::
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
-    data-dir: Cannot create /xxx/mydata. /xxx is not a directory.
+    data-dir: Cannot create .../xxx/mydata. .../xxx is not a directory.
     While:
       Installing.
       Getting section data-dir.
