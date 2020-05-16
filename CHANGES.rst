@@ -4,6 +4,8 @@ Change History
 3.0.0 (unreleased)
 ==================
 
+- Fix forever loop when changing ``zc.buildout`` version via ``buildout``.
+
 - Add support for ``Requires-Python`` metadata.
   Fragile monkeypatch that relies on ``pip._internal``.
   Emits a warning when support is disabled due to changes in ``pip``.
