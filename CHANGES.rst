@@ -4,6 +4,8 @@ Change History
 3.0.0 (unreleased)
 ==================
 
+- Scripts: ensure eggs are inserted before ``site-packages`` in ``sys.path``.
+
 - Fix forever loop when changing ``zc.buildout`` version via ``buildout``.
 
 - Add support for ``Requires-Python`` metadata.

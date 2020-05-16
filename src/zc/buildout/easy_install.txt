@@ -920,8 +920,8 @@ to pass a common base directory of the scripts and eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
       base,
@@ -954,8 +954,8 @@ We specified an interpreter and its paths are adjusted too:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       join(base, 'eggs/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
       '/ba',
       join(base, 'bar'),
       base,
