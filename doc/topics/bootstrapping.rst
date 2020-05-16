@@ -27,15 +27,24 @@ Avoid modifying the python environment.
   existed, it might not have been possible to modify the environment
   without building Python from source.
 
-  Unfortunately, doing this requires :ref:`using a bootstrap script
-  <using-a-bootstrap-script>`.
+Installing from scratch
+=======================
+
+We recommend to install ``buildout`` via ``pip install`` inside a ``virtualenv``:
+
+.. code-block:: console
+
+  virtualenv my_buildout
+  cd my_buildout
+  bin/pip install zc.buildout
+
 
 Local bootstrapping using the ``bootstrap`` command
 ===================================================
 
 You can use the :ref:`bootstrap command <bootstrap-command>` of a
 ``buildout`` script installed in your Python environment to boostrap
-the buildout in the current directory:
+a new buildout in the current directory:
 
 .. code-block:: console
 
@@ -61,68 +70,6 @@ can use their ``buildout`` scripts:
 In this case, the buildout being bootstrapped will have the same
 Python environment as the buildout that was used to bootstrap it.
 
-.. _using-a-bootstrap-script:
-
-Using a bootstrapping script
-============================
-
-If you download::
-
-  https://bootstrap.pypa.io/bootstrap-buildout.py
-
-.. -> url
-
-And then run it:
-
-.. code-block:: console
-
-   python bootstrap-buildout.py
-
-.. -> src
-
-   >>> os.mkdir('fresh'); os.chdir('fresh')
-   >>> eqs(os.listdir("."))
-   >>> from six.moves.urllib import request
-   >>> f = request.urlopen(url)
-   >>> write(f.read().decode('ascii'), 'bootstrap-buildout.py')
-   >>> f.close()
-   >>> write("[buildout]\nparts=\n", 'buildout.cfg')
-   >>> import subprocess, sys
-   >>> src = src.replace('python', sys.executable).split()
-   >>> p = subprocess.Popen(
-   ...     src, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-   ...     env=dict(HOME='zzzzz'))
-   >>> if p.wait():
-   ...     print(p.stderr.read())
-   >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
-   ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
-   >>> os.chdir('..')
-   >>> p.stdout.close()
-   >>> p.stderr.close()
-
-It will download the software needed to run Buildout and install it in
-the current directory.
-
-This has been the traditional approach to bootstrapping Buildout.
-It was the best approach for a long time because the ``pip`` and
-``easy_install`` commands usually weren't available.  In the early
-days, if ``easy_install`` was installed, it was likely to have an
-incompatible version of setuptools, because Buildout and setuptools
-were evolving rapidly, sometimes in lock step.
-
-This approach fails from time to time, due to changes in setuptools or
-`the package index <https://pypi.org/>`_ and has been a
-source of breakage when automated systems depended on it.
-
-It's also possible that this approach will stop being supported.
-Buildout's bootstrapping script relies on setuptools' bootstrap
-script, which was used to bootstrap ``easy_install``.  Now that pip is
-ubiquitous, there's no reason to bootstrap ``easy_install`` and
-setuptools' bootstrapping script exists solely to support Buildout.
-At some point, that may become too much of a maintenance burden, and
-there may not be Buildout volunteers motivated to create a new
-bootstrapping solution.
-
 .. _init-generates-buildout.cfg:
 
 Bootstrapping requires a ``buildout.cfg``, ``init`` creates one
@@ -145,46 +92,6 @@ If you don't have one, you can use the :ref:`init command
    >>> run_buildout(src)
    >>> eqs(os.listdir("."),
    ...     'buildout.cfg', 'out', 'eggs', 'bin', 'develop-eggs', 'parts')
-   >>> os.chdir('..')
-
-
-This can be used with the bootstrapping script as well:
-
-.. code-block:: console
-
-   python bootstrap-buildout.py init
-
-.. -> src
-
-   >>> os.mkdir('fresh2'); os.chdir('fresh2')
-   >>> eqs(os.listdir("."))
-   >>> f = request.urlopen(url)
-   >>> write(f.read().decode('ascii'), 'bootstrap-buildout.py')
-   >>> f.close()
-   >>> src = src.replace('python', sys.executable).split()
-   >>> p = subprocess.Popen(
-   ...     src, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-   ...     env=dict(HOME='zzzzz'))
-   >>> if p.wait():
-   ...     print(p.stderr.read())
-   >>> eqs(os.listdir("."), 'bootstrap-buildout.py',
-   ...     'buildout.cfg', 'eggs', 'bin', 'develop-eggs', 'parts')
-   >>> p.stdout.close()
-   >>> p.stderr.close()
-
-This creates an empty Buildout configuration:
-
-.. code-block:: ini
-
-  [buildout]
-  parts =
-
-.. -> src
-
-   >>> eq(src, read('buildout.cfg'))
-   >>> os.chdir('..')
-   >>> os.chdir('init')
-   >>> eq(src, read('buildout.cfg'))
    >>> os.chdir('..')
 
 If you know you're going to use some packages, you can supply
