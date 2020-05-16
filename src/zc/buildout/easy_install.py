@@ -86,10 +86,8 @@ has_distribute = pkg_resources.working_set.find(
 has_setuptools = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('setuptools')) is not None
 if has_distribute and not has_setuptools:
-    sys.exit("zc.buildout 2 needs setuptools, not distribute."
-             "  Are you using an outdated bootstrap.py?  Make sure"
-             " you have the latest version downloaded from"
-             " https://bootstrap.pypa.io/bootstrap-buildout.py")
+    sys.exit("zc.buildout 3 needs setuptools, not distribute."
+             "Did you properly install with pip in a virtualenv ?")
 
 # Include buildout and setuptools eggs in paths.  We get this
 # initially from the entire working set.  Later, we'll use the install

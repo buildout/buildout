@@ -11,8 +11,7 @@ When you're developing buildout itself, you need to know two things:
   tests so you may want to temporarily rename it so that it does not get in
   the way.
 
-- Don't bootstrap with ``python bootstrap/bootstrap.py`` but with ``python
-  dev.py``.
+- Bootstrap with with ``python dev.py``.
 
 - Run buildout with -U, to ignore user (default) settings which can interfere
   with using the development version
@@ -43,21 +42,6 @@ zc.buildout's setup.py and changelog is in the same directory as this
 
 zc.recipe.egg, including setup.py and a separate changelog, is in the
 ``zc.recipe.egg_`` subdirectory.
-
-A third item is the bootstrap.py file in ``bootstrap/bootstrap.py``. The
-canonical location is at https://bootstrap.pypa.io/bootstrap-buildout.py,
-(though it is unfortunate that it isn't named just ``bootstrap.py``). This
-file is pulled automatically every 15 minutes from the bootstrap-release
-branch. When a new buildout release is made, **the releaser** should update
-the bootstrap-release branch, too.
-
-The http://downloads.buildout.org/2/bootstrap.py location doesn't need to be
-updated manually: it is a redirect now, to
-https://bootstrap.pypa.io/bootstrap-buildout.py .
-
-If there are changes to bootstrap.py, be sure to update the date in the
-``__version__`` attribute and to record the bootstrap change (including the
-new date/version) in zc.buildout's changelog.
 
 When releasing, make sure you also build a (universal) wheel in addition to
 the regular .tar.gz::
