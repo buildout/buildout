@@ -5,6 +5,11 @@ env:
     - PYTHON_VER=3.6
     - PYTHON_VER=3.7
     - PYTHON_VER=3.8
+    - PYTHON_VER=3.9
+
+jobs:
+  allow_failures:
+  - env: PYTHON_VER=3.9
 
 services:
     - docker
