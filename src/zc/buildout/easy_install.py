@@ -1141,7 +1141,12 @@ def scripts(reqs, working_set, executable, dest=None,
             ):
     assert executable == sys.executable, (executable, sys.executable)
 
-    path = [dist.location for dist in working_set]
+    # ensure eggs are inserted before ``site-packages`` in ``sys.path``.
+    # TODO ensure develop-eggs are also inserted before ``site-packages``.
+    dists = [dist for dist in working_set]
+    dists.sort(key=lambda dist: (-dist.precedence, dist.project_name))
+
+    path = [dist.location for dist in dists]
     path.extend(extra_paths)
     # order preserving unique
     unique_path = []
