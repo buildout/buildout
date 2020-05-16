@@ -32,6 +32,8 @@ import copy
 import datetime
 import distutils.errors
 import glob
+import importlib
+import inspect
 import itertools
 import logging
 import os
@@ -1090,6 +1092,9 @@ class Buildout(DictMixin):
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
 
+        if self['buildout'].get('restart-after-upgrade', '') == 'true':
+            return
+
         if not self.newest:
             return
 
@@ -1103,14 +1108,13 @@ class Buildout(DictMixin):
             )
 
         upgraded = []
-        # The setuptools/zc.buildout locations at the time we started was
-        # recorded in easy_install.py. We use that here to check if we've been
-        # upgraded.
-        start_locations = zc.buildout.easy_install.buildout_and_setuptools_path
+
         for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
             req = pkg_resources.Requirement.parse(project)
-            if ws.find(req).location not in start_locations:
-                upgraded.append(ws.find(req))
+            dist = ws.find(req)
+            importlib.import_module(project)
+            if not inspect.getfile(sys.modules[project]).startswith(dist.location):
+                upgraded.append(dist)
 
         if not upgraded:
             return
@@ -1154,6 +1158,7 @@ class Buildout(DictMixin):
 
         # Restart
         args = sys.argv[:]
+        args.insert(1, '--restart-after-upgrade')
         if not __debug__:
             args.insert(0, '-O')
         args.insert(0, sys.executable)
@@ -2142,7 +2147,10 @@ def main(args=None):
                     _help()
                 elif orig_op == '--version':
                     _version()
-                _error("Invalid option", '-'+op[0])
+                elif orig_op == '--restart-after-upgrade':
+                    options.append(('buildout', 'restart-after-upgrade', "true"))
+                else:
+                    _error("Invalid option", '-'+op[0])
         elif '=' in args[0]:
             option, value = args.pop(0).split('=', 1)
             option = option.split(':')
