@@ -7,7 +7,7 @@ VENV = $(HERE)/venvs/$(PYTHON_VER)
 BUILD_VARIABLES =
 
 ifeq ($(PYTHON_VER),2.7)
-	PYTHON_MINOR ?= 2.7.17
+	PYTHON_MINOR ?= 2.7.18
 endif
 ifeq ($(PYTHON_VER),3.5)
 	PYTHON_MINOR ?= 3.5.9
@@ -19,7 +19,7 @@ ifeq ($(PYTHON_VER),3.7)
 	PYTHON_MINOR ?= 3.7.7
 endif
 ifeq ($(PYTHON_VER),3.8)
-	PYTHON_MINOR ?= 3.8.2
+	PYTHON_MINOR ?= 3.8.3
 endif
 ifeq ($(PYTHON_VER),3.9)
 	PYTHON_MINOR ?= 3.9.0
