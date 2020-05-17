@@ -608,9 +608,16 @@ class Buildout(DictMixin):
         ws = pkg_resources.WorkingSet(entries)
         ws.require('zc.buildout')
         options = self['buildout']
+        eggs_dir = options['eggs-directory']
+        develop_eggs_dir = options['develop-eggs-directory']
+        ws = zc.buildout.easy_install.sort_working_set(
+                ws,
+                eggs_dir=eggs_dir,
+                develop_eggs_dir=develop_eggs_dir
+                )
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'],
+            options['bin-directory'],
             relative_paths = (
                 bool_option(options, 'relative-paths', False)
                 and options['directory']
@@ -1147,9 +1154,16 @@ class Buildout(DictMixin):
         # the new dist is different, so we've upgraded.
         # Update the scripts and return True
         options = self['buildout']
+        eggs_dir = options['eggs-directory']
+        develop_eggs_dir = options['develop-eggs-directory']
+        ws = zc.buildout.easy_install.sort_working_set(
+                ws,
+                eggs_dir=eggs_dir,
+                develop_eggs_dir=develop_eggs_dir
+                )
         zc.buildout.easy_install.scripts(
             ['zc.buildout'], ws, sys.executable,
-            self['buildout']['bin-directory'],
+            options['bin-directory'],
             relative_paths = (
                 bool_option(options, 'relative-paths', False)
                 and options['directory']

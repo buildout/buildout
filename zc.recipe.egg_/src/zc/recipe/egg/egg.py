@@ -95,31 +95,6 @@ class Eggs(object):
 
     update = install
 
-    def _sort_working_set(self, ws):
-        develop_paths = set()
-        pattern = os.path.join(self.options['develop-eggs-directory'], '*.egg-link')
-        for egg_link in glob.glob(pattern):
-            with open(egg_link, 'rt') as f:
-                path = f.readline().strip()
-                if path:
-                    develop_paths.add(path)
-
-        egg_directory = os.path.join(self.options['eggs-directory'], '')
-        sorted_paths = []
-        egg_paths = []
-        other_paths = []
-        for dist in ws:
-            path = dist.location
-            if path in develop_paths:
-                sorted_paths.append(path)
-            elif os.path.commonprefix([path, egg_directory]) == egg_directory:
-                egg_paths.append(path)
-            else:
-                other_paths.append(path)
-        sorted_paths.extend(egg_paths)
-        sorted_paths.extend(other_paths)
-        return pkg_resources.WorkingSet(sorted_paths)
-
     def _working_set(
         self,
         distributions,
@@ -166,7 +141,9 @@ class Eggs(object):
                     newest=newest,
                     allow_hosts=allow_hosts,
                     allow_unknown_extras=allow_unknown_extras)
-            ws = self._sort_working_set(ws)
+            ws = zc.buildout.easy_install.sort_working_set(
+                ws, eggs_dir, develop_eggs_dir
+                )
             cache_storage[cache_key] = ws
 
         # `pkg_resources.WorkingSet` instances are mutable, so we need to return
