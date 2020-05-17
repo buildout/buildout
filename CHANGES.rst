@@ -1,8 +1,8 @@
 Change History
 **************
 
-3.0.0 (unreleased)
-==================
+3.0.0a1 (2020-05-17)
+====================
 
 - Scripts: ensure eggs are inserted before ``site-packages`` in ``sys.path``.
 
