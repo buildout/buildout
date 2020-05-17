@@ -1141,19 +1141,14 @@ def scripts(reqs, working_set, executable, dest=None,
             ):
     assert executable == sys.executable, (executable, sys.executable)
 
-    # ensure eggs are inserted before ``site-packages`` in ``sys.path``.
-    # TODO ensure develop-eggs are also inserted before ``site-packages``.
-    dists = [dist for dist in working_set]
-    dists.sort(key=lambda dist: (-dist.precedence, dist.project_name))
-
-    path = [dist.location for dist in dists]
+    path = [dist.location for dist in working_set]
     path.extend(extra_paths)
     # order preserving unique
     unique_path = []
     for p in path:
         if p not in unique_path:
             unique_path.append(p)
-    path = list(map(realpath, unique_path))
+    path = [realpath(p) for p in unique_path]
 
     generated = []
 
@@ -1929,3 +1924,28 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     if installed_with_pip:
         newdist.precedence = pkg_resources.EGG_DIST
     return newdist
+
+
+def sort_working_set(ws, eggs_dir, develop_eggs_dir):
+    develop_paths = set()
+    pattern = os.path.join(develop_eggs_dir, '*.egg-link')
+    for egg_link in glob.glob(pattern):
+        with open(egg_link, 'rt') as f:
+            path = f.readline().strip()
+            if path:
+                develop_paths.add(path)
+
+    sorted_paths = []
+    egg_paths = []
+    other_paths = []
+    for dist in ws:
+        path = dist.location
+        if path in develop_paths:
+            sorted_paths.append(path)
+        elif os.path.commonprefix([path, eggs_dir]) == eggs_dir:
+            egg_paths.append(path)
+        else:
+            other_paths.append(path)
+    sorted_paths.extend(egg_paths)
+    sorted_paths.extend(other_paths)
+    return pkg_resources.WorkingSet(sorted_paths)
