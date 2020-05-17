@@ -44,6 +44,7 @@ setup(
     url='http://buildout.org',
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
+    python_requires = '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=8.0',
