@@ -1,4 +1,4 @@
-name: Test in Debian container
+name: Debian containers
 
 on: [push, pull_request]
 

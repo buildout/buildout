@@ -1,4 +1,4 @@
-name: Test generating scripts
+name: Script generation
 
 on: [push]
 

@@ -1,4 +1,4 @@
-name: Test in Centos container
+name: Centos containers
 
 on: [push, pull_request]
 

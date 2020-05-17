@@ -1,4 +1,4 @@
-name: Test generating scripts with setuptools head
+name: Script generation with setuptools head
 
 on:
   schedule:
