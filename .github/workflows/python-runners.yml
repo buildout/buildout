@@ -1,6 +1,6 @@
 name: Ubuntu, MacOS, Windows machines
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
