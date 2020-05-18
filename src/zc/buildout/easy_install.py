@@ -1671,8 +1671,9 @@ def call_pip_install(spec, dest):
         logger.error(
             "An error occurred when trying to install %s. "
             "Look above this message for any errors that "
-            "were output by easy_install.",
+            "were output by pip install.",
             spec)
+        sys.exit(1)
 
     split_entries = [os.path.splitext(entry) for entry in os.listdir(dest)]
     try:
@@ -1681,7 +1682,7 @@ def call_pip_install(spec, dest):
         ][0]
     except IndexError:
         logger.error(
-            "No .dist-info directory after installing %s",
+            "No .dist-info directory after successful pip install of %s",
             spec)
         raise
 
