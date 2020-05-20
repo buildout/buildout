@@ -23,7 +23,7 @@ ifeq ($(PYTHON_VER),3.8)
 endif
 ifeq ($(PYTHON_VER),3.9)
 	PYTHON_MINOR ?= 3.9.0
-	PYTHON_ARCHIVE ?= Python-3.9.0a6
+	PYTHON_ARCHIVE ?= Python-3.9.0b1
 endif
 
 ifndef PYTHON_MINOR
