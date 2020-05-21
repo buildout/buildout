@@ -10,23 +10,23 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python_version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
     - uses: crazy-max/ghaction-chocolatey@v1
-      if: matrix.python_version == '2.7' && matrix.os == 'windows-latest'
+      if: matrix.python-version == '2.7' && matrix.os == 'windows-latest'
       with:
         args: install vcpython27
-    - name: Set up Python ${{ matrix.python_version }}
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python_version: ${{ matrix.python_version }}
+        python-version: ${{ matrix.python-version }}
     - name: Cache eggs
       uses: actions/cache@v1.2.0
       with:
         path: eggs
-        key: ${{ matrix.os }}-{{ matrix.python_version }}-eggs
+        key: ${{ matrix.os }}-{{ matrix.python-version }}-eggs
     - name: Install dev environment
       run: |
         python dev.py
