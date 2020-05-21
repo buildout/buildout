@@ -4,6 +4,9 @@ Change History
 3.0.0a2 (unreleased)
 ====================
 
+- Warn when a script name passed in 'scripts' argument of easy_install.scripts
+  is not defined in egg entry points.
+
 - Show only once pip warning about python version.
 
 - Better patch for ``pkg_resources.Distribution.hashcmp`` performance.

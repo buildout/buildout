@@ -1203,7 +1203,10 @@ def scripts(reqs, working_set, executable, dest=None,
         else:
             entry_points.append(req)
 
+    entry_points_names = []
+
     for name, module_name, attrs in entry_points:
+        entry_points_names.append(name)
         if scripts is not None:
             sname = scripts.get(name)
             if sname is None:
@@ -1218,6 +1221,18 @@ def scripts(reqs, working_set, executable, dest=None,
             _script(module_name, attrs, spath, sname, arguments,
                     initialization, rpsetup)
             )
+
+    # warn when a script name passed in 'scripts' argument
+    # is not defined in an entry point.
+    if scripts is not None:
+        for name, target in scripts.items():
+            if name not in entry_points_names:
+                if name == target:
+                    logger.warning("Could not generate script '%s' as it is not "
+                        "defined in the egg entry points.", name)
+                else:
+                    logger.warning("Could not generate script '%s' as script "
+                        "'%s' is not defined in the egg entry points.", name, target)
 
     for name, contents in distutils_scripts:
         if scripts is not None:
