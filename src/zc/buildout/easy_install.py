@@ -1659,6 +1659,17 @@ def call_pip_install(spec, dest):
 
     args.append(spec)
 
+    try:
+        from pip._internal.cli.cmdoptions import no_python_version_warning
+        HAS_WARNING_OPTION = True
+    except ImportError:
+        HAS_WARNING_OPTION = False
+    if HAS_WARNING_OPTION:
+        if not hasattr(call_pip_install, 'displayed'):
+            call_pip_install.displayed = True
+        else:
+            args.append('--no-python-version-warning')
+
     if level <= logging.DEBUG:
         logger.debug('Running pip install:\n"%s"\npath=%s\n',
                         '" "'.join(args), path)

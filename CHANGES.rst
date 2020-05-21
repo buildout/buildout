@@ -4,7 +4,9 @@ Change History
 3.0.0a2 (unreleased)
 ====================
 
--  Better patch for ``pkg_resources.Distribution.hashcmp`` performance.
+- Show only once pip warning about python version.
+
+- Better patch for ``pkg_resources.Distribution.hashcmp`` performance.
 
 
 3.0.0a1 (2020-05-17)
