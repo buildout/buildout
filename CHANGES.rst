@@ -4,7 +4,7 @@ Change History
 3.0.0a2 (unreleased)
 ====================
 
-- Nothing changed yet.
+-  Better patch for ``pkg_resources.Distribution.hashcmp`` performance.
 
 
 3.0.0a1 (2020-05-17)
