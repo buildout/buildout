@@ -13,13 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build container with Python ${{ matrix.python-version }}
+    - name: Test in container with Python ${{ matrix.python-version }}
       env:
         PYTHON_VER: ${{matrix.python-version}}
+        BUILD_TYPE: debian_containers
       run: |
-        docker build -f .github/workflows/Dockerfile-debian --tag debian_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
-    - name: Test
-      env:
-        PYTHON_VER: ${{matrix.python-version}}
-      run: |
-        docker run debian_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv'
+        ./ci_build.sh

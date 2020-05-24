@@ -1,0 +1,20 @@
+name: Debian container with system Python
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Test in container with system Python
+      env:
+        BUILD_TYPE: debian_sys_container
+      run: |
+        ./ci_build.sh
