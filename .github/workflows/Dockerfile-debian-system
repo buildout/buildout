@@ -1,0 +1,12 @@
+FROM debian:stable-slim as debian-python
+RUN apt-get update
+RUN apt-get install -y gcc python3-dev python3-certifi
+RUN mkdir buildout
+WORKDIR /buildout
+FROM debian-python
+ARG PYTHON_VER
+COPY doc /buildout/doc
+COPY src /buildout/src
+COPY zc.recipe.egg_ /buildout/zc.recipe.egg_
+COPY setup.* dev.py *.rst *.txt buildout.cfg .coveragerc /buildout/
+RUN python3 dev.py

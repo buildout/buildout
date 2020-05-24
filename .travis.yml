@@ -18,6 +18,8 @@ jobs:
       python: 3.8
       env: BUILD_TYPE=bare_machines
     - language: minimal
+      env: BUILD_TYPE=debian_sys_container
+    - language: minimal
       env: PYTHON_VER=2.7 BUILD_TYPE=centos_containers
     - language: minimal
       env: PYTHON_VER=3.5 BUILD_TYPE=centos_containers

@@ -45,7 +45,7 @@ PYTHON_DOWNLOAD = $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE).tgz
 BUILD_DIRS = $(PYTHON_PATH) bin build develop-eggs eggs parts
 
 all: all_test
-.PHONY: all download_python python build test coverage docker docker_deb all_pythons all_test all_coverage
+.PHONY: all download_python python build test coverage docker docker_deb docker_deb_sys all_pythons all_test all_coverage
 
 # setup python from source
 $(PYTHON_DOWNLOAD):
@@ -133,6 +133,10 @@ docker:
 docker_deb:
 	docker build -f .github/workflows/Dockerfile-debian --tag debian_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
 	docker run debian_buildout:python${PYTHON_VER} /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
+
+docker_deb_sys:
+	docker build -f .github/workflows/Dockerfile-debian-system --tag debian_system_buildout .
+	docker run debian_system_buildout /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
 
 clean:
 	rm -rf $(VENVS) $(PYTHON_BUILD_DIR) $(HERE)/pythons
