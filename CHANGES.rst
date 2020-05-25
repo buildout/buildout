@@ -1,7 +1,7 @@
 Change History
 **************
 
-3.0.0a2 (unreleased)
+3.0.0a2 (2020-05-25)
 ====================
 
 - Ignore `.git` when computing signature of a recipe develop egg
