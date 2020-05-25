@@ -9,3 +9,5 @@ recursive-include src/zc *.txt
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
+recursive-exclude builds ci_build.sh
+exclude ci_build.sh
