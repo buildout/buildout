@@ -57,6 +57,12 @@ import shutil
 import sys
 import tempfile
 import zc.buildout
+try:
+    from typing import Any
+    from typing import Dict
+    from typing import Optional
+except ImportError:
+    pass
 
 
 class ChecksumError(zc.buildout.UserError):
@@ -80,8 +86,16 @@ class Download(object):
 
     """
 
-    def __init__(self, options=None, cache=-1, namespace=None,
-                 offline=-1, fallback=False, hash_name=False, logger=None):
+    def __init__(self,
+                 options=None,  # type: Dict[str, str]
+                 cache=-1,  # type: Optional[Any]
+                 namespace=None,  # type: Optional[Any]
+                 offline=-1,  # type: int
+                 fallback=False,  # type: bool
+                 hash_name=False,  # type: bool
+                 logger=None,  # type: Optional[Any]
+                 ):
+        # type: (...) -> None
         if options is None:
             options = {}
         self.directory = options.get('directory', '')

@@ -20,6 +20,15 @@
 import re
 import textwrap
 import logging
+try:
+    from typing import Any
+    from typing import AnyStr
+    from typing import Callable
+    from typing import Dict
+    from typing import Optional
+    from typing import Union
+except ImportError:
+    pass
 
 logger = logging.getLogger('zc.buildout')
 
@@ -111,7 +120,11 @@ option_start = re.compile(
 
 leading_blank_lines = re.compile(r"^(\s*\n)+")
 
-def parse(fp, fpname, exp_globals=dict):
+def parse(fp,  # type: Any
+          fpname,  # type: str
+          exp_globals=dict,  # type: Union[Callable, type]
+          ):
+    # type: (...) -> Dict[AnyStr, Dict[AnyStr, AnyStr]]
     """Parse a sectioned setup file.
 
     The sections in setup files contain a title line at the top,
@@ -132,11 +145,11 @@ def parse(fp, fpname, exp_globals=dict):
     exp_globals is a callable returning a mapping of defaults used as globals
     during the evaluation of a section conditional expression.
     """
-    sections = {}
+    sections = {}  # type: Dict[AnyStr, Dict[AnyStr, AnyStr]]
     # the current section condition, possibly updated from a section expression
     section_condition = True
     context = None
-    cursect = None                            # None, or a dictionary
+    cursect = None  # type: Optional[Dict[AnyStr, AnyStr]]
     blockmode = None
     optname = None
     lineno = 0
@@ -195,9 +208,9 @@ def parse(fp, fpname, exp_globals=dict):
                         continue
 
                 if sectname in sections:
-                    cursect = sections[sectname]
+                    cursect = sections[sectname]  # type: ignore
                 else:
-                    sections[sectname] = cursect = {}
+                    sections[sectname] = cursect = {}  # type: ignore
                 # So sections can't start with a continuation line
                 optname = None
             elif cursect is None:
@@ -217,7 +230,7 @@ def parse(fp, fpname, exp_globals=dict):
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
                     optval = optval.strip()
-                    cursect[optname] = optval
+                    cursect[optname] = optval  # type: ignore
                     blockmode = not optval
                 elif not (optname or line.strip()):
                     # blank line after section start

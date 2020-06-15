@@ -7,11 +7,15 @@ try:
     import sysconfig
 except ImportError:  # pragma nocover
     # Python < 2.7
-    import distutils.sysconfig as sysconfig
+    import distutils.sysconfig as sysconfig # type: ignore
 import distutils.util
-
+try:
+    from typing import Optional
+except ImportError:
+    pass
 
 def get_config_var(var):
+    # type: (str) -> Optional[str]
     try:
         return sysconfig.get_config_var(var)
     except IOError as e:  # pip Issue #1074
@@ -20,6 +24,7 @@ def get_config_var(var):
 
 
 def get_abbr_impl():
+    # type: () -> str
     """Return abbreviated implementation name."""
     if hasattr(sys, 'pypy_version_info'):
         pyimpl = 'pp'
@@ -64,6 +69,7 @@ def get_flag(var, fallback, expected=True, warn=True):
 
 
 def get_abi_tag():
+    # type: () -> Optional[str]
     """Return the ABI tag based on SOABI (if available) or emulate SOABI
     (CPython 2, PyPy)."""
     soabi = get_config_var('SOABI')
@@ -87,7 +93,7 @@ def get_abi_tag():
                           sys.version_info < (3, 3))) \
                 and sys.version_info < (3, 3):
             u = 'u'
-        abi = '%s%s%s%s%s' % (impl, get_impl_ver(), d, m, u)
+        abi = '%s%s%s%s%s' % (impl, get_impl_ver(), d, m, u)  # type: Optional[str]
     elif soabi and soabi.startswith('cpython-'):
         abi = 'cp' + soabi.split('-')[1]
     elif soabi:

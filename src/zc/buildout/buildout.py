@@ -16,6 +16,26 @@
 
 from zc.buildout.rmtree import rmtree
 import zc.buildout.easy_install
+from zc.buildout.pep425tags import get_abi_tag
+try:
+    from typing import List
+    from typing import Set
+    from typing import Any
+    from typing import Dict
+    from mypy_extensions import NoReturn
+    from typing import Tuple
+    from typing import IO
+    from typing import Optional
+    from typing import Iterator
+    from typing import Iterable
+    from typing import Callable
+    from typing import Union
+    from typing import Set
+    from typing import Type
+    from pkg_resources import DistInfoDistribution
+    from pkg_resources import EggInfoDistribution
+except ImportError:
+    pass
 
 try:
     from hashlib import md5
@@ -54,11 +74,13 @@ else:
 
 
 def command(method):
-    method.buildout_command = True
+    # type: (Callable) -> Callable
+    setattr(method, 'buildout_command', True)
     return method
 
 
 def commands(cls):
+    # type: (Type[Buildout]) -> Type[Buildout]
     for name, method in cls.__dict__.items():
         if hasattr(method, "buildout_command"):
             cls.COMMANDS.add(name)
@@ -66,9 +88,11 @@ def commands(cls):
 
 
 def _print_options(sep=' ', end='\n', file=None):
+    # type: (str, str, Optional[IO[bytes]]) -> Tuple[str, str, Optional[IO[bytes]]]
     return sep, end, file
 
 def print_(*args, **kw):
+    # type: (*str, **Any) -> None
     sep, end, file = _print_options(**kw)
     if file is None:
         file = sys.stdout
@@ -87,26 +111,32 @@ class MissingSection(zc.buildout.UserError, KeyError):
     """
 
     def __str__(self):
+        # type: () -> str
         return "The referenced section, %r, was not defined." % self.args[0]
 
 
 def _annotate_section(section, source):
+    # type: (Dict[str, str], str) -> Dict[str, SectionKey]
+    annotated = dict()
     for key in section:
-        section[key] = SectionKey(section[key], source)
-    return section
+        annotated[key] = SectionKey(section[key], source)
+    return annotated
 
 
 class SectionKey(object):
     def __init__(self, value, source):
-        self.history = []
+        # type: (str, str) -> None
+        self.history = [] # type: List[HistoryItem]
         self.value = value
         self.addToHistory("SET", value, source)
 
     @property
     def source(self):
+        # type: () -> str
         return self.history[-1].source
 
     def overrideValue(self, sectionkey):
+        # type: (SectionKey) -> None
         self.value = sectionkey.value
         if sectionkey.history[-1].operation not in ['ADD', 'REMOVE']:
             self.addToHistory("OVERRIDE", sectionkey.value, sectionkey.source)
@@ -114,15 +144,18 @@ class SectionKey(object):
             self.history = copy.deepcopy(sectionkey.history)
 
     def setDirectory(self, value):
+        # type: (str) -> None
         self.value = value
         self.addToHistory("DIRECTORY", value, self.source)
 
     def addToValue(self, added, source):
+        # type: (str, str) -> None
         subvalues = self.value.split('\n') + added.split('\n')
         self.value = "\n".join(subvalues)
         self.addToHistory("ADD", added, source)
 
     def removeFromValue(self, removed, source):
+        # type: (str, str) -> None
         subvalues = [
             v
             for v in self.value.split('\n')
@@ -132,10 +165,12 @@ class SectionKey(object):
         self.addToHistory("REMOVE", removed, source)
 
     def addToHistory(self, operation, value, source):
+        # type: (str, str, str) -> None
         item = HistoryItem(operation, value, source)
         self.history.append(item)
 
     def printAll(self, key, basedir, verbose):
+        # type: (str, str, bool) -> None
         self.printKeyAndValue(key)
         if verbose:
             self.printVerbose(basedir)
@@ -143,6 +178,7 @@ class SectionKey(object):
             self.printTerse(basedir)
 
     def printKeyAndValue(self, key):
+        # type: (str) -> None
         lines = self.value.splitlines()
         if len(lines) <= 1:
             args = [key, "="]
@@ -156,13 +192,15 @@ class SectionKey(object):
                 print_(line)
 
     def printVerbose(self, basedir):
+        # type: (str) -> None
         print_()
         for item in reversed(self.history):
             item.printAll(basedir)
         print_()
 
     def printTerse(self, basedir):
-        toprint = []
+        # type: (str) -> None
+        toprint = []  # type: List[str]
         history = copy.deepcopy(self.history)
         while history:
             next = history.pop()
@@ -177,17 +215,20 @@ class SectionKey(object):
                 print_(line)
 
     def __repr__(self):
+        # type: () -> str
         return "<SectionKey value=%s source=%s>" % (
             " ".join(self.value.split('\n')), self.source)
 
 
 class HistoryItem(object):
     def __init__(self, operation, value, source):
+        # type: (str, str, str) -> None
         self.operation = operation
         self.value = value
         self.source = source
 
     def printShort(self, toprint, basedir):
+        # type: (List[str], str) -> None
         source = self.source_for_human(basedir)
         if self.operation in ["OVERRIDE", "SET", "DIRECTORY"]:
             toprint.append("    " + source)
@@ -197,6 +238,7 @@ class HistoryItem(object):
             toprint.append("-=  " + source)
 
     def printOperation(self):
+        # type: () -> None
         lines = self.value.splitlines()
         if len(lines) <= 1:
             print_("  ", self.operation, "VALUE =", self.value)
@@ -206,6 +248,7 @@ class HistoryItem(object):
                 print_("  ", "  ", line)
 
     def printSource(self, basedir):
+        # type: (str) -> None
         if self.source in (
             'DEFAULT_VALUE', 'COMPUTED_VALUE', 'COMMAND_LINE_VALUE'
         ):
@@ -215,27 +258,35 @@ class HistoryItem(object):
         print_("  ", prefix, self.source_for_human(basedir))
 
     def source_for_human(self, basedir):
+        # type: (str) -> str
         if self.source.startswith(basedir):
             return os.path.relpath(self.source, basedir)
         else:
             return self.source
 
     def printAll(self, basedir):
+        # type: (str) -> None
         self.printSource(basedir)
         self.printOperation()
 
     def __repr__(self):
+        # type: () -> str
         return "<HistoryItem operation=%s value=%s source=%s>" % (
             self.operation, " ".join(self.value.split('\n')), self.source)
 
 
-def _annotate(data, note):
+def _annotate(data,  # type: Dict[str, Dict[str, str]]
+              note,  # type: str
+              ):
+    # type: (...) -> Dict[str, Dict[str, SectionKey]]
+    annotated = dict()
     for key in data:
-        data[key] = _annotate_section(data[key], note)
-    return data
+        annotated[key] = _annotate_section(data[key], note)
+    return annotated
 
 
 def _print_annotate(data, verbose, chosen_sections, basedir):
+    # type: (Dict[str, Dict[str, SectionKey]], bool, List[str], str) -> None
     sections = list(data.keys())
     sections.sort()
     print_()
@@ -253,14 +304,17 @@ def _print_annotate(data, verbose, chosen_sections, basedir):
 
 
 def _unannotate_section(section):
+    # type: (Dict[str, SectionKey]) -> Dict[str, str]
     return {key: entry.value for key, entry in section.items()}
 
 
 def _unannotate(data):
+    # type: (Dict[str, Dict[str, SectionKey]]) -> Dict[str, Dict[str, str]]
     return {key: _unannotate_section(section) for key, section in data.items()}
 
 
 def _format_picked_versions(picked_versions, required_by):
+    # type: (List[Tuple[str, str]], Dict) -> List[str]
     output = ['[versions]']
     required_output = []
     for dist_, version in picked_versions:
@@ -303,6 +357,7 @@ _buildout_default_options = _annotate_section({
 
 
 def _get_user_config():
+    # type: () -> str
     buildout_home = os.path.join(os.path.expanduser('~'), '.buildout')
     buildout_home = os.environ.get('BUILDOUT_HOME', buildout_home)
     return os.path.join(buildout_home, 'default.cfg')
@@ -311,11 +366,12 @@ def _get_user_config():
 @commands
 class Buildout(DictMixin):
 
-    COMMANDS = set()
+    COMMANDS = set() # type: Set[str]
 
     def __init__(self, config_file, cloptions,
                  use_user_defaults=True,
                  command=None, args=()):
+        # type: (Optional[str], List[Tuple[str, str, str]], bool, str, Iterable) -> None
 
         __doing__ = 'Initializing.'
 
@@ -347,13 +403,13 @@ class Buildout(DictMixin):
                 data['buildout']['directory'] = SectionKey(
                     os.path.dirname(config_file), 'COMPUTED_VALUE')
 
-        cloptions = dict(
+        cloptions_dict = dict(
             (section, dict((option, SectionKey(value, 'COMMAND_LINE_VALUE'))
                            for (_, option, value) in v))
             for (section, v) in itertools.groupby(sorted(cloptions),
                                                   lambda v: v[0])
             )
-        override = copy.deepcopy(cloptions.get('buildout', {}))
+        override = copy.deepcopy(cloptions_dict.get('buildout', {}))
 
         # load user defaults, which override defaults
         user_config = _get_user_config()
@@ -380,7 +436,7 @@ class Buildout(DictMixin):
             data = _update(data, cfg_data)
 
         # apply command-line options
-        data = _update(data, cloptions)
+        data = _update(data, cloptions_dict)
 
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
@@ -391,10 +447,9 @@ class Buildout(DictMixin):
 
         # Default versions:
         versions_section_name = data['buildout']['versions'].value
-        if versions_section_name:
+        versions = {} # type: Dict[str, SectionKey]
+        if versions_section_name != '':
             versions = data[versions_section_name]
-        else:
-            versions = {}
         versions.update(
             dict((k, SectionKey(v, 'DEFAULT_VALUE'))
                  for (k, v) in (
@@ -444,8 +499,8 @@ class Buildout(DictMixin):
 
         self._annotated = copy.deepcopy(data)
         self._raw = _unannotate(data)
-        self._data = {}
-        self._parts = []
+        self._data = {} # type: Dict[str, Options]
+        self._parts = [] # type: List[str]
 
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
@@ -492,8 +547,8 @@ class Buildout(DictMixin):
         options = self['buildout']
 
         # now reinitialize
-        links = options.get('find-links', '')
-        self._links = links and links.split() or ()
+        find_links = options.get('find-links', '')
+        self._links = find_links and find_links.split() or ()
 
         allow_hosts = options['allow-hosts'].split('\n')
         self._allow_hosts = tuple([host.strip() for host in allow_hosts
@@ -514,16 +569,15 @@ class Buildout(DictMixin):
         self._setup_logging()
         self._setup_socket_timeout()
 
-        # finish w versions
-        if versions_section_name:
-            # refetching section name just to avoid a warning
-            versions = self[versions_section_name]
+        # fetch from options to avoid "unused option" warning
+        versions_section_name = options['versions']
+        if versions_section_name != '':
+            # refetch section name to avoid "unused option" warning
+            versions_dict = self[versions_section_name]  # type: Dict[str, str]
         else:
-            # remove annotations
-            versions = dict((k, v.value) for (k, v) in versions.items())
-        options['versions'] # refetching section name just to avoid a warning
-        self.versions = versions
-        zc.buildout.easy_install.default_versions(versions)
+            versions_dict = _unannotate_section(versions)
+        self.versions = versions_dict
+        zc.buildout.easy_install.default_versions(versions_dict)
 
         zc.buildout.easy_install.prefer_final(
             bool_option(options, 'prefer-final'))
@@ -535,15 +589,16 @@ class Buildout(DictMixin):
                                                 'show-picked-versions')
         self.update_versions_file = options['update-versions-file']
         zc.buildout.easy_install.store_required_by(self.show_picked_versions or
-                                                   self.update_versions_file)
+                                                   bool(self.update_versions_file))
 
         download_cache = options.get('download-cache')
         extends_cache = options.get('extends-cache')
 
         if bool_option(options, 'abi-tag-eggs', 'false'):
-            from zc.buildout.pep425tags import get_abi_tag
-            options['eggs-directory'] = os.path.join(
-                options['eggs-directory'], get_abi_tag())
+            abi_tag = get_abi_tag()
+            if abi_tag is not None:
+                options['eggs-directory'] = os.path.join(
+                    options['eggs-directory'], abi_tag)
 
         eggs_cache = options.get('eggs-directory')
 
@@ -577,12 +632,14 @@ class Buildout(DictMixin):
         os.chdir(options['directory'])
 
     def _buildout_path(self, name):
+        # type: (str) -> str
         if '${' in name:
             return name
         return os.path.join(self._buildout_dir, name)
 
     @command
     def bootstrap(self, args):
+        # type: (List[str]) -> None
         __doing__ = 'Bootstrapping.'
 
         if os.path.exists(self['buildout']['develop-eggs-directory']):
@@ -633,6 +690,7 @@ class Buildout(DictMixin):
             )
 
     def _init_config(self, config_file, args):
+        # type: (str, Iterable[str]) -> None
         print_('Creating %r.' % config_file)
         f = open(config_file, 'w')
         sep = re.compile(r'[\\/]')
@@ -664,13 +722,15 @@ class Buildout(DictMixin):
 
     @command
     def init(self, args):
+        # type: (List[str]) -> None
         self.bootstrap(())
         if args:
             self.install(())
 
     @command
     def install(self, install_args):
-        __doing__ = 'Installing.'
+        # type: (List[str]) -> None
+        __doing__ = 'Installing.'  # type: Iterable[str]
 
         self._load_extensions()
         self._setup_directories()
@@ -702,8 +762,8 @@ class Buildout(DictMixin):
                 installed_develop_eggs=installed_develop_eggs)
 
         # get configured and installed part lists
-        conf_parts = self['buildout']['parts']
-        conf_parts = conf_parts and conf_parts.split() or []
+        conf_parts_opt = self['buildout']['parts']
+        conf_parts = conf_parts_opt and conf_parts_opt.split() or []
         installed_parts = installed_part_options['buildout']['parts']
         installed_parts = installed_parts and installed_parts.split() or []
 
@@ -819,13 +879,14 @@ class Buildout(DictMixin):
                     else:
                         installed_files = list(installed_files)
 
-                    need_to_save_installed = [
+                    need_to_save_installed_files = [
                         p for p in installed_files
                         if p not in old_installed_files]
 
-                    if need_to_save_installed:
+                    if need_to_save_installed_files:
+                        need_to_save_installed = True
                         installed_files = (old_installed_files
-                                           + need_to_save_installed)
+                                           + need_to_save_installed_files)
 
             else: # install
                 need_to_save_installed = True
@@ -872,6 +933,7 @@ class Buildout(DictMixin):
         self._unload_extensions()
 
     def _update_installed(self, **buildout_options):
+        # type: (**Any) -> None
         installed = self['buildout']['installed']
         f = open(installed, 'a')
         f.write('\n[buildout]\n')
@@ -880,6 +942,7 @@ class Buildout(DictMixin):
         f.close()
 
     def _uninstall_part(self, part, installed_part_options):
+        # type: (str, Dict[str, Any]) -> None
         # uninstall part
         __doing__ = 'Uninstalling %s.', part
         self._logger.info(*__doing__)
@@ -899,6 +962,7 @@ class Buildout(DictMixin):
             installed_part_options[part]['__buildout_installed__'])
 
     def _setup_directories(self):
+        # type: () -> None
         __doing__ = 'Setting up buildout directories'
 
         # Create buildout directories
@@ -909,9 +973,10 @@ class Buildout(DictMixin):
                 os.mkdir(d)
 
     def _develop(self):
+        # type: () -> Union[str, None]
         """Install sources by running setup.py develop on them
         """
-        __doing__ = 'Processing directories listed in the develop option'
+        __doing__ = 'Processing directories listed in the develop option' # type: Iterable
 
         develop = self['buildout'].get('develop')
         if not develop:
@@ -960,6 +1025,7 @@ class Buildout(DictMixin):
 
 
     def _sanity_check_develop_eggs_files(self, dest, old_files):
+        # type: (str, List[str]) -> None
         for f in os.listdir(dest):
             if f in old_files:
                 continue
@@ -969,17 +1035,21 @@ class Buildout(DictMixin):
                     "Unexpected entry, %r, in develop-eggs directory.", f)
 
     def _compute_part_signatures(self, parts):
+        # type: (Iterable[str]) -> None
         # Compute recipe signature and add to options
         for part in parts:
             options = self.get(part)
             if options is None:
-                options = self[part] = {}
-            recipe, entry = _recipe(options)
+                self[part] = {}
+                recipe, entry = _recipe({})
+            else:
+                recipe, entry = _recipe(options)
             req = pkg_resources.Requirement.parse(recipe)
             sig = _dists_sig(pkg_resources.working_set.resolve([req]))
             options['__buildout_signature__'] = ' '.join(sig)
 
     def _read_installed_part_options(self):
+        # type: () -> Tuple[Dict[str, Any], bool]
         old = self['buildout']['installed']
         if old and os.path.isfile(old):
             fp = open(old)
@@ -1001,6 +1071,7 @@ class Buildout(DictMixin):
                     )
 
     def _uninstall(self, installed):
+        # type: (str) -> None
         for f in installed.split('\n'):
             if not f:
                 continue
@@ -1024,6 +1095,7 @@ class Buildout(DictMixin):
                         raise
 
     def _install(self, part):
+        # type: (str) -> str
         options = self[part]
         recipe, entry = _recipe(options)
         recipe_class = pkg_resources.load_entry_point(
@@ -1040,6 +1112,7 @@ class Buildout(DictMixin):
 
 
     def _save_installed_options(self, installed_options):
+        # type: (Dict[str, Dict[str, str]]) -> None
         installed = self['buildout']['installed']
         if not installed:
             return
@@ -1051,13 +1124,15 @@ class Buildout(DictMixin):
         f.close()
 
     def _error(self, message, *args):
+        # type: (str, *str) -> None
         raise zc.buildout.UserError(message % args)
 
     def _setup_socket_timeout(self):
-        timeout = self['buildout']['socket-timeout']
-        if timeout != '':
+        # type: () -> None
+        timeout_opt = self['buildout']['socket-timeout']
+        if timeout_opt != '':
             try:
-                timeout = int(timeout)
+                timeout = int(timeout_opt)
                 import socket
                 self._logger.info(
                     'Setting socket time out to %d seconds.', timeout)
@@ -1065,9 +1140,10 @@ class Buildout(DictMixin):
             except ValueError:
                 self._logger.warning("Default socket timeout is used !\n"
                     "Value in configuration is not numeric: [%s].\n",
-                    timeout)
+                    timeout_opt)
 
     def _setup_logging(self):
+        # type: () -> None
         root_logger = logging.getLogger()
         self._logger = logging.getLogger('zc.buildout')
         handler = logging.StreamHandler(sys.stdout)
@@ -1084,25 +1160,27 @@ class Buildout(DictMixin):
         handler.setFormatter(logging.Formatter(log_format))
         root_logger.addHandler(handler)
 
-        level = self['buildout']['log-level']
-        if level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'):
-            level = getattr(logging, level)
+        level_opt = self['buildout']['log-level']
+        if level_opt in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'):
+            level = getattr(logging, level_opt)
         else:
             try:
-                level = int(level)
+                level = int(level_opt)
             except ValueError:
                 self._error("Invalid logging level %s", level)
-        verbosity = self['buildout'].get('verbosity', 0)
+
+        verbosity_opt = self['buildout'].get('verbosity')
         try:
-            verbosity = int(verbosity)
+            verbosity = int(verbosity_opt) if verbosity_opt is not None else 0
         except ValueError:
-            self._error("Invalid verbosity %s", verbosity)
+            self._error("Invalid verbosity %s", str(verbosity_opt))
 
         level -= verbosity
         root_logger.setLevel(level)
-        self._log_level = level
+        self._log_level = level  # type: int
 
     def _maybe_upgrade(self):
+        # type: () -> None
         # See if buildout or setuptools need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
@@ -1116,7 +1194,7 @@ class Buildout(DictMixin):
         ws = zc.buildout.easy_install.install(
             ('zc.buildout', 'setuptools', 'pip', 'wheel'),
             self['buildout']['eggs-directory'],
-            links = self['buildout'].get('find-links', '').split(),
+            links = self['buildout'].get('find-links', '').split(),  # type: ignore
             index = self['buildout'].get('index'),
             path = [self['buildout']['develop-eggs-directory']],
             allow_hosts = self._allow_hosts
@@ -1187,8 +1265,9 @@ class Buildout(DictMixin):
         sys.exit(subprocess.call(args, env=env))
 
     def _load_extensions(self):
+        # type: () -> None
         __doing__ = 'Loading extensions.'
-        specs = self['buildout'].get('extensions', '').split()
+        specs = self['buildout'].get('extensions', '').split()  # type: ignore
         for superceded_extension in ['buildout-versions',
                                      'buildout.dumppickedversions']:
             if superceded_extension in specs:
@@ -1209,7 +1288,7 @@ class Buildout(DictMixin):
             zc.buildout.easy_install.install(
                 specs, dest, path=path,
                 working_set=pkg_resources.working_set,
-                links = self['buildout'].get('find-links', '').split(),
+                links = self['buildout'].get('find-links', '').split(),  # type: ignore
                 index = self['buildout'].get('index'),
                 newest=self.newest, allow_hosts=self._allow_hosts)
 
@@ -1221,14 +1300,16 @@ class Buildout(DictMixin):
                 ep.load()(self)
 
     def _unload_extensions(self):
+        # type: () -> None
         __doing__ = 'Unloading extensions.'
-        specs = self['buildout'].get('extensions', '').split()
+        specs = self['buildout'].get('extensions', '').split()  # type: ignore
         if specs:
             for ep in pkg_resources.iter_entry_points(
                 'zc.buildout.unloadextension'):
                 ep.load()(self)
 
     def _print_picked_versions(self):
+        # type: () -> None
         picked_versions, required_by = (zc.buildout.easy_install
                                         .get_picked_versions())
         if not picked_versions:
@@ -1258,6 +1339,7 @@ class Buildout(DictMixin):
 
     @command
     def setup(self, args):
+        # type: (List[str]) -> None
         if not args:
             raise zc.buildout.UserError(
                 "The setup command requires the path to a setup script or \n"
@@ -1285,19 +1367,22 @@ class Buildout(DictMixin):
 
     @command
     def runsetup(self, args):
+        # type: (List[str]) -> None
         self.setup(args)
 
     @command
     def query(self, args=None):
+        # type: (Optional[List[str]]) -> None
         if args is None or len(args) != 1:
             _error('The query command requires a single argument.')
-        option = args[0]
-        option = option.split(':')
-        if len(option) == 1:
-            option = 'buildout', option[0]
-        elif len(option) != 2:
+        options = args[0].split(':')
+        if len(options) == 1:
+            section = 'buildout'
+            option = options[0]
+        elif len(options) != 2:
             _error('Invalid option:', args[0])
-        section, option = option
+        else:
+            section, option = options
         verbose = self['buildout'].get('verbosity', 0) != 0
         if verbose:
             print_('${%s:%s}' % (section, option))
@@ -1311,6 +1396,7 @@ class Buildout(DictMixin):
 
     @command
     def annotate(self, args=None):
+        # type: (Optional[List[str]]) -> None
         verbose = self['buildout'].get('verbosity', 0) != 0
         section = None
         if args is None:
@@ -1320,6 +1406,7 @@ class Buildout(DictMixin):
         _print_annotate(self._annotated, verbose, sections, self._buildout_dir)
 
     def print_options(self, base_path=None):
+        # type: (Optional[str]) -> None
         for section in sorted(self._data):
             if section == 'buildout' or section == self['buildout']['versions']:
                 continue
@@ -1335,6 +1422,7 @@ class Buildout(DictMixin):
                 print_("%s =%s" % (k, v))
 
     def __getitem__(self, section):
+        # type: (str) -> Options
         __doing__ = 'Getting section %s.', section
         try:
             return self._data[section]
@@ -1352,16 +1440,18 @@ class Buildout(DictMixin):
         return options
 
     def __setitem__(self, name, data):
+        # type: (str, DictMixin) -> None
         if name in self._raw:
             raise KeyError("Section already exists", name)
         self._raw[name] = dict((k, str(v)) for (k, v) in data.items())
         self[name] # Add to parts
 
     def parse(self, data):
+        # type: (str) -> None
         try:
             from cStringIO import StringIO
         except ImportError:
-            from io import StringIO
+            from io import StringIO  # type: ignore
         import textwrap
 
         sections = zc.buildout.configparser.parse(
@@ -1379,17 +1469,21 @@ class Buildout(DictMixin):
         raise NotImplementedError('__delitem__')
 
     def keys(self):
+        # type: () -> List[str]
         return list(self._raw.keys())
 
     def __iter__(self):
+        # type: () -> Iterator
         return iter(self._raw)
 
     def __len__(self):
+        # type: () -> int
         return len(self._raw)
 
 
 def _install_and_load(spec, group, entry, buildout):
-    __doing__ = 'Loading recipe %r.', spec
+    # type: (str, str, str, Buildout) -> Any
+    __doing__ = 'Loading recipe %r.', spec # type: Iterable
     try:
         req = pkg_resources.Requirement.parse(spec)
 
@@ -1427,16 +1521,24 @@ def _install_and_load(spec, group, entry, buildout):
             group, entry, spec, v)
         raise
 
+
+_template_split = re.compile('([$]{[^}]*})').split
+_simple = re.compile('[-a-zA-Z0-9 ._]+$').match
+_valid = re.compile(r'\${[-a-zA-Z0-9 ._]*:[-a-zA-Z0-9 ._]+}$').match
+
+
 class Options(DictMixin):
 
     def __init__(self, buildout, section, data):
+        # type: (Any, str, Dict[str, str]) -> None
         self.buildout = buildout
         self.name = section
         self._raw = data
-        self._cooked = {}
-        self._data = {}
+        self._cooked = {}  # type: Dict[str, str]
+        self._data = {}  # type: Dict[str, str]
 
     def _initialize(self):
+        # type: () -> None
         name = self.name
         __doing__ = 'Initializing section %s.', name
 
@@ -1451,15 +1553,18 @@ class Options(DictMixin):
         if name == 'buildout':
             return # buildout section can never be a part
 
-        for dname in self.get('<part-dependencies>', '').split():
-            # force use of dependencies in buildout:
-            self.buildout[dname]
+        part_dependencies = self.get('<part-dependencies>')
+        if part_dependencies is not None:
+            for dname in part_dependencies.split():
+                # force use of dependencies in buildout:
+                self.buildout[dname]
 
         if self.get('recipe'):
             self.initialize()
             self.buildout._parts.append(name)
 
     def initialize(self):
+        # type: () -> None
         reqs, entry = _recipe(self._data)
         buildout = self.buildout
         recipe_class = _install_and_load(reqs, 'zc.buildout', entry, buildout)
@@ -1468,6 +1573,7 @@ class Options(DictMixin):
         self.recipe = recipe_class(buildout, name, self)
 
     def _do_extend_raw(self, name, data, doing):
+        # type: (str, Dict[str, str], List[str]) -> Any
         if name == 'buildout':
             return data
         if name in doing:
@@ -1490,8 +1596,8 @@ class Options(DictMixin):
                 result.update(self._do_extend_raw(iname, raw, doing))
 
             result = _annotate_section(result, "")
-            data = _annotate_section(copy.deepcopy(data), "")
-            result = _update_section(result, data)
+            annotated = _annotate_section(copy.deepcopy(data), "")
+            result = _update_section(result, annotated)
             result = _unannotate_section(result)
             result.pop('<', None)
             return result
@@ -1499,12 +1605,14 @@ class Options(DictMixin):
             assert doing.pop() == name
 
     def _dosub(self, option, v):
+        # type: (str, str) -> None
         __doing__ = 'Getting option %s:%s.', self.name, option
         seen = [(self.name, option)]
         v = '$$'.join([self._sub(s, seen) for s in v.split('$$')])
         self._cooked[option] = v
 
     def get(self, option, default=None, seen=None):
+        # type: (str, Optional[Any], Optional[Any]) -> Optional[Any]
         try:
             return self._data[option]
         except KeyError:
@@ -1534,15 +1642,13 @@ class Options(DictMixin):
         self._data[option] = v
         return v
 
-    _template_split = re.compile('([$]{[^}]*})').split
-    _simple = re.compile('[-a-zA-Z0-9 ._]+$').match
-    _valid = re.compile(r'\${[-a-zA-Z0-9 ._]*:[-a-zA-Z0-9 ._]+}$').match
     def _sub(self, template, seen):
-        value = self._template_split(template)
+        # type: (str, List[Tuple[str, str]]) -> str
+        value = _template_split(template)
         subs = []
         for ref in value[1::2]:
             s = tuple(ref[2:-1].split(':'))
-            if not self._valid(ref):
+            if not _valid(ref):
                 if len(s) < 2:
                     raise zc.buildout.UserError("The substitution, %s,\n"
                                                 "doesn't contain a colon."
@@ -1551,12 +1657,12 @@ class Options(DictMixin):
                     raise zc.buildout.UserError("The substitution, %s,\n"
                                                 "has too many colons."
                                                 % ref)
-                if not self._simple(s[0]):
+                if not _simple(s[0]):
                     raise zc.buildout.UserError(
                         "The section name in substitution, %s,\n"
                         "has invalid characters."
                         % ref)
-                if not self._simple(s[1]):
+                if not _simple(s[1]):
                     raise zc.buildout.UserError(
                         "The option name in substitution, %s,\n"
                         "has invalid characters."
@@ -1578,6 +1684,7 @@ class Options(DictMixin):
         return ''.join([''.join(v) for v in zip(value[::2], subs)])
 
     def __getitem__(self, key):
+        # type: (str) -> str
         try:
             return self._data[key]
         except KeyError:
@@ -1589,11 +1696,13 @@ class Options(DictMixin):
         return v
 
     def __setitem__(self, option, value):
+        # type: (str, str) -> None
         if not isinstance(value, str):
             raise TypeError('Option values must be strings', value)
         self._data[option] = value
 
     def __delitem__(self, key):
+        # type: (str) -> None
         if key in self._raw:
             del self._raw[key]
             if key in self._data:
@@ -1606,24 +1715,29 @@ class Options(DictMixin):
             raise KeyError(key)
 
     def keys(self):
+        # type: () -> List[str]
         raw = self._raw
         return list(self._raw) + [k for k in self._data if k not in raw]
 
     def __iter__(self):
+        # type: () -> Iterator
         return iter(self.keys())
 
     def __len__(self):
+        # type: () -> int
         return len(self.keys())
 
     def copy(self):
+        # type: () -> Dict[str, str]
         result = copy.deepcopy(self._raw)
         result.update(self._cooked)
         result.update(self._data)
         return result
 
     def _call(self, f):
+        # type: (Callable) -> Any
         buildout_directory = self.buildout['buildout']['directory']
-        self._created = []
+        self._created = []  # type: Optional[List[str]]
         try:
             try:
                 os.chdir(buildout_directory)
@@ -1642,15 +1756,17 @@ class Options(DictMixin):
             os.chdir(buildout_directory)
 
     def created(self, *paths):
-        try:
-            self._created.extend(paths)
-        except AttributeError:
+        # type: (*str) -> Optional[List[str]]
+        if self._created is None:
             raise TypeError(
                 "Attempt to register a created path while not installing",
                 self.name)
+        else:
+            self._created.extend(paths)
         return self._created
 
     def __repr__(self):
+        # type: () -> str
         return repr(dict(self))
 
 Buildout.Options = Options
@@ -1671,6 +1787,7 @@ _spacey_defaults = [
     ]
 
 def _quote_spacey_nl(match):
+    # type: (Any) -> str
     match = match.group(0).split('\n', 1)
     result = '\n\t'.join(
         [(s
@@ -1685,6 +1802,7 @@ def _quote_spacey_nl(match):
     return result
 
 def _save_option(option, value, f):
+    # type: (str, str, IO[bytes]) -> None
     value = _spacey_nl.sub(_quote_spacey_nl, value)
     if value.startswith('\n\t'):
         value = '%(__buildout_space_n__)s' + value[2:]
@@ -1693,6 +1811,7 @@ def _save_option(option, value, f):
     print_(option, '=', value, file=f)
 
 def _save_options(section, options, f):
+    # type: (str, Dict[str, str], IO[bytes]) -> None
     print_('[%s]' % section, file=f)
     items = list(options.items())
     items.sort()
@@ -1779,10 +1898,15 @@ def _default_globals():
     return globals_defs
 
 
-def _open(
-        base, filename, seen, download_options,
-        override, downloaded, user_defaults
-        ):
+def _open(base,  # type: str
+          filename,  # type: str
+          seen,  # type: List
+          download_options,  # type: Dict[str, SectionKey]
+          override,  # type: Dict
+          downloaded,  # type: Set
+          user_defaults,  # type: Dict[str, Dict[str, SectionKey]]
+          ):
+    # type: (...) -> Tuple[Dict[str, Dict[str, SectionKey]], Dict[str, Dict[str, SectionKey]]]
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
@@ -1795,7 +1919,7 @@ def _open(
         raw_download_options, cache=raw_download_options.get('extends-cache'),
         fallback=fallback, hash_name=True)
     is_temp = False
-    downloaded_filename = None
+    downloaded_filename = ''
     if _isurl(filename):
         downloaded_filename, is_temp = download(filename)
         fp = open(downloaded_filename)
@@ -1836,21 +1960,21 @@ def _open(
         os.remove(downloaded_filename)
 
     options = result.get('buildout', {})
-    extends = options.pop('extends', None)
+    extends_opt = options.pop('extends', None)
     if 'extended-by' in options:
         raise zc.buildout.UserError(
             'No-longer supported "extended-by" option found in %s.' %
             filename)
 
-    result = _annotate(result, filename)
+    annotated = _annotate(result, filename)
 
-    if root_config_file and 'buildout' in result:
+    if root_config_file and 'buildout' in annotated:
         download_options = _update_section(
-            download_options, result['buildout']
+            download_options, annotated['buildout']
         )
 
-    if extends:
-        extends = extends.split()
+    if extends_opt is not None:
+        extends = extends_opt.split()
         eresult, user_defaults = _open(
             base, extends.pop(0), seen, download_options, override,
             downloaded, user_defaults
@@ -1861,18 +1985,19 @@ def _open(
                 downloaded, user_defaults
             )
             eresult = _update(eresult, next_extend)
-        result = _update(eresult, result)
+        annotated = _update(eresult, annotated)
     else:
         if user_defaults:
-            result = _update(user_defaults, result)
+            annotated = _update(user_defaults, annotated)
             user_defaults = {}
     seen.pop()
-    return result, user_defaults
+    return annotated, user_defaults
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
-_dir_hashes = {}
+_dir_hashes = {}  # type: Dict[str, str]
 def _dir_hash(dir):
+    # type: (str) -> str
     dir_hash = _dir_hashes.get(dir, None)
     if dir_hash is not None:
         return dir_hash
@@ -1908,7 +2033,9 @@ def _dir_hash(dir):
     _dir_hashes[dir] = dir_hash = hash.hexdigest()
     return dir_hash
 
-def _dists_sig(dists):
+def _dists_sig(dists  # type: List[Union[DistInfoDistribution, EggInfoDistribution]]
+               ):
+    # type: (...) -> List[str]
     seen = set()
     result = []
     for dist in sorted(dists):
@@ -1922,7 +2049,10 @@ def _dists_sig(dists):
             result.append(os.path.basename(location))
     return result
 
-def _update_section(in1, s2):
+def _update_section(in1,  # type: Dict[str, SectionKey]
+                    s2,  # type: Dict[str, SectionKey]
+                    ):
+    # type: (...) -> Dict[str, SectionKey]
     s1 = copy.deepcopy(in1)
     # Base section 2 on section 1; section 1 is copied, with key-value pairs
     # in section 2 overriding those in section 1. If there are += or -=
@@ -1954,6 +2084,7 @@ def _update_section(in1, s2):
     return s1
 
 def _update_verbose(s1, s2):
+    # type: (Dict[str, SectionKey], Dict[str, SectionKey]) -> None
     for key, v2 in s2.items():
         if key in s1:
             v1 = s1[key]
@@ -1961,7 +2092,10 @@ def _update_verbose(s1, s2):
         else:
             s1[key] = copy.deepcopy(v2)
 
-def _update(in1, d2):
+def _update(in1,  # type: Dict[str, Dict[str, SectionKey]]
+            d2,  # type: Dict[str, Dict[str, SectionKey]]
+            ):
+    # type: (...) -> Dict[str, Dict[str, SectionKey]]
     d1 = copy.deepcopy(in1)
     for section in d2:
         if section in d1:
@@ -1971,6 +2105,7 @@ def _update(in1, d2):
     return d1
 
 def _recipe(options):
+    # type: (Dict[str, str]) -> Tuple[str, str]
     recipe = options['recipe']
     if ':' in recipe:
         recipe, entry = recipe.split(':')
@@ -1980,6 +2115,7 @@ def _recipe(options):
     return recipe, entry
 
 def _doing():
+    # type: () -> None
     _, v, tb = sys.exc_info()
     message = str(v)
     doing = []
@@ -1997,6 +2133,7 @@ def _doing():
             sys.stderr.write('  %s\n' % d)
 
 def _error(*message):
+    # type: (*str) -> NoReturn
     sys.stderr.write('Error: ' + ' '.join(message) +'\n')
     sys.exit(1)
 
@@ -2006,6 +2143,7 @@ recipe being used:
 """
 
 def _check_for_unused_options_in_section(buildout, section):
+    # type: (Any, str) -> None
     options = buildout[section]
     unused = [option for option in sorted(options._raw)
               if option not in options._data]
@@ -2125,7 +2263,46 @@ def _version():
     print_("buildout version %s" % version)
     sys.exit(0)
 
+
+def get_pyannotate_filename():
+    directory = os.environ['PYANNOTATE']
+    if not os.path.exists(directory):
+        raise ValueError('PYANNOTATE %s does not point to existing directory')
+    fullpath = os.path.join(directory, 'pyannotate.json')
+    index = 0
+    while os.path.exists(fullpath):
+        filename = 'pyannotate{index}.json'.format(index=index)
+        fullpath = os.path.join(directory, filename)
+        index += 1
+    return fullpath
+
+
+def setup_pyannotate():
+    filename = get_pyannotate_filename()
+    try:
+        from pyannotate_runtime import collect_types
+        import atexit
+        if 'PYANNOTATE_CODE_ROOT' in os.environ:
+            top_dir = os.environ['PYANNOTATE_CODE_ROOT']
+            if not os.path.exists(top_dir):
+                raise ValueError('PYANNOTATE_CODE_ROOT %s does not exist' %
+                        top_dir)
+            else:
+                collect_types.set_top_dir(top_dir)
+        collect_types.init_types_collection()
+        collect_types.start()
+
+        def pyann_end():
+            collect_types.stop()
+            collect_types.dump_stats(filename)
+        atexit.register(pyann_end)
+    except ImportError:
+        pass
+
+
 def main(args=None):
+    if 'PYANNOTATE' in os.environ:
+        setup_pyannotate()
     if args is None:
         args = sys.argv[1:]
 
@@ -2254,6 +2431,7 @@ if sys.version_info[:2] < (2, 4):
 
 _bool_names = {'true': True, 'false': False, True: True, False: False}
 def bool_option(options, name, default=None):
+    # type: (Dict[str, str], str, Optional[Union[str, bool]]) -> bool
     value = options.get(name, default)
     if value is None:
         raise KeyError(name)

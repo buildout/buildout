@@ -124,6 +124,26 @@ if need_restart:
     )
     sys.exit(return_code)
 ######################################################################
+def install_pyannotate():
+    print('')
+    print('Install pyannotate')
+    print('')
+    bin_pip = os.path.join('bin', 'pip')
+    if subprocess.call(
+        [sys.executable] +
+        ['-m', 'pip', 'install', 'pyannotate'],
+        ):
+        raise RuntimeError("pyannotate install failed.")
+
+
+if "PYANNOTATE" in os.environ:
+    try:
+        import pyannotate
+    except ImportError:
+        install_pyannotate()
+
+######################################################################
+######################################################################
 print('')
 print('Install buildout')
 print('')
