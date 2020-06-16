@@ -2887,6 +2887,247 @@ def increment_buildout_with_multiple_extended_files_421022():
       recipe='zc.buildout:debug'
     """
 
+def increment_default_cfg():
+    r"""
+    >>> home = tmpdir('home')
+    >>> mkdir(home, '.buildout')
+    >>> default_cfg = join(home, '.buildout', 'default.cfg')
+    >>> write(default_cfg, '''
+    ... [debug]
+    ... dec = 1 
+    ...       2
+    ... inc = 1
+    ... ''')
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ...
+    ... [debug]
+    ... dec -= 2
+    ... inc += 2
+    ... ''')
+    >>> env = dict(HOME=home, USERPROFILE=home)
+    >>> print_(system(buildout+' annotate debug', env=env), end='')
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [debug]
+    dec= 1
+        /home/.buildout/default.cfg
+    -=  buildout.cfg
+    inc= 1
+    2
+        /home/.buildout/default.cfg
+    +=  buildout.cfg
+    """
+
+def increment_default_cfg_extensions():
+    r"""
+    Add two extensions as develop eggs
+
+    >>> mkdir('demo')
+    >>> write('demo', 'demo.py', '''
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write('demo %s %s\\n' % ('ext', sorted(buildout)))
+    ... def unload(buildout):
+    ...     sys.stdout.write('demo %s %s\\n' % ('unload', sorted(buildout)))
+    ... ''')
+    >>> write('demo', 'setup.py', '''
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "demo",
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo:unload'],
+    ...        },
+    ...     )
+    ... ''')
+    >>> mkdir('demo2')
+    >>> write('demo2', 'demo2.py', '''
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write('demo2 %s %s\\n' % ('ext', sorted(buildout)))
+    ... def unload(buildout):
+    ...     sys.stdout.write('demo2 %s %s\\n' % ('unload', sorted(buildout)))
+    ... ''')
+    >>> write('demo2', 'setup.py', '''
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "demo2",
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo2:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo2:unload'],
+    ...        },
+    ...     )
+    ... ''')
+    >>> write('buildout.cfg', ''' 
+    ... [buildout]
+    ... develop = demo demo2
+    ... parts =
+    ... ''')
+
+    Run buildout once without extensions to actually develop the eggs.
+    (Develop happens after loading extensions.)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/demo'
+    Develop: '/sample-buildout/demo2'
+    >>> ls("develop-eggs")
+    -  demo.egg-link
+    -  demo2.egg-link
+    -  zc.recipe.egg.egg-link
+
+    extensions in .buildout/default.cfg
+    incremented in buildout.cfg
+
+    >>> home = tmpdir('home')
+    >>> mkdir(home, '.buildout')
+    >>> default_cfg = join(home, '.buildout', 'default.cfg')
+    >>> write(default_cfg, '''
+    ... [buildout]
+    ... extensions = demo
+    ... ''')
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... develop = demo demo2
+    ... extensions += demo2
+    ... parts =
+    ... ''')
+    >>> env = dict(HOME=home, USERPROFILE=home)
+    >>> print_(system(buildout+' annotate buildout', env=env), end='')
+    ... # doctest: +ELLIPSIS
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    ...
+    extensions= demo
+    demo2
+        /home/.buildout/default.cfg
+    +=  buildout.cfg
+    ...
+    versions= versions
+        DEFAULT_VALUE
+    >>> print_(system(buildout, env=env), end='')
+    demo ext ['buildout', 'versions']
+    demo2 ext ['buildout', 'versions']
+    Develop: '/sample-buildout/demo'
+    Develop: '/sample-buildout/demo2'
+    demo unload ['buildout', 'versions']
+    demo2 unload ['buildout', 'versions']
+    """
+
+
+def default_cfg_extensions_with_extends_increment_in_base():
+    r"""
+    Add two extensions as develop eggs
+
+    >>> mkdir('demo')
+    >>> write('demo', 'demo.py', '''
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write('demo %s %s\\n' % ('ext', sorted(buildout)))
+    ... def unload(buildout):
+    ...     sys.stdout.write('demo %s %s\\n' % ('unload', sorted(buildout)))
+    ... ''')
+    >>> write('demo', 'setup.py', '''
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "demo",
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo:unload'],
+    ...        },
+    ...     )
+    ... ''')
+    >>> mkdir('demo2')
+    >>> write('demo2', 'demo2.py', '''
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write('demo2 %s %s\\n' % ('ext', sorted(buildout)))
+    ... def unload(buildout):
+    ...     sys.stdout.write('demo2 %s %s\\n' % ('unload', sorted(buildout)))
+    ... ''')
+    >>> write('demo2', 'setup.py', '''
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "demo2",
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo2:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo2:unload'],
+    ...        },
+    ...     )
+    ... ''')
+    >>> write('buildout.cfg', ''' 
+    ... [buildout]
+    ... develop = demo demo2
+    ... parts =
+    ... ''')
+
+    Run buildout once without extensions to actually develop the eggs.
+    (Develop happens after loading extensions.)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/demo'
+    Develop: '/sample-buildout/demo2'
+    >>> ls("develop-eggs")
+    -  demo.egg-link
+    -  demo2.egg-link
+    -  zc.recipe.egg.egg-link
+
+    extensions in .buildout/default.cfg
+    incremented in base.cfg
+    buildout.cfg extends base.cfg
+
+    >>> home = tmpdir('home')
+    >>> mkdir(home, '.buildout')
+    >>> default_cfg = join(home, '.buildout', 'default.cfg')
+    >>> write(default_cfg, '''
+    ... [buildout]
+    ... extensions = demo
+    ... ''')
+    >>> write('base.cfg', '''
+    ... [buildout]
+    ... develop = demo demo2
+    ... extensions += demo2
+    ... ''')
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = base.cfg
+    ... parts =
+    ... ''')
+    >>> env = dict(HOME=home, USERPROFILE=home)
+    >>> print_(system(buildout+' annotate buildout', env=env), end='')
+    ... # doctest: +ELLIPSIS
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    ...
+    extensions= demo
+    demo2
+        /home/.buildout/default.cfg
+    +=  base.cfg
+    ...
+    versions= versions
+        DEFAULT_VALUE
+    >>> print_(system(buildout, env=env), end='')
+    demo ext ['buildout', 'versions']
+    demo2 ext ['buildout', 'versions']
+    Develop: '/sample-buildout/demo'
+    Develop: '/sample-buildout/demo2'
+    demo unload ['buildout', 'versions']
+    demo2 unload ['buildout', 'versions']
+    """
+
+
 def increment_on_command_line():
     r"""
     >>> write('buildout.cfg', '''
