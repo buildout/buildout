@@ -358,23 +358,23 @@ class Buildout(DictMixin):
         # load user defaults, which override defaults
         user_config = _get_user_config()
         if use_user_defaults and os.path.exists(user_config):
-            data_buildout_copy = copy.deepcopy(data['buildout'])
+            download_options = data['buildout']
             user_defaults, _ = _open(
                 os.path.dirname(user_config),
-                user_config, [], data_buildout_copy,
+                user_config, [], download_options,
                 override, set(), {}
             )
-            for_dl_option = _update(data, user_defaults)
+            for_download_options = _update(data, user_defaults)
         else:
             user_defaults = {}
-            for_dl_option = copy.deepcopy(data)
+            for_download_options = copy.deepcopy(data)
 
         # load configuration files
         if config_file:
-            data_buildout_copy = copy.deepcopy(for_dl_option['buildout'])
+            download_options = for_download_options['buildout']
             cfg_data, _ = _open(
                 os.path.dirname(config_file),
-                config_file, [], data_buildout_copy,
+                config_file, [], download_options,
                 override, set(), user_defaults
             )
             data = _update(data, cfg_data)
@@ -1780,19 +1780,19 @@ def _default_globals():
 
 
 def _open(
-        base, filename, seen, dl_options, override, downloaded, user_defaults
+        base, filename, seen, download_options,
+        override, downloaded, user_defaults
         ):
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
     """
-    dl_options = _update_section(dl_options, override)
-    dl_options_copy = copy.deepcopy(dl_options)
-    _dl_options = _unannotate_section(dl_options_copy)
-    newest = bool_option(_dl_options, 'newest', 'false')
+    download_options = _update_section(download_options, override)
+    raw_download_options = _unannotate_section(download_options)
+    newest = bool_option(raw_download_options, 'newest', 'false')
     fallback = newest and not (filename in downloaded)
     download = zc.buildout.download.Download(
-        _dl_options, cache=_dl_options.get('extends-cache'),
+        raw_download_options, cache=raw_download_options.get('extends-cache'),
         fallback=fallback, hash_name=True)
     is_temp = False
     downloaded_filename = None
@@ -1845,15 +1845,21 @@ def _open(
     result = _annotate(result, filename)
 
     if root_config_file and 'buildout' in result:
-        dl_options = _update_section(dl_options, result['buildout'])
+        download_options = _update_section(
+            download_options, result['buildout']
+        )
 
     if extends:
         extends = extends.split()
-        eresult, user_defaults = _open(base, extends.pop(0), seen, dl_options, override,
-                        downloaded, user_defaults)
+        eresult, user_defaults = _open(
+            base, extends.pop(0), seen, download_options, override,
+            downloaded, user_defaults
+        )
         for fname in extends:
-            next_extend, user_defaults = _open(base, fname, seen, dl_options, override,
-                    downloaded, user_defaults)
+            next_extend, user_defaults = _open(
+                base, fname, seen, download_options, override,
+                downloaded, user_defaults
+            )
             eresult = _update(eresult, next_extend)
         result = _update(eresult, result)
     else:
