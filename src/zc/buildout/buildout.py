@@ -253,15 +253,11 @@ def _print_annotate(data, verbose, chosen_sections, basedir):
 
 
 def _unannotate_section(section):
-    for key in section:
-        section[key] = section[key].value
-    return section
+    return {key: entry.value for key, entry in section.items()}
 
 
 def _unannotate(data):
-    for key in data:
-        data[key] = _unannotate_section(data[key])
-    return data
+    return {key: _unannotate_section(section) for key, section in data.items()}
 
 
 def _format_picked_versions(picked_versions, required_by):
@@ -454,7 +450,7 @@ class Buildout(DictMixin):
         # provide some defaults before options are parsed
         # because while parsing options those attributes might be
         # used already (Gottfried Ganssauge)
-        buildout_section = data['buildout']
+        buildout_section = self._raw['buildout']
 
         # Try to make sure we have absolute paths for standard
         # directories. We do this before doing substitutions, in case
