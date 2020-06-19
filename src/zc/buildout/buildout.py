@@ -368,11 +368,15 @@ class Buildout(DictMixin):
         # load configuration files
         if config_file:
             data_buildout_copy = copy.deepcopy(data['buildout'])
-            _update(data, _open(os.path.dirname(config_file), config_file, [],
-                                data_buildout_copy, override, set()))
+            cfg_data = _open(
+                os.path.dirname(config_file),
+                config_file, [], data_buildout_copy,
+                override, set()
+            )
+            data = _update(data, cfg_data)
 
         # apply command-line options
-        _update(data, cloptions)
+        data = _update(data, cloptions)
 
         # Set up versions section, if necessary
         if 'versions' not in data['buildout']:
@@ -1483,7 +1487,7 @@ class Options(DictMixin):
 
             result = _annotate_section(result, "")
             data = _annotate_section(copy.deepcopy(data), "")
-            _update_section(result, data)
+            result = _update_section(result, data)
             result = _unannotate_section(result)
             result.pop('<', None)
             return result
@@ -1775,7 +1779,7 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 
     Recursively open other files based on buildout options found.
     """
-    _update_section(dl_options, override)
+    dl_options = _update_section(dl_options, override)
     dl_options_copy = copy.deepcopy(dl_options)
     _dl_options = _unannotate_section(dl_options_copy)
     newest = bool_option(_dl_options, 'newest', 'false')
@@ -1841,8 +1845,9 @@ def _open(base, filename, seen, dl_options, override, downloaded):
         eresult = _open(base, extends.pop(0), seen, dl_options, override,
                         downloaded)
         for fname in extends:
-            _update(eresult, _open(base, fname, seen, dl_options, override,
-                    downloaded))
+            next_extend = _open(base, fname, seen, dl_options, override,
+                    downloaded)
+            eresult = _update(eresult, next_extend)
         result = _update(eresult, result)
 
     seen.pop()
@@ -1901,7 +1906,8 @@ def _dists_sig(dists):
             result.append(os.path.basename(location))
     return result
 
-def _update_section(s1, s2):
+def _update_section(in1, s2):
+    s1 = copy.deepcopy(in1)
     # Base section 2 on section 1; section 1 is copied, with key-value pairs
     # in section 2 overriding those in section 1. If there are += or -=
     # operators in section 2, process these to add or substract items (delimited
@@ -1914,6 +1920,7 @@ def _update_section(s1, s2):
             implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been defined locally too.
             section_key = s2.get(key, s1.get(key, implicit_value))
+            section_key = copy.deepcopy(section_key)
             section_key.addToValue(v.value, v.source)
             s2[key] = section_key
             del s2[k]
@@ -1922,6 +1929,7 @@ def _update_section(s1, s2):
             implicit_value = SectionKey("", "IMPLICIT_VALUE")
             # Find v1 in s2 first; it may have been set by a += operation first
             section_key = s2.get(key, s1.get(key, implicit_value))
+            section_key = copy.deepcopy(section_key)
             section_key.removeFromValue(v.value, v.source)
             s2[key] = section_key
             del s2[k]
@@ -1935,14 +1943,15 @@ def _update_verbose(s1, s2):
             v1 = s1[key]
             v1.overrideValue(v2)
         else:
-            s1[key] = v2
+            s1[key] = copy.deepcopy(v2)
 
-def _update(d1, d2):
+def _update(in1, d2):
+    d1 = copy.deepcopy(in1)
     for section in d2:
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
         else:
-            d1[section] = d2[section]
+            d1[section] = copy.deepcopy(d2[section])
     return d1
 
 def _recipe(options):
