@@ -142,4 +142,4 @@ docker_deb_sys:
 	docker run debian_system_buildout /bin/bash -c 'RUN_COVERAGE= COVERAGE_REPORT= /buildout/bin/test -c -vvv -t abi'
 
 clean:
-	rm -rf $(VENVS) $(PYTHON_BUILD_DIR) $(HERE)/pythons
+	rm -rf $(HERE)/venvs $(PYTHON_BUILD_DIR) $(HERE)/pythons
