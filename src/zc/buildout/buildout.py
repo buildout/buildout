@@ -110,6 +110,8 @@ class SectionKey(object):
         self.value = sectionkey.value
         if sectionkey.history[-1].operation not in ['ADD', 'REMOVE']:
             self.addToHistory("OVERRIDE", sectionkey.value, sectionkey.source)
+        else:
+            self.history = copy.deepcopy(sectionkey.history)
 
     def setDirectory(self, value):
         self.value = value
@@ -304,13 +306,19 @@ _buildout_default_options = _annotate_section({
     }, 'DEFAULT_VALUE')
 
 
+def _get_user_config():
+    buildout_home = os.path.join(os.path.expanduser('~'), '.buildout')
+    buildout_home = os.environ.get('BUILDOUT_HOME', buildout_home)
+    return os.path.join(buildout_home, 'default.cfg')
+
+
 @commands
 class Buildout(DictMixin):
 
     COMMANDS = set()
 
     def __init__(self, config_file, cloptions,
-                 user_defaults=True,
+                 use_user_defaults=True,
                  command=None, args=()):
 
         __doing__ = 'Initializing.'
@@ -352,26 +360,26 @@ class Buildout(DictMixin):
         override = copy.deepcopy(cloptions.get('buildout', {}))
 
         # load user defaults, which override defaults
-        if user_defaults:
-            if os.environ.get('BUILDOUT_HOME'):
-                buildout_home = os.environ['BUILDOUT_HOME']
-            else:
-                buildout_home = os.path.join(
-                    os.path.expanduser('~'), '.buildout')
-            user_config = os.path.join(buildout_home, 'default.cfg')
-            if os.path.exists(user_config):
-                data_buildout_copy = copy.deepcopy(data['buildout'])
-                _update(data, _open(os.path.dirname(user_config), user_config,
-                                    [], data_buildout_copy, override,
-                                    set()))
+        user_config = _get_user_config()
+        if use_user_defaults and os.path.exists(user_config):
+            data_buildout_copy = copy.deepcopy(data['buildout'])
+            user_defaults, _ = _open(
+                os.path.dirname(user_config),
+                user_config, [], data_buildout_copy,
+                override, set(), {}
+            )
+            for_dl_option = _update(data, user_defaults)
+        else:
+            user_defaults = {}
+            for_dl_option = copy.deepcopy(data)
 
         # load configuration files
         if config_file:
-            data_buildout_copy = copy.deepcopy(data['buildout'])
-            cfg_data = _open(
+            data_buildout_copy = copy.deepcopy(for_dl_option['buildout'])
+            cfg_data, _ = _open(
                 os.path.dirname(config_file),
                 config_file, [], data_buildout_copy,
-                override, set()
+                override, set(), user_defaults
             )
             data = _update(data, cfg_data)
 
@@ -1774,7 +1782,10 @@ def _default_globals():
 
     return globals_defs
 
-def _open(base, filename, seen, dl_options, override, downloaded):
+
+def _open(
+        base, filename, seen, dl_options, override, downloaded, user_defaults
+        ):
     """Open a configuration file and return the result as a dictionary,
 
     Recursively open other files based on buildout options found.
@@ -1842,16 +1853,19 @@ def _open(base, filename, seen, dl_options, override, downloaded):
 
     if extends:
         extends = extends.split()
-        eresult = _open(base, extends.pop(0), seen, dl_options, override,
-                        downloaded)
+        eresult, user_defaults = _open(base, extends.pop(0), seen, dl_options, override,
+                        downloaded, user_defaults)
         for fname in extends:
-            next_extend = _open(base, fname, seen, dl_options, override,
-                    downloaded)
+            next_extend, user_defaults = _open(base, fname, seen, dl_options, override,
+                    downloaded, user_defaults)
             eresult = _update(eresult, next_extend)
         result = _update(eresult, result)
-
+    else:
+        if user_defaults:
+            result = _update(user_defaults, result)
+            user_defaults = {}
     seen.pop()
-    return result
+    return result, user_defaults
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
@@ -2116,7 +2130,7 @@ def main(args=None):
     config_file = 'buildout.cfg'
     verbosity = 0
     options = []
-    user_defaults = True
+    use_user_defaults = True
     debug = False
     while args:
         if args[0][0] == '-':
@@ -2128,7 +2142,7 @@ def main(args=None):
                 elif op[0] == 'q':
                     verbosity -= 10
                 elif op[0] == 'U':
-                    user_defaults = False
+                    use_user_defaults = False
                 elif op[0] == 'o':
                     options.append(('buildout', 'offline', 'true'))
                 elif op[0] == 'O':
@@ -2199,7 +2213,7 @@ def main(args=None):
     try:
         try:
             buildout = Buildout(config_file, options,
-                                user_defaults, command, args)
+                                use_user_defaults, command, args)
             getattr(buildout, command)(args)
         except SystemExit:
             logging.shutdown()
