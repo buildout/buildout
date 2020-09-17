@@ -4,7 +4,7 @@ Change History
 3.0.0a3 (unreleased)
 ====================
 
-- Nothing changed yet.
+- Support python37 and python38 in conditional section expressions
 
 
 3.0.0a2 (2020-05-25)
