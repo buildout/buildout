@@ -678,8 +678,14 @@ class Installer(object):
 
         for_buildout_run = bool(working_set)
 
-        requirements = [self._constrain(pkg_resources.Requirement.parse(spec))
+        requirements = [pkg_resources.Requirement.parse(spec)
                         for spec in specs]
+
+        requirements = [
+            self._constrain(requirement)
+            for requirement in requirements
+            if not requirement.marker or requirement.marker.evaluate()
+        ]
 
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
@@ -1168,6 +1174,8 @@ def scripts(reqs, working_set, executable, dest=None,
     for req in reqs:
         if isinstance(req, str):
             req = pkg_resources.Requirement.parse(req)
+            if req.marker and not req.marker.evaluate():
+                continue
             dist = working_set.find(req)
             # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
