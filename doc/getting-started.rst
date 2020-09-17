@@ -439,6 +439,39 @@ where you list them, as in:
 
 In this example, we've requested a version of bobo less than 5.0.
 
+You can also add `environment markers <https://python.org/dev/peps/pep-0496>`_
+to restrict some requirements to i.e. a certain platform or python version:
+
+.. code-block:: ini
+
+  [bobo]
+  recipe = zc.recipe.egg
+  eggs =
+      bobo ==2.2.0; python_version < '3.0'
+      bobo ==2.3.0; python_version >= '3.0'
+
+.. -> src
+
+   >>> prefix = """
+   ... [buildout]
+   ... parts = bobo
+   ... """
+   >>> with open('buildout.cfg', 'w') as f:
+   ...     _ = f.write(prefix)
+   ...     _ = f.write(src)
+
+   >>> import shutil
+   >>> import sys
+   >>> v = sys.version_info
+   >>> shutil.rmtree('eggs')
+   >>> run_buildout('buildout show-picked-versions=true')
+   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])\
+   ... if v.major >= 3 else\
+   ... yup([n for n in ls('eggs') if n.startswith('bobo-2.2.0-')])
+   >>> yup('bobo==2.3.0' in read('out'))\
+   ... if v.major >= 3 else\
+   ... yup('bobo==2.2.0' in read('out'))
+
 The more common way to pin a version is using a ``versions`` section:
 
 .. code-block:: ini
