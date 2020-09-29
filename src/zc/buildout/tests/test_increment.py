@@ -352,6 +352,44 @@ def with_extends_increment_in_buildout_with_base_and_root():
         DEFAULT_VALUE
     """
 
+def no_default_with_extends_increment_in_base2_and_base3():
+    r"""
+    >>> write('base.cfg', '''
+    ... [buildout]
+    ... ''')
+    >>> write('base2.cfg', '''
+    ... [buildout]
+    ... extensions += demo2
+    ... ''')
+    >>> write('base3.cfg', '''
+    ... [buildout]
+    ... extensions += demo3
+    ... ''')
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = base.cfg
+    ...           base2.cfg
+    ...           base3.cfg
+    ... parts =
+    ... ''')
+    >>> print_(system(buildout+' annotate buildout'), end='')
+    ... # doctest: +ELLIPSIS
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    ...
+    extensions= 
+    demo2
+    demo3
+        IMPLICIT_VALUE
+    +=  base2.cfg
+    +=  base3.cfg
+    ...
+    versions= versions
+        DEFAULT_VALUE
+    """
 
 def test_suite():
     return doctest.DocTestSuite(
