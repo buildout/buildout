@@ -1099,7 +1099,7 @@ class Buildout(DictMixin):
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
 
-        if self['buildout'].get('restart-after-upgrade', '') == 'true':
+        if 'BUILDOUT_RESTART_AFTER_UPGRADE' in os.environ:
             return
 
         if not self.newest:
@@ -1172,11 +1172,11 @@ class Buildout(DictMixin):
 
         # Restart
         args = sys.argv[:]
-        args.insert(1, '--restart-after-upgrade')
         if not __debug__:
             args.insert(0, '-O')
         args.insert(0, sys.executable)
-        sys.exit(subprocess.call(args))
+        env=dict(os.environ, BUILDOUT_RESTART_AFTER_UPGRADE='1')
+        sys.exit(subprocess.call(args, env=env))
 
     def _load_extensions(self):
         __doing__ = 'Loading extensions.'
@@ -2161,8 +2161,6 @@ def main(args=None):
                     _help()
                 elif orig_op == '--version':
                     _version()
-                elif orig_op == '--restart-after-upgrade':
-                    options.append(('buildout', 'restart-after-upgrade', "true"))
                 else:
                     _error("Invalid option", '-'+op[0])
         elif '=' in args[0]:
