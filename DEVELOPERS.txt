@@ -23,8 +23,8 @@ with them do::
     make PYTHON_VER=2.7 build
     make PYTHON_VER=2.7 test
 
-    make PYTHON_VER=3.4 build
-    make PYTHON_VER=3.4 test
+    make PYTHON_VER=3.8 build
+    make PYTHON_VER=3.8 test
 
 The actual Python compilation is only done once and then re-used. So on
 subsequent builds, only the development buildout itself needs to be redone.
