@@ -1,0 +1,1 @@
+Fix python 3 urlretrieve for downloading external config files with basic auth in the URL. Same as issue #257 for python 2 in release 2.5.1.
