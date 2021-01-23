@@ -4,6 +4,9 @@ Change History
 3.0.0a3 (unreleased)
 ====================
 
+- Fix python 3 urlretrieve for downloading external config files with basic
+  auth in the URL. Same as issue #257 for python 2 in release 2.5.1.
+
 - Support python37, python38 and python39 in conditional section expressions
 
 

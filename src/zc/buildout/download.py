@@ -20,35 +20,40 @@ except ImportError:
 
 try:
     # Python 3
-    from urllib.request import urlretrieve
     from urllib.parse import urlparse
+    from urllib.parse import urlunparse
+    from urllib.parse import splituser
+    from urllib.request import Request
+    from urllib.request import urlopen
 except ImportError:
     # Python 2
-    import base64
     from urlparse import urlparse
     from urlparse import urlunparse
-    import urllib2
+    from urllib2 import Request
+    from urllib2 import urlopen
+    from urllib2 import splituser
 
-    def urlretrieve(url, tmp_path):
-        """Work around Python issue 24599 includig basic auth support
-        """
-        scheme, netloc, path, params, query, frag = urlparse(url)
-        auth, host = urllib2.splituser(netloc)
-        if auth:
-            url = urlunparse((scheme, host, path, params, query, frag))
-            req = urllib2.Request(url)
-            base64string = base64.encodestring(auth)[:-1]
-            basic = "Basic " + base64string
-            req.add_header("Authorization", basic)
-        else:
-            req = urllib2.Request(url)
-        url_obj = urllib2.urlopen(req)
-        with open(tmp_path, 'wb') as fp:
-            fp.write(url_obj.read())
-        return tmp_path, url_obj.info()
+def urlretrieve(url, tmp_path):
+    """Work around Python issue 24599 includig basic auth support
+    """
+    scheme, netloc, path, params, query, frag = urlparse(url)
+    auth, host = splituser(netloc)
+    if auth:
+        url = urlunparse((scheme, host, path, params, query, frag))
+        req = Request(url)
+        base64string = base64.encodestring(auth.encode())[:-1]
+        basic = "Basic " + base64string.decode()
+        req.add_header("Authorization", basic)
+    else:
+        req = Request(url)
+    url_obj = urlopen(req)
+    with open(tmp_path, 'wb') as fp:
+        fp.write(url_obj.read())
+    return tmp_path, url_obj.info()
 
 
 from zc.buildout.easy_install import realpath
+import base64
 import logging
 import os
 import os.path
