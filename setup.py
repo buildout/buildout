@@ -45,9 +45,7 @@ setup(
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     namespace_packages = ['zc'],
-    install_requires = [
-        'setuptools>=8.0',
-    ],
+    install_requires = ['setuptools>=8.0,<52',],
     include_package_data = True,
     entry_points = entry_points,
     extras_require = dict(
