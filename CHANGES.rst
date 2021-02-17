@@ -1,6 +1,12 @@
 Change History
 **************
 
+2.13.x (unreleased)
+===================
+
+- Fix bootstrapping for python27
+
+
 3.0.0a3 (unreleased)
 ====================
 
