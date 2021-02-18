@@ -59,8 +59,7 @@ def install_pip():
         else:
             GET_PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
         with open(get_pip, 'wb') as f:
-            with urlopen(GET_PIP_URL) as r:
-                f.write(r.read())
+            f.write(urlopen(GET_PIP_URL).read())
 
         sys.stdout.flush()
         if subprocess.call([sys.executable, get_pip]):
