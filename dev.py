@@ -52,11 +52,15 @@ def install_pip():
     tmp = tempfile.mkdtemp(prefix='buildout-dev-')
     try:
         get_pip = os.path.join(tmp, 'get-pip.py')
-        GET_PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
         if sys.version_info < (3, ):
             GET_PIP_URL = 'https://bootstrap.pypa.io/2.7/get-pip.py'
+        elif (sys.version_info.major, sys.version_info.minor) == (3, 5):
+            GET_PIP_URL = 'https://bootstrap.pypa.io/3.5/get-pip.py'
+        else:
+            GET_PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
         with open(get_pip, 'wb') as f:
-            f.write(urlopen(GET_PIP_URL).read())
+            with urlopen(GET_PIP_URL) as r:
+                f.write(r.read())
 
         sys.stdout.flush()
         if subprocess.call([sys.executable, get_pip]):
