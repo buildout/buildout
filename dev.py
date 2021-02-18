@@ -86,7 +86,7 @@ def check_upgrade(package):
         output = subprocess.check_output(
             [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
         )
-        was_up_to_date = b"up-to-date" in output
+        was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
         if not was_up_to_date:
             print(output.decode('utf8'))
         return not was_up_to_date
