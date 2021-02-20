@@ -6,6 +6,8 @@ Change History
 
 - Support python37, python38 and python39 in conditional section expressions
 
+- Fix bootstrapping for python27 and python35
+
 
 3.0.0a2 (2020-05-25)
 ====================

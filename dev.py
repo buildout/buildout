@@ -52,8 +52,14 @@ def install_pip():
     tmp = tempfile.mkdtemp(prefix='buildout-dev-')
     try:
         get_pip = os.path.join(tmp, 'get-pip.py')
+        if sys.version_info < (3, ):
+            GET_PIP_URL = 'https://bootstrap.pypa.io/2.7/get-pip.py'
+        elif (sys.version_info.major, sys.version_info.minor) == (3, 5):
+            GET_PIP_URL = 'https://bootstrap.pypa.io/3.5/get-pip.py'
+        else:
+            GET_PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
         with open(get_pip, 'wb') as f:
-           f.write(urlopen('https://bootstrap.pypa.io/get-pip.py').read())
+            f.write(urlopen(GET_PIP_URL).read())
 
         sys.stdout.flush()
         if subprocess.call([sys.executable, get_pip]):
@@ -83,7 +89,7 @@ def check_upgrade(package):
         output = subprocess.check_output(
             [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
         )
-        was_up_to_date = b"up-to-date" in output
+        was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
         if not was_up_to_date:
             print(output.decode('utf8'))
         return not was_up_to_date
