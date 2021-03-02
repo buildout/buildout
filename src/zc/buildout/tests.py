@@ -3479,7 +3479,7 @@ def buildout_txt_setup(test):
         os.path.join(eggs, 'zc.recipe.egg'),
         )
 
-egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d)$'
+egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d+)$'
                        ).match
 def makeNewRelease(project, ws, dest, version='99.99'):
     dist = ws.find(pkg_resources.Requirement.parse(project))
@@ -3719,7 +3719,7 @@ def test_suite():
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                            r'-py\d.\d.egg'),
+                            r'-py\d.\d+.egg'),
                  '\\1.egg'),
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,

@@ -581,7 +581,7 @@ else:
         re.compile(r'(\n?)-  \S+\.pyc\n'), '\\1')
 
 normalize_egg_py = (
-    re.compile(r'-py\d[.]\d(-\S+)?.egg'),
+    re.compile(r'-py\d[.]\d+(-\S+)?.egg'),
     '-pyN.N.egg',
     )
 
