@@ -26,7 +26,6 @@ jobs:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
       run: |
-        sandbox/bin/pip install setuptools-rust "setuptools < 52"
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
     - name: Check eggs
