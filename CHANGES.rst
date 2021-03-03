@@ -8,6 +8,10 @@ Change History
   newer versions.
   (`#543 <https://github.com/buildout/buildout/issues/543>`_)
 
+- Support for Python 3.4 is no longer tested using automatic tests.
+
+- Add support for Python 3.7 and 3.8.
+
 
 2.13.3 (2020-02-11)
 ===================
