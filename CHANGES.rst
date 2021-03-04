@@ -4,6 +4,8 @@ Change History
 3.0.0a3 (unreleased)
 ====================
 
+- Fix issue with incrementing options from `.buildout/default.cfg`.
+
 - Support python37, python38 and python39 in conditional section expressions
 
 - Fix bootstrapping for python27 and python35
