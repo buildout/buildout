@@ -54,7 +54,7 @@ import pkg_resources, setuptools
 setuptools_path = os.path.dirname(os.path.dirname(setuptools.__file__))
 
 ######################################################################
-# Install buildout
+print("Installing buildout ...")
 if subprocess.call(
     [sys.executable] +
     ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
