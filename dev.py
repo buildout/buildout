@@ -96,10 +96,26 @@ def check_upgrade(package):
     except subprocess.CalledProcessError:
         raise RuntimeError("Upgrade %s failed." % package)
 
+
+def show(package):
+    try:
+        sys.stdout.flush()
+        output = subprocess.check_output(
+            [sys.executable, '-m', 'pip', 'show', package],
+        )
+        for line in output.splitlines():
+            if line.startswith(b'Name') or line.startswith(b'Version'):
+                print(line.decode('utf8'))
+    except subprocess.CalledProcessError:
+        raise RuntimeError("Upgrade %s failed." % package)
+
+
 need_restart = False
 for package in ['pip', 'setuptools', 'wheel']:
     did_upgrade = check_upgrade(package)
+    show(package)
     need_restart = need_restart or did_upgrade
+
 if need_restart:
     print("Restart")
     sys.stdout.flush()
