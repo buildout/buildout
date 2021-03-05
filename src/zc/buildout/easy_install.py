@@ -18,12 +18,14 @@ It doesn't install scripts.  It uses setuptools and requires it to be
 installed.
 """
 
+import copy
 import distutils.errors
 import errno
 import glob
 import logging
 import os
 import pkg_resources
+from pkg_resources import packaging
 import py_compile
 import re
 import setuptools.archive_util
@@ -1618,30 +1620,25 @@ def redo_pyc(egg):
                 call_subprocess(args)
 
 def _constrained_requirement(constraint, requirement):
+    assert isinstance(requirement, pkg_resources.Requirement)
     if constraint[0] not in '<>':
         if constraint.startswith('='):
             assert constraint.startswith('==')
-            constraint = constraint[2:]
-        if constraint not in requirement:
+            version = constraint[2:]
+        else:
+            version = constraint
+            constraint = '==' + constraint
+        if version not in requirement:
             msg = ("The requirement (%r) is not allowed by your [versions] "
-                   "constraint (%s)" % (str(requirement), constraint))
+                   "constraint (%s)" % (str(requirement), version))
             raise IncompatibleConstraintError(msg)
-
-        # Sigh, copied from Requirement.__str__
-        extras = ','.join(requirement.extras)
-        if extras:
-            extras = '[%s]' % extras
-        return pkg_resources.Requirement.parse(
-            "%s%s==%s" % (requirement.project_name, extras, constraint))
-
-    if requirement.specs:
-        return pkg_resources.Requirement.parse(
-            str(requirement) + ',' + constraint
-            )
+        specifier = packaging.specifiers.SpecifierSet(constraint)
     else:
-        return pkg_resources.Requirement.parse(
-            str(requirement) + ' ' + constraint
-            )
+        specifier = requirement.specifier & constraint
+    constrained = copy.deepcopy(requirement)
+    constrained.specifier = specifier
+    return pkg_resources.Requirement.parse(str(constrained))
+
 
 class IncompatibleConstraintError(zc.buildout.UserError):
     """A specified version is incompatible with a given requirement.
