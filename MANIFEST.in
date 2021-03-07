@@ -6,6 +6,7 @@ recursive-include bootstrap *.py
 recursive-include specifications *.txt
 recursive-include src/zc *.test
 recursive-include src/zc *.txt
+recursive-include src/zc *.py
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
