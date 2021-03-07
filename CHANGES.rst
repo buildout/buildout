@@ -1,7 +1,7 @@
 Change History
 **************
 
-3.0.0a3 (unreleased)
+3.0.0b1 (2021-03-07)
 ====================
 
 - Fix issue with combination of `>` specs and `extras` and recent `setuptools`.
