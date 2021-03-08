@@ -383,6 +383,16 @@ We can request that we get an error if versions are picked:
     Traceback (most recent call last):
     ...
     UserError: Picked: demo = 0.3
+    <BLANKLINE>
+    The `demo` egg does not have a version pin and `allow-picked-versions = false`.
+    <BLANKLINE>
+    To resolve this, add
+    <BLANKLINE>
+        demo = 0.3
+    <BLANKLINE>
+    to the [versions] section,
+    <BLANKLINE>
+    OR set `allow-picked-versions = true`.
 
     >>> zc.buildout.easy_install.allow_picked_versions(True)
     False
