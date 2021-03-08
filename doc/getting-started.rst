@@ -24,11 +24,15 @@ Getting started with Buildout
 First steps
 ===========
 
-The easiest way to install Buildout is with pip:
+The recommended way to install Buildout is to use pip within a virtual environment:
 
 .. code-block:: console
 
-  pip install zc.buildout
+  virtualenv mybuildout
+  cd mybuildout
+  bin/pip install zc.buildout
+
+
 
 To use Buildout, you need to provide a Buildout configuration. Here is
 a minimal configuration:
