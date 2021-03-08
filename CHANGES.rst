@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.4 (unreleased)
+2.13.4 (2021-03-08)
 ===================
 
 - Pin `setuptools` < 52 as setuptools removed support for `easy_install` in
