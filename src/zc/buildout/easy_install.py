@@ -635,10 +635,11 @@ class Installer(object):
                 self._picked_versions[dist.project_name] = dist.version
 
                 if not self._allow_picked_versions:
-                    raise zc.buildout.UserError(
-                        'Picked: %s = %s' % (dist.project_name,
-                                             dist.version)
-                        )
+                    msg = NOT_PICKED_AND_NOT_ALLOWED.format(
+                        name=dist.project_name,
+                        version=dist.version
+                    )
+                    raise zc.buildout.UserError(msg)
 
     def _maybe_add_setuptools(self, ws, dist):
         if dist_needs_pkg_resources(dist):
@@ -1949,3 +1950,17 @@ def sort_working_set(ws, eggs_dir, develop_eggs_dir):
     sorted_paths.extend(egg_paths)
     sorted_paths.extend(other_paths)
     return pkg_resources.WorkingSet(sorted_paths)
+
+
+NOT_PICKED_AND_NOT_ALLOWED = """\
+Picked: {name} = {version}
+
+The `{name}` egg does not have a version pin and `allow-picked-versions = false`.
+
+To resolve this, add
+
+    {name} = {version}
+
+to the [versions] section,
+
+OR set `allow-picked-versions = true`."""

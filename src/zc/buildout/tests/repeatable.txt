@@ -209,6 +209,7 @@ versions:
       Installing recipe spam.
       Getting distribution for 'spam'.
     Error: Picked: spam = 2
+    ...
 
 We can name a version something else, if we wish, using the versions option:
 
