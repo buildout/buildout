@@ -1792,6 +1792,9 @@ def make_egg_after_pip_install(dest, distinfo_dir):
             continue
         egg_entry = os.path.join(egg_dir, entry)
         if os.path.exists(dest_entry) and not os.path.exists(egg_entry):
+            egg_entry_dir = os.path.dirname(egg_entry)
+            if not os.path.exists(egg_entry_dir):
+                os.makedirs(egg_entry_dir)
             os.rename(dest_entry, egg_entry)
 
     return [egg_dir]

@@ -1,0 +1,1 @@
+Fix FileNotFoundError when renaming files into missing directory.
