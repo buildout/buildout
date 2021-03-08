@@ -64,4 +64,9 @@ notifications:
     - buildout-development@googlegroups.com
 
 script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - ./ci_build.sh
+
+env:
+  global:
+    secure: Ck5Ww5VaX5NgZBDAwroFVzFKTlQJpb8HN1AIuMlJJkpL/oLpBuCVEKoa5/WK9MJYBd/+FopclNldC1OZeP1QZoAq2eeULtoeSY+4XVBJbZlFF2jJeDvmrjATszYAf/hH9FroVBpJkTJqgfXxeAgErD32Rm4aS7aQusNSd5HKKQA=
