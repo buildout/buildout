@@ -1,11 +1,12 @@
 Change History
 **************
 
-3.0.0b2 (unreleased)
-====================
+.. You should *NOT* be adding new change log entries to this file.
+   You should create a file in the news directory instead.
+   For helpful instructions, please see:
+   https://github.com/builbout/buildout/blob/master/doc/ADD-A-NEWS-ITEM.rst
 
-- Nothing changed yet.
-
+.. towncrier release notes start
 
 3.0.0b1 (2021-03-07)
 ====================
