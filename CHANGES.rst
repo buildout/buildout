@@ -8,6 +8,28 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0b2 (2021-03-09)
+--------------------
+
+New features:
+
+
+- Improve error message when a package version is not pinned and `allow-picked-versions = false`. (#481)
+
+
+Bug fixes:
+
+
+- Fix FileNotFoundError when installing eggs with top-level directory without code (like doc). (#556)
+
+
+Development:
+
+
+- Login to docker hub to avoid pull limits (travis)
+- Initialize towncrier (#519)
+
+
 3.0.0b1 (2021-03-07)
 ====================
 

@@ -1,1 +1,0 @@
-Fix FileNotFoundError when installing eggs with top-level directory without code (like doc).
