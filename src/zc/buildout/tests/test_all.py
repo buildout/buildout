@@ -384,7 +384,9 @@ setup(name=%r, version=%r,
       )
 """
 
-def make_dist_that_requires(dest, name, requires=[], version=1, egg=''):
+def make_dist_that_requires(dest, name, requires=None, version=1, egg=''):
+    if requires is None:
+        requires = []
     os.mkdir(os.path.join(dest, name))
     with open(os.path.join(dest, name, 'setup.py'), 'w') as f:
         f.write(

@@ -30,7 +30,7 @@ def create_sample_eggs(test, executable=sys.executable):
 
         for i in (0, 1, 2):
             write(tmp, 'eggrecipedemoneeded.py', 'y=%s\ndef f():\n  pass' % i)
-            rc1 = i==2 and 'rc1' or ''
+            rc1 = 'rc1' if i==2 else ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
@@ -81,7 +81,7 @@ def create_sample_eggs(test, executable=sys.executable):
                 'def main():\n'
                 '   print_(x, eggrecipedemoneeded.y)\n'
                 % i)
-            rc1 = i==4 and 'rc1' or ''
+            rc1 = 'rc1' if i==4 else ''
             write(
                 tmp, 'setup.py',
                 "from setuptools import setup\n"
@@ -175,7 +175,7 @@ MOD_INIT(extdemo)
 }
 """
 
-extdemo_c = sys.version_info[0] < 3 and extdemo_c2 or extdemo_c3
+extdemo_c = extdemo_c2 if sys.version_info[0] < 3 else extdemo_c3
 
 extdemo_setup_py = r"""
 import os, sys

@@ -1742,7 +1742,7 @@ def make_egg_after_pip_install(dest, distinfo_dir):
                     shutil.rmtree(bin_dir)
 
     # Make properly named new egg dir
-    distro = [d for d in pkg_resources.find_distributions(dest)][0]
+    distro = list(pkg_resources.find_distributions(dest))[0]
     egg_name = distro.egg_name() + '.egg'
     egg_dir = os.path.join(dest, egg_name)
     os.mkdir(egg_dir)

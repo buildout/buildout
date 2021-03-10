@@ -80,8 +80,10 @@ class Download(object):
 
     """
 
-    def __init__(self, options={}, cache=-1, namespace=None,
+    def __init__(self, options=None, cache=-1, namespace=None,
                  offline=-1, fallback=False, hash_name=False, logger=None):
+        if options is None:
+            options = {}
         self.directory = options.get('directory', '')
         self.cache = cache
         if cache == -1:
