@@ -621,7 +621,6 @@ def run_buildout(command):
     # Make sure we don't get .buildout
     os.environ['HOME'] = os.path.join(os.getcwd(), 'home')
     args = command.split()
-    import pkg_resources
     buildout = pkg_resources.load_entry_point(
         'zc.buildout', 'console_scripts', args[0])
     buildout(args[1:])

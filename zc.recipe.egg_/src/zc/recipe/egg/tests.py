@@ -16,8 +16,6 @@ from zope.testing import renormalizing
 import doctest
 import os
 import re
-import shutil
-import sys
 import zc.buildout.tests
 import zc.buildout.testing
 from zc.buildout import WINDOWS

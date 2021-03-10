@@ -15,10 +15,8 @@
 """
 
 import copy
-import glob
 import logging
 import os
-import pkg_resources
 import re
 import sys
 import zc.buildout.easy_install
