@@ -64,7 +64,7 @@ notifications:
     - buildout-development@googlegroups.com
 
 script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./.travis/docker_login_on_non_pull_requests.sh; fi'
     - ./ci_build.sh
 
 env:
