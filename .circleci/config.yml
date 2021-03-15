@@ -1,4 +1,7 @@
 version: 2.1
+
+commands:
+
 jobs:
   test:
     parameters:
@@ -12,6 +15,26 @@ jobs:
       BUILD_TYPE: << parameters.build-type >>
       PYTHON_VER: << parameters.python-version >>
     steps:
+      - checkout
+      - run:
+          command: ./ci_build.sh
+
+  install-python-and-test:
+    parameters:
+      python-version:
+        type: string
+    machine:
+      image: ubuntu-2004:202101-01
+    environment:
+      BUILD_TYPE: bare_machines
+      PYTHON_VER: << parameters.python-version >>
+    steps:
+      - run:
+          command: sudo add-apt-repository ppa:deadsnakes/ppa
+      - run:
+          command: sudo apt-get update
+      - run:
+          command: sudo apt install -y build-essential python${PYTHON_VER}-dev
       - checkout
       - run:
           command: ./ci_build.sh
@@ -31,4 +54,10 @@ workflows:
             parameters:
               python-version: ["3.8"]
               build-type: ["debian_sys_container"]
+  tests-ubuntu-machines:
+    jobs:
+      - install-python-and-test:
+          matrix:
+            parameters:
+              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
 

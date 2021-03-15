@@ -7,6 +7,6 @@ cd ../..
 
 # Travis Python comes with preinstalled six
 # which breaks test suite
-pip uninstall -y six || true
-python dev.py
+pip${PYTHON_VER} uninstall -y six || true
+python${PYTHON_VER} dev.py
 bin/test -c -vvv
