@@ -17,11 +17,18 @@ jobs:
           command: ./ci_build.sh
 
 workflows:
-  tests:
+  tests-containers:
     jobs:
       - test:
           matrix:
             parameters:
               python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
               build-type: ["centos_containers", "debian_containers"]
+  tests-sys-debian:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              python-version: ["3.8"]
+              build-type: ["debian_sys_container"]
 
