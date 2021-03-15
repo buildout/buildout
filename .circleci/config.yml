@@ -1,0 +1,27 @@
+version: 2.1
+jobs:
+  test:
+    parameters:
+      build-type:
+        type: string
+      python-version:
+        type: string
+    machine:
+      image: ubuntu-2004:202101-01
+    environment:
+      BUILD_TYPE: << parameters.build-type >>
+      PYTHON_VER: << parameters.python-version >>
+    steps:
+      - checkout
+      - run:
+          command: ./ci_build.sh
+
+workflows:
+  tests:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
+              build-type: ["centos_containers", "debian_containers"]
+
