@@ -16,9 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: checkout setuptools
-      run: |
-        git clone https://github.com/pypa/setuptools.git
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
@@ -31,9 +28,7 @@ jobs:
         PYTHON_VERSION: ${{matrix.python-version}}
       run: |
         ./sandbox/bin/pip uninstall -y setuptools
-        cd setuptools
-        ../sandbox/bin/python bootstrap.py
-        ../sandbox/bin/python setup.py develop
+        ./sandbox/bin/pip install -e "git+https://github.com/pypa/setuptools.git#egg=setuptools"
         ls ../sandbox/lib/python${PYTHON_VERSION}/site-packages
     - name: Run buildout
       env:
