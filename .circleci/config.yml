@@ -19,7 +19,7 @@ jobs:
       - run:
           command: ./ci_build.sh
 
-  install-python-and-test:
+  install-python-and-test-ubuntu:
     parameters:
       python-version:
         type: string
@@ -35,6 +35,26 @@ jobs:
           command: sudo apt-get update
       - run:
           command: sudo apt install -y build-essential python${PYTHON_VER}-dev
+      - checkout
+      - run:
+          command: ./ci_build.sh
+
+  install-python-and-test-macos:
+    parameters:
+      python-version:
+        type: string
+    macos:
+      xcode: 11.1.0
+    environment:
+      BUILD_TYPE: bare_machines
+      PYTHON_VER: << parameters.python-version >>
+    steps:
+      - run:
+          command: brew uninstall python
+      - run:
+          command: brew install python@${PYTHON_VER}
+      - run:
+          command: brew link --force --overwrite python@${PYTHON_VER}
       - checkout
       - run:
           command: ./ci_build.sh
@@ -56,8 +76,14 @@ workflows:
               build-type: ["debian_sys_container"]
   tests-ubuntu-machines:
     jobs:
-      - install-python-and-test:
+      - install-python-and-test-ubuntu:
           matrix:
             parameters:
               python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
+  tests-macos-machines:
+    jobs:
+      - install-python-and-test-macos:
+          matrix:
+            parameters:
+              python-version: ["3.7", "3.8", "3.9"]
 
