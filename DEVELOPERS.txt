@@ -11,7 +11,7 @@ When you're developing buildout itself, you need to know two things:
   tests so you may want to temporarily rename it so that it does not get in
   the way.
 
-- Bootstrap with with ``python dev.py``.
+- Bootstrap with ``python dev.py``.
 
 - Run buildout with -U, to ignore user (default) settings which can interfere
   with using the development version
