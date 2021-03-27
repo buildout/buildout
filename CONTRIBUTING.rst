@@ -94,5 +94,5 @@ Licensing
 =========
 
 This project is licensed under the Zope Public License.
-Unlike the contributing to the Zope and Plone projects,
+Unlike contributing to the Zope and Plone projects,
 you do not need to sign a contributor agreement to contribute to **buildout**.
