@@ -1,9 +1,25 @@
-Developing buildout itself
-**************************
+How To Contribute
+*****************
+
+Thank you for considering contributing to ``buildout``!
+
+
+Workflow
+========
+
+- No contribution is too small!
+- Please make sure to create one pull request for one change.
+- Please try to add tests for your code.
+- Make sure your changes pass **continuous integration**.
+When CI fails, please try to fix it or ask for help.
+
+
+Developing buildout itself and running the test suite
+=====================================================
 
 When you're developing buildout itself, you need to know two things:
 
-- Use a clean python *without* setuptools installed.  Otherwise many tests
+- Use a clean Python *without* setuptools installed.  Otherwise many tests
   will find your already-installed setuptools, leading to test differences
   when setuptools' presence is explicitly tested.
 
@@ -31,9 +47,9 @@ subsequent builds, only the development buildout itself needs to be redone.
 
 
 Releases: zc.buildout, zc.recipe.egg and bootstrap.py
------------------------------------------------------
+=====================================================
 
-Buildout consists of two python packages that are released separately:
+Buildout consists of two Python packages that are released separately:
 zc.buildout and zc.recipe.egg. zc.recipe.egg is changed much less often than
 zc.buildout.
 
@@ -51,3 +67,32 @@ the regular .tar.gz::
 You can also use zest.releaser to release it. If you've installed it as
 ``zest.releaser[recommended]`` it builds the wheel for you and uploads it via
 https (via twine).
+
+
+Roadmap
+=======
+
+Currently, there are two active branches:
+
+- master (development branch for the upcoming version 3)
+- 2.x (development branch for the current version 2)
+
+Active feature development and bug fixes only happen on the **master** branch.
+
+
+Supported Python Versions
+=========================
+
+We align the support of Python versions with
+`Zope <https://www.zope.org/developer/roadmap.html>`_ and
+`Plone <https://plone.org/download/release-schedule>`_ development.
+
+This means, currently there are no plans to drop Python 2.7 support.
+
+
+Licensing
+=========
+
+This project is licensed under the Zope Public License.
+Unlike the contributing to the Zope and Plone projects,
+you do not need to sign a contributor agreement to contribute to **buildout**.
