@@ -2010,8 +2010,11 @@ def _check_for_unused_options_in_section(buildout, section):
     unused = [option for option in sorted(options._raw)
               if option not in options._data]
     if unused:
-        buildout._logger.warning("Unused options for %s: %s."
-                                 % (section, ' '.join(map(repr, unused)))
+        buildout._logger.warning(
+            "Section `%s` contains unused option(s): %s.\n"
+            "This may be an indication for either a typo in the option's name "
+            "or a bug in the used recipe." %
+            (section, ' '.join(map(repr, unused)))
         )
 
 _usage = """\
