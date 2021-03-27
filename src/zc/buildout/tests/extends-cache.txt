@@ -49,7 +49,8 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 Trying the same online, we can:
 
 >>> print_(system(buildout))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 As long as we haven't said anything about caching downloaded configuration,
 nothing gets cached. Offline mode will still cause the buildout to fail:
@@ -74,7 +75,8 @@ being a hash of the complete URL):
 ... """ % server_url)
 
 >>> print_(system(buildout))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 >>> cache = join(sample_buildout, 'cache')
 >>> ls(cache)
@@ -89,7 +91,8 @@ foo = bar
 We can now run buildout offline as it will read base.cfg from the cache:
 
 >>> print_(system(buildout + ' -o'))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 The cache is being used purely as a fall-back in case we are offline or don't
 have access to a configuration file to be downloaded. As long as we are
@@ -105,23 +108,27 @@ base.cfg from the cache:
 ... """)
 
 >>> print_(system(buildout + ' -o'))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 .. verify same behavior for install-from-cache:
 
    >>> print_(system(buildout + ' install-from-cache=true download-cache=.'))
-   Unused options for buildout: 'foo'.
+   Section `buildout` contains unused option(s): 'foo'.
+   This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 In online mode, buildout will download and use the modified version:
 
 >>> print_(system(buildout))
-Unused options for buildout: 'bar'.
+Section `buildout` contains unused option(s): 'bar'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 Trying offline mode again, the new version will be used as it has been put in
 the cache now:
 
 >>> print_(system(buildout + ' -o'))
-Unused options for buildout: 'bar'.
+Section `buildout` contains unused option(s): 'bar'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 Clean up:
 
@@ -212,7 +219,8 @@ Buildout will now assemble its configuration from all of these 6 files,
 defaults first. The online resources end up in the respective extends caches:
 
 >>> print_(system(buildout))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 >>> ls('user-cache')
 -  10e772cf422123ef6c64ae770f555740
@@ -258,7 +266,8 @@ Let's rewrite the config files, clean out the caches and re-run buildout:
 >>> remove('cache', os.listdir('cache')[0])
 
 >>> print_(system(buildout))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 >>> ls('user-cache')
 -  0548bad6002359532de37385bb532e26
@@ -336,7 +345,8 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 ... offline = true
 ... """ % server_url)
 >>> print_(system(buildout))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 The ``install-from-cache`` option is treated accordingly:
 
@@ -429,7 +439,8 @@ A change to ``base.cfg`` is picked up on the next buildout run:
 ... foo = bar
 ... """)
 >>> print_(system(buildout + " -n"))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 >>> cat('cache', os.listdir(cache)[0])
 [buildout]
 parts =
@@ -443,7 +454,8 @@ already present in the extends cache will not be updated:
 ... parts =
 ... """)
 >>> print_(system(buildout + " -N"))
-Unused options for buildout: 'foo'.
+Section `buildout` contains unused option(s): 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 >>> cat('cache', os.listdir(cache)[0])
 [buildout]
 parts =
@@ -472,7 +484,8 @@ used:
 ... extends = %sbaseA.cfg %sbaseB.cfg
 ... """ % (server_url, server_url))
 >>> print_(system(buildout + " -n"))
-Unused options for buildout: 'bar' 'foo'.
+Section `buildout` contains unused option(s): 'bar' 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 (XXX We patch download utility's API to produce readable output for the test;
 a better solution would re-use the logging already done by the utility.)
@@ -489,7 +502,8 @@ The URL http://localhost/baseA.cfg was downloaded.
 The URL http://localhost/base.cfg was downloaded.
 The URL http://localhost/baseB.cfg was downloaded.
 Not upgrading because not running a local buildout command.
-Unused options for buildout: 'bar' 'foo'.
+Section `buildout` contains unused option(s): 'bar' 'foo'.
+This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
 >>> zc.buildout.download.Download.download = old_download
 

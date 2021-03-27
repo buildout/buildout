@@ -114,7 +114,8 @@ https://bugs.launchpad.net/zc.buildout/+bug/239212::
     ... ''')
     >>> print_('XX'); print_(system(buildout), end='') # doctest: +ELLIPSIS
     X...
-    Unused options for buildout: 'foo'.
+    Section `buildout` contains unused option(s): 'foo'.
+    This may be an indication for either a typo in the option's name or a bug in the used recipe.
     Installing python...
     Generated interpreter '/sample-buildout/bin/python'.
 

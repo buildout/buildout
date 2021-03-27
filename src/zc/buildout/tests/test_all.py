@@ -822,7 +822,8 @@ def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
     Generated script '/sample-bootstrap/bin/buildout'.
 
     >>> print_(system(os.path.join('bin', 'buildout')), end='')
-    Unused options for buildout: 'scripts' 'eggs'.
+    Section `buildout` contains unused option(s): 'eggs' 'scripts'.
+    This may be an indication for either a typo in the option's name or a bug in the used recipe.
 
     """
 
@@ -1659,9 +1660,11 @@ def whine_about_unused_options():
 
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/.'
-    Unused options for buildout: 'a'.
+    Section `buildout` contains unused option(s): 'a'.
+    This may be an indication for either a typo in the option's name or a bug in the used recipe.
     Installing foo.
-    Unused options for foo: 'z'.
+    Section `foo` contains unused option(s): 'z'.
+    This may be an indication for either a typo in the option's name or a bug in the used recipe.
     '''
 
 def abnormal_exit():

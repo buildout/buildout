@@ -196,7 +196,8 @@ directory:
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
-    Unused options for buildout: 'relative-paths'.
+    Section `buildout` contains unused option(s): 'relative-paths'.
+    This may be an indication for either a typo in the option's name or a bug in the used recipe.
     Updating show-versions.
     zc.buildout 99.99
 
