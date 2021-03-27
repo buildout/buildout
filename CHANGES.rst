@@ -4,7 +4,7 @@ Change History
 .. You should *NOT* be adding new change log entries to this file.
    You should create a file in the news directory instead.
    For helpful instructions, please see:
-   https://github.com/builbout/buildout/blob/master/doc/ADD-A-NEWS-ITEM.rst
+   https://github.com/buildout/buildout/blob/master/doc/ADD-A-NEWS-ITEM.rst
 
 .. towncrier release notes start
 
