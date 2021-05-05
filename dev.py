@@ -38,6 +38,7 @@ if os.path.isfile(bin_buildout):
 if os.path.isdir('build'):
     shutil.rmtree('build')
 
+print("Current directory %s" % os.getcwd())
 
 #######################################################################
 def install_pip():
