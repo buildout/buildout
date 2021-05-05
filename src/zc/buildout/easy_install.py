@@ -40,6 +40,7 @@ import zc.buildout
 import zc.buildout.rmtree
 from zc.buildout import WINDOWS
 from zc.buildout import PY3
+from zc.buildout.pip_support import pip_install_cmd as _pip_install_cmd
 import warnings
 import csv
 
@@ -182,7 +183,6 @@ def _execute_permission():
     return 0o777 - current_umask
 
 
-_pip_install_cmd = 'from pip.__main__ import _main; _main()'
 
 def get_namespace_package_paths(dist):
     """
