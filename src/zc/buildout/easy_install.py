@@ -95,9 +95,10 @@ if has_distribute and not has_setuptools:
 # Include buildout and setuptools eggs in paths.  We get this
 # initially from the entire working set.  Later, we'll use the install
 # function to narrow to just the buildout and setuptools paths.
-buildout_and_setuptools_path = [d.location for d in pkg_resources.working_set]
+buildout_and_setuptools_path = sorted({d.location for d in pkg_resources.working_set})
 setuptools_path = buildout_and_setuptools_path
 pip_path = buildout_and_setuptools_path
+logger.debug('before restricting versions: pip_path %r', pip_path)
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
@@ -966,11 +967,12 @@ def install(specs, dest,
 
 buildout_and_setuptools_dists = list(install(['zc.buildout'], None,
                                              check_picked=False))
-buildout_and_setuptools_path = [d.location
-                                for d in buildout_and_setuptools_dists]
+buildout_and_setuptools_path = sorted({d.location
+                                for d in buildout_and_setuptools_dists})
 
 pip_dists = [d for d in buildout_and_setuptools_dists if d.project_name != 'zc.buildout']
-pip_path = [d.location for d in pip_dists]
+pip_path = sorted({d.location for d in pip_dists})
+logger.debug('after restricting versions: pip_path %r', pip_path)
 pip_pythonpath = os.pathsep.join(pip_path)
 
 setuptools_path = pip_path
