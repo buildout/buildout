@@ -17,10 +17,12 @@
 from zc.buildout.rmtree import rmtree
 import zc.buildout.easy_install
 
+from functools import partial
+
 try:
-    from hashlib import md5
+    from hashlib import md5 as md5_original
 except ImportError:
-    from md5 import md5
+    from md5 import md5 as md5_original
 
 try:
     from collections.abc import MutableMapping as DictMixin
@@ -49,6 +51,12 @@ if PY3:
     text_type = str
 else:
     text_type = unicode
+
+try:
+    hashed = md5_original(b'test')
+    md5 = md5_original
+except ValueError:
+    md5 = partial(md5_original, usedforsecurity=False)
 
 
 def command(method):
