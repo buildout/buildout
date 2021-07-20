@@ -4,7 +4,8 @@ Change History
 2.13.6 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Allow to run buildout in FIPS enabled environments
+  (`#570 <https://github.com/buildout/buildout/issues/570>`_)
 
 
 2.13.5 (2021-10-15)
