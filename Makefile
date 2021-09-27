@@ -13,20 +13,20 @@ ifeq ($(PYTHON_VER),3.5)
 	PYTHON_MINOR ?= 3.5.10
 endif
 ifeq ($(PYTHON_VER),3.6)
-	PYTHON_MINOR ?= 3.6.13
+	PYTHON_MINOR ?= 3.6.15
 endif
 ifeq ($(PYTHON_VER),3.7)
-	PYTHON_MINOR ?= 3.7.10
+	PYTHON_MINOR ?= 3.7.12
 endif
 ifeq ($(PYTHON_VER),3.8)
-	PYTHON_MINOR ?= 3.8.8
+	PYTHON_MINOR ?= 3.8.12
 endif
 ifeq ($(PYTHON_VER),3.9)
-	PYTHON_MINOR ?= 3.9.2
+	PYTHON_MINOR ?= 3.9.7
 endif
 ifeq ($(PYTHON_VER),3.10)
 	PYTHON_MINOR ?= 3.10.0
-	PYTHON_ARCHIVE ?= Python-3.10.0a5
+	PYTHON_ARCHIVE ?= Python-3.10.0rc2
 endif
 
 ifndef PYTHON_MINOR
