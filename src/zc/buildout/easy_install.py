@@ -1745,17 +1745,21 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     # Make properly named new egg dir
     distro = list(pkg_resources.find_distributions(dest))[0]
-    egg_name = distro.egg_name() + '.egg'
+    base = "{}-{}".format(
+        distro.egg_name(), pkg_resources.get_supported_platform()
+    )
+    egg_name = base + '.egg'
+    new_distinfo_dir = base + '.dist-info'
     egg_dir = os.path.join(dest, egg_name)
     os.mkdir(egg_dir)
 
     # Move ".dist-info" dir into new egg dir
     os.rename(
         os.path.join(dest, distinfo_dir),
-        os.path.join(egg_dir, distinfo_dir)
+        os.path.join(egg_dir, new_distinfo_dir)
     )
 
-    with open(os.path.join(egg_dir, distinfo_dir, 'top_level.txt')) as f:
+    with open(os.path.join(egg_dir, new_distinfo_dir, 'top_level.txt')) as f:
         top_levels = filter(
             (lambda x: len(x) != 0),
             [line.strip() for line in f.readlines()]
@@ -1778,10 +1782,10 @@ def make_egg_after_pip_install(dest, distinfo_dir):
             continue
 
     if PY3:
-        with open(os.path.join(egg_dir, distinfo_dir, 'RECORD'), newline='') as f:
+        with open(os.path.join(egg_dir, new_distinfo_dir, 'RECORD'), newline='') as f:
             all_files = [row[0] for row in csv.reader(f)]
     else:
-        with open(os.path.join(egg_dir, distinfo_dir, 'RECORD'), 'rb') as f:
+        with open(os.path.join(egg_dir, new_distinfo_dir, 'RECORD'), 'rb') as f:
             all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over

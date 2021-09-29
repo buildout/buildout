@@ -1,0 +1,3 @@
+Fix confusion when using multiple Python versions and 
+installing packages with C extensions
+without proper binary wheel available.
