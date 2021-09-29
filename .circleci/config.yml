@@ -72,7 +72,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              python-version: ["3.8"]
+              python-version: ["3.9"]
               build-type: ["debian_sys_container"]
   tests-ubuntu-machines:
     jobs:

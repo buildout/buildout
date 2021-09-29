@@ -1,6 +1,6 @@
 FROM debian:stable-slim as debian-python
 RUN apt-get update
-RUN apt-get install -y gcc python3-dev python3-certifi
+RUN apt-get install -y gcc python3-dev python3-certifi python3-setuptools python3-coverage python3-wheel
 RUN useradd -ms /bin/bash buildout
 USER buildout
 RUN mkdir /home/buildout/sandbox
