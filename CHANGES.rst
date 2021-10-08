@@ -8,6 +8,30 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0b3 (2021-10-08)
+--------------------
+
+New features:
+
+
+- Improve warning message when a section contains unused options. (#483)
+
+
+Bug fixes:
+
+
+- Fix support of ``pip>=21.1`` (#567)
+- Fix confusion when using multiple Python versions and 
+  installing packages with C extensions
+  without proper binary wheel available. (#574)
+
+
+Development:
+
+
+- Avoid broken jobs on Travis because of security on PRs (travis-pr)
+
+
 3.0.0b2 (2021-03-09)
 --------------------
 
