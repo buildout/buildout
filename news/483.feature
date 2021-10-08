@@ -1,1 +1,1 @@
-Improve warning message when a section contains unused options. (#483)
+Improve warning message when a section contains unused options.

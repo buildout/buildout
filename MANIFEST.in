@@ -2,6 +2,7 @@ include *.py
 include *.rst
 include *.txt
 include .coveragerc
+include pyproject.toml
 recursive-include bootstrap *.py
 recursive-include specifications *.txt
 recursive-include src/zc *.test
@@ -10,8 +11,10 @@ recursive-include src/zc *.py
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
+prune .circleci
+prune .travis
 recursive-exclude builds ci_build.sh
-exclude ci_build.sh
-include pyproject.toml
 recursive-exclude news *
+exclude .deepsource.toml
+exclude ci_build.sh
 exclude news
