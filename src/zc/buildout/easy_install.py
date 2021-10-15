@@ -544,10 +544,16 @@ class Installer(object):
 
         if dist is None:
             if self._dest is None:
-                raise zc.buildout.UserError(
-                    "We don't have a distribution for %s\n"
-                    "and can't install one in offline (no-install) mode.\n"
-                    % requirement)
+                if str(requirement).startswith('setuptools<52'):
+                    raise zc.buildout.UserError(
+                        "setuptools >= 52 is not supported by zc.buildout 2.x.\n"
+                        "Please downgrade setuptools to an earlier version or"
+                        " upgrade to zc.buildout 3.x.")
+                else:
+                    raise zc.buildout.UserError(
+                        "We don't have a distribution for %s\n"
+                        "and can't install one in offline (no-install) mode.\n"
+                        % requirement)
 
             logger.info(*__doing__)
 
