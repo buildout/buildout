@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.5 (unreleased)
+2.13.5 (2021-10-15)
 ===================
 
 - Improve possible error message if using a too new version of ``setuptools``.
