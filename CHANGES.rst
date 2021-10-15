@@ -4,13 +4,14 @@ Change History
 2.13.5 (unreleased)
 ===================
 
-- Nothing changed yet.
+- Improve possible error message if using a too new version of ``setuptools``.
+  (`#580 <https://github.com/buildout/buildout/issues/580>`_)
 
 
 2.13.4 (2021-03-08)
 ===================
 
-- Pin `setuptools` < 52 as setuptools removed support for `easy_install` in
+- Pin ``setuptools < 52`` as setuptools removed support for ``easy_install`` in
   newer versions.
   (`#543 <https://github.com/buildout/buildout/issues/543>`_)
 
