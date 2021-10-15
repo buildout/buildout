@@ -2,11 +2,9 @@
 Buildout
 ********
 
-.. image:: https://secure.travis-ci.org/buildout/buildout.png?branch=master
-   :width: 82px
-   :height: 13px
-   :alt: Travis CI build report
-   :target: https://travis-ci.org/buildout/buildout
+.. image:: https://github.com/buildout/buildout/actions/workflows/python-runners.yml/badge.svg
+   :alt: GHA build report for Ubuntu, MacOS, Windows machines
+   :target: https://github.com/buildout/buildout/actions/workflows/python-runners.yml
 
 Buildout is a project designed to solve 2 problems:
 
