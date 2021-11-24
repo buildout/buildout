@@ -72,7 +72,7 @@ supply some input:
     ... up
     ... p sorted(self.options.keys())
     ... q
-    ... """, with_exit_code=True), end='')
+    ... """, with_exit_code=True), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
     Installing data-dir.
     > /zc/buildout/buildout.py(925)__getitem__()
@@ -80,7 +80,7 @@ supply some input:
     (Pdb) > /sample-buildout/recipes/mkdir.py(14)install()
     -> directory = self.options['directory']
     (Pdb) ['path', 'recipe']
-    (Pdb) While:
+    ...While:
       Installing data-dir.
     Traceback (most recent call last):
       File "/zc/buildout/buildout.py", line 1352, in main

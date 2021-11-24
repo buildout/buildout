@@ -608,6 +608,11 @@ python27_warning_2 = (re.compile(r'DEPRECATION: Python 2.7 reached the end of it
     'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
     '')
 
+easyinstall_deprecated = (re.compile(r'.*EasyInstallDeprecationWarning.*\n'),'')
+setuptools_deprecated = (re.compile(r'.*SetuptoolsDeprecationWarning.*\n'),'')
+pkg_resources_deprecated = (re.compile(r'.*PkgResourcesDeprecationWarning.*\n'),'')
+warnings_warn = (re.compile(r'.*warnings\.warn.*\n'),'')
+
 # Setuptools now pulls in dependencies when installed.
 adding_find_link = (re.compile(r"Adding find link '[^']+'"
                                r" from setuptools .*\r?\n"), '')
