@@ -1,0 +1,2 @@
+Check that file top_level.txt exists before opening.
+Add check for other files as well.

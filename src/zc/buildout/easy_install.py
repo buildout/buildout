@@ -1716,9 +1716,12 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     # `pip install` does not build the namespace aware __init__.py files
     # but they are needed in egg directories.
     # Add them before moving files setup by pip
-    ns_file = os.path.join(dest, distinfo_dir, 'namespace_packages.txt')
-    if os.path.exists(ns_file):
-        with open(ns_file) as f:
+    namespace_packages_file = os.path.join(
+        dest, distinfo_dir,
+        'namespace_packages.txt'
+    )
+    if os.path.isfile(namespace_packages_file):
+        with open(namespace_packages_file) as f:
             namespace_packages = [
                 line.strip().replace('.', os.path.sep)
                 for line in f.readlines()
@@ -1734,9 +1737,9 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     # Remove `bin` directory if needed
     # as there is no way to avoid script installation
     # when running `pip install`
-    ep_file = os.path.join(dest, distinfo_dir, 'entry_points.txt')
-    if os.path.exists(ep_file):
-        with open(ep_file) as f:
+    entry_points_file = os.path.join(dest, distinfo_dir, 'entry_points.txt')
+    if os.path.isfile(entry_points_file):
+        with open(entry_points_file) as f:
             content = f.read()
             if "console_scripts" in content or "gui_scripts" in content:
                 bin_dir = os.path.join(dest, BIN_SCRIPTS)
@@ -1759,11 +1762,15 @@ def make_egg_after_pip_install(dest, distinfo_dir):
         os.path.join(egg_dir, new_distinfo_dir)
     )
 
-    with open(os.path.join(egg_dir, new_distinfo_dir, 'top_level.txt')) as f:
-        top_levels = filter(
-            (lambda x: len(x) != 0),
-            [line.strip() for line in f.readlines()]
-            )
+    top_level_file = os.path.join(egg_dir, new_distinfo_dir, 'top_level.txt')
+    if os.path.isfile(top_level_file):
+        with open(top_level_file) as f:
+            top_levels = filter(
+                (lambda x: len(x) != 0),
+                [line.strip() for line in f.readlines()]
+                )
+    else:
+        top_levels = ()
 
     # Move all top_level modules or packages
     for top_level in top_levels:
@@ -1781,12 +1788,14 @@ def make_egg_after_pip_install(dest, distinfo_dir):
                 shutil.move(top_level_pyc, egg_dir)
             continue
 
-    if PY3:
-        with open(os.path.join(egg_dir, new_distinfo_dir, 'RECORD'), newline='') as f:
-            all_files = [row[0] for row in csv.reader(f)]
-    else:
-        with open(os.path.join(egg_dir, new_distinfo_dir, 'RECORD'), 'rb') as f:
-            all_files = [row[0] for row in csv.reader(f)]
+    record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
+    if os.path.isfile(record_file):
+        if PY3:
+            with open(record_file, newline='') as f:
+                all_files = [row[0] for row in csv.reader(f)]
+        else:
+            with open(record_file, 'rb') as f:
+                all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over
     for entry in all_files:
