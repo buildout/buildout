@@ -2462,18 +2462,26 @@ The default is prefer-final = true:
     ... [buildout]
     ... parts = eggs
     ... find-links = %(link_server)s
+    ... update-versions-file = versions-picked.cfg
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs
     ... eggs = demo
     ... ''' % globals())
 
-    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
-    ...
-    Picked: demo = 0.3
-    ...
-    Picked: demoneeded = 1.1
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Installing ...
+    ... written to versions-picked.cfg
+
+    >>> cat('versions-picked.cfg')
+    [versions]
+    demo = 0.3
+    <BLANKLINE>
+    # Required by:
+    # demo==0.3
+    demoneeded = 1.1
+
+    >>> remove('versions-picked.cfg')
 
 Here we see that the final versions of demo and demoneeded are used.
 We get the same behavior if we add prefer-final = true
@@ -2484,18 +2492,26 @@ We get the same behavior if we add prefer-final = true
     ... parts = eggs
     ... find-links = %(link_server)s
     ... prefer-final = true
+    ... update-versions-file = versions-picked.cfg
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs
     ... eggs = demo
     ... ''' % globals())
 
-    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
-    ...
-    Picked: demo = 0.3
-    ...
-    Picked: demoneeded = 1.1
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating ...
+    ... written to versions-picked.cfg
+
+    >>> cat('versions-picked.cfg')
+    [versions]
+    demo = 0.3
+    <BLANKLINE>
+    # Required by:
+    # demo==0.3
+    demoneeded = 1.1
+
+    >>> remove('versions-picked.cfg')
 
 If we specify prefer-final = false, we'll get the newest
 distributions:
@@ -2506,18 +2522,26 @@ distributions:
     ... parts = eggs
     ... find-links = %(link_server)s
     ... prefer-final = false
+    ... update-versions-file = versions-picked.cfg
     ...
     ... [eggs]
     ... recipe = zc.recipe.egg:eggs
     ... eggs = demo
     ... ''' % globals())
 
-    >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
-    ...
-    Picked: demo = 0.4rc1
-    ...
-    Picked: demoneeded = 1.2rc1
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Updating ...
+    ... written to versions-picked.cfg
+
+    >>> cat('versions-picked.cfg')
+    [versions]
+    demo = 0.4rc1
+    <BLANKLINE>
+    # Required by:
+    # demo==0.4rc1
+    demoneeded = 1.2rc1
+
+    >>> remove('versions-picked.cfg')
 
 We get an error if we specify anything but true or false:
 

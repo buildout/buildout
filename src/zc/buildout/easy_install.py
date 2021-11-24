@@ -1662,9 +1662,9 @@ def call_pip_install(spec, dest):
             ('import sys; sys.path[0:0] = %r; ' % path) +
             _pip_install_cmd, 'install', '--no-deps', '-t', dest]
     level = logger.getEffectiveLevel()
-    if level > 0:
+    if level >= logging.INFO:
         args.append('-q')
-    elif level < 0:
+    else:
         args.append('-v')
 
     args.append(spec)
