@@ -1,0 +1,1 @@
+Return code of pip install subprocess is now properly returned to buildout.
