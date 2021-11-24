@@ -51,6 +51,10 @@ def test_suite():
                zc.buildout.testing.not_found,
                zc.buildout.testing.python27_warning,
                zc.buildout.testing.python27_warning_2,
+               zc.buildout.testing.easyinstall_deprecated,
+               zc.buildout.testing.setuptools_deprecated,
+               zc.buildout.testing.pkg_resources_deprecated,
+               zc.buildout.testing.warnings_warn,
                (re.compile(r'[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
@@ -69,6 +73,10 @@ def test_suite():
                zc.buildout.testing.not_found,
                zc.buildout.testing.python27_warning,
                zc.buildout.testing.python27_warning_2,
+               zc.buildout.testing.easyinstall_deprecated,
+               zc.buildout.testing.setuptools_deprecated,
+               zc.buildout.testing.pkg_resources_deprecated,
+               zc.buildout.testing.warnings_warn,
                (re.compile('__buildout_signature__ = '
                            r'sample-\S+\s+'
                            r'zc.recipe.egg-\S+\s+'
@@ -105,6 +113,10 @@ def test_suite():
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.python27_warning,
                     zc.buildout.testing.python27_warning_2,
+                    zc.buildout.testing.easyinstall_deprecated,
+                    zc.buildout.testing.setuptools_deprecated,
+                    zc.buildout.testing.pkg_resources_deprecated,
+                    zc.buildout.testing.warnings_warn,
                     (re.compile("(d  ((ext)?demo(needed)?|other)"
                                 r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
                      '\\1V.V.egg'),
