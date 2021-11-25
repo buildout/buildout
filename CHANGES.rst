@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.6 (unreleased)
+2.13.6 (2021-11-25)
 ===================
 
 - Allow to run buildout in FIPS enabled environments
