@@ -550,6 +550,28 @@ file: http://localhost/faulty.cfg (downloaded as ...), line: 1
 'This is definitively not\n'
 
 
+Failing if extends-cache contains ${section:variable}
+-----------------------------------------------------
+
+Because extends-cache is used to download extends, it may not contain ${section:variable}
+as the state of all variables cannot be computed before all extends have been loaded.
+
+>>> write(server_data, 'proper.cfg', """\
+... [buildout]
+... dummy = fjhfj
+... """)
+
+>>> write('buildout.cfg', """\
+... [buildout]
+... extends = %sproper.cfg
+... extends-cache = ${buildout:dummy}
+... """ % server_url)
+>>> print_(system(buildout))
+While:
+  Initializing.
+... ValueError: extends-cache '${buildout:dummy}' may not contain ${section:variable} to expand.
+
+
 Clean up
 --------
 

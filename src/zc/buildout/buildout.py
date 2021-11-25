@@ -1786,6 +1786,7 @@ def _default_globals():
 
     return globals_defs
 
+variable_template_split = re.compile('([$]{[^}]*})').split
 
 def _open(
         base, filename, seen, download_options,
@@ -1799,8 +1800,14 @@ def _open(
     raw_download_options = _unannotate_section(download_options)
     newest = bool_option(raw_download_options, 'newest', 'false')
     fallback = newest and not (filename in downloaded)
+    extends_cache = raw_download_options.get('extends-cache')
+    if extends_cache and variable_template_split(extends_cache)[1::2]:
+        raise ValueError(
+            "extends-cache '%s' may not contain ${section:variable} to expand."
+            % extends_cache
+        )
     download = zc.buildout.download.Download(
-        raw_download_options, cache=raw_download_options.get('extends-cache'),
+        raw_download_options, cache=extends_cache,
         fallback=fallback, hash_name=True)
     is_temp = False
     downloaded_filename = None
