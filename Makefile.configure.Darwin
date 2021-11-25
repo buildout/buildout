@@ -24,4 +24,10 @@ endif
 ifeq ($(PYTHON_VER),3.9)
 	PYTHON_CONFIGURE_ARGS ?= --with-openssl=$(OPENSSL)
 endif
+ifeq ($(PYTHON_VER),3.10)
+	PYTHON_CONFIGURE_ARGS ?= --with-openssl=$(OPENSSL)
+endif
+ifeq ($(PYTHON_VER),3.11)
+	PYTHON_CONFIGURE_ARGS ?= --with-openssl=$(OPENSSL)
+endif
 
