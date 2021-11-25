@@ -2071,8 +2071,8 @@ if sys.version_info > (2, 4):
         Traceback (most recent call last):
         ...
              x y
-               ^
-         SyntaxError: invalid syntax
+        ...^...
+         SyntaxError...
         <BLANKLINE>
         Exit: True
         """

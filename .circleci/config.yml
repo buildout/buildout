@@ -65,7 +65,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
+              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
               build-type: ["centos_containers", "debian_containers"]
   tests-sys-debian:
     jobs:
@@ -79,7 +79,7 @@ workflows:
       - install-python-and-test-ubuntu:
           matrix:
             parameters:
-              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9"]
+              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
   tests-macos-machines:
     jobs:
       - install-python-and-test-macos:
