@@ -8,6 +8,25 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0b4 (2021-11-25)
+--------------------
+
+New features:
+
+
+- Allow to run buildout in FIPS enabled environments. (#570)
+- Proper error message if extends-cache tries to expand ${section:variable} (#585)
+
+
+Bug fixes:
+
+
+- Forward verbose option to pip (#576)
+- Check that file top_level.txt exists before opening.
+  Add check for other files as well. (#582)
+- Return code of pip install subprocess is now properly returned to buildout. (#586)
+
+
 3.0.0b3 (2021-10-08)
 --------------------
 
