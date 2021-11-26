@@ -10,7 +10,7 @@ jobs:
       python-version:
         type: string
     machine:
-      image: ubuntu-2004:202101-01
+      image: ubuntu-2004:202111-01
     environment:
       BUILD_TYPE: << parameters.build-type >>
       PYTHON_VER: << parameters.python-version >>
@@ -35,6 +35,13 @@ jobs:
           command: sudo apt-get update
       - run:
           command: sudo apt install -y build-essential python${PYTHON_VER}-dev
+      - when:
+          condition:
+            matches:
+              pattern: ^3\.10$
+              value: << parameters.python-version >>
+          steps:
+            - run: sudo apt install -y python${PYTHON_VER}-distutils
       - checkout
       - run:
           command: ./ci_build.sh
