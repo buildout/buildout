@@ -76,25 +76,50 @@ def install_pip():
 
 try:
     import pip
+    print('')
+    try:
+        print(subprocess.check_output(
+            [sys.executable] + ['-m', 'pip', '--version'],
+            stderr=subprocess.STDOUT,
+        ).decode('utf8'))
+        print('is installed.')
+    except subprocess.CalledProcessError as e:
+        # some debian/ubuntu based machines
+        # have broken pip installs
+        # that cannot import distutils or html5lib
+        # thus try to install via get-pip
+        if (b"ImportError" in e.output or
+               b"ModuleNotFoundError" in e.output):
+            install_pip()
+        raise e
 except ImportError:
     install_pip()
 
 ######################################################################
 def check_upgrade(package):
     print('')
-    print('Check %s' % package)
+    print('Try to upgrade %s' % package)
     print('')
 
     try:
         sys.stdout.flush()
         output = subprocess.check_output(
             [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
+            stderr=subprocess.STDOUT,
         )
         was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
         if not was_up_to_date:
             print(output.decode('utf8'))
         return not was_up_to_date
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        # some debian/ubuntu based machines
+        # have broken pip installs
+        # that cannot import distutils or html5lib
+        # thus try to install via get-pip
+        if (b"ImportError" in e.output or
+               b"ModuleNotFoundError" in e.output) :
+            install_pip()
+            return False
         raise RuntimeError("Upgrade %s failed." % package)
 
 
