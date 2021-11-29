@@ -8,6 +8,17 @@ Change History
 
 .. towncrier release notes start
 
+
+3.0.0b5 (2021-11-29)
+--------------------
+
+Bug fixes:
+
+
+- Fix when c extension implements namespace packages without the corresponding directories. (#589)
+- Honor command-line buildout:extends (#592)
+
+
 3.0.0b4 (2021-11-25)
 --------------------
 
