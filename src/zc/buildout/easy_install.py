@@ -1728,11 +1728,15 @@ def make_egg_after_pip_install(dest, distinfo_dir):
             ]
 
         for namespace_package in namespace_packages:
-            init_py_file = os.path.join(dest, namespace_package, '__init__.py')
-            with open(init_py_file, 'w') as f:
-                f.write(
-                    "__import__('pkg_resources').declare_namespace(__name__)"
-                )
+            namespace_package_dir = os.path.join(dest, namespace_package)
+            if os.path.isdir(namespace_package_dir):
+                init_py_file = os.path.join(
+                    namespace_package_dir, '__init__.py')
+                with open(init_py_file, 'w') as f:
+                    f.write(
+                        "__import__('pkg_resources')."
+                        "declare_namespace(__name__)"
+                    )
 
     # Remove `bin` directory if needed
     # as there is no way to avoid script installation
