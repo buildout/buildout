@@ -387,6 +387,19 @@ class Buildout(DictMixin):
             )
             data = _update(data, cfg_data)
 
+        # extends from command-line
+        if 'buildout' in cloptions:
+            cl_extends = cloptions['buildout'].pop('extends', None)
+            if cl_extends:
+                for extends in cl_extends.value.split():
+                    download_options = for_download_options['buildout']
+                    cfg_data, _ = _open(
+                        os.path.dirname(extends),
+                        extends, [], download_options,
+                        override, set(), user_defaults
+                    )
+                    data = _update(data, cfg_data)
+
         # apply command-line options
         data = _update(data, cloptions)
 

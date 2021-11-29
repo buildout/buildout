@@ -1895,6 +1895,49 @@ There are several things to note about this example:
 - Relative file names in extended options are interpreted relative to
   the directory containing the referencing configuration file.
 
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """)
+
+    >>> print_(system(buildout + ' buildout:extends="b2.cfg"'), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    recipe recipes:debug
+
+    >>> print_(system(buildout + ' buildout:extends="b2.cfg %(b3)s"'
+    ... % dict(b3=os.path.join(other, 'b3.cfg'))), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg %(b3)s
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
+
 Loading Configuration from URLs
 -------------------------------
 
