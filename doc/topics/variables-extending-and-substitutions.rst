@@ -202,6 +202,7 @@ python36       True if running Python 3.6
 python37       True if running Python 3.7
 python38       True if running Python 3.8
 python39       True if running Python 3.9
+python310      True if running Python 3.10
 sys_version    ``sys.version.lower()``
 pypy           True if running PyPy
 jython         True if running Jython
