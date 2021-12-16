@@ -40,7 +40,6 @@ import zc.buildout
 import zc.buildout.rmtree
 from zc.buildout import WINDOWS
 from zc.buildout import PY3
-from zc.buildout.pip_support import pip_install_cmd as _pip_install_cmd
 import warnings
 import csv
 
@@ -1656,11 +1655,7 @@ def call_pip_install(spec, dest):
     distribution specified by `spec` into `dest`.
     Returns all the paths inside `dest` created by the above.
     """
-    path = pip_path
-
-    args = [sys.executable, '-c',
-            ('import sys; sys.path[0:0] = %r; ' % path) +
-            _pip_install_cmd, 'install', '--no-deps', '-t', dest]
+    args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
     level = logger.getEffectiveLevel()
     if level >= logging.INFO:
         args.append('-q')
@@ -1680,13 +1675,18 @@ def call_pip_install(spec, dest):
         else:
             args.append('--no-python-version-warning')
 
+    env = copy.copy(os.environ)
+    python_path = copy.copy(pip_path)
+    python_path.append(env.get('PYTHONPATH', ''))
+    env['PYTHONPATH'] = os.pathsep.join(python_path)
+
     if level <= logging.DEBUG:
         logger.debug('Running pip install:\n"%s"\npath=%s\n',
-                        '" "'.join(args), path)
+                        '" "'.join(args), pip_path)
 
     sys.stdout.flush() # We want any pending output first
 
-    exit_code = subprocess.call(list(args))
+    exit_code = subprocess.call(list(args), env=env)
 
     if exit_code:
         logger.error(
