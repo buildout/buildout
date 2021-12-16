@@ -138,24 +138,37 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
                                                 self, url, False)
 
 
+from zc.buildout import pipindex
+
 _indexes = {}
 def _get_index(index_url, find_links, allow_hosts=('*',)):
     key = index_url, tuple(find_links)
-    index = _indexes.get(key)
+    index, pip_index = _indexes.get(key, (None, None))
     if index is not None:
-        return index
+        return index, pip_index
 
     if index_url is None:
         index_url = default_index_url
     if index_url.startswith('file://'):
         index_url = index_url[7:]
     index = AllowHostsPackageIndex(index_url, hosts=allow_hosts)
+    env = get_env_with_prepended_pythonpath(pip_path)
+    pip_index = pipindex.Index(index_url, find_links, allow_hosts, env)
 
     if find_links:
         index.add_find_links(find_links)
 
-    _indexes[key] = index
-    return index
+    _indexes[key] = (index, pip_index)
+    return index, pip_index
+
+
+def get_env_with_prepended_pythonpath(path):
+    env = copy.copy(os.environ)
+    python_path = copy.copy(path)
+    python_path.append(os.environ.get('PYTHONPATH', ''))
+    env['PYTHONPATH'] = os.pathsep.join(python_path)
+    return env
+
 
 clear_index_cache = _indexes.clear
 
@@ -281,7 +294,7 @@ class Installer(object):
             newest = False
         self._newest = newest
         self._env = self._make_env()
-        self._index = _get_index(index, links, self._allow_hosts)
+        self._index, self._pip_index  = _get_index(index, links, self._allow_hosts)
         self._requirements_and_constraints = []
         self._check_picked = check_picked
 
@@ -468,14 +481,19 @@ class Installer(object):
 
     def _obtain(self, requirement, source=None):
         # initialize out index for this project:
-        index = self._index
 
-        if index.obtain(requirement) is None:
+        obtained = self._index.obtain(requirement)
+        pip_obtained = self._pip_index.obtain(requirement)
+
+        # if obtained != pip_obtained:
+        #     logger.warn('obtained')
+
+        if obtained is None:
             # Nothing is available.
             return None
 
         # Filter the available dists for the requirement and source flag
-        dists = [dist for dist in index[requirement.project_name]
+        dists = [dist for dist in self._index[requirement.project_name]
                  if ((dist in requirement)
                      and
                      ((not source) or
@@ -483,6 +501,19 @@ class Installer(object):
                       )
                      )
                  ]
+
+        # Filter the available dists for the requirement and source flag
+        pip_dists = [dist for dist in self._pip_index[requirement.project_name]
+                 if ((dist in requirement)
+                     and
+                     ((not source) or
+                      (dist.precedence == pkg_resources.SOURCE_DIST)
+                      )
+                     )
+                 ]
+
+        # if dists <> pip_dists:
+        #     logger.warn('pip_dists')
 
         # If we prefer final dists, filter for final and use the
         # result if it is non empty.
@@ -530,7 +561,12 @@ class Installer(object):
             return dist
 
         logger.debug("Fetching %s from: %s", dist, dist.location)
-        new_location = self._index.download(dist.location, tmp)
+        # new_location = self._index.download(dist.location, tmp)
+        new_location = self._pip_index.download(dist.location, tmp)
+        # if new_location != pip_new_location:
+        #     logger.warning('download, %s, %s' % (new_location,
+        #         pip_new_location))
+
         if (download_cache
             and (realpath(new_location) == realpath(dist.location))
             and os.path.isfile(new_location)
@@ -561,6 +597,7 @@ class Installer(object):
             # Retrieve the dist:
             if avail is None:
                 self._index.obtain(requirement)
+                self._pip_index.obtain(requirement)
                 raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
@@ -619,7 +656,7 @@ class Installer(object):
                         links.append(link)
                         reindex = True
         if reindex:
-            self._index = _get_index(self._index_url, links, self._allow_hosts)
+            self._index, self._pip_index = _get_index(self._index_url, links, self._allow_hosts)
 
     def _check_picked_requirement_versions(self, requirement, dists):
         """ Check whether we picked a version and, if we did, report it """
@@ -1675,10 +1712,7 @@ def call_pip_install(spec, dest):
         else:
             args.append('--no-python-version-warning')
 
-    env = copy.copy(os.environ)
-    python_path = copy.copy(pip_path)
-    python_path.append(env.get('PYTHONPATH', ''))
-    env['PYTHONPATH'] = os.pathsep.join(python_path)
+    env = get_env_with_prepended_pythonpath(pip_path)
 
     if level <= logging.DEBUG:
         logger.debug('Running pip install:\n"%s"\npath=%s\n',
