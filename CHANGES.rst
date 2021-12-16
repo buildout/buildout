@@ -8,6 +8,14 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0rc1 (2021-12-16)
+---------------------
+
+Bug fixes:
+
+
+- Call pip via `python -m pip`. (#569)
+
 
 3.0.0b5 (2021-11-29)
 --------------------
