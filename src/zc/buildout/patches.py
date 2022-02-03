@@ -117,7 +117,13 @@ def patch_PackageIndex():
             except TypeError:
                 html_page = HTMLPage(page, charset, base)
 
-            plinks = list(parse_links(html_page))
+            # https://github.com/buildout/buildout/issues/598
+            # use_deprecated_html5lib is a required addition in pip 22.
+            try:
+                plinks = parse_links(html_page, use_deprecated_html5lib=False)
+            except TypeError:
+                plinks = parse_links(html_page)
+            plinks = list(plinks)
             pip_links = [l.url for l in plinks]
 
             # --- END OF LOCAL CHANGES ---
