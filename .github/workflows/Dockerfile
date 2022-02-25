@@ -1,4 +1,4 @@
-FROM centos as centos-python
+FROM quay.io/centos/centos:stream8 as centos-python
 RUN yum install -y make gcc openssl-devel libffi-devel sqlite-devel glibc-langpack-en
 RUN useradd -ms /bin/bash buildout
 USER buildout
@@ -19,3 +19,4 @@ USER root
 RUN chown -R buildout:buildout *
 USER buildout
 RUN make PYTHON_VER=${PYTHON_VER} build
+COPY Makefile.builds /home/buildout/sandbox/

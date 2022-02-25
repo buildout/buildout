@@ -2282,7 +2282,6 @@ We'll create a wacky buildout extension that just announces itself when used:
 
 Now we'll create a buildout that uses this extension to load other packages:
 
-    >>> wacky_server = link_server.replace('http', 'wacky')
     >>> dist = 'file://' + join(src, 'dist').replace(os.path.sep, '/')
     >>> write('buildout.cfg',
     ... '''

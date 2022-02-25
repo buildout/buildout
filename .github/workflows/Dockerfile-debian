@@ -20,3 +20,4 @@ USER root
 RUN chown -R buildout:buildout *
 USER buildout
 RUN make PYTHON_VER=${PYTHON_VER} build
+COPY Makefile.builds /home/buildout/sandbox/
