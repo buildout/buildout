@@ -9,4 +9,4 @@ cd ../..
 # which breaks test suite
 pip${PYTHON_VER} uninstall -y six || true
 python${PYTHON_VER} dev.py
-bin/test -c -vvv
+make -f Makefile.builds test_with_coverage

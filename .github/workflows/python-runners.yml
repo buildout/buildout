@@ -27,14 +27,12 @@ jobs:
       with:
         path: eggs
         key: ${{ matrix.os }}-{{ matrix.python-version }}-eggs
-    - name: Install dev environment
-      run: |
-        python dev.py
     - name: Run tests
       env:
         TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
+        BUILD_TYPE: bare_machines
       run: |
         echo $TMPDIR
-        bin/test -c -vvv
+        ./ci_build.sh

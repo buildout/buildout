@@ -41,6 +41,8 @@ patch_Distribution()
 
 def patch_PackageIndex():
     try:
+        import logging
+        logging.getLogger('pip._internal.index.collector').setLevel(logging.ERROR)
         from setuptools.package_index import PackageIndex
         from setuptools.package_index import URL_SCHEME
         from setuptools.package_index import HREF

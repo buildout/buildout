@@ -1,0 +1,8 @@
+sandbox/bin/python:
+	pip install virtualenv
+	virtualenv --no-setuptools sandbox
+	sandbox/bin/pip install -e "git+https://github.com/pypa/setuptools.git#egg=setuptools"
+
+sandbox/bin/buildout: sandbox/bin/python
+	sandbox/bin/python setup.py develop
+

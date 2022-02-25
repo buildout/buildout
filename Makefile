@@ -5,6 +5,7 @@ PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
 VENV = $(HERE)/venvs/$(PYTHON_VER)
 BUILD_VARIABLES =
+PYTHONWARNINGS = "ignore:Setuptools is replacing distutils,ignore:setup.py install is deprecated,ignore:easy_install command is deprecated"
 
 ifeq ($(PYTHON_VER),2.7)
 	PYTHON_MINOR ?= 2.7.18
@@ -109,7 +110,7 @@ coverage: $(VENV)/bin/coverage $(VENV)/bin/test
 	COVERAGE_REPORT= RUN_COVERAGE= $(VENV)/bin/test $(testargs)
 
 test: $(VENV)/bin/test
-	$(VENV)/bin/test -c -vvv $(testargs)
+	PYTHONWARNINGS=$(PYTHONWARNINGS) $(VENV)/bin/test -c -vvv $(testargs)
 
 all_pythons:
 	$(MAKE) PYTHON_VER=2.7 python

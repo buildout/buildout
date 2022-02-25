@@ -27,6 +27,8 @@ if sys.version_info > (3, ) and sys.version_info < (3, 5):
 
 import os, shutil, subprocess, tempfile
 
+os.environ["SETUPTOOLS_USE_DISTUTILS"] = "stdlib"
+
 for d in 'eggs', 'develop-eggs', 'bin', 'parts':
     if not os.path.exists(d):
         os.mkdir(d)
