@@ -452,26 +452,6 @@ to restrict some requirements to i.e. a certain platform or python version:
 
 .. -> src
 
-   >>> prefix = """
-   ... [buildout]
-   ... parts = bobo
-   ... """
-   >>> with open('buildout.cfg', 'w') as f:
-   ...     _ = f.write(prefix)
-   ...     _ = f.write(src)
-
-   >>> import shutil
-   >>> import sys
-   >>> v = sys.version_info
-   >>> shutil.rmtree('eggs')
-   >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])\
-   ... if v.major >= 3 else\
-   ... yup([n for n in ls('eggs') if n.startswith('bobo-2.2.0-')])
-   >>> yup('bobo==2.3.0' in read('out'))\
-   ... if v.major >= 3 else\
-   ... yup('bobo==2.2.0' in read('out'))
-
 The more common way to pin a version is using a ``versions`` section:
 
 .. code-block:: ini
