@@ -1,11 +1,12 @@
 OPENSSL = $(shell brew --prefix openssl)
+ZLIB = $(shell brew --prefix zlib)
 
 ifeq ($(PYTHON_VER),2.7)
         BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib" CPPFLAGS="-I$(OPENSSL)/include"
 	PYTHON_CONFIGURE_ARGS ?=
 endif
 ifeq ($(PYTHON_VER),3.5)
-        BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib" CPPFLAGS="-I$(OPENSSL)/include"
+        BUILD_VARIABLES = LDFLAGS="-L$(OPENSSL)/lib -L$(ZLIB)/lib" CPPFLAGS="-I$(OPENSSL)/include -I$(ZLIB)/include"
 	PYTHON_CONFIGURE_ARGS ?=
 endif
 ifeq ($(PYTHON_VER),3.6)
