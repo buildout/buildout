@@ -23,10 +23,10 @@ ifeq ($(PYTHON_VER),3.8)
 	PYTHON_MINOR ?= 3.8.12
 endif
 ifeq ($(PYTHON_VER),3.9)
-	PYTHON_MINOR ?= 3.9.9
+	PYTHON_MINOR ?= 3.9.10
 endif
 ifeq ($(PYTHON_VER),3.10)
-	PYTHON_MINOR ?= 3.10.0
+	PYTHON_MINOR ?= 3.10.2
 endif
 ifeq ($(PYTHON_VER),3.11)
 	PYTHON_MINOR ?= 3.11.0
