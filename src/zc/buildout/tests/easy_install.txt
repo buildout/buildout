@@ -1524,3 +1524,35 @@ This time, we didn't download from or even query the link server.
 
     >>> zc.buildout.easy_install.install_from_cache(False)
     True
+
+Environment markers
+-------------------
+
+    Specifications can include PEP 496 environment markers.
+
+    >>> _ = get(link_server + 'disable_server_logging')
+    >>> spec = ["demo ==0.1; python_version < '3.9'",
+    ... "demo == 0.2; python_version >= '3.9'"]
+    >>> ws = zc.buildout.easy_install.install(
+    ... spec, dest, links=[link_server], index=link_server+'index/')
+    >>> demo_version = None
+    >>> for egg in ws:
+    ...     if egg.project_name == 'demo':
+    ...         demo_version = egg.version
+    >>> demo_version is not None
+    True
+    >>> awaited = ('0.1'
+    ... if (sys.version_info.major <= 3
+    ... and sys.version_info.minor < 9)
+    ... else '0.2')
+    >>> demo_version == awaited
+    True
+
+    Conflicts properly with version spec.
+
+    >>> ws = zc.buildout.easy_install.install(
+    ... spec, dest, links=[link_server], index=link_server+'index/',
+    ... versions = dict(demo='0.3'))
+    Traceback (most recent call last):
+    ...
+    zc.buildout.easy_install.IncompatibleConstraintError: The requirement ('demo==0...
