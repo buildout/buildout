@@ -16,5 +16,5 @@ prune .travis
 recursive-exclude builds ci_build.sh
 recursive-exclude news *
 exclude .deepsource.toml
-exclude ci_build.sh
+exclude ci_build.sh Makefile.builds
 exclude news
