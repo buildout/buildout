@@ -1,2 +1,0 @@
-Fix TypeError for missing required `use_deprecated_html5lib` with pip 22.
-Keep compatible with earlier pip versions.

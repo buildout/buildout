@@ -8,6 +8,22 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0rc2 (2022-03-04)
+---------------------
+
+New features:
+
+
+- add support for PEP496 environment markers (pep496)
+
+
+Bug fixes:
+
+
+- Fix TypeError for missing required `use_deprecated_html5lib` with pip 22.
+  Keep compatible with earlier pip versions. (#598)
+
+
 3.0.0rc1 (2021-12-16)
 ---------------------
 
