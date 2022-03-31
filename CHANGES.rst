@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.7 (unreleased)
+2.13.7 (2022-03-31)
 ===================
 
 - Support python37, python38 and python39 in conditional section expressions.
