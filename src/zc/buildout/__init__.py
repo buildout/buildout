@@ -13,8 +13,25 @@
 ##############################################################################
 """Buildout package
 """
+# do not change the import order
+# deleting the spec_for_pip hack needs to be done before importing pip
+# see https://github.com/pypa/pip/issues/8761 to understand
+# the reason for the hack.
+# I think it is reasonable to assume we will not run into the race.
+import setuptools
+
+try:
+    from _distutils_hack import DistutilsMetaFinder
+    if hasattr(DistutilsMetaFinder, 'spec_for_pip'):
+        del DistutilsMetaFinder.spec_for_pip
+except ImportError:
+    pass
+
+import pip  # NOQA
+
+
 import sys
-import zc.buildout.patches # NOQA
+import zc.buildout.patches  # NOQA
 
 
 WINDOWS = sys.platform.startswith('win')
