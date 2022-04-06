@@ -28,7 +28,8 @@ are dependencies of the named parts.  For example, in
 .. -> src
 
     >>> write(src, 'buildout.cfg')
-    >>> write("from setuptools import setup; setup(name='myapp')", 'setup.py')
+    >>> write("from setuptools import setup; setup(name='myapp', py_modules=['myapp'])", 'setup.py')
+    >>> write("pass", 'myapp.py')
     >>> run_buildout('buildout annotate')
     >>> run_buildout()
     >>> print(read()) # doctest: +ELLIPSIS

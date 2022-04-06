@@ -1238,11 +1238,13 @@ def extensions_installed_as_eggs_work_in_offline_mode():
 
     '''
 
-def changes_in_svn_or_CVS_dont_affect_sig():
+def changes_in_svn_or_git_dont_affect_sig():
     """
 
 If we have a develop recipe, it's signature shouldn't be affected to
-changes in .git, .svn or CVS directories.
+changes in .git, .svn directories.
+
+CVS directories used to work as well but do not anymore.
 
     >>> mkdir('recipe')
     >>> write('recipe', 'setup.py',
@@ -1276,14 +1278,14 @@ changes in .git, .svn or CVS directories.
 
     >>> mkdir('recipe', '.git')
     >>> mkdir('recipe', '.svn')
-    >>> mkdir('recipe', 'CVS')
+    >>> # deprecated CVS  mkdir('recipe', 'CVS')
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
     Develop: '/sample-buildout/recipe'
     Updating foo.
 
     >>> write('recipe', '.git', 'x', '1')
     >>> write('recipe', '.svn', 'x', '1')
-    >>> write('recipe', 'CVS', 'x', '1')
+    >>> # deprecated CVS  write('recipe', 'CVS', 'x', '1')
 
     >>> print_(system(join(sample_buildout, 'bin', 'buildout')), end='')
     Develop: '/sample-buildout/recipe'
@@ -1640,6 +1642,7 @@ def whine_about_unused_options():
     ... """
     ... from setuptools import setup
     ... setup(name = "foo",
+    ...       py_modules=['foo'],
     ...       entry_points = {'zc.buildout': ['default = foo:Foo']},
     ...       )
     ... """)
@@ -2039,8 +2042,9 @@ if sys.version_info > (2, 4):
         >>> write('setup.py',
         ... '''
         ... from setuptools import setup
-        ... setup(name='zc.buildout.testexit', entry_points={
-        ...    'zc.buildout': ['default = testexitrecipe:x']})
+        ... setup(name='zc.buildout.testexit',
+        ...       py_modules=['testexitrecipe'],
+        ...       entry_points={'zc.buildout': ['default = testexitrecipe:x']})
         ... ''')
 
         >>> write('testexitrecipe.py',
@@ -2101,6 +2105,7 @@ def bug_59270_recipes_always_start_in_buildout_dir():
     ... '''
     ... from setuptools import setup
     ... setup(name='bad.test',
+    ...       py_modules=['bad_recipe'],
     ...       entry_points={'zc.buildout': ['default=bad_recipe:Bad']},)
     ... ''')
 

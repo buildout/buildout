@@ -692,11 +692,12 @@ Fortunately, an application setup script can be minimal. Here's an
 example::
 
   from setuptools import setup
-  setup(name='main', install_requires = ['bobo', 'six'])
+  setup(name='main', py_modules='main', install_requires = ['bobo', 'six'])
 
 .. -> src
 
    >>> write(src, 'setup.py')
+   >>> write('pass', 'main.py')
 
 We suggest copying and modifying the example above, using it as
 boilerplate.  As is probably clear, the setup arguments used are:

@@ -363,7 +363,8 @@ when running buildout:
 
 .. -> src
 
-   >>> write("import setuptools; setuptools.setup(name='a')", "setup.py")
+   >>> write("import setuptools; setuptools.setup(name='a', py_modules=['a'])", "setup.py")
+   >>> write('pass', 'a.py')
    >>> write("""
    ... [buildout]
    ... develop=.
@@ -376,8 +377,9 @@ when running buildout:
    ... b=1
    ... """, "buildout.cfg")
    >>> os.mkdir('b')
-   >>> write("import setuptools; setuptools.setup(name='b', version=1)",
+   >>> write("import setuptools; setuptools.setup(name='b', py_modules=['b'], version=1)",
    ...       "b", "setup.py")
+   >>> write('pass', 'b.py')
    >>> run_buildout(src.replace('/path/to/other/project', 'b'))
    >>> eqs(ls('develop-eggs'), 'b.egg-link', 'a.egg-link')
 

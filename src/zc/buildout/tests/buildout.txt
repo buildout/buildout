@@ -1166,7 +1166,7 @@ We also have to update our setup script::
     ... debug = debug:Debug
     ... environ = environ:Environ
     ... ''')
-    ... setup(name="recipes", entry_points=entry_points)
+    ... setup(name="recipes", entry_points=entry_points, py_modules=['debug', 'environ'])
     ... """)
 
 We've rearranged the script a bit to make the entry points easier to
@@ -2264,7 +2264,7 @@ recipe::
     ... [zc.buildout.uninstall]
     ... service = service:uninstall_service
     ... ''')
-    ... setup(name="recipes", entry_points=entry_points)
+    ... setup(name="recipes", entry_points=entry_points, py_modules=['debug', 'environ', 'service'])
     ... """)
 
 Here's how these recipes could be used in a buildout::
@@ -2375,7 +2375,7 @@ the ``mkdir`` recipe::
     ... uninstall_service = service:uninstall_service
     ... mkdir = backup:backup_directory
     ... ''')
-    ... setup(name="recipes", entry_points=entry_points)
+    ... setup(name="recipes", entry_points=entry_points, py_modules=['debug', 'environ', 'service', 'backup'])
     ... """)
 
 Now we can use it with a ``mkdir`` part::
@@ -2439,7 +2439,7 @@ rest of the examples::
     ... mkdir = mkdir:Mkdir
     ... debug = debug:Debug
     ... ''')
-    ... setup(name="recipes", entry_points=entry_points)
+    ... setup(name="recipes", entry_points=entry_points, py_modules=['debug', 'environ', 'service', 'backup'])
     ... """)
 
 
