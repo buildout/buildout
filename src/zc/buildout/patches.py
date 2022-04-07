@@ -126,7 +126,6 @@ def patch_PackageIndex():
             except TypeError:
                 plinks = parse_links(html_page)
             plinks = list(plinks)
-            pip_links = [l.url for l in plinks]
 
             # --- END OF LOCAL CHANGES ---
 
@@ -136,14 +135,6 @@ def patch_PackageIndex():
             f.close()
 
             # --- LOCAL CHANGES MADE HERE: ---
-
-            links = []
-            for match in HREF.finditer(page):
-                link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
-                links.append(_clean_link(link))
-
-            # TODO: remove assertion and double index page parsing before releasing.
-            assert set(pip_links) == set(links)
 
             for link in plinks:
                 if _check_link_requires_python(link, PY_VERSION_INFO):
