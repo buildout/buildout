@@ -8,6 +8,16 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0rc3 (2022-04-07)
+---------------------
+
+Bug fixes:
+
+
+- Fix `TypeError: dist must be a Distribution instance` due to issue between
+  `setuptools` and `pip`. (#600)
+
+
 3.0.0rc2 (2022-03-04)
 ---------------------
 

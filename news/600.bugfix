@@ -1,2 +1,0 @@
-Fix `TypeError: dist must be a Distribution instance` due to issue between
-`setuptools` and `pip`.
