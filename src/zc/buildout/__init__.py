@@ -29,6 +29,10 @@ except ImportError:
 
 import pip  # NOQA
 
+import warnings
+from pkg_resources import PkgResourcesDeprecationWarning
+warnings.filterwarnings('ignore', category=PkgResourcesDeprecationWarning)
+warnings.filterwarnings('ignore', message='Setuptools is replacing distutils.')
 
 import sys
 import zc.buildout.patches  # NOQA
