@@ -324,7 +324,7 @@ class Installer(object):
         """Return textual requirements/constraint information for debug purposes
 
         We do a very simple textual search, as that filters out most
-        extraneous information witout missing anything.
+        extraneous information without missing anything.
 
         """
         output = [

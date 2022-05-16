@@ -1444,7 +1444,7 @@ def _install_and_load(spec, group, entry, buildout):
         v = sys.exc_info()[1]
         buildout._logger.log(
             1,
-            "Could't load %s entry point %s\nfrom %s:\n%s.",
+            "Couldn't load %s entry point %s\nfrom %s:\n%s.",
             group, entry, spec, v)
         raise
 
@@ -1954,10 +1954,10 @@ def _update_section(in1, s2):
     s1 = copy.deepcopy(in1)
     # Base section 2 on section 1; section 1 is copied, with key-value pairs
     # in section 2 overriding those in section 1. If there are += or -=
-    # operators in section 2, process these to add or substract items (delimited
+    # operators in section 2, process these to add or subtract items (delimited
     # by newlines) from the preexisting values.
     s2 = copy.deepcopy(s2) # avoid mutating the second argument, which is unexpected
-    # Sort on key, then on the addition or substraction operator (+ comes first)
+    # Sort on key, then on the addition or subtraction operator (+ comes first)
     for k, v in sorted(s2.items(), key=lambda x: (x[0].rstrip(' +'), x[0][-1])):
         if k.endswith('+'):
             key = k.rstrip(' +')
@@ -2059,7 +2059,7 @@ Options:
   -D
 
     Debug errors.  If an error occurs, then the post-mortem debugger
-    will be started. This is especially useful for debuging recipe
+    will be started. This is especially useful for debugging recipe
     problems.
 
   -h, --help

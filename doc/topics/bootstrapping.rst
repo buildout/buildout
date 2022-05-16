@@ -43,7 +43,7 @@ Local bootstrapping using the ``bootstrap`` command
 ===================================================
 
 You can use the :ref:`bootstrap command <bootstrap-command>` of a
-``buildout`` script installed in your Python environment to boostrap
+``buildout`` script installed in your Python environment to bootstrap
 a new buildout in the current directory:
 
 .. code-block:: console

@@ -19,7 +19,7 @@ First, an example that illustrates a well-formed configuration::
       # not a comment
 
   # comment
-  ; also a coment
+  ; also a comment
 
       b
 
