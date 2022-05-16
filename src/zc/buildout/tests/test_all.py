@@ -660,7 +660,7 @@ the comparison with the saved value works correctly.
     Develop: '/sample-buildout/recipes'
     Installing debug.
 
-If we run the buildout again, we shoudn't get a message about
+If we run the buildout again, we shouldn't get a message about
 uninstalling anything because the configuration hasn't changed.
 
     >>> print_(system(buildout), end='')
@@ -2570,7 +2570,7 @@ We get an error if we specify anything but true or false:
 def wont_downgrade_due_to_prefer_final():
     r"""
     If we install a non-final buildout version, we don't want to
-    downgrade just bcause we prefer-final.  If a buildout version
+    downgrade just because we prefer-final.  If a buildout version
     isn't specified using a versions entry, then buildout's version
     requirement gets set to >=CURRENT_VERSION.
 

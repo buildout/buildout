@@ -1067,7 +1067,7 @@ For continuous integration, it might be useful to query the buildout config.
     first
     second
 
-As with assignments, if the section is ommitted, 'buildout' section is assumed.
+As with assignments, if the section is omitted, 'buildout' section is assumed.
 
     >>> print_(system(buildout+ ' query develop'), end='')
     .

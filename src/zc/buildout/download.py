@@ -30,7 +30,7 @@ except ImportError:
     import urllib2
 
     def urlretrieve(url, tmp_path):
-        """Work around Python issue 24599 includig basic auth support
+        """Work around Python issue 24599 including basic auth support
         """
         scheme, netloc, path, params, query, frag = urlparse(url)
         auth, host = urllib2.splituser(netloc)

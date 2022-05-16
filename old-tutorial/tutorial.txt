@@ -1238,14 +1238,14 @@ Provides default buildout settings (unless -U option is used):
     [buildout]
     # Shared eggs directory:
     eggs-directory = /home/jim/.eggs
-    # Newest mode off, reenable with -n
+    # Newest mode off, re-enable with -n
     newst = false
 
     [python24]
-    executabe = /usr/local/python/2.4/bin/python
+    executable = /usr/local/python/2.4/bin/python
 
     [python25]
-    executabe = /usr/local/python/2.5/bin/python
+    executable = /usr/local/python/2.5/bin/python
 
 .. class:: handout
 
@@ -1382,7 +1382,7 @@ Example: zc.sharing (1/2)
 
    You can largely ignore the details of the Zope 3 instance  recipe.
    If you aren't a Zope user, you don't care.  If you are a Zope user,
-   you should be aware that much better recipes have been developped. 
+   you should be aware that much better recipes have been developed. 
 
    This project uses multiple source directories, the current
    directory and the zc.security directory, which is a subversion
@@ -1638,7 +1638,7 @@ be checked out and reproduced.
 
   - Run with -v
   
-  - Look for outout lines of form:
+  - Look for output lines of form:
   
     ::
 
