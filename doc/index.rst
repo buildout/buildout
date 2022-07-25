@@ -81,10 +81,6 @@ Additional resources
 Issue tracker
   https://github.com/buildout/buildout/issues
 
-Mailing list
-  You can ask questions on the Python Distutils-SIG
-  mailing list, https://mail.python.org/mailman/listinfo/distutils-sig
-
 Github repository
   https://github.com/buildout/buildout
 
