@@ -1,6 +1,15 @@
-# We do not want this on branch 2.x, so we disable the analyzers..
 version = 1
+
+test_patterns = [
+    "zc.recipe.egg_/src/zc/recipe/egg/tests.py",
+    "src/zc/buildout/tests/**"
+]
+
+exclude_patterns = ["builds/**"]
 
 [[analyzers]]
 name = "python"
 enabled = false
+
+  [analyzers.meta]
+  runtime_version = "3.x.x"
