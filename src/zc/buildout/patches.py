@@ -40,18 +40,27 @@ patch_Distribution()
 
 
 def patch_PackageIndex():
+    """Patch the package index from setuptools.
+
+    Main goal: check the package urls on an index page to see if they are
+    compatible with the Python version.
+    """
+
     try:
         import logging
         logging.getLogger('pip._internal.index.collector').setLevel(logging.ERROR)
         from setuptools.package_index import PackageIndex
         from setuptools.package_index import URL_SCHEME
-        from setuptools.package_index import HREF
         from setuptools.package_index import distros_for_url
-        from setuptools.package_index import htmldecode
 
-        from pip._internal.index.collector import HTMLPage
+        try:
+            # pip 22.2+
+            from pip._internal.index.collector import IndexContent
+        except ImportError:
+            # pip 22.1-
+            from pip._internal.index.collector import HTMLPage as IndexContent
+
         from pip._internal.index.collector import parse_links
-        from pip._internal.index.collector import _clean_link
         from pip._internal.index.package_finder import _check_link_requires_python
         from pip._internal.models.target_python import TargetPython
         from pip._vendor import six
@@ -114,13 +123,33 @@ def patch_PackageIndex():
                     except AttributeError:
                         # Python 2
                         charset = f.headers.getparam('charset') or 'latin-1'
+
             try:
-                html_page = HTMLPage(page, charset, base, cache_link_parsing=False)
+                content_type = f.getheader('content-type')
+            except AttributeError:
+                # On at least Python 2.7:
+                # addinfourl instance has no attribute 'getheader'
+                content_type = "text/html"
+
+            try:
+                # pip 22.2+
+                html_page = IndexContent(
+                    page,
+                    content_type=content_type,
+                    encoding=charset,
+                    url=base,
+                )
             except TypeError:
-                html_page = HTMLPage(page, charset, base)
+                try:
+                    # pip 20.1-22.1
+                    html_page = IndexContent(page, charset, base, cache_link_parsing=False)
+                except TypeError:
+                    # pip 20.0 or older
+                    html_page = IndexContent(page, charset, base)
 
             # https://github.com/buildout/buildout/issues/598
-            # use_deprecated_html5lib is a required addition in pip 22.
+            # use_deprecated_html5lib is a required addition in pip 22.0/22.1
+            # and it is gone already in 22.2
             try:
                 plinks = parse_links(html_page, use_deprecated_html5lib=False)
             except TypeError:
@@ -150,7 +179,9 @@ def patch_PackageIndex():
     except ImportError:
         import logging
         logger = logging.getLogger('zc.buildout.patches')
-        logger.warning('Requires-Python support missing. \n\n',
+        logger.warning(
+            'Requires-Python support missing and could not be patched into '
+            'zc.buildout. \n\n',
             exc_info=True
         )
         return
