@@ -1,0 +1,6 @@
+# We do not want this on branch 2.x, so we disable the analyzers..
+version = 1
+
+[[analyzers]]
+name = "python"
+enabled = false
