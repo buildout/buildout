@@ -9,7 +9,7 @@ exclude_patterns = ["builds/**"]
 
 [[analyzers]]
 name = "python"
-enabled = false
+enabled = true
 
   [analyzers.meta]
   runtime_version = "3.x.x"
