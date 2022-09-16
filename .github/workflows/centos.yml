@@ -11,8 +11,7 @@ jobs:
 
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
-strategy:
+    strategy:
       fail-fast: false
       matrix:
         python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10"]
