@@ -1,7 +1,7 @@
 Change History
 **************
 
-2.13.8 (unreleased)
+2.13.8 (2022-09-16)
 ===================
 
 - Support python310-315 in conditional section expressions.
