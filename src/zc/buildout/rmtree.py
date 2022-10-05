@@ -19,6 +19,7 @@ import doctest
 import time
 
 def rmtree (path):
+    # type: (str) -> None
     """
     A variant of shutil.rmtree which tries hard to be successful.
     On windows shutil.rmtree aborts when it tries to delete a

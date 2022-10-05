@@ -56,7 +56,8 @@ setup(
     extras_require = dict(
         test=['zope.testing', 'manuel',
               'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe',
-              'zc.recipe.deployment']),
+              'zc.recipe.deployment'],
+        typing=['mypy_extensions', 'pyannotate', ]),
     zip_safe=False,
     classifiers = [
        'Intended Audience :: Developers',

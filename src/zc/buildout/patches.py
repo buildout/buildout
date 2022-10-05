@@ -11,13 +11,19 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
+try:
+    from pkg_resources.extern.packaging.version import Version
+    from typing import Any
+    from typing import Tuple
+except ImportError:
+    pass
 
 def patch_Distribution():
     try:
         from pkg_resources import Distribution
 
         def hashcmp(self):
+            # type: (Any) -> Tuple[Version, int, str, str, str, str]
             if hasattr(self, '_hashcmp'):
                 return self._hashcmp
             else:
