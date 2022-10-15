@@ -1,5 +1,5 @@
 HERE = $(shell pwd)
-PYTHON_VER ?= 3.7
+PYTHON_VER ?= 3.8
 PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
 PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
@@ -73,6 +73,9 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE): $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE)/configur
 	make install >/dev/null 2>&1
 	@echo "Finished installing Python"
 
+$(PYTHON_PATH)/bin/virtualenv: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+	$(PYTHON_PATH)/bin/$(PYTHON_EXE) -m pip install virtualenv
+
 download_python: $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE)/configure
 
 python: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
@@ -95,10 +98,10 @@ $(ALL_COPY):
 	@mkdir -p $(dir $@)
 	@cp $(subst $(VENV),$(HERE),$@) $@
 
-$(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/$(PYTHON_EXE)
-	@command -v virtualenv >/dev/null 2>&1 || { echo "virtualenv required but not installed" >&2; exit 1; }
+$(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/virtualenv
+	# @command -v virtualenv >/dev/null 2>&1 || { echo "virtualenv required but not installed" >&2; exit 1; }
 	test -d "$(HERE)/venvs" || mkdir -p $(HERE)/venvs
-	virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
+	$(PYTHON_PATH)/bin/virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
 
 $(VENV)/bin/test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
 	cd $(VENV) && bin/$(PYTHON_EXE) dev.py --no-clean
