@@ -29,173 +29,177 @@ import os, shutil, subprocess, tempfile
 
 os.environ["SETUPTOOLS_USE_DISTUTILS"] = "stdlib"
 
-for d in 'eggs', 'develop-eggs', 'bin', 'parts':
-    if not os.path.exists(d):
-        os.mkdir(d)
+def main():
+    for d in 'eggs', 'develop-eggs', 'bin', 'parts':
+        if not os.path.exists(d):
+            os.mkdir(d)
 
-bin_buildout = os.path.join('bin', 'buildout')
-if os.path.isfile(bin_buildout):
-    os.remove(bin_buildout)
+    bin_buildout = os.path.join('bin', 'buildout')
+    if os.path.isfile(bin_buildout):
+        os.remove(bin_buildout)
 
-if os.path.isdir('build'):
-    shutil.rmtree('build')
+    if os.path.isdir('build'):
+        shutil.rmtree('build')
 
-print("Current directory %s" % os.getcwd())
+    print("Current directory %s" % os.getcwd())
 
-#######################################################################
-def install_pip():
-    print('')
-    print('Install pip')
-    print('')
+    #######################################################################
+    def install_pip():
+        print('')
+        print('Install pip')
+        print('')
+        try:
+            from urllib.request import urlopen
+        except ImportError:
+            from urllib2 import urlopen
+
+        tmp = tempfile.mkdtemp(prefix='buildout-dev-')
+        try:
+            get_pip = os.path.join(tmp, 'get-pip.py')
+            if sys.version_info < (3, ):
+                GET_PIP_URL = 'https://bootstrap.pypa.io/pip/2.7/get-pip.py'
+            elif (sys.version_info.major, sys.version_info.minor) == (3, 5):
+                GET_PIP_URL = 'https://bootstrap.pypa.io/pip/3.5/get-pip.py'
+            else:
+                GET_PIP_URL = 'https://bootstrap.pypa.io/pip/get-pip.py'
+            with open(get_pip, 'wb') as f:
+                f.write(urlopen(GET_PIP_URL).read())
+
+            sys.stdout.flush()
+            if subprocess.call([sys.executable, get_pip]):
+                raise RuntimeError("Failed to install pip.")
+        finally:
+            shutil.rmtree(tmp)
+        print("Restart")
+        sys.stdout.flush()
+        return_code = subprocess.call(
+            [sys.executable] + sys.argv
+        )
+        sys.exit(return_code)
+
     try:
-        from urllib.request import urlopen
+        import pip
+        print('')
+        try:
+            print(subprocess.check_output(
+                [sys.executable] + ['-m', 'pip', '--version'],
+                stderr=subprocess.STDOUT,
+            ).decode('utf8'))
+            print('is installed.')
+        except subprocess.CalledProcessError as e:
+            # some debian/ubuntu based machines
+            # have broken pip installs
+            # that cannot import distutils or html5lib
+            # thus try to install via get-pip
+            if (b"ImportError" in e.output or
+                   b"ModuleNotFoundError" in e.output):
+                install_pip()
+            raise e
     except ImportError:
-        from urllib2 import urlopen
+        install_pip()
 
-    tmp = tempfile.mkdtemp(prefix='buildout-dev-')
-    try:
-        get_pip = os.path.join(tmp, 'get-pip.py')
-        if sys.version_info < (3, ):
-            GET_PIP_URL = 'https://bootstrap.pypa.io/pip/2.7/get-pip.py'
-        elif (sys.version_info.major, sys.version_info.minor) == (3, 5):
-            GET_PIP_URL = 'https://bootstrap.pypa.io/pip/3.5/get-pip.py'
-        else:
-            GET_PIP_URL = 'https://bootstrap.pypa.io/pip/get-pip.py'
-        with open(get_pip, 'wb') as f:
-            f.write(urlopen(GET_PIP_URL).read())
+    ######################################################################
+    def check_upgrade(package):
+        print('')
+        print('Try to upgrade %s' % package)
+        print('')
 
+        try:
+            sys.stdout.flush()
+            output = subprocess.check_output(
+                [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
+                stderr=subprocess.STDOUT,
+            )
+            was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
+            if not was_up_to_date:
+                print(output.decode('utf8'))
+            return not was_up_to_date
+        except subprocess.CalledProcessError as e:
+            # some debian/ubuntu based machines
+            # have broken pip installs
+            # that cannot import distutils or html5lib
+            # thus try to install via get-pip
+            if (b"ImportError" in e.output or
+                   b"ModuleNotFoundError" in e.output) :
+                install_pip()
+                return False
+            raise RuntimeError("Upgrade %s failed." % package)
+
+
+    def show(package):
+        try:
+            sys.stdout.flush()
+            output = subprocess.check_output(
+                [sys.executable, '-m', 'pip', 'show', package],
+            )
+            for line in output.splitlines():
+                if line.startswith(b'Name') or line.startswith(b'Version'):
+                    print(line.decode('utf8'))
+        except subprocess.CalledProcessError:
+            raise RuntimeError("Upgrade %s failed." % package)
+
+
+    need_restart = False
+    for package in ['pip', 'setuptools', 'wheel']:
+        did_upgrade = check_upgrade(package)
+        show(package)
+        need_restart = need_restart or did_upgrade
+
+    if need_restart:
+        print("Restart")
         sys.stdout.flush()
-        if subprocess.call([sys.executable, get_pip]):
-            raise RuntimeError("Failed to install pip.")
-    finally:
-        shutil.rmtree(tmp)
-    print("Restart")
-    sys.stdout.flush()
-    return_code = subprocess.call(
-        [sys.executable] + sys.argv
-    )
-    sys.exit(return_code)
-
-try:
-    import pip
-    print('')
-    try:
-        print(subprocess.check_output(
-            [sys.executable] + ['-m', 'pip', '--version'],
-            stderr=subprocess.STDOUT,
-        ).decode('utf8'))
-        print('is installed.')
-    except subprocess.CalledProcessError as e:
-        # some debian/ubuntu based machines
-        # have broken pip installs
-        # that cannot import distutils or html5lib
-        # thus try to install via get-pip
-        if (b"ImportError" in e.output or
-               b"ModuleNotFoundError" in e.output):
-            install_pip()
-        raise e
-except ImportError:
-    install_pip()
-
-######################################################################
-def check_upgrade(package):
-    print('')
-    print('Try to upgrade %s' % package)
-    print('')
-
-    try:
-        sys.stdout.flush()
-        output = subprocess.check_output(
-            [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
-            stderr=subprocess.STDOUT,
+        return_code = subprocess.call(
+            [sys.executable] + sys.argv
         )
-        was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
-        if not was_up_to_date:
-            print(output.decode('utf8'))
-        return not was_up_to_date
-    except subprocess.CalledProcessError as e:
-        # some debian/ubuntu based machines
-        # have broken pip installs
-        # that cannot import distutils or html5lib
-        # thus try to install via get-pip
-        if (b"ImportError" in e.output or
-               b"ModuleNotFoundError" in e.output) :
-            install_pip()
-            return False
-        raise RuntimeError("Upgrade %s failed." % package)
-
-
-def show(package):
-    try:
-        sys.stdout.flush()
-        output = subprocess.check_output(
-            [sys.executable, '-m', 'pip', 'show', package],
-        )
-        for line in output.splitlines():
-            if line.startswith(b'Name') or line.startswith(b'Version'):
-                print(line.decode('utf8'))
-    except subprocess.CalledProcessError:
-        raise RuntimeError("Upgrade %s failed." % package)
-
-
-need_restart = False
-for package in ['pip', 'setuptools', 'wheel']:
-    did_upgrade = check_upgrade(package)
-    show(package)
-    need_restart = need_restart or did_upgrade
-
-if need_restart:
-    print("Restart")
+        sys.exit(return_code)
+    ######################################################################
+    print('')
+    print('Install buildout')
+    print('')
     sys.stdout.flush()
-    return_code = subprocess.call(
-        [sys.executable] + sys.argv
-    )
-    sys.exit(return_code)
-######################################################################
-print('')
-print('Install buildout')
-print('')
-sys.stdout.flush()
-if subprocess.call(
-    [sys.executable] +
-    ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
-    ):
-    raise RuntimeError("buildout build failed.")
-
-import pkg_resources
-
-pkg_resources.working_set.add_entry('src')
-
-import zc.buildout.easy_install
-zc.buildout.easy_install.scripts(
-    ['zc.buildout'], pkg_resources.working_set, sys.executable, 'bin')
-
-######################################################################
-def install_coverage():
-    print('')
-    print('Install coverage')
-    print('')
-    bin_pip = os.path.join('bin', 'pip')
     if subprocess.call(
         [sys.executable] +
-        ['-m', 'pip', 'install', 'coverage'],
+        ['setup.py', '-q', 'develop', '-m', '-x', '-d', 'develop-eggs'],
         ):
-        raise RuntimeError("coverage install failed.")
+        raise RuntimeError("buildout build failed.")
 
-try:
-    import coverage
-except ImportError:
-    install_coverage()
+    import pkg_resources
 
-######################################################################
-print('')
-print('Run buildout')
-print('')
-bin_buildout = os.path.join('bin', 'buildout')
+    pkg_resources.working_set.add_entry('src')
 
-if sys.platform.startswith('java'):
-    # Jython needs the script to be called twice via sys.executable
-    assert subprocess.Popen([sys.executable, bin_buildout, '-N']).wait() == 0
+    import zc.buildout.easy_install
+    zc.buildout.easy_install.scripts(
+        ['zc.buildout'], pkg_resources.working_set, sys.executable, 'bin')
 
-sys.stdout.flush()
-sys.exit(subprocess.Popen(bin_buildout).wait())
+    ######################################################################
+    def install_coverage():
+        print('')
+        print('Install coverage')
+        print('')
+        bin_pip = os.path.join('bin', 'pip')
+        if subprocess.call(
+            [sys.executable] +
+            ['-m', 'pip', 'install', 'coverage'],
+            ):
+            raise RuntimeError("coverage install failed.")
+
+    try:
+        import coverage
+    except ImportError:
+        install_coverage()
+
+    ######################################################################
+    print('')
+    print('Run buildout')
+    print('')
+    bin_buildout = os.path.join('bin', 'buildout')
+
+    if sys.platform.startswith('java'):
+        # Jython needs the script to be called twice via sys.executable
+        assert subprocess.Popen([sys.executable, bin_buildout, '-N']).wait() == 0
+
+    sys.stdout.flush()
+    sys.exit(subprocess.Popen(bin_buildout).wait())
+
+if __name__ == '__main__':
+    main()
