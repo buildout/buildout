@@ -1,5 +1,7 @@
 HERE = $(shell pwd)
 PYTHON_VER ?= 3.8
+PIP_VERSION ?=
+SETUPTOOLS_VERSION ?=
 PYTHON_PATH = $(HERE)/pythons/$(PYTHON_VER)
 PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
@@ -7,6 +9,16 @@ VENV = $(HERE)/venvs/$(PYTHON_VER)
 BUILD_VARIABLES =
 PYTHONWARNINGS = "ignore:Setuptools is replacing distutils,ignore:setup.py install is deprecated,ignore:easy_install command is deprecated"
 
+ifeq ($(PIP_VERSION),)
+	PIP_ARG =
+else
+	PIP_ARG = --pip-version=$(PIP_VERSION)
+endif
+ifeq ($(SETUPTOOLS_VERSION),)
+	SETUPTOOLS_ARG =
+else
+	SETUPTOOLS_ARG = --setuptools-version=$(SETUPTOOLS_VERSION)
+endif
 ifeq ($(PYTHON_VER),2.7)
 	PYTHON_MINOR ?= 2.7.18
 endif
@@ -20,7 +32,7 @@ ifeq ($(PYTHON_VER),3.7)
 	PYTHON_MINOR ?= 3.7.15
 endif
 ifeq ($(PYTHON_VER),3.8)
-	PYTHON_MINOR ?= 3.8.15
+	PYTHON_MINOR ?= 3.8.12
 endif
 ifeq ($(PYTHON_VER),3.9)
 	PYTHON_MINOR ?= 3.9.15
@@ -100,12 +112,11 @@ $(ALL_COPY):
 	@cp $(subst $(VENV),$(HERE),$@) $@
 
 $(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/virtualenv
-	# @command -v virtualenv >/dev/null 2>&1 || { echo "virtualenv required but not installed" >&2; exit 1; }
 	test -d "$(HERE)/venvs" || mkdir -p $(HERE)/venvs
 	$(PYTHON_PATH)/bin/virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
 
 $(VENV)/bin/test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
-	cd $(VENV) && bin/$(PYTHON_EXE) dev.py --no-clean
+	cd $(VENV) && bin/$(PYTHON_EXE) dev.py $(PIP_ARG) $(SETUPTOOLS_ARG) --no-clean
 
 $(VENV)/bin/coverage: $(VENV)/bin/$(PYTHON_EXE)
 	$(VENV)/bin/pip install coverage
@@ -113,7 +124,8 @@ $(VENV)/bin/coverage: $(VENV)/bin/$(PYTHON_EXE)
 coverage: $(VENV)/bin/coverage $(VENV)/bin/test
 	COVERAGE_REPORT= RUN_COVERAGE= $(VENV)/bin/test $(testargs)
 
-test: $(VENV)/bin/test
+test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
+	cd $(VENV) && bin/$(PYTHON_EXE) dev.py $(PIP_ARG) $(SETUPTOOLS_ARG) --no-clean
 	PYTHONWARNINGS=$(PYTHONWARNINGS) $(VENV)/bin/test -c -vvv $(testargs)
 
 all_pythons:

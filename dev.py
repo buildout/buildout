@@ -29,7 +29,7 @@ import os, shutil, subprocess, tempfile
 
 os.environ["SETUPTOOLS_USE_DISTUTILS"] = "stdlib"
 
-def main():
+def main(args):
     for d in 'eggs', 'develop-eggs', 'bin', 'parts':
         if not os.path.exists(d):
             os.mkdir(d)
@@ -107,7 +107,8 @@ def main():
         try:
             sys.stdout.flush()
             output = subprocess.check_output(
-                [sys.executable] + ['-m', 'pip', 'install', '--upgrade', package],
+                [sys.executable] + ['-m', 'pip', 'install',
+                '--disable-pip-version-check', '--upgrade', package],
                 stderr=subprocess.STDOUT,
             )
             was_up_to_date = b"up-to-date" in output or b"already satisfied" in output
@@ -125,6 +126,32 @@ def main():
                 return False
             raise RuntimeError("Upgrade %s failed." % package)
 
+    def install_pinned_version(package, version):
+        print('')
+        print('Try to install version %s of %s' % (version, package))
+        print('')
+
+        try:
+            sys.stdout.flush()
+            output = subprocess.check_output(
+                [sys.executable] + ['-m', 'pip', 'install',
+                '--disable-pip-version-check', package+'=='+version],
+                stderr=subprocess.STDOUT,
+            )
+            was_up_to_date = b"already satisfied" in output
+            if not was_up_to_date:
+                print(output.decode('utf8'))
+            return not was_up_to_date
+        except subprocess.CalledProcessError as e:
+            # some debian/ubuntu based machines
+            # have broken pip installs
+            # that cannot import distutils or html5lib
+            # thus try to install via get-pip
+            if (b"ImportError" in e.output or
+                   b"ModuleNotFoundError" in e.output) :
+                install_pip()
+                return False
+            raise RuntimeError("Install %s failed." % package)
 
     def show(package):
         try:
@@ -140,10 +167,27 @@ def main():
 
 
     need_restart = False
-    for package in ['pip', 'setuptools', 'wheel']:
+
+    package = 'pip'
+    if args.pip_version:
+        did_upgrade = install_pinned_version(package, args.pip_version)
+    else:
         did_upgrade = check_upgrade(package)
-        show(package)
-        need_restart = need_restart or did_upgrade
+    show(package)
+    need_restart = need_restart or did_upgrade
+
+    package = 'setuptools'
+    if args.setuptools_version:
+        did_upgrade = install_pinned_version(package, args.setuptools_version)
+    else:
+        did_upgrade = check_upgrade(package)
+    show(package)
+    need_restart = need_restart or did_upgrade
+
+    package = 'wheel'
+    did_upgrade = check_upgrade(package)
+    show(package)
+    need_restart = need_restart or did_upgrade
 
     if need_restart:
         print("Restart")
@@ -201,5 +245,21 @@ def main():
     sys.stdout.flush()
     sys.exit(subprocess.Popen(bin_buildout).wait())
 
+def parse_args():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description='Setup buildout development environment')
+    parser.add_argument('--pip-version', help='version of pip to install',
+                        action='store')
+    parser.add_argument('--setuptools-version', help='version of setuptools to install',
+                        action='store')
+    parser.add_argument('--no-clean', 
+        help='not used in the code, find out if still needed in Makefile',
+                        action='store_const', const='NO_CLEAN')
+
+    args = parser.parse_args()
+    return args
+
 if __name__ == '__main__':
-    main()
+    main(parse_args())
