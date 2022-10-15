@@ -17,20 +17,20 @@ ifeq ($(PYTHON_VER),3.6)
 	PYTHON_MINOR ?= 3.6.15
 endif
 ifeq ($(PYTHON_VER),3.7)
-	PYTHON_MINOR ?= 3.7.12
+	PYTHON_MINOR ?= 3.7.15
 endif
 ifeq ($(PYTHON_VER),3.8)
-	PYTHON_MINOR ?= 3.8.12
+	PYTHON_MINOR ?= 3.8.15
 endif
 ifeq ($(PYTHON_VER),3.9)
-	PYTHON_MINOR ?= 3.9.10
+	PYTHON_MINOR ?= 3.9.15
 endif
 ifeq ($(PYTHON_VER),3.10)
-	PYTHON_MINOR ?= 3.10.2
+	PYTHON_MINOR ?= 3.10.8
 endif
 ifeq ($(PYTHON_VER),3.11)
 	PYTHON_MINOR ?= 3.11.0
-	PYTHON_ARCHIVE ?= Python-3.11.0a5
+	PYTHON_ARCHIVE ?= Python-3.11.0rc1
 endif
 
 ifndef PYTHON_MINOR
@@ -74,6 +74,7 @@ $(PYTHON_PATH)/bin/$(PYTHON_EXE): $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE)/configur
 	@echo "Finished installing Python"
 
 $(PYTHON_PATH)/bin/virtualenv: $(PYTHON_PATH)/bin/$(PYTHON_EXE)
+	$(PYTHON_PATH)/bin/$(PYTHON_EXE) -m ensurepip
 	$(PYTHON_PATH)/bin/$(PYTHON_EXE) -m pip install virtualenv
 
 download_python: $(PYTHON_BUILD_DIR)/$(PYTHON_ARCHIVE)/configure
