@@ -21,6 +21,15 @@ import re
 import textwrap
 import logging
 
+try:
+    import packaging
+except ImportError:
+    try:
+        from pip._vendor import packaging
+    except ImportError:
+        from pkg_resources import packaging
+
+
 logger = logging.getLogger('zc.buildout')
 
 class Error(Exception):
@@ -179,13 +188,20 @@ def parse(fp, fpname, exp_globals=dict):
                     # un-escape literal # and ; . Do not use a
                     # string-escape decode
                     expr = expression.replace(r'\x23','#').replace(r'\x3b', ';')
-                    # rebuild a valid Python expression wrapped in a list
-                    expr = head + expr + tail
-                    # lazily populate context only expression
-                    if not context:
-                        context = exp_globals()
-                    # evaluated expression is in list: get first element
-                    section_condition = eval(expr, context)[0]
+                    try:
+                        # new-style markers as used in pip constraints, e.g.:
+                        # 'python_version < "3.11" and platform_system == "Windows"'
+                        marker = packaging.markers.Marker(expr)
+                        section_condition = marker.evaluate()
+                    except packaging.markers.InvalidMarker:
+                        # old style buildout expression
+                        # rebuild a valid Python expression wrapped in a list
+                        expr = head + expr + tail
+                        # lazily populate context only expression
+                        if not context:
+                            context = exp_globals()
+                        # evaluated expression is in list: get first element
+                        section_condition = eval(expr, context)[0]
                     # finally, ignore section when an expression
                     # evaluates to false
                     if not section_condition:
