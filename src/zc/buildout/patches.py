@@ -138,6 +138,7 @@ def patch_PackageIndex():
                     content_type=content_type,
                     encoding=charset,
                     url=base,
+                    cache_link_parsing=False,
                 )
             except TypeError:
                 try:
