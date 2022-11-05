@@ -395,7 +395,8 @@ class Buildout(DictMixin):
                     download_options = for_download_options['buildout']
                     cfg_data, _ = _open(
                         os.path.dirname(extends),
-                        extends, [], download_options,
+                        os.path.basename(extends),
+                        [], download_options,
                         override, set(), user_defaults
                     )
                     data = _update(data, cfg_data)
