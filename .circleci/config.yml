@@ -24,7 +24,7 @@ jobs:
       python-version:
         type: string
     machine:
-      image: ubuntu-2004:202101-01
+      image: ubuntu-2004:2022.10.1
     environment:
       BUILD_TYPE: bare_machines
       PYTHON_VER: << parameters.python-version >>
