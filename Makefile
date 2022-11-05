@@ -42,7 +42,6 @@ ifeq ($(PYTHON_VER),3.10)
 endif
 ifeq ($(PYTHON_VER),3.11)
 	PYTHON_MINOR ?= 3.11.0
-	PYTHON_ARCHIVE ?= Python-3.11.0rc1
 endif
 
 ifndef PYTHON_MINOR
@@ -136,6 +135,7 @@ all_pythons:
 	$(MAKE) PYTHON_VER=3.8 python
 	$(MAKE) PYTHON_VER=3.9 python
 	$(MAKE) PYTHON_VER=3.10 python
+	$(MAKE) PYTHON_VER=3.11 python
 
 all_coverage:
 	$(MAKE) PYTHON_VER=2.7 coverage
@@ -145,6 +145,7 @@ all_coverage:
 	$(MAKE) PYTHON_VER=3.8 coverage
 	$(MAKE) PYTHON_VER=3.9 coverage
 	$(MAKE) PYTHON_VER=3.10 coverage
+	$(MAKE) PYTHON_VER=3.11 coverage
 
 all_test:
 	$(MAKE) PYTHON_VER=2.7 test
@@ -154,6 +155,7 @@ all_test:
 	$(MAKE) PYTHON_VER=3.8 test
 	$(MAKE) PYTHON_VER=3.9 test
 	$(MAKE) PYTHON_VER=3.10 test
+	$(MAKE) PYTHON_VER=3.11 test
 
 docker:
 	docker build -f .github/workflows/Dockerfile --tag centos_buildout:python${PYTHON_VER} --build-arg PYTHON_VER=${PYTHON_VER} .
