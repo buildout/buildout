@@ -326,3 +326,73 @@ Preprocessing of implication and unicode cuteness::
 
     >>> pprint(parse(text))
     {'foo': {'<part-dependencies>': 'part1 part2'}}
+
+A recent addition is support for PEP 508 markers::
+
+  [section]
+  # These are the values when no other section overrides them.
+  a = 1
+  b = 1
+
+  [section: python_version < "2.6"]
+  a = 26
+
+  [section: python_version < "4.0"]
+  b = 40
+
+.. -> text
+
+    >>> pprint(parse(text))
+    {'section': {'a': '1', 'b': '40'}}
+
+You can use the platform.  This is hard to test because the tests run on various platforms.
+But an unknown platform should never match::
+
+  [section]
+  # These are the values when no other section overrides them.
+  a = 1
+
+  [section: platform_system == "msdos"]
+  a = 2
+
+.. -> text
+
+    >>> pprint(parse(text))
+    {'section': {'a': '1'}}
+
+You can make combinations::
+
+  [section]
+  # These are the values when no other section overrides them.
+  a = 1
+  b = 1
+
+  [section: python_version >= "2.0" and platform_system != "msdos"]
+  a = 2
+
+  [section: python_version >= "2.0" or platform_system == "msdos"]
+  b = 3
+
+.. -> text
+
+    >>> pprint(parse(text))
+    {'section': {'a': '2', 'b': '3'}}
+
+The old and new style conditional expressions can be used in the same file::
+
+
+  [section]
+  # These are the values when no other section overrides them.
+  a = 1
+  b = 1
+
+  [section: python_version >= "2.0"]
+  a = 4
+
+  [section:linux or windows or cygwin or macosx or solaris or posix or True]
+  b = 5
+
+.. -> text
+
+    >>> pprint(parse(text, zc.buildout.buildout._default_globals))
+    {'section': {'a': '4', 'b': '5'}}
