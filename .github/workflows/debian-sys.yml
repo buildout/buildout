@@ -17,7 +17,7 @@ jobs:
         python-version: ["3.9"]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Test in container with system Python
       env:
         BUILD_TYPE: debian_sys_container
