@@ -84,13 +84,7 @@ supply some input:
       Installing data-dir.
     Traceback (most recent call last):
       File "/zc/buildout/buildout.py", line 1352, in main
-        getattr(buildout, command)(args)
-      File "/zc/buildout/buildout.py", line 383, in install
-        installed_files = self[part]._call(recipe.install)
-      File "/zc/buildout/buildout.py", line 961, in _call
-        return f()
-      File "/sample-buildout/recipes/mkdir.py", line 14, in install
-        directory = self.options['directory']
+    ...
       File "/zc/buildout/buildout.py", line 925, in __getitem__
         raise MissingOption("Missing option: %s:%s" % (self.name, key))
     MissingOption: Missing option: data-dir:directory
