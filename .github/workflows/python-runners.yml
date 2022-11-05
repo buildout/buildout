@@ -31,7 +31,7 @@ jobs:
       uses: actions/cache@v1.2.0
       with:
         path: eggs
-        key: ${{ matrix.os }}-{{ matrix.python-version }}-eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
     - name: Run tests
       env:
         TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
