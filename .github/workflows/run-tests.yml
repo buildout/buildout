@@ -10,7 +10,7 @@ on:
 
 jobs:
   ubuntu-3_8:
-    name: tests on Ubuntu - Python 3.8
+    name: on Ubuntu machine - Python 3.8
     runs-on: ${{ matrix.os }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -45,7 +45,7 @@ jobs:
         ./ci_build.sh
   generate-scripts:
     needs: ubuntu-3_8
-    name: Generate scripts - Python ${{ matrix.python-version }}
+    name: generate scripts - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     strategy:
@@ -76,7 +76,7 @@ jobs:
         ls -al sandbox/downloads/dist
   python-runners:
     needs: generate-scripts
-    name: tests on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
+    name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -114,7 +114,7 @@ jobs:
         ./ci_build.sh
   debian-containers:
     needs: python-runners
-    name: tests in Debian container - Python ${{ matrix.python-version }}
+    name: in Debian container - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     strategy:
@@ -124,7 +124,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Test in container with Python ${{ matrix.python-version }}
+    - name: in container with Python ${{ matrix.python-version }}
       env:
         PYTHON_VER: ${{matrix.python-version}}
         BUILD_TYPE: debian_containers
@@ -132,7 +132,7 @@ jobs:
         ./ci_build.sh
   centos-containers:
     needs: python-runners
-    name: Tests in CentOS container - Python ${{ matrix.python-version }}
+    name: in CentOS container - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     strategy:
@@ -150,7 +150,7 @@ jobs:
         ./ci_build.sh
   debian-system:
     needs: python-runners
-    name: tests in Debian with system Python
+    name: in Debian container with system Python
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     strategy:
