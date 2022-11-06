@@ -118,15 +118,8 @@ def main(args):
                 print(output.decode('utf8'))
             return not was_up_to_date
         except subprocess.CalledProcessError as e:
-            # some debian/ubuntu based machines
-            # have broken pip installs
-            # that cannot import distutils or html5lib
-            # thus try to install via get-pip
-            if (b"ImportError" in e.output or
-                   b"ModuleNotFoundError" in e.output) :
-                install_pip()
-                return False
-            raise RuntimeError("Upgrade %s failed." % package)
+            print(e.output)
+            raise RuntimeError("Upgrade of %s failed." % package)
 
     def install_pinned_version(package, version):
         print('')
@@ -145,15 +138,10 @@ def main(args):
                 print(output.decode('utf8'))
             return not was_up_to_date
         except subprocess.CalledProcessError as e:
-            # some debian/ubuntu based machines
-            # have broken pip installs
-            # that cannot import distutils or html5lib
-            # thus try to install via get-pip
-            if (b"ImportError" in e.output or
-                   b"ModuleNotFoundError" in e.output) :
-                install_pip()
-                return False
-            raise RuntimeError("Install %s failed." % package)
+            print(e.output)
+            raise RuntimeError(
+                "Install version %s of %s failed." % (version, package)
+            )
 
     def show(package):
         try:
@@ -165,7 +153,7 @@ def main(args):
                 if line.startswith(b'Name') or line.startswith(b'Version'):
                     print(line.decode('utf8'))
         except subprocess.CalledProcessError:
-            raise RuntimeError("Upgrade %s failed." % package)
+            raise RuntimeError("Show version of %s failed." % package)
 
 
     need_restart = False
