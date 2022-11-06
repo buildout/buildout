@@ -1,18 +1,19 @@
 name: Debian containers
 
 on:
-  push:
-    paths-ignore:
-      - '.circleci/**'
-  pull_request:
+  workflow_run:
+    workflows:
+      - "Ubuntu 3.8"
+    types:
+      - completed
   # Allow to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
 
+    if: (github.event_name == 'workflow_dispatch') || ((github.event_name == 'workflow_run') && (github.event.workflow_run.conclusion == 'success'))
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
       matrix:
