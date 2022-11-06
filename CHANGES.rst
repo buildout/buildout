@@ -8,6 +8,28 @@ Change History
 
 .. towncrier release notes start
 
+3.0.0 (2022-11-07)
+------------------
+
+New features:
+
+
+- Add support for PEP 508 markers in section condition expressions.
+  For example: ``[versions:python_version <= "3.9"]``.
+  [maurits] (#621)
+
+
+Bug fixes:
+
+
+- Command-line 'extends' now works with dirs in file names
+  [gotcha] (cli-extends)
+- Add support for python311-315 in conditional section expressions. (#311)
+- Make compatible with pip 22.2+, restoring Requires-Python functionality there.
+  Fixes `issue 613 <https://github.com/buildout/buildout/issues/613>`_.
+  [maurits] (#613)
+
+
 3.0.0rc3 (2022-04-07)
 ---------------------
 

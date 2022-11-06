@@ -1,3 +1,0 @@
-Make compatible with pip 22.2+, restoring Requires-Python functionality there.
-Fixes `issue 613 <https://github.com/buildout/buildout/issues/613>`_.
-[maurits]
