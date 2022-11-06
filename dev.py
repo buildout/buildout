@@ -60,6 +60,8 @@ def main(args):
                 GET_PIP_URL = 'https://bootstrap.pypa.io/pip/2.7/get-pip.py'
             elif (sys.version_info.major, sys.version_info.minor) == (3, 5):
                 GET_PIP_URL = 'https://bootstrap.pypa.io/pip/3.5/get-pip.py'
+            elif (sys.version_info.major, sys.version_info.minor) == (3, 6):
+                GET_PIP_URL = 'https://bootstrap.pypa.io/pip/3.6/get-pip.py'
             else:
                 GET_PIP_URL = 'https://bootstrap.pypa.io/pip/get-pip.py'
             with open(get_pip, 'wb') as f:
