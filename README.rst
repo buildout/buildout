@@ -2,9 +2,9 @@
 Buildout
 ********
 
-.. image:: https://github.com/buildout/buildout/actions/workflows/python-runners.yml/badge.svg
-   :alt: GHA build report for Ubuntu, MacOS, Windows machines
-   :target: https://github.com/buildout/buildout/actions/workflows/python-runners.yml
+.. image:: https://github.com/buildout/buildout/actions/workflows/run-tests.yml/badge.svg
+   :alt: GHA tests report
+   :target: https://github.com/buildout/buildout/actions/workflows/run-tests.yml
 
 Buildout is a project designed to solve 2 problems:
 
