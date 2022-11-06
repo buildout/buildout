@@ -37,9 +37,15 @@ jobs:
           command: sudo apt install -y build-essential python${PYTHON_VER}-dev
       - when:
           condition:
-            matches:
-              pattern: ^3\.10$
-              value: << parameters.python-version >>
+            and:
+              - not:
+                  matches:
+                    pattern: ^3\.5$
+                    value: << parameters.python-version >>
+              - not:
+                  matches:
+                    pattern: ^2\.7$
+                    value: << parameters.python-version >>
           steps:
             - run: sudo apt install -y python${PYTHON_VER}-distutils
       - checkout
