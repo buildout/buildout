@@ -1,6 +1,9 @@
 name: Script generation
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - '.circleci/**'
 
 jobs:
   build:

@@ -2,6 +2,8 @@ name: Debian container with system Python
 
 on:
   push:
+    paths-ignore:
+      - '.circleci/**'
   pull_request:
   # Allow to run this workflow manually from the Actions tab
   workflow_dispatch:
