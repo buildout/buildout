@@ -1,0 +1,167 @@
+name: Run tests
+
+on:
+  push:
+    paths-ignore:
+      - '.circleci/**'
+  pull_request:
+  # Allow to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ubuntu-3_8:
+    name: tests on Ubuntu - Python 3.8
+    runs-on: ${{ matrix.os }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.8"]
+        exclude:
+          # excludes 2.7 on windows as chocolatey does not support it anymore
+          - os: windows-latest
+            python-version: 2.7
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache eggs
+      uses: actions/cache@v3
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
+    - name: Run tests
+      env:
+        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
+        TMP: ${{ env.HOME }}/AppData/Local/Temp
+        TEMP: ${{ env.HOME }}/AppData/Local/Temp
+        BUILD_TYPE: bare_machines
+      run: |
+        echo $TMPDIR
+        ./ci_build.sh
+  generate-scripts:
+    needs: ubuntu-3_8
+    name: Generate scripts - Python ${{ matrix.python-version }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        package: [zest.releaser, pyspf]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Setup buildout virtualenv
+      run: |
+        make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
+    - name: Run buildout
+      env:
+        PACKAGE: ${{matrix.package}}
+        PYTHON_VERSION: ${{matrix.python-version}}
+      run: |
+        sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
+        sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
+    - name: Check eggs
+      run: |
+        ls -al sandbox/eggs
+        ls -al sandbox/downloads/dist
+  python-runners:
+    needs: generate-scripts
+    name: tests on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        exclude:
+          # excludes 2.7 on windows as chocolatey does not support it anymore
+          - os: windows-latest
+            python-version: 2.7
+          # excludes 3.11 on macos as long as I cannot understand how to fix it
+          - os: macos-latest
+            python-version: 3.11
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache eggs
+      uses: actions/cache@v3
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
+    - name: Run tests
+      env:
+        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
+        TMP: ${{ env.HOME }}/AppData/Local/Temp
+        TEMP: ${{ env.HOME }}/AppData/Local/Temp
+        BUILD_TYPE: bare_machines
+      run: |
+        echo $TMPDIR
+        ./ci_build.sh
+  debian-containers:
+    needs: python-runners
+    name: tests in Debian container - Python ${{ matrix.python-version }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test in container with Python ${{ matrix.python-version }}
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+        BUILD_TYPE: debian_containers
+      run: |
+        ./ci_build.sh
+  centos-containers:
+    needs: python-runners
+    name: Tests in CentOS container - Python ${{ matrix.python-version }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test in container with Python ${{ matrix.python-version }}
+      env:
+        PYTHON_VER: ${{matrix.python-version}}
+        BUILD_TYPE: centos_containers
+      run: |
+        ./ci_build.sh
+  debian-system:
+    needs: python-runners
+    name: tests in Debian with system Python
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test in container with system Python
+      env:
+        BUILD_TYPE: debian_sys_container
+      run: |
+        ./ci_build.sh
