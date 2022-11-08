@@ -8,6 +8,15 @@ Change History
 
 .. towncrier release notes start
 
+3.0.1 (2022-11-08)
+------------------
+
+Bug fixes:
+
+
+- Fixed import of packaging.markers.  [maurits] (#621)
+
+
 3.0.0 (2022-11-07)
 ------------------
 
