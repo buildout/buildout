@@ -317,7 +317,7 @@ class Installer(object):
         """
         for project_name in env:
             for dist in env[project_name]:
-                if os.path.dirname(dist.location) == dest:
+                if dest is None or os.path.dirname(dist.location) == dest:
                     dist.precedence = pkg_resources.EGG_DIST
 
     def _version_conflict_information(self, name):
