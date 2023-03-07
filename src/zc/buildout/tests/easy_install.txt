@@ -706,7 +706,7 @@ the path set:
     <BLANKLINE>
     _interactive = True
     if len(sys.argv) > 1:
-        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
+        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
         _interactive = False
         for (_opt, _val) in _options:
             if _opt == '-i':
@@ -974,7 +974,7 @@ We specified an interpreter and its paths are adjusted too:
     <BLANKLINE>
     _interactive = True
     if len(sys.argv) > 1:
-        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
+        _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
         _interactive = False
         for (_opt, _val) in _options:
             if _opt == '-i':

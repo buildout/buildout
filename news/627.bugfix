@@ -1,0 +1,4 @@
+- Allow the ``-I`` option in the Python interpreter wrapper installed by
+  buildout when using the ``zc.recipe.egg`` recipe's `interpreter =` directive.
+  This solves the issue when VSCode calls the designated Python interpreter for
+  a workspace with this option to determine the Python version etc.

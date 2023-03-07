@@ -1521,7 +1521,7 @@ sys.path[0:0] = [
 
 _interactive = True
 if len(sys.argv) > 1:
-    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
+    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
     _interactive = False
     for (_opt, _val) in _options:
         if _opt == '-i':
