@@ -1522,7 +1522,7 @@ sys.path[0:0] = [
 _interactive = True
 if len(sys.argv) > 1:
     # The Python interpreter wrapper allows some of the options that a
-    #"regular" Python interpreter accepts, but it only acts on the -i, -c
+    # "regular" Python interpreter accepts, but it only acts on the -i, -c
     # and -m options. The other option(s) are ignored. See
     # https://github.com/buildout/buildout/issues/627 for more information.
     _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
