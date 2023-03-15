@@ -1523,8 +1523,9 @@ _interactive = True
 if len(sys.argv) > 1:
     # The Python interpreter wrapper allows some of the options that a
     # "regular" Python interpreter accepts, but it only acts on the -i, -c
-    # and -m options. The other option(s) are ignored. See
-    # https://github.com/buildout/buildout/issues/627 for more information.
+    # and -m options. The other option(s) are ignored. The specific use-case
+    # that led to this change is how the Python language extension for Visual
+    # Studio Code calls the Python interpreter when initializing the extension.
     _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
     _interactive = False
     for (_opt, _val) in _options:
