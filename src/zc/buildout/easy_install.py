@@ -43,16 +43,6 @@ from zc.buildout import PY3
 import warnings
 import csv
 
-try:
-    from setuptools.wheel import Wheel  # This is the important import
-    from setuptools import __version__ as setuptools_version
-    # Now we need to check if we have at least 38.2.3 for namespace support.
-    SETUPTOOLS_SUPPORTS_WHEELS = (
-        pkg_resources.parse_version(setuptools_version) >=
-        pkg_resources.parse_version('38.2.3'))
-except ImportError:
-    SETUPTOOLS_SUPPORTS_WHEELS = False
-
 
 BIN_SCRIPTS = 'Scripts' if WINDOWS else 'bin'
 
@@ -1828,33 +1818,6 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     return [egg_dir]
 
 
-def unpack_egg(location, dest):
-    # Buildout 2 no longer installs zipped eggs,
-    # so we always want to unpack it.
-    dest = os.path.join(dest, os.path.basename(location))
-    setuptools.archive_util.unpack_archive(location, dest)
-
-
-WHEEL_WARNING = """
-*.whl file detected (%s), you'll need setuptools >= 38.2.3 for that
-or an extension like buildout.wheel > 0.2.0.
-"""
-
-
-def unpack_wheel(location, dest):
-    if SETUPTOOLS_SUPPORTS_WHEELS:
-        wheel = Wheel(location)
-        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
-    else:
-        raise zc.buildout.UserError(WHEEL_WARNING % location)
-
-
-UNPACKERS = {
-    '.egg': unpack_egg,
-    '.whl': unpack_wheel,
-}
-
-
 def _get_matching_dist_in_location(dist, location):
     """
     Check if `locations` contain only the one intended dist.
@@ -1905,16 +1868,8 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             tmp_loc = os.path.join(tmp_dest, os.path.basename(dist.location))
             shutil.copytree(dist.location, tmp_loc)
         else:
-            # It is an archive of some sort.
-            # Figure out how to unpack it, or fall back to easy_install.
-            _, ext = os.path.splitext(dist.location)
-            if ext in UNPACKERS:
-                unpacker = UNPACKERS[ext]
-                unpacker(dist.location, tmp_dest)
-                [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
-            else:
-                [tmp_loc] = call_pip_install(dist.location, tmp_dest)
-                installed_with_pip = True
+            [tmp_loc] = call_pip_install(dist.location, tmp_dest)
+            installed_with_pip = True
 
         # We have installed the dist. Now try to rename/move it.
         newloc = os.path.join(dest, os.path.basename(tmp_loc))
