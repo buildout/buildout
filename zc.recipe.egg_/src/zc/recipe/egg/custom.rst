@@ -134,9 +134,6 @@ the egg:
     >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Installing extdemo...
 
-We got the zip_safe warning because the source distribution we used
-wasn't setuptools based and thus didn't set the option.
-
 The egg is created in the develop-eggs directory *not* the eggs
 directory because it depends on buildout-specific parameters and the
 eggs directory can be shared across multiple buildouts.
