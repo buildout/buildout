@@ -1683,8 +1683,8 @@ def call_pip_install(spec, dest):
         else:
             args.append('--no-python-version-warning')
 
-    env = copy.copy(os.environ)
-    python_path = copy.copy(pip_path)
+    env = os.environ.copy()
+    python_path = pip_path[:]
     python_path.append(env.get('PYTHONPATH', ''))
     env['PYTHONPATH'] = os.pathsep.join(python_path)
 
