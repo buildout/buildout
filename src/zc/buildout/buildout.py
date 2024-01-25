@@ -1997,7 +1997,18 @@ def _update(in1, d2):
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
         else:
+            # Process base definitions that are done with += and -=, but not
+            # in sections that extend other sections, as we don't have all
+            # the data (these will be processed when the section is extended)
+            if '<' not in d2[section].keys():
+                for key, value in d2[section].items():
+                    if key[-1] in ('+', '-'):
+                        if key[-1] == '+':
+                            d2[section][key[:-2]] = d2[section][key]
+                        del d2[section][key]
+
             d1[section] = copy.deepcopy(d2[section])
+
     return d1
 
 def _recipe(options):
