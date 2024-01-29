@@ -1879,25 +1879,30 @@ def _open(
             download_options, result['buildout']
         )
 
+    # Process extends to handle nested += and -=
+    eresults = []
     if extends:
         extends = extends.split()
-        eresult, user_defaults = _open(
-            base, extends.pop(0), seen, download_options, override,
-            downloaded, user_defaults
-        )
         for fname in extends:
             next_extend, user_defaults = _open(
                 base, fname, seen, download_options, override,
-                downloaded, user_defaults
-            )
-            eresult = _update(eresult, next_extend)
-        result = _update(eresult, result)
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
     else:
         if user_defaults:
             result = _update(user_defaults, result)
             user_defaults = {}
+
+    eresults.append(result)
     seen.pop()
-    return result, user_defaults
+
+    if root_config_file:
+        final_result = {}
+        for eresult in eresults:
+            final_result = _update(final_result, eresult)
+        return final_result, user_defaults
+    else:
+        return eresults, user_defaults
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
