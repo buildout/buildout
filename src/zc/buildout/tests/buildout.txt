@@ -1530,6 +1530,12 @@ This is illustrated below; first we define a base configuration::
     ...     d3
     ...     d5
     ...
+    ... [part6]
+    ... option += e1
+    ...
+    ... [part7]
+    ... option -= f1
+    ...
     ... """)
 
 Extending this configuration, we can "adjust" the values set in the
@@ -1590,7 +1596,7 @@ extension that prints out the options::
     ... import sys
     ... def ext(buildout):
     ...     sys.stdout.write(str(
-    ...         [part['option'] for name, part in sorted(buildout.items())
+    ...         [part.get('option') for name, part in sorted(buildout.items())
     ...          if name.startswith('part')])+'\\n')
     ... """)
 
@@ -1629,7 +1635,7 @@ Verify option values::
     ... """)
 
     >>> print_(system(os.path.join('bin', 'buildout')), end='')
-    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2', 'e1', None]
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
@@ -1682,6 +1688,13 @@ operations::
     [part5]
     option= h1 h2
         extension1.cfg
+    <BLANKLINE>
+    [part6]
+    option= e1
+        base.cfg
+    <BLANKLINE>
+    [part7]
+    <BLANKLINE>
     [versions]
     zc.buildout= >=1.99
         DEFAULT_VALUE
