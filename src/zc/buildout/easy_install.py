@@ -25,7 +25,6 @@ import glob
 import logging
 import os
 import pkg_resources
-from pkg_resources import packaging
 import py_compile
 import re
 import setuptools.archive_util
@@ -40,6 +39,8 @@ import zc.buildout
 import zc.buildout.rmtree
 from zc.buildout import WINDOWS
 from zc.buildout import PY3
+from zc.buildout._compat import packaging_utils
+from zc.buildout._compat import specifiers
 import warnings
 import csv
 
@@ -1642,7 +1643,7 @@ def _constrained_requirement(constraint, requirement):
             msg = ("The requirement (%r) is not allowed by your [versions] "
                    "constraint (%s)" % (str(requirement), version))
             raise IncompatibleConstraintError(msg)
-        specifier = packaging.specifiers.SpecifierSet(constraint)
+        specifier = specifiers.SpecifierSet(constraint)
     else:
         specifier = requirement.specifier & constraint
     constrained = copy.deepcopy(requirement)

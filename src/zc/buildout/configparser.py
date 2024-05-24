@@ -21,13 +21,11 @@ import re
 import textwrap
 import logging
 
-try:
-    from packaging import markers
-except ImportError:
-    try:
-        from pip._vendor.packaging import markers
-    except ImportError:
-        from pkg_resources.packaging import markers
+from zc.buildout._compat import markers
+
+
+Marker = markers.Marker
+InvalidMarker = markers.InvalidMarker
 
 
 logger = logging.getLogger('zc.buildout')
@@ -191,9 +189,9 @@ def parse(fp, fpname, exp_globals=dict):
                     try:
                         # new-style markers as used in pip constraints, e.g.:
                         # 'python_version < "3.11" and platform_system == "Windows"'
-                        marker = markers.Marker(expr)
+                        marker = Marker(expr)
                         section_condition = marker.evaluate()
-                    except markers.InvalidMarker:
+                    except InvalidMarker:
                         # old style buildout expression
                         # rebuild a valid Python expression wrapped in a list
                         expr = head + expr + tail
