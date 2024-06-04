@@ -1,0 +1,3 @@
+Normalize package names when gathering packages.
+This should help find all distributions for package ``name.space``, whether they are called ``name.space-1.0.tar.gz`` with a dot or ``name_space-1.0.tar.gz`` with an underscore (created with ``setuptools`` 69.3 or higher).
+[maurits]

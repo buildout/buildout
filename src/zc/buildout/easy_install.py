@@ -23,6 +23,7 @@ import distutils.errors
 import errno
 import glob
 import logging
+import operator
 import os
 import pkg_resources
 import py_compile
@@ -41,6 +42,7 @@ from zc.buildout import WINDOWS
 from zc.buildout import PY3
 from zc.buildout._compat import packaging_utils
 from zc.buildout._compat import specifiers
+from zc.buildout.utils import normalize_name
 import warnings
 import csv
 
@@ -123,6 +125,46 @@ class _NoWarn(object):
 
 _no_warn = _NoWarn()
 
+
+class Environment(pkg_resources.Environment):
+    """Buildout version of Environment with canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+
+    I wanted to do this with a mixin class, but somehow the changes
+    did not get picked up.  So we duplicate '__getitem__' and 'add'
+    here and in the PackageIndex class.
+    """
+
+    def __getitem__(self, project_name: str):
+        """Return a newest-to-oldest list of distributions for `project_name`
+
+        Uses case-insensitive `project_name` comparison, assuming all the
+        project's distributions use their project's name converted to all
+        lowercase as their key.
+
+        """
+        distribution_key = normalize_name(project_name)
+        return self._distmap.get(distribution_key, [])
+
+    def add(self, dist: "Distribution"):
+        """Add `dist` if we ``can_add()`` it and it has not already been added
+        """
+        if self.can_add(dist) and dist.has_version():
+            # Instead of 'dist.key' we add a normalized version.
+            distribution_key = normalize_name(dist.key)
+            dists = self._distmap.setdefault(distribution_key, [])
+            if dist not in dists:
+                dists.append(dist)
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
+
+
 class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
@@ -137,6 +179,28 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
         with _Monkey(setuptools.package_index, log=_no_warn):
             return setuptools.package_index.PackageIndex.url_ok(
                                                 self, url, False)
+
+    def __getitem__(self, project_name: str):
+        """Return a newest-to-oldest list of distributions for `project_name`
+
+        Uses case-insensitive `project_name` comparison, assuming all the
+        project's distributions use their project's name converted to all
+        lowercase as their key.
+
+        """
+        distribution_key = normalize_name(project_name)
+        return self._distmap.get(distribution_key, [])
+
+    def add(self, dist: "Distribution"):
+        """Add `dist` if we ``can_add()`` it and it has not already been added
+        """
+        if self.can_add(dist) and dist.has_version():
+            # Instead of 'dist.key' we add a normalized version.
+            distribution_key = normalize_name(dist.key)
+            dists = self._distmap.setdefault(distribution_key, [])
+            if dist not in dists:
+                dists.append(dist)
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
 
 _indexes = {}
@@ -291,7 +355,7 @@ class Installer(object):
 
     def _make_env(self):
         full_path = self._get_dest_dist_paths() + self._path
-        env = pkg_resources.Environment(full_path)
+        env = Environment(full_path)
         # this needs to be called whenever self._env is modified (or we could
         # make an Environment subclass):
         self._eggify_env_dest_dists(env, self._dest)
@@ -431,7 +495,7 @@ class Installer(object):
             paths = call_pip_install(spec, tmp)
 
             dists = []
-            env = pkg_resources.Environment(paths)
+            env = Environment(paths)
             for project in env:
                 dists.extend(env[project])
 
@@ -713,7 +777,7 @@ class Installer(object):
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
-        env = pkg_resources.Environment(ws.entries)
+        env = Environment(ws.entries)
 
         while requirements:
             # Process dependencies breadth-first.
@@ -1870,10 +1934,10 @@ def _get_matching_dist_in_location(dist, location):
     # may be normalized (e.g., 3.3 becomes 3.3.0 when downloaded from
     # PyPI.)
 
-    env = pkg_resources.Environment([location])
+    env = Environment([location])
     dists = [ d for project_name in env for d in env[project_name] ]
-    dist_infos = [ (d.project_name.lower(), d.parsed_version) for d in dists ]
-    if dist_infos == [(dist.project_name.lower(), dist.parsed_version)]:
+    dist_infos = [ (normalize_name(d.project_name), d.parsed_version) for d in dists ]
+    if dist_infos == [(normalize_name(dist.project_name), dist.parsed_version)]:
         return dists.pop()
 
 def _move_to_eggs_dir_and_compile(dist, dest):

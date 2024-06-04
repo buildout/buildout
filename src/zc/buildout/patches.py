@@ -190,3 +190,93 @@ def patch_PackageIndex():
 
 
 patch_PackageIndex()
+
+
+def patch_interpret_distro_name():
+    """Goal: recognize distro names better.
+
+    interpret_distro_name was changed as part of
+    https://github.com/pypa/setuptools/pull/2822
+    This landed in setuptools 70.
+
+    We seem to need this version, to avoid problems recognizing distro names.
+    'basename' is for example 'mauritstest.namespacepackage-1.0.0'
+    The new code correctly handles this as project name
+    ''mauritstest.namespacepackage', instead of yielding multiple distros.
+    """
+    # from packaging.version import Version, parse
+    # if setuptools.__version__ < 70
+    # XXX
+    from pkg_resources import Distribution
+    from pkg_resources import SOURCE_DIST
+
+    import re
+    import setuptools
+
+    def interpret_distro_name(
+        location, basename, metadata, py_version=None, precedence=SOURCE_DIST, platform=None
+    ):
+        """Generate the interpretation of a source distro name
+
+        Note: if `location` is a filesystem filename, you should call
+        ``pkg_resources.normalize_path()`` on it before passing it to this
+        routine!
+        """
+
+        parts = basename.split('-')
+        if not py_version and any(re.match(r'py\d\.\d$', p) for p in parts[2:]):
+            # it is a bdist_dumb, not an sdist -- bail out
+            return
+
+        # find the pivot (p) that splits the name from the version.
+        # infer the version as the first item that has a digit.
+        for p in range(len(parts)):
+            if parts[p][:1].isdigit():
+                break
+        else:
+            p = len(parts)
+
+        yield Distribution(
+            location,
+            metadata,
+            '-'.join(parts[:p]),
+            '-'.join(parts[p:]),
+            py_version=py_version,
+            precedence=precedence,
+            platform=platform,
+        )
+
+    setuptools.package_index.interpret_distro_name = interpret_distro_name
+
+
+patch_interpret_distro_name()
+
+
+def patch_pkg_resources_requirement_contains():
+    """Patch pkg_resources.Requirement contains method.
+
+    What this hopefully solves, is checking if a Requirement contains
+    a Distribution, without the key needing to be exactly the same.
+    We want to compare normalized names.
+    """
+    from pkg_resources import Distribution
+    from pkg_resources import Requirement
+    from zc.buildout.utils import normalize_name
+
+    def __contains__(self, item):
+        if isinstance(item, Distribution):
+            # if item.key != self.key:
+            if normalize_name(item.key) != normalize_name(self.key):
+                return False
+
+            item = item.version
+
+        # Allow prereleases always in order to match the previous behavior of
+        # this method. In the future this should be smarter and follow PEP 440
+        # more accurately.
+        return self.specifier.contains(item, prereleases=True)
+
+    Requirement.__contains__ = __contains__
+
+
+patch_pkg_resources_requirement_contains()
