@@ -561,6 +561,9 @@ class Installer(object):
 
             # Retrieve the dist:
             if avail is None:
+                # TODO I don't think the next line is useful.  When we get
+                # here, I expect that 'obtain' was already called and has
+                # returned None, which is why we are here.
                 self._index.obtain(requirement)
                 raise MissingDistribution(requirement, ws)
 

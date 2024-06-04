@@ -69,6 +69,7 @@ def patch_PackageIndex():
         PY_VERSION_INFO = TargetPython().py_version_info
 
         # method copied over from setuptools 46.1.3
+        # Unchanged in setuptools 70.0.0.
         def process_url(self, url, retrieve=False):
             """Evaluate a URL as a possible download, and maybe retrieve it"""
             if url in self.scanned_urls and not retrieve:
