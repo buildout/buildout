@@ -946,7 +946,7 @@ a develop egg, we will also generate a warning.
     ... parts =
     ... """)
 
-    >>> print_(system(join('bin', 'buildout')), end='')
+    >>> print_(system(join('bin', 'buildout')), end='') # doctest: +NORMALIZE_WHITESPACE
     Develop: '/sample-buildout/foo'
 
 Now, if we generate a working set using the egg link, we will get a warning
@@ -1035,7 +1035,7 @@ namespace package.
     ... parts =
     ... """)
 
-    >>> print_(system(join('bin', 'buildout')), end='')
+    >>> print_(system(join('bin', 'buildout')), end='') # doctest: +NORMALIZE_WHITESPACE
     Develop: '/sample-buildout/foo'
     Develop: '/sample-buildout/bar'
 
@@ -3641,6 +3641,9 @@ def test_suite():
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.root_colon,
+                zc.buildout.testing.double_exclamation,
+                zc.buildout.testing.ep_load,
+                zc.buildout.testing.eight_spaces,
                 zc.buildout.testing.python27_warning,
                 zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,

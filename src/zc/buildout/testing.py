@@ -595,6 +595,9 @@ normalize_open_in_generated_script = (
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
 
 root_colon = (re.compile(r"root: .*\n"), '')
+double_exclamation = (re.compile(r"!!.*\n"), '')
+eight_spaces = (re.compile(r"        .*\n"), '')
+ep_load = (re.compile(r"  ep\.load.*\n"), '')
 
 python27_warning = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
     'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
