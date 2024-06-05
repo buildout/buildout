@@ -3426,6 +3426,7 @@ def test_suite():
                     zc.buildout.testing.normalize_egg_py,
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.adding_find_link,
+                    zc.buildout.testing.root_colon,
                     zc.buildout.testing.python27_warning,
                     zc.buildout.testing.python27_warning_2,
                     zc.buildout.testing.easyinstall_deprecated,
@@ -3507,6 +3508,7 @@ def test_suite():
                 'executable = python'),
                (re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}'),
                 'YYYY-MM-DD hh:mm:ss.dddddd'),
+               zc.buildout.testing.root_colon,
                ]),
             ),
         doctest.DocFileSuite(
@@ -3563,6 +3565,7 @@ def test_suite():
                 (re.compile('[-d]  pip'), '-  pip'),
                 (re.compile('[-d]  wheel'), '-  wheel'),
                 (re.compile(re.escape(os.path.sep)+'+'), '/'),
+                zc.buildout.testing.root_colon,
                ])
             ),
 
@@ -3581,6 +3584,7 @@ def test_suite():
                 zc.buildout.testing.normalize_open_in_generated_script,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.not_found,
+                zc.buildout.testing.root_colon,
                 zc.buildout.testing.python27_warning,
                 zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
@@ -3636,6 +3640,7 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 zc.buildout.testing.adding_find_link,
+                zc.buildout.testing.root_colon,
                 zc.buildout.testing.python27_warning,
                 zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
@@ -3714,6 +3719,7 @@ def test_suite():
                            r'when that file already exists: '),
                 '[Errno 17] File exists: '
                 ),
+               zc.buildout.testing.root_colon,
                ])
             ),
         doctest.DocFileSuite('testing_bugfix.txt'),
