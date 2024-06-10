@@ -555,7 +555,8 @@ class Installer(object):
         dist, avail = self._satisfied(requirement)
 
         if 'recipe' in str(requirement):
-            print('dist, avail', dist, avail)
+            print('_get_dist requirement', requirement)
+            print('_get_dist dist, avail', dist, avail)
 
         if dist is None:
             if self._dest is None:
@@ -568,6 +569,8 @@ class Installer(object):
 
             # Retrieve the dist:
             if avail is None:
+                if 'recipe' in str(requirement):
+                    print('_get_dist requirement', requirement)
                 self._index.obtain(requirement)
                 raise MissingDistribution(requirement, ws)
 
