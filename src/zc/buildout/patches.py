@@ -49,9 +49,11 @@ def patch_PackageIndex():
     try:
         import logging
         logging.getLogger('pip._internal.index.collector').setLevel(logging.ERROR)
+        import os
         from setuptools.package_index import PackageIndex
         from setuptools.package_index import URL_SCHEME
         from setuptools.package_index import distros_for_url
+        from setuptools.package_index import distros_for_filename
 
         try:
             # pip 22.2+
@@ -176,6 +178,103 @@ def patch_PackageIndex():
                 page = self.process_index(url, page)
 
         setattr(PackageIndex, 'process_url', process_url)
+
+        from setuptools.extern.packaging.utils import canonicalize_name
+
+        def my_canon(string):
+            return canonicalize_name(string)
+
+        def find_packages(self, requirement):
+            if 'zc.recipe.egg' in str(requirement):
+                print('patched find_packages')
+            self.scan_url(self.index_url + requirement.unsafe_name + '/')
+            if 'zc.recipe.egg' in str(requirement):
+                print('unsafe_name', requirement.unsafe_name)
+                print('after scan_url unsafe_name', self[requirement.key])
+
+            if not self.package_pages.get(requirement.key):
+                # Fall back to safe version of the name
+                self.scan_url(self.index_url + requirement.project_name + '/')
+            if 'zc.recipe.egg' in str(requirement):
+                print('after scan_url project_name', self[requirement.key])
+
+            if not self.package_pages.get(requirement.key):
+                # We couldn't find the target package, so search the index page too
+                self.not_found_in_index(requirement)
+            if 'zc.recipe.egg' in str(requirement):
+                print('after not_found_in_index', self[requirement.key])
+
+            for url in list(self.package_pages.get(requirement.key, ())):
+                # scan each page that might be related to the desired package
+                self.scan_url(url)
+        
+        from pkg_resources import Requirement
+
+        def obtain(self, requirement, installer=None):
+            if 'zc.recipe.egg' in str(requirement):
+                print('patched obtain')
+            self.prescan()
+            self.find_packages(requirement)
+            key = my_canon(requirement.key)
+            if 'zc.recipe.egg' in str(requirement):
+                print('after find_packages requirement key', self[requirement.key])
+                print(requirement.key)
+                print(key)
+            if key != requirement.key:
+                requirement = Requirement.parse(key + str(requirement.specifier))
+                print('other_req', repr(requirement))
+            print(self._distmap.items())
+            for dist in self[key]:
+                print('in obtain - dist', dist)
+                if 'recipe' in str(requirement):
+                    print('in obtain', repr(requirement))
+                if dist in requirement:
+                    print('found', dist)
+                    return dist
+                self.debug("%s does not match %s", requirement, dist)
+            result = super(PackageIndex, self).obtain(requirement, installer)
+            if 'zc.recipe.egg' in str(requirement):
+                print('obtain from Environment')
+            return result
+
+        def process_filename(self, fn, nested=False):
+            # process filenames or directories
+            if not os.path.exists(fn):
+                self.warn("Not found: %s", fn)
+                return
+
+            if os.path.isdir(fn) and not nested:
+                path = os.path.realpath(fn)
+                for item in os.listdir(path):
+                    self.process_filename(os.path.join(path, item), True)
+
+            dists = distros_for_filename(fn)
+            if dists:
+                self.debug("Found: %s", fn)
+                list(map(self.add, dists))
+
+        from pkg_resources import parse_version
+
+        def add(self, dist):
+            # ignore invalid versions
+            if 'recipe' in str(dist):
+                print('before parse_version', dist)
+            try:
+                parse_version(dist.version)
+            except Exception:
+                if 'recipe' in str(dist):
+                    print('not added', dist)
+                return None
+            result = super(PackageIndex, self).add(dist)
+            if 'recipe' in str(dist):
+                print('ADDED', dist)
+                print(self._distmap.items())
+            return result
+
+        setattr(PackageIndex, 'process_filename', process_filename)
+        setattr(PackageIndex, 'find_packages', find_packages)
+        setattr(PackageIndex, 'obtain', obtain)
+        setattr(PackageIndex, 'add', add)
 
     except ImportError:
         import logging

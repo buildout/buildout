@@ -342,8 +342,10 @@ class Installer(object):
         if not dists:
             logger.debug('We have no distributions for %s that satisfies %r.',
                          req.project_name, str(req))
-
-            return None, self._obtain(req, source)
+            obtained = self._obtain(req, source)
+            if 'recipe' in str(req):
+                print('obtained', obtained)
+            return None, obtained
 
         # Note that dists are sorted from best to worst, as promised by
         # env.__getitem__
@@ -382,7 +384,7 @@ class Installer(object):
         # something, which is only true if dest is not None:
 
         best_available = self._obtain(req, source)
-
+        
         if best_available is None:
             # That's a bit odd.  There aren't any distros available.
             # We should use the best one we have that meets the requirement.
@@ -471,6 +473,9 @@ class Installer(object):
         index = self._index
 
         if index.obtain(requirement) is None:
+            if 'zc.recipe.egg' in str(requirement):
+                print(index)
+                print('nothing available in index')
             # Nothing is available.
             return None
 
@@ -548,6 +553,9 @@ class Installer(object):
         # Maybe an existing dist is already the best dist that satisfies the
         # requirement
         dist, avail = self._satisfied(requirement)
+
+        if 'recipe' in str(requirement):
+            print('dist, avail', dist, avail)
 
         if dist is None:
             if self._dest is None:
