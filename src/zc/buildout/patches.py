@@ -26,9 +26,11 @@ def patch_Distribution():
         else:
             try:
                 parsed_version = self.parsed_version
-            except version.InvalidVersion:
+            except Exception:
                 # You get here when there is an distribution on PyPI
                 # with a version that is no longer seen as valid.
+                # I want to catch version.InvalidVersion, but it may
+                # come from a different place then I think.
                 parsed_version = version.Version("0.0.0")
             self._hashcmp = result = (
                 parsed_version,
@@ -274,7 +276,6 @@ def patch_pkg_resources_requirement_contains():
         from pkg_resources import Distribution
         from pkg_resources import Requirement
         from zc.buildout.utils import normalize_name
-        from zc.buildout._compat import version
     except ImportError:
         return
 
@@ -291,9 +292,11 @@ def patch_pkg_resources_requirement_contains():
         # more accurately.
         try:
             return self.specifier.contains(item, prereleases=True)
-        except version.InvalidVersion:
+        except Exception:
             # For example on https://pypi.org/simple/zope-exceptions/
             # the first distribution is zope.exceptions-3.4dev-r73107.tar.gz
+            # I want to catch version.InvalidVersion, but it may
+            # come from a different place then I think.
             return False
 
     Requirement.__contains__ = __contains__
