@@ -8,22 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-scripts:
+  generate-scripts-py2:
     strategy:
-      max-parallel: 4
       matrix:
-        # package: [zest.releaser, pyspf]
-        package: [pyspf]
-        include:
-        - python-version: "3.6"
-          os: "ubuntu-20.04"
-        - python-version: "3.7"
-          os: "ubuntu-22.04"
-        - python-version: "3.8"
-          os: "ubuntu-22.04"
-        - python-version: "2.7"
-          os: "ubuntu-20.04"
-        # - python-version: ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        package: [zest.releaser, pyspf]
+        python-version: ["2.7"]
+        os: ["ubuntu-20.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -32,6 +22,40 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Setup buildout virtualenv
+      run: |
+        make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
+    - name: Run buildout
+      env:
+        PACKAGE: ${{matrix.package}}
+        PYTHON_VERSION: ${{matrix.python-version}}
+      run: |
+        sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
+        sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
+    - name: Check eggs
+      run: |
+        ls -al sandbox/eggs
+        ls -al sandbox/downloads/dist
+
+  generate-scripts:
+    strategy:
+      max-parallel: 4
+      matrix:
+        package: [zest.releaser, pyspf]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        os: ["ubuntu-22.04"]
+    runs-on: ${{ matrix.os }}
+    container:
+      image: python:2.7.18-buster
+
+    name: generate scripts - Python ${{ matrix.python-version }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Setup buildout virtualenv
       run: |
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
