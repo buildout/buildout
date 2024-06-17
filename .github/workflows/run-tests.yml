@@ -47,6 +47,7 @@ jobs:
         include:
           - os: "ubuntu-20.04"
             python-version: "3.6"
+            package: [zest.releaser, pyspf]
 
     runs-on: ${{ matrix.os }}
     steps:
