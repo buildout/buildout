@@ -106,24 +106,17 @@ jobs:
   #       ls -al sandbox/eggs
   #       ls -al sandbox/downloads/dist
 
-  python-runners:
+  python-runners-27:
     # TEMP needs: generate-scripts
     name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
     # TEMP if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
-        exclude:
-          # excludes 2.7 on windows as chocolatey does not support it anymore
-          - os: windows-latest
-            python-version: 2.7
-          # excludes 3.11 on macos as long as I cannot understand how to fix it
-          - os: macos-latest
-            python-version: 3.11
-
+        python-version: ["2.7"]
+        os: ["ubuntu-20.04"]
+    runs-on: ${{ matrix.os }}
+    container:
+      image: python:2.7.18-buster
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -144,6 +137,48 @@ jobs:
       run: |
         echo $TMPDIR
         ./ci_build.sh
+
+  python-runners:
+    # TEMP needs: generate-scripts
+    name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    # TEMP if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ["ubuntu-22.04"]
+        include:
+          - os: "ubuntu-20.04"
+            python-version: "3.5"
+          - os: "ubuntu-20.04"
+            python-version: "3.6"
+          # excludes 3.11 on macos as long as I cannot understand how to fix it
+          # - os: macos-latest
+          #   python-version: 3.11
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache eggs
+      uses: actions/cache@v3
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
+    - name: Run tests
+      env:
+        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
+        TMP: ${{ env.HOME }}/AppData/Local/Temp
+        TEMP: ${{ env.HOME }}/AppData/Local/Temp
+        BUILD_TYPE: bare_machines
+      run: |
+        echo $TMPDIR
+        ./ci_build.sh
+
   # debian-containers:
   #   needs: python-runners
   #   name: in Debian container - Python ${{ matrix.python-version }}
