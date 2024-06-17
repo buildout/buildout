@@ -9,6 +9,7 @@ on:
 
 jobs:
   generate-scripts-py2:
+    name: generate scripts - Python ${{ matrix.python-version }}
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
@@ -17,8 +18,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
-
-    name: generate scripts - Python ${{ matrix.python-version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -38,18 +37,18 @@ jobs:
         ls -al sandbox/downloads/dist
 
   generate-scripts:
+    name: generate scripts - Python ${{ matrix.python-version }}
     strategy:
       max-parallel: 4
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         os: ["ubuntu-22.04"]
+        include:
+          - os: "ubuntu-20.04"
+            python-version: "3.6"
+
     runs-on: ${{ matrix.os }}
-    container:
-      image: python:2.7.18-buster
-
-    name: generate scripts - Python ${{ matrix.python-version }}
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
