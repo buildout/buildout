@@ -12,12 +12,22 @@ jobs:
   generate-scripts:
     name: generate scripts - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-20.04
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
-        package: [zest.releaser, pyspf]
+        # package: [zest.releaser, pyspf]
+        package: [pyspf]
+        include:
+          - python-version: "2.7"
+            os: "ubuntu-20.04"
+          - python-version: "3.6"
+            os: "ubuntu-20.04"
+          - python-version: "3.7"
+            os: "ubuntu-22.04"
+          - python-version: "3.8"
+            os: "ubuntu-22.04"
+        # - python-version: ["2.7", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
