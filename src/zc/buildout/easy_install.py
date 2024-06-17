@@ -142,7 +142,7 @@ class Environment(pkg_resources.Environment):
     here and in the PackageIndex class.
     """
 
-    def __getitem__(self, project_name: str):
+    def __getitem__(self, project_name):
         """Return a newest-to-oldest list of distributions for `project_name`
 
         Uses case-insensitive `project_name` comparison, assuming all the
@@ -153,7 +153,7 @@ class Environment(pkg_resources.Environment):
         distribution_key = normalize_name(project_name)
         return self._distmap.get(distribution_key, [])
 
-    def add(self, dist: "Distribution"):
+    def add(self, dist):
         """Add `dist` if we ``can_add()`` it and it has not already been added
         """
         if self.can_add(dist) and dist.has_version():
@@ -180,7 +180,7 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
             return setuptools.package_index.PackageIndex.url_ok(
                                                 self, url, False)
 
-    def __getitem__(self, project_name: str):
+    def __getitem__(self, project_name):
         """Return a newest-to-oldest list of distributions for `project_name`
 
         Uses case-insensitive `project_name` comparison, assuming all the
@@ -191,7 +191,7 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
         distribution_key = normalize_name(project_name)
         return self._distmap.get(distribution_key, [])
 
-    def add(self, dist: "Distribution"):
+    def add(self, dist):
         """Add `dist` if we ``can_add()`` it and it has not already been added
         """
         if self.can_add(dist) and dist.has_version():
