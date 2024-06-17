@@ -269,6 +269,7 @@ def patch_pkg_resources_requirement_contains():
     from pkg_resources import Distribution
     from pkg_resources import Requirement
     from zc.buildout.utils import normalize_name
+    from zc.buildout._compat import version
 
     def __contains__(self, item):
         if isinstance(item, Distribution):
@@ -281,7 +282,12 @@ def patch_pkg_resources_requirement_contains():
         # Allow prereleases always in order to match the previous behavior of
         # this method. In the future this should be smarter and follow PEP 440
         # more accurately.
-        return self.specifier.contains(item, prereleases=True)
+        try:
+            return self.specifier.contains(item, prereleases=True)
+        except version.InvalidVersion:
+            # For example on https://pypi.org/simple/zope-exceptions/
+            # the first distribution is zope.exceptions-3.4dev-r73107.tar.gz
+            return False
 
     Requirement.__contains__ = __contains__
 
