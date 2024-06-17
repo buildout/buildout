@@ -151,8 +151,9 @@ jobs:
         # os: [ubuntu-latest, macos-latest, windows-latest]
         os: ["ubuntu-22.04"]
         include:
-          - os: "ubuntu-20.04"
-            python-version: "3.5"
+          # 3.5 gives a certificate problem getting a pip version from PyPI.
+          # - os: "ubuntu-20.04"
+          #   python-version: "3.5"
           - os: "ubuntu-20.04"
             python-version: "3.6"
           # excludes 3.11 on macos as long as I cannot understand how to fix it
