@@ -225,7 +225,7 @@ def easy_install_SetUp(test):
 
 normalize_bang = (
     re.compile(re.escape('#!'+
-                         zc.buildout.easy_install._safe_arg(sys.executable))),
+                         zc.buildout.easy_install._safe_arg(sys.executable)) + ".*"),
     '#!/usr/local/bin/python2.7',
     )
 
