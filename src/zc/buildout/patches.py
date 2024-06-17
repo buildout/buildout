@@ -16,13 +16,20 @@
 def patch_Distribution():
     try:
         from pkg_resources import Distribution
+        from .compat import version
 
         def hashcmp(self):
             if hasattr(self, '_hashcmp'):
                 return self._hashcmp
             else:
+                try:
+                    parsed_version = self.parsed_version
+                except version.InvalidVersion:
+                    # You get here when there is an distribution on PyPI
+                    # with a version that is no longer seen as valid.
+                    parsed_version = version.Version("0.0.0")
                 self._hashcmp = result = (
-                    self.parsed_version,
+                    parsed_version,
                     self.precedence,
                     self.key,
                     self.location,
