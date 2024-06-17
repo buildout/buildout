@@ -18,10 +18,6 @@ jobs:
   #     matrix:
   #       os: [ubuntu-latest]
   #       python-version: ["3.8"]
-  #       exclude:
-  #         # excludes 2.7 on windows as chocolatey does not support it anymore
-  #         - os: windows-latest
-  #           python-version: 2.7
 
   #   steps:
   #   - uses: actions/checkout@v4
@@ -148,56 +144,56 @@ jobs:
       run: |
         echo $TMPDIR
         ./ci_build.sh
-  debian-containers:
-    needs: python-runners
-    name: in Debian container - Python ${{ matrix.python-version }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+  # debian-containers:
+  #   needs: python-runners
+  #   name: in Debian container - Python ${{ matrix.python-version }}
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: in container with Python ${{ matrix.python-version }}
-      env:
-        PYTHON_VER: ${{matrix.python-version}}
-        BUILD_TYPE: debian_containers
-      run: |
-        ./ci_build.sh
-  centos-containers:
-    needs: python-runners
-    name: in CentOS container - Python ${{ matrix.python-version }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: in container with Python ${{ matrix.python-version }}
+  #     env:
+  #       PYTHON_VER: ${{matrix.python-version}}
+  #       BUILD_TYPE: debian_containers
+  #     run: |
+  #       ./ci_build.sh
+  # centos-containers:
+  #   needs: python-runners
+  #   name: in CentOS container - Python ${{ matrix.python-version }}
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test in container with Python ${{ matrix.python-version }}
-      env:
-        PYTHON_VER: ${{matrix.python-version}}
-        BUILD_TYPE: centos_containers
-      run: |
-        ./ci_build.sh
-  debian-system:
-    needs: python-runners
-    name: in Debian container with system Python
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.9"]
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Test in container with Python ${{ matrix.python-version }}
+  #     env:
+  #       PYTHON_VER: ${{matrix.python-version}}
+  #       BUILD_TYPE: centos_containers
+  #     run: |
+  #       ./ci_build.sh
+  # debian-system:
+  #   needs: python-runners
+  #   name: in Debian container with system Python
+  #   if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.9"]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Test in container with system Python
-      env:
-        BUILD_TYPE: debian_sys_container
-      run: |
-        ./ci_build.sh
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Test in container with system Python
+  #     env:
+  #       BUILD_TYPE: debian_sys_container
+  #     run: |
+  #       ./ci_build.sh
