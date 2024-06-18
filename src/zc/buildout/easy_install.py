@@ -597,7 +597,10 @@ class Installer(object):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
-        # requirement
+        # requirement.  If not, get a link to an available distribution that
+        # we could download.  The method returns a tuple with an existing
+        # dist or an available dist.  Either 'dist' is None, or 'avail'
+        # is None, or both are None.
         dist, avail = self._satisfied(requirement)
 
         if dist is None:
@@ -609,12 +612,8 @@ class Installer(object):
 
             logger.info(*__doing__)
 
-            # Retrieve the dist:
             if avail is None:
-                # TODO I don't think the next line is useful.  When we get
-                # here, I expect that 'obtain' was already called and has
-                # returned None, which is why we are here.
-                self._index.obtain(requirement)
+                # We have no existing dist, and none is available for download.
                 raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
