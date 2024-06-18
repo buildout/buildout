@@ -126,8 +126,8 @@ class _NoWarn(object):
 _no_warn = _NoWarn()
 
 
-class Environment(pkg_resources.Environment):
-    """Buildout version of Environment with canonicalized names.
+class EnvironmentMixin(object):
+    """Mixin class for Environment and PackageIndex for canonicalized names.
 
     * pkg_resources defines the Environment class
     * setuptools defines a PackageIndex class that inherits from Environment
@@ -136,12 +136,7 @@ class Environment(pkg_resources.Environment):
     The fixes are needed for this issue, where distributions created by
     setuptools 69.3+ get a different name than with older versions:
     https://github.com/buildout/buildout/issues/647
-
-    I wanted to do this with a mixin class, but somehow the changes
-    did not get picked up.  So we duplicate '__getitem__' and 'add'
-    here and in the PackageIndex class.
     """
-
     def __getitem__(self, project_name):
         """Return a newest-to-oldest list of distributions for `project_name`
 
@@ -165,7 +160,20 @@ class Environment(pkg_resources.Environment):
                 dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
 
-class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
+class Environment(EnvironmentMixin, pkg_resources.Environment):
+    """Buildout version of Environment with canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+    """
+
+
+class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
     No matter what is allow_hosts.
@@ -179,28 +187,6 @@ class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
         with _Monkey(setuptools.package_index, log=_no_warn):
             return setuptools.package_index.PackageIndex.url_ok(
                                                 self, url, False)
-
-    def __getitem__(self, project_name):
-        """Return a newest-to-oldest list of distributions for `project_name`
-
-        Uses case-insensitive `project_name` comparison, assuming all the
-        project's distributions use their project's name converted to all
-        lowercase as their key.
-
-        """
-        distribution_key = normalize_name(project_name)
-        return self._distmap.get(distribution_key, [])
-
-    def add(self, dist):
-        """Add `dist` if we ``can_add()`` it and it has not already been added
-        """
-        if self.can_add(dist) and dist.has_version():
-            # Instead of 'dist.key' we add a normalized version.
-            distribution_key = normalize_name(dist.key)
-            dists = self._distmap.setdefault(distribution_key, [])
-            if dist not in dists:
-                dists.append(dist)
-                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
 
 _indexes = {}
