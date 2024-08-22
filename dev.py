@@ -119,6 +119,14 @@ def main(args):
             return not was_up_to_date
         except subprocess.CalledProcessError as e:
             print(e.output)
+            if package == "pip":
+                # The upgrade can fail if pip is broken:
+                # ImportError: cannot import name 'html5lib' from 'pip._vendor'
+                # We tried to detect this above, but apparently that test
+                # is insufficient.  So try to install it for real again.
+                print("Upgrade of pip failed. Trying once more to install it.")
+                install_pip()
+                return True
             raise RuntimeError("Upgrade of %s failed." % package)
 
     def install_pinned_version(package, version):
