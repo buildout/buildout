@@ -125,6 +125,8 @@ def main(args):
                 # We tried to detect this above, but apparently that test
                 # is insufficient.  So try to install it for real again.
                 print("Upgrade of pip failed. Trying once more to install it.")
+                install_pip()
+                return True
             raise RuntimeError("Upgrade of %s failed." % package)
 
     def install_pinned_version(package, version):
