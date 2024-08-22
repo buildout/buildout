@@ -12,6 +12,8 @@
 #
 ##############################################################################
 
+import sys
+
 
 def patch_Distribution():
     try:
@@ -72,8 +74,12 @@ def patch_PackageIndex():
         from pip._internal.index.collector import parse_links
         from pip._internal.index.package_finder import _check_link_requires_python
         from pip._internal.models.target_python import TargetPython
-        from pip._vendor import six
-        from pip._vendor.six.moves import urllib
+        try:
+            # Python 3
+            from urllib.error import HTTPError
+        except ImportError:
+            # Python 2
+            from urllib2 import HTTPError
     except ImportError:
         import logging
         logger = logging.getLogger('zc.buildout.patches')
@@ -85,6 +91,15 @@ def patch_PackageIndex():
         return
 
     PY_VERSION_INFO = TargetPython().py_version_info
+    # We did this import, but pip 24.1 no longer vendors the 'six' package.
+    # And at this point I don't want to add the 'six' dependency to Buildout.
+    # from pip._vendor import six (for six.text_type)
+    PY2 = sys.version_info[0] == 2
+    PY3 = sys.version_info[0] == 3
+    if PY3:
+        text_type = str
+    else:
+        text_type = unicode
 
     # method copied over from setuptools 46.1.3
     # Unchanged in setuptools 70.0.0.
@@ -117,7 +132,7 @@ def patch_PackageIndex():
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
-        if isinstance(f, urllib.error.HTTPError) and f.code == 401:
+        if isinstance(f, HTTPError) and f.code == 401:
             self.info("Authentication error: %s" % f.msg)
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
@@ -129,11 +144,11 @@ def patch_PackageIndex():
 
         # --- LOCAL CHANGES MADE HERE: ---
 
-        if isinstance(page, six.text_type):
+        if isinstance(page, text_type):
             page = page.encode('utf8')
             charset = 'utf8'
         else:
-            if isinstance(f, urllib.error.HTTPError):
+            if isinstance(f, HTTPError):
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
             else:
