@@ -166,6 +166,14 @@ def main(args):
     show(package)
     need_restart = need_restart or did_upgrade
 
+    # setuptools 71+ needs 'packaging' installed, otherwise when installing
+    # zc.buildout further on in this file, you may get an AttributeError:
+    # module 'importlib_metadata' has no attribute 'EntryPoints'
+    package = 'packaging'
+    did_upgrade = check_upgrade(package)
+    show(package)
+    need_restart = need_restart or did_upgrade
+
     package = 'setuptools'
     if args.setuptools_version:
         did_upgrade = install_pinned_version(package, args.setuptools_version)
@@ -244,7 +252,7 @@ def parse_args():
                         action='store')
     parser.add_argument('--setuptools-version', help='version of setuptools to install',
                         action='store')
-    parser.add_argument('--no-clean', 
+    parser.add_argument('--no-clean',
         help='not used in the code, find out if still needed in Makefile',
                         action='store_const', const='NO_CLEAN')
 
