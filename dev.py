@@ -166,10 +166,10 @@ def main(args):
     show(package)
     need_restart = need_restart or did_upgrade
 
-    # setuptools 71+ needs 'packaging' installed, otherwise when installing
+    # setuptools 71+ needs 'importlib-metadata' installed, otherwise when installing
     # zc.buildout further on in this file, you may get an AttributeError:
     # module 'importlib_metadata' has no attribute 'EntryPoints'
-    package = 'packaging'
+    package = 'importlib-metadata'
     did_upgrade = check_upgrade(package)
     show(package)
     need_restart = need_restart or did_upgrade
