@@ -233,7 +233,14 @@ def parse(fp, fpname, exp_globals=dict):
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
                     optval = optval.strip()
-                    cursect[optname] = optval
+                    if optname in cursect and optname[-1] in '+-':
+                        # Strip any trailing \n, which happens when we have multiple
+                        # +=/-= in one file
+                        cursect[optname] = cursect[optname].rstrip()
+                        if optval:
+                            cursect[optname] = "%s\n%s" % (cursect[optname], optval)
+                    else:
+                        cursect[optname] = optval
                     blockmode = not optval
                 elif not (optname or line.strip()):
                     # blank line after section start
