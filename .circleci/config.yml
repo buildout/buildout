@@ -57,7 +57,7 @@ jobs:
       python-version:
         type: string
     macos:
-      xcode: 12.5.1
+      xcode: 15.4.0
     environment:
       BUILD_TYPE: bare_machines
       PYTHON_VER: << parameters.python-version >>
@@ -109,4 +109,4 @@ workflows:
             - install-python-and-test-ubuntu-all
           matrix:
             parameters:
-              python-version: ["3.7", "3.8", "3.9"]
+              python-version: ["3.11"]
