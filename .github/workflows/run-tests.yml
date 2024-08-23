@@ -41,6 +41,7 @@ jobs:
 
   generate-scripts-py2:
     name: generate scripts - Python ${{ matrix.python-version }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
@@ -68,6 +69,7 @@ jobs:
 
   generate-scripts:
     name: generate scripts - Python ${{ matrix.python-version }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       max-parallel: 4
       matrix:
