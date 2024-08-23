@@ -97,13 +97,14 @@ workflows:
               python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
               # "centos_containers" fails installing anything with yum
               build-type: ["debian_containers"]
-      - test:
-          requires:
-            - test-containers
-          matrix:
-            parameters:
-              python-version: ["3.9"]
-              build-type: ["debian_sys_container"]
+      # debian_sys_container fails because pip is not allowed to install packages.
+      # - test:
+      #     requires:
+      #       - test-containers
+      #     matrix:
+      #       parameters:
+      #         python-version: ["3.9"]
+      #         build-type: ["debian_sys_container"]
       - install-python-and-test-macos:
           requires:
             - install-python-and-test-ubuntu-all
