@@ -63,7 +63,7 @@ jobs:
       PYTHON_VER: << parameters.python-version >>
     steps:
       - run:
-          command: brew uninstall python
+          command: brew uninstall python || true
       - run:
           command: brew install python@${PYTHON_VER}
       - run:
