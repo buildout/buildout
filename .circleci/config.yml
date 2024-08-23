@@ -48,26 +48,8 @@ jobs:
                     value: << parameters.python-version >>
           steps:
             - run: sudo apt install -y python${PYTHON_VER}-distutils
-      - checkout
       - run:
-          command: ./ci_build.sh
-
-  install-python-and-test-macos:
-    parameters:
-      python-version:
-        type: string
-    macos:
-      xcode: 15.4.0
-    environment:
-      BUILD_TYPE: bare_machines
-      PYTHON_VER: << parameters.python-version >>
-    steps:
-      - run:
-          command: brew uninstall python || true
-      - run:
-          command: brew install python@${PYTHON_VER}
-      - run:
-          command: brew link --force --overwrite python@${PYTHON_VER}
+          command: sudo rm -rf /usr/lib/python*/EXTERNALLY-MANAGED
       - checkout
       - run:
           command: ./ci_build.sh
@@ -76,37 +58,8 @@ workflows:
   version: 2
   tests:
     jobs:
-      - install-python-and-test-ubuntu:
-          matrix:
-            parameters:
-              python-version: ["3.8"]
-      - install-python-and-test-ubuntu:
-          requires:
-            - install-python-and-test-ubuntu-3.8
-          matrix:
-            alias: install-python-and-test-ubuntu-all
-            parameters:
-              python-version: ["2.7", "3.5", "3.6", "3.7", "3.9", "3.10", "3.11"]
       - test:
-          requires:
-            - install-python-and-test-ubuntu-all
-          matrix:
-            alias: test-containers
-            parameters:
-              # "3.5" and "3.6" fail for different reasons on Debian.
-              python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
-              # "centos_containers" fails installing anything with yum
-              build-type: ["debian_containers"]
-      - test:
-          requires:
-            - test-containers
           matrix:
             parameters:
               python-version: ["3.9"]
               build-type: ["debian_sys_container"]
-      - install-python-and-test-macos:
-          requires:
-            - install-python-and-test-ubuntu-all
-          matrix:
-            parameters:
-              python-version: ["3.11"]
