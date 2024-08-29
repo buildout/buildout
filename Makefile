@@ -7,7 +7,7 @@ PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
 VENV = $(HERE)/venvs/$(PYTHON_VER)
 BUILD_VARIABLES =
-PYTHONWARNINGS = "ignore:Setuptools is replacing distutils,ignore:setup.py install is deprecated,ignore:easy_install command is deprecated"
+PYTHONWARNINGS = "ignore:Setuptools is replacing distutils,ignore:setup.py install is deprecated,ignore:easy_install command is deprecated,ignore:SetuptoolsDeprecationWarning"
 
 ifeq ($(PIP_VERSION),)
 	PIP_ARG =
@@ -124,7 +124,7 @@ coverage: $(VENV)/bin/coverage $(VENV)/bin/test
 	COVERAGE_REPORT= RUN_COVERAGE= $(VENV)/bin/test $(testargs)
 
 test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
-	cd $(VENV) && bin/$(PYTHON_EXE) dev.py $(PIP_ARG) $(SETUPTOOLS_ARG) --no-clean
+	cd $(VENV) && PYTHONWARNINGS=$(PYTHONWARNINGS) bin/$(PYTHON_EXE) dev.py $(PIP_ARG) $(SETUPTOOLS_ARG) --no-clean
 	PYTHONWARNINGS=$(PYTHONWARNINGS) $(VENV)/bin/test -c -vvv $(testargs)
 
 all_pythons:

@@ -23,9 +23,9 @@ import distutils.errors
 import errno
 import glob
 import logging
+import operator
 import os
 import pkg_resources
-from pkg_resources import packaging
 import py_compile
 import re
 import setuptools.archive_util
@@ -40,6 +40,9 @@ import zc.buildout
 import zc.buildout.rmtree
 from zc.buildout import WINDOWS
 from zc.buildout import PY3
+from zc.buildout._compat import packaging_utils
+from zc.buildout._compat import specifiers
+from zc.buildout.utils import normalize_name
 import warnings
 import csv
 
@@ -122,7 +125,55 @@ class _NoWarn(object):
 
 _no_warn = _NoWarn()
 
-class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
+
+class EnvironmentMixin(object):
+    """Mixin class for Environment and PackageIndex for canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+    """
+    def __getitem__(self, project_name):
+        """Return a newest-to-oldest list of distributions for `project_name`
+
+        Uses case-insensitive `project_name` comparison, assuming all the
+        project's distributions use their project's name converted to all
+        lowercase as their key.
+
+        """
+        distribution_key = normalize_name(project_name)
+        return self._distmap.get(distribution_key, [])
+
+    def add(self, dist):
+        """Add `dist` if we ``can_add()`` it and it has not already been added
+        """
+        if self.can_add(dist) and dist.has_version():
+            # Instead of 'dist.key' we add a normalized version.
+            distribution_key = normalize_name(dist.key)
+            dists = self._distmap.setdefault(distribution_key, [])
+            if dist not in dists:
+                dists.append(dist)
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
+
+
+class Environment(EnvironmentMixin, pkg_resources.Environment):
+    """Buildout version of Environment with canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+    """
+
+
+class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
     No matter what is allow_hosts.
@@ -290,7 +341,7 @@ class Installer(object):
 
     def _make_env(self):
         full_path = self._get_dest_dist_paths() + self._path
-        env = pkg_resources.Environment(full_path)
+        env = Environment(full_path)
         # this needs to be called whenever self._env is modified (or we could
         # make an Environment subclass):
         self._eggify_env_dest_dists(env, self._dest)
@@ -430,7 +481,7 @@ class Installer(object):
             paths = call_pip_install(spec, tmp)
 
             dists = []
-            env = pkg_resources.Environment(paths)
+            env = Environment(paths)
             for project in env:
                 dists.extend(env[project])
 
@@ -546,7 +597,10 @@ class Installer(object):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
-        # requirement
+        # requirement.  If not, get a link to an available distribution that
+        # we could download.  The method returns a tuple with an existing
+        # dist or an available dist.  Either 'dist' is None, or 'avail'
+        # is None, or both are None.
         dist, avail = self._satisfied(requirement)
 
         if dist is None:
@@ -558,9 +612,8 @@ class Installer(object):
 
             logger.info(*__doing__)
 
-            # Retrieve the dist:
             if avail is None:
-                self._index.obtain(requirement)
+                # We have no existing dist, and none is available for download.
                 raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
@@ -709,7 +762,7 @@ class Installer(object):
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
-        env = pkg_resources.Environment(ws.entries)
+        env = Environment(ws.entries)
 
         while requirements:
             # Process dependencies breadth-first.
@@ -1642,7 +1695,7 @@ def _constrained_requirement(constraint, requirement):
             msg = ("The requirement (%r) is not allowed by your [versions] "
                    "constraint (%s)" % (str(requirement), version))
             raise IncompatibleConstraintError(msg)
-        specifier = packaging.specifiers.SpecifierSet(constraint)
+        specifier = specifiers.SpecifierSet(constraint)
     else:
         specifier = requirement.specifier & constraint
     constrained = copy.deepcopy(requirement)
@@ -1866,10 +1919,10 @@ def _get_matching_dist_in_location(dist, location):
     # may be normalized (e.g., 3.3 becomes 3.3.0 when downloaded from
     # PyPI.)
 
-    env = pkg_resources.Environment([location])
+    env = Environment([location])
     dists = [ d for project_name in env for d in env[project_name] ]
-    dist_infos = [ (d.project_name.lower(), d.parsed_version) for d in dists ]
-    if dist_infos == [(dist.project_name.lower(), dist.parsed_version)]:
+    dist_infos = [ (normalize_name(d.project_name), d.parsed_version) for d in dists ]
+    if dist_infos == [(normalize_name(dist.project_name), dist.parsed_version)]:
         return dists.pop()
 
 def _move_to_eggs_dir_and_compile(dist, dest):

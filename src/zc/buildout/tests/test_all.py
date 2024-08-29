@@ -2593,12 +2593,12 @@ def wont_downgrade_due_to_prefer_final():
     ... [buildout]
     ... parts =
     ... [versions]
-    ... zc.buildout = >.1
+    ... zc.buildout = >0.1
     ... ''')
     >>> [str(l.split('= >', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
     ...        if l.startswith('zc.buildout =')]
-    ['.1']
+    ['0.1']
 
     >>> write('buildout.cfg',
     ... '''
@@ -3432,6 +3432,7 @@ def test_suite():
                     zc.buildout.testing.setuptools_deprecated,
                     zc.buildout.testing.pkg_resources_deprecated,
                     zc.buildout.testing.warnings_warn,
+                    zc.buildout.testing.ignore_root_logger,
                     # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                     (re.compile(r'__buildout_signature__ = recipes-\S+'),
                      '__buildout_signature__ = recipes-SSSSSSSSSSS'),
@@ -3481,6 +3482,7 @@ def test_suite():
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                # (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
                #  ''),
@@ -3523,6 +3525,7 @@ def test_suite():
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
                 (re.compile('zc.buildout.buildout.MissingOption'),
                  'MissingOption'),
                 (re.compile(r'\S+buildout.py'), 'buildout.py'),
@@ -3550,6 +3553,7 @@ def test_suite():
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
                 normalize_bang,
                 normalize_S,
                 # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
@@ -3587,6 +3591,7 @@ def test_suite():
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
                 normalize_bang,
                 normalize_S,
                 (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
@@ -3615,6 +3620,7 @@ def test_suite():
               zc.buildout.testing.setuptools_deprecated,
               zc.buildout.testing.pkg_resources_deprecated,
               zc.buildout.testing.warnings_warn,
+              zc.buildout.testing.ignore_root_logger,
               (re.compile(' at -?0x[^>]+'), '<MEM ADDRESS>'),
               (re.compile('http://localhost:[0-9]{4,5}/'),
                'http://localhost/'),
@@ -3627,6 +3633,7 @@ def test_suite():
         doctest.DocTestSuite(
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
@@ -3642,6 +3649,12 @@ def test_suite():
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
+                zc.buildout.testing.ignore_native_namespace_warning_1,
+                zc.buildout.testing.ignore_native_namespace_warning_2,
+                zc.buildout.testing.ignore_native_namespace_warning_3,
+                zc.buildout.testing.ignore_native_namespace_warning_4,
+                zc.buildout.testing.ignore_native_namespace_warning_5,
                 normalize_bang,
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile(r"buildout: Running \S*setup.py"),
@@ -3686,6 +3699,7 @@ def test_suite():
             'windows.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -3697,6 +3711,7 @@ def test_suite():
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                (re.compile(r'__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
@@ -3754,6 +3769,7 @@ def test_suite():
                         zc.buildout.testing.setuptools_deprecated,
                         zc.buildout.testing.pkg_resources_deprecated,
                         zc.buildout.testing.warnings_warn,
+                        zc.buildout.testing.ignore_root_logger,
                         ]),
                     ) + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),

@@ -119,6 +119,14 @@ def main(args):
             return not was_up_to_date
         except subprocess.CalledProcessError as e:
             print(e.output)
+            if package == "pip":
+                # The upgrade can fail if pip is broken:
+                # ImportError: cannot import name 'html5lib' from 'pip._vendor'
+                # We tried to detect this above, but apparently that test
+                # is insufficient.  So try to install it for real again.
+                print("Upgrade of pip failed. Trying once more to install it.")
+                install_pip()
+                return True
             raise RuntimeError("Upgrade of %s failed." % package)
 
     def install_pinned_version(package, version):
@@ -163,6 +171,14 @@ def main(args):
         did_upgrade = install_pinned_version(package, args.pip_version)
     else:
         did_upgrade = check_upgrade(package)
+    show(package)
+    need_restart = need_restart or did_upgrade
+
+    # setuptools 71+ needs 'importlib-metadata' installed, otherwise when installing
+    # zc.buildout further on in this file, you may get an AttributeError:
+    # module 'importlib_metadata' has no attribute 'EntryPoints'
+    package = 'importlib-metadata'
+    did_upgrade = check_upgrade(package)
     show(package)
     need_restart = need_restart or did_upgrade
 
@@ -244,7 +260,7 @@ def parse_args():
                         action='store')
     parser.add_argument('--setuptools-version', help='version of setuptools to install',
                         action='store')
-    parser.add_argument('--no-clean', 
+    parser.add_argument('--no-clean',
         help='not used in the code, find out if still needed in Makefile',
                         action='store_const', const='NO_CLEAN')
 
