@@ -8,6 +8,28 @@ Change History
 
 .. towncrier release notes start
 
+3.1.0 (2024-08-29)
+------------------
+
+Breaking changes:
+
+
+- Drop support for Python 3.5.  It is unsupported, and testing it is too hard.
+  [maurits] (#35)
+
+
+Bug fixes:
+
+
+- Normalize package names when gathering packages.
+  This should help find all distributions for package ``name.space``, whether they are called ``name.space-1.0.tar.gz`` with a dot or ``name_space-1.0.tar.gz`` with an underscore (created with ``setuptools`` 69.3 or higher).
+  [maurits] (#647)
+- Fix ImportError: cannot import name ``packaging`` from ``pkg_resources`` with setuptools 70.
+  Done by adding a compatibility module that tries to import `packaging` from several places.
+  Fixes `issue 648 <https://github.com/buildout/buildout/issues/648>`_.
+  [maurits] (#648)
+
+
 3.0.1 (2022-11-08)
 ------------------
 

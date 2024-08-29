@@ -1,4 +1,0 @@
-Fix ImportError: cannot import name ``packaging`` from ``pkg_resources`` with setuptools 70.
-Done by adding a compatibility module that tries to import `packaging` from several places.
-Fixes `issue 648 <https://github.com/buildout/buildout/issues/648>`_.
-[maurits]
