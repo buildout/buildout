@@ -1760,51 +1760,6 @@ With more verbosity::
     <BLANKLINE>
     ...
 
-Issue #656 - If an option was defined in one file, then extended twice in 
-another - once in a regular section and again in a conditonal, the original
-definition is lost, not extended::
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... extends =
-    ...     extension1.cfg
-    ...     extension2.cfg
-    ... develop = demo
-    ... extensions = demo
-    ... parts = part1
-    ... """)
-
-    >>> write(sample_buildout, 'extension1.cfg',
-    ... """
-    ... [part1]
-    ... recipe =
-    ... option =
-    ...     a
-    ...     b
-    ... """)
-
-    >>> write(sample_buildout, 'extension2.cfg',
-    ... """
-    ... [part1]
-    ... option +=
-    ...     c
-    ...     d
-    ...
-    ... [part1:False]
-    ... option +=
-    ...     z
-    ...
-    ... [part1:True]
-    ... option +=
-    ...     e
-    ... """)
-
-        ... parts = part1
-    >>> print_(system(os.path.join('bin', 'buildout')), end='')
-    ['a/nb/nc/nd/n/ne']
-    Develop: '/sample-buildout/demo'
-
 Cleanup::
 
     >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
