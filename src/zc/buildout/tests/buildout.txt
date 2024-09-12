@@ -1530,6 +1530,14 @@ This is illustrated below; first we define a base configuration::
     ...     d3
     ...     d5
     ...
+    ... # Issue #641 - Properly handle options which are initially defined
+    ... # using += / -=
+    ... [part6]
+    ... option += e1
+    ...
+    ... [part7]
+    ... option -= f1
+    ...
     ... """)
 
 Extending this configuration, we can "adjust" the values set in the
@@ -1590,7 +1598,7 @@ extension that prints out the options::
     ... import sys
     ... def ext(buildout):
     ...     sys.stdout.write(str(
-    ...         [part['option'] for name, part in sorted(buildout.items())
+    ...         [part.get('option') for name, part in sorted(buildout.items())
     ...          if name.startswith('part')])+'\\n')
     ... """)
 
@@ -1629,7 +1637,7 @@ Verify option values::
     ... """)
 
     >>> print_(system(os.path.join('bin', 'buildout')), end='')
-    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2']
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2', 'e1', '']
     Develop: '/sample-buildout/demo'
 
 Annotated sections output shows which files are responsible for which
@@ -1682,6 +1690,16 @@ operations::
     [part5]
     option= h1 h2
         extension1.cfg
+    <BLANKLINE>
+    [part6]
+    option= e1
+        base.cfg
+    <BLANKLINE>
+    [part7]
+    option=
+        base.cfg
+    -=  IMPLICIT_VALUE
+    <BLANKLINE>
     [versions]
     zc.buildout= >=1.99
         DEFAULT_VALUE
@@ -1758,7 +1776,69 @@ With more verbosity::
        IN extension1.cfg
        SET VALUE = h1 h2
     <BLANKLINE>
+    [part6]
+    option= e1
+    <BLANKLINE>
+       IN base.cfg
+       SET VALUE = e1
+    <BLANKLINE>
+    <BLANKLINE>
+    [part7]
+    option=
+    <BLANKLINE>
+       IN IMPLICIT_VALUE
+       REMOVE VALUE = f1
+       IN base.cfg
+       SET VALUE = f1
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
     ...
+
+Issue #656 - If an option was defined in one file, then extended twice in
+another - once in a regular section and again in a conditonal, the original
+definition is lost, not extended::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends =
+    ...     extension1.cfg
+    ...     extension2.cfg
+    ... develop = demo
+    ... extensions = demo
+    ... parts = part1
+    ... """)
+
+    >>> write(sample_buildout, 'extension1.cfg',
+    ... """
+    ... [part1]
+    ... recipe =
+    ... option =
+    ...     a
+    ...     b
+    ... """)
+
+    >>> write(sample_buildout, 'extension2.cfg',
+    ... """
+    ... [part1]
+    ... option +=
+    ...     c
+    ...     d
+    ...
+    ... [part1:False]
+    ... option +=
+    ...     z
+    ...
+    ... [part1:True]
+    ... option +=
+    ...     e
+    ... """)
+
+        ... parts = part1
+    >>> print_(system(os.path.join('bin', 'buildout')), end='')
+    ['a/nb/nc/nd/ne']
+    Develop: '/sample-buildout/demo'
 
 Cleanup::
 
