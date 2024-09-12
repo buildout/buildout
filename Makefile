@@ -112,7 +112,7 @@ $(ALL_COPY):
 
 $(VENV)/bin/$(PYTHON_EXE): $(PYTHON_PATH)/bin/virtualenv
 	test -d "$(HERE)/venvs" || mkdir -p $(HERE)/venvs
-	$(PYTHON_PATH)/bin/virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
+	$(PYTHON_PATH)/bin/$(PYTHON_EXE) -m virtualenv -p $(PYTHON_PATH)/bin/$(PYTHON_EXE) $(VENV)
 
 $(VENV)/bin/test: $(VENV)/bin/$(PYTHON_EXE) $(ALL_COPY)
 	cd $(VENV) && bin/$(PYTHON_EXE) dev.py $(PIP_ARG) $(SETUPTOOLS_ARG) --no-clean
