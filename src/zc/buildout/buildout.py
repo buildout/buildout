@@ -1996,8 +1996,32 @@ def _update(in1, d2):
     for section in d2:
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
+        elif '<' not in d2[section].keys():
+            # Skip sections that extend in other sections (macros), as we don't
+            # have all the data (these will be processed when the section is
+            # extended)
+            temp = copy.deepcopy(d2[section])
+            # 641 - Process base definitions done with += and -=
+            for k, v in sorted(temp.items(), key=lambda item: item[0]):
+                # Process + before -, configparser resolves conflicts
+                if k[-1] == '+' and k[:-2] not in temp:
+                    # Turn += without a preceding = into an assignment
+                    temp[k[:-2]] = temp[k]
+                    del temp[k]
+                elif k[-1] == '-' and k[:-2] not in temp:
+                    # Turn -= without a preceding = into an empty assignment
+                    temp[k[:-2]] = temp[k]
+                    temp[k[:-2]].removeFromValue(
+                        temp[k[:-2]].value, "IMPLICIT_VALUE"
+                        )
+                    del temp[k]
+
+            # 656 - Handle multiple option assignments/extensions/removals
+            # in the same file, which can happen with conditional sections
+            d1[section] = _update_section({}, temp)
         else:
             d1[section] = copy.deepcopy(d2[section])
+
     return d1
 
 def _recipe(options):

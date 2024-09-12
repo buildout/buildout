@@ -231,7 +231,27 @@ def parse(fp, fpname, exp_globals=dict):
                     optname, optval = mo.group('name', 'value')
                     optname = optname.rstrip()
                     optval = optval.strip()
-                    cursect[optname] = optval
+                    # Handle multiple extensions of the same value in the
+                    # same file. This happens with conditional sections.
+                    opt_op = optname[-1]
+                    if opt_op not in '+-':
+                        opt_op = '='
+                    if optname in cursect and opt_op in '+-':
+                        # Strip any trailing \n, which happens when we have multiple
+                        # +=/-= in one file
+                        cursect[optname] = cursect[optname].rstrip()
+                        if optval:
+                            cursect[optname] = "%s\n%s" % (cursect[optname], optval)
+                    else:
+                        # If an assignment (=) comes after an extend (+=) /
+                        # remove (-=), it overrides and replaces the preceding
+                        # extend / remove
+                        if opt_op == '=':
+                            for suffix in '+-':
+                                tempname = "%s %s" % (optname, suffix)
+                                if tempname in cursect:
+                                    del cursect[tempname]
+                        cursect[optname] = optval
                     blockmode = not optval
                 elif not (optname or line.strip()):
                     # blank line after section start
