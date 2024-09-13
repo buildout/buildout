@@ -1426,7 +1426,13 @@ def _install_and_load(spec, group, entry, buildout):
             else:
                 dest = buildout_options['eggs-directory']
                 path = [buildout_options['develop-eggs-directory']]
-
+            
+            # Pin versions when processing the buildout section
+            versions_section_name = buildout['buildout'].get('versions', 'versions')
+            versions = buildout.get(versions_section_name, {})
+            zc.buildout.easy_install.allow_picked_versions(
+                bool_option(buildout['buildout'], 'allow-picked-versions')
+                )
             zc.buildout.easy_install.install(
                 [spec], dest,
                 links=buildout._links,
@@ -1434,7 +1440,8 @@ def _install_and_load(spec, group, entry, buildout):
                 path=path,
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
-                allow_hosts=buildout._allow_hosts
+                allow_hosts=buildout._allow_hosts,
+                versions=versions,
                 )
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
