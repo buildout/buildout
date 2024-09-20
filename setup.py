@@ -59,6 +59,7 @@ setup(
               'zc.recipe.deployment']),
     zip_safe=False,
     classifiers = [
+       'Development Status :: 6 - Mature',
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
