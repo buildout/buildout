@@ -1,4 +1,0 @@
-Fix: extends with increments could result in missing values.
-Buildout processes them in the correct order now and combines them correctly.
-Fixes `issue 176 <https://github.com/buildout/buildout/issues/176>`_ and `issue 629 <https://github.com/buildout/buildout/issues/629>`_.
-[distributist]

@@ -1,3 +1,0 @@
-Fix: a variable defined with initial ``+=`` was undefined and would lead to a corrupted ``.installed.cfg``.
-Fixes `issue 641 <https://github.com/buildout/buildout/issues/641>`_.
-[distributist]

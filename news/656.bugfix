@@ -1,3 +1,0 @@
-Fix: Multiple ``+=`` or ``/-=`` in one file would lose assignment in a previous file.
-Fixes `issue 656 <https://github.com/buildout/buildout/issues/656>`_.
-[distributist]

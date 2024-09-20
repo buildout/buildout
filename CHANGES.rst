@@ -8,6 +8,24 @@ Change History
 
 .. towncrier release notes start
 
+3.1.1 (2024-09-20)
+------------------
+
+Bug fixes:
+
+
+- Fix: a variable defined with initial ``+=`` was undefined and would lead to a corrupted ``.installed.cfg``.
+  Fixes `issue 641 <https://github.com/buildout/buildout/issues/641>`_.
+  [distributist] (#641)
+- Fix: extends with increments could result in missing values.
+  Buildout processes them in the correct order now and combines them correctly.
+  Fixes `issue 176 <https://github.com/buildout/buildout/issues/176>`_ and `issue 629 <https://github.com/buildout/buildout/issues/629>`_.
+  [distributist] (#644)
+- Fix: Multiple ``+=`` or ``/-=`` in one file would lose assignment in a previous file.
+  Fixes `issue 656 <https://github.com/buildout/buildout/issues/656>`_.
+  [distributist] (#656)
+
+
 3.1.0 (2024-08-29)
 ------------------
 
