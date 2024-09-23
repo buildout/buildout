@@ -1900,6 +1900,17 @@ def _open(
             result = _update(user_defaults, result)
             user_defaults = {}
 
+    optional_extends = options.pop('optional-extends', None)
+    if optional_extends:
+        optional_extends = optional_extends.value.split()
+        for fname in optional_extends:
+            if not os.path.exists(fname):
+                continue
+            next_extend, user_defaults = _open(
+                base, fname, seen, download_options, override,
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
+
     eresults.append(result)
     seen.pop()
 

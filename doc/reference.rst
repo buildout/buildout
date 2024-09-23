@@ -461,6 +461,14 @@ offline, default: 'false'
   distributions don't satisfy requirements, the the buildout will
   error in offline mode.
 
+optional-extends
+  Same as the :ref:`'extends' option <extends_option>`, but for optional files.
+  The names must be file paths, not URLs.  If the path does not exist,
+  it is silently ignored.
+
+  This is useful for optionally loading a ``local.cfg`` or ``custom.cfg``
+  with options specific for the developer or the server.
+
 parts-directory, default: 'parts'
   The directory where generated part artifacts should be installed. If this
   is a relative path, it's evaluated relative to the buildout
