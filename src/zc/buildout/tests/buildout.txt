@@ -2018,6 +2018,67 @@ There are several things to note about this example:
     ... op = buildout
     ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
 
+
+Optional extends
+----------------
+
+With ``optional-extends`` you can specify an extends file that is only loaded when it exists.
+The main idea is that a Buildout project in a shared Git repository can specify an ``optional-extends`` line with ``local.cfg`` or ``custom.cfg``.
+This optional file would be added to the files ignored by Git, and would only exist on individual computers.
+Any developer who wants this, can then create such a file and for example use this to always add the ``pdbpp`` egg to one of the Buildout parts.
+Or they can add a part, or other options specific to their system.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg
+    ... optional-extends = optional.cfg
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """)
+    >>> print_(system(buildout), end='')
+    optional-extends file not found: optional.cfg
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b1 2
+    recipe recipes:debug
+
+Now add the optional config:
+
+    >>> write('optional.cfg',
+    ... """
+    ... [debug]
+    ... op2 = optional2 2
+    ... """)
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 optional2 2
+    recipe recipes:debug
+
+Restore the previous ``buildout.cfg`` and remove the new file,
+so we do not interfere with existing tests::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg %(b3)s
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
+    >>> remove(sample_buildout, 'optional.cfg')
+
+
 Loading Configuration from URLs
 -------------------------------
 
