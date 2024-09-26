@@ -1905,6 +1905,7 @@ def _open(
         optional_extends = optional_extends.value.split()
         for fname in optional_extends:
             if not os.path.exists(fname):
+                print("optional-extends file not found: %s" % fname)
                 continue
             next_extend, user_defaults = _open(
                 base, fname, seen, download_options, override,

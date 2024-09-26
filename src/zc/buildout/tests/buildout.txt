@@ -2038,6 +2038,7 @@ Or they can add a part, or other options specific to their system.
     ... op = buildout
     ... """)
     >>> print_(system(buildout), end='')
+    optional-extends file not found: optional.cfg
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
