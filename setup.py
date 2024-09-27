@@ -47,7 +47,7 @@ setup(
     python_requires = '>=3.8',
     namespace_packages = ['zc'],
     install_requires = [
-        'setuptools>=8.0',
+        'setuptools>=38.2.3',
         'packaging',
         'pip',
         'wheel',

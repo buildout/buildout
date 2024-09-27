@@ -40,20 +40,12 @@ import zc.buildout
 import zc.buildout.rmtree
 from packaging import specifiers
 from packaging import utils as packaging_utils
+from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
 
-try:
-    from setuptools.wheel import Wheel  # This is the important import
-    from setuptools import __version__ as setuptools_version
-    # Now we need to check if we have at least 38.2.3 for namespace support.
-    SETUPTOOLS_SUPPORTS_WHEELS = (
-        pkg_resources.parse_version(setuptools_version) >=
-        pkg_resources.parse_version('38.2.3'))
-except ImportError:
-    SETUPTOOLS_SUPPORTS_WHEELS = False
 
 
 BIN_SCRIPTS = 'Scripts' if WINDOWS else 'bin'
@@ -1878,18 +1870,9 @@ def unpack_egg(location, dest):
     setuptools.archive_util.unpack_archive(location, dest)
 
 
-WHEEL_WARNING = """
-*.whl file detected (%s), you'll need setuptools >= 38.2.3 for that
-or an extension like buildout.wheel > 0.2.0.
-"""
-
-
 def unpack_wheel(location, dest):
-    if SETUPTOOLS_SUPPORTS_WHEELS:
-        wheel = Wheel(location)
-        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
-    else:
-        raise zc.buildout.UserError(WHEEL_WARNING % location)
+    wheel = Wheel(location)
+    wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
 
 
 UNPACKERS = {
