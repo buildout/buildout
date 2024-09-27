@@ -743,13 +743,9 @@ If invoked with a script name and arguments, it will run that script, instead.
     ['ascript', 'a', 'b', 'c']
     ('__main__', 'ascript', 'demo doc')
 
-For Python 2.5 and higher, you can also use the -m option to run a
-module:
+You can also use the -m option to run a module:
 
-    >>> if sys.version_info < (2, 5):
-    ...    print ('usage: pdb.py blah blah blah')
-    ... else:
-    ...    print_(system(join(bin, 'py')+' -m pdb'), end='')
+    >>> print_(system(join(bin, 'py')+' -m pdb'), end='')
     ... # doctest: +ELLIPSIS
     usage: pdb.py ...
 

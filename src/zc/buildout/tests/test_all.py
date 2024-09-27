@@ -2009,77 +2009,78 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     1 1
     """
 
-if sys.version_info > (2, 4):
-    def test_exit_codes():
-        """
-        >>> import subprocess
-        >>> def call(s):
-        ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
-        ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        ...     p.stdin.close()
-        ...     print_(p.stdout.read().decode())
-        ...     print_('Exit:', bool(p.wait()))
-        ...     p.stdout.close()
 
-        >>> call(buildout)
-        <BLANKLINE>
-        Exit: False
+def test_exit_codes():
+    """
+    >>> import subprocess
+    >>> def call(s):
+    ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
+    ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    ...     p.stdin.close()
+    ...     print_(p.stdout.read().decode())
+    ...     print_('Exit:', bool(p.wait()))
+    ...     p.stdout.close()
 
-        >>> write('buildout.cfg',
-        ... '''
-        ... [buildout]
-        ... parts = x
-        ... ''')
+    >>> call(buildout)
+    <BLANKLINE>
+    Exit: False
 
-        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
-        While:
-          Installing.
-          Getting section x.
-        Error: The referenced section, 'x', was not defined.
-        <BLANKLINE>
-        Exit: True
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... ''')
 
-        >>> write('setup.py',
-        ... '''
-        ... from setuptools import setup
-        ... setup(name='zc.buildout.testexit',
-        ...       py_modules=['testexitrecipe'],
-        ...       entry_points={'zc.buildout': ['default = testexitrecipe:x']})
-        ... ''')
+    >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
+    While:
+        Installing.
+        Getting section x.
+    Error: The referenced section, 'x', was not defined.
+    <BLANKLINE>
+    Exit: True
 
-        >>> write('testexitrecipe.py',
-        ... '''
-        ... x y
-        ... ''')
+    >>> write('setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='zc.buildout.testexit',
+    ...       py_modules=['testexitrecipe'],
+    ...       entry_points={'zc.buildout': ['default = testexitrecipe:x']})
+    ... ''')
 
-        >>> write('buildout.cfg',
-        ... '''
-        ... [buildout]
-        ... parts = x
-        ... develop = .
-        ...
-        ... [x]
-        ... recipe = zc.buildout.testexit
-        ... ''')
+    >>> write('testexitrecipe.py',
+    ... '''
+    ... x y
+    ... ''')
 
-        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-        Develop: '/sample-buildout/.'
-        While:
-          Installing.
-          Getting section x.
-          Initializing section x.
-          Loading zc.buildout recipe entry zc.buildout.testexit:default.
-        <BLANKLINE>
-        An internal error occurred due to a bug in either zc.buildout or in a
-        recipe being used:
-        Traceback (most recent call last):
-        ...
-             x y
-        ...^...
-         SyntaxError...
-        <BLANKLINE>
-        Exit: True
-        """
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... develop = .
+    ...
+    ... [x]
+    ... recipe = zc.buildout.testexit
+    ... ''')
+
+    >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    Develop: '/sample-buildout/.'
+    While:
+        Installing.
+        Getting section x.
+        Initializing section x.
+        Loading zc.buildout recipe entry zc.buildout.testexit:default.
+    <BLANKLINE>
+    An internal error occurred due to a bug in either zc.buildout or in a
+    recipe being used:
+    Traceback (most recent call last):
+    ...
+            x y
+    ...^...
+        SyntaxError...
+    <BLANKLINE>
+    Exit: True
+    """
+
 
 def bug_59270_recipes_always_start_in_buildout_dir():
     r"""
@@ -2706,10 +2707,7 @@ def pyc_and_pyo_files_have_correct_paths():
     >>> write('t.py',
     ... r'''
     ... import eggrecipedemo, eggrecipedemoneeded, sys
-    ... if sys.version_info > (3,):
-    ...     code = lambda f: f.__code__
-    ... else:
-    ...     code = lambda f: f.func_code
+    ... code = lambda f: f.__code__
     ... sys.stdout.write(code(eggrecipedemo.main).co_filename+'\n')
     ... sys.stdout.write(code(eggrecipedemoneeded.f).co_filename+'\n')
     ... ''')
@@ -3598,13 +3596,7 @@ def test_suite():
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
                  '\\1-  \\2\n'),
-               ]+(sys.version_info < (2, 5) and [
-                  (re.compile('.*No module named runpy.*', re.S), ''),
-                  (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
-                  (re.compile('.*Error: what does not exist.*', re.S), ''),
-                  ] or [])),
-
-
+               ]),
             ),
 
         doctest.DocFileSuite(

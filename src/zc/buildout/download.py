@@ -13,42 +13,11 @@
 ##############################################################################
 """Buildout download infrastructure"""
 
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
-
-try:
-    # Python 3
-    from urllib.request import urlretrieve
-    from urllib.parse import urlparse
-except ImportError:
-    # Python 2
-    import base64
-    from urlparse import urlparse
-    from urlparse import urlunparse
-    import urllib2
-
-    def urlretrieve(url, tmp_path):
-        """Work around Python issue 24599 including basic auth support
-        """
-        scheme, netloc, path, params, query, frag = urlparse(url)
-        auth, host = urllib2.splituser(netloc)
-        if auth:
-            url = urlunparse((scheme, host, path, params, query, frag))
-            req = urllib2.Request(url)
-            base64string = base64.encodestring(auth)[:-1]
-            basic = "Basic " + base64string
-            req.add_header("Authorization", basic)
-        else:
-            req = urllib2.Request(url)
-        url_obj = urllib2.urlopen(req)
-        with open(tmp_path, 'wb') as fp:
-            fp.write(url_obj.read())
-        return tmp_path, url_obj.info()
-
-
+from hashlib import md5
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
 from zc.buildout.easy_install import realpath
+
 import logging
 import os
 import os.path

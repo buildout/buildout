@@ -573,12 +573,8 @@ normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')
 
-if sys.version_info > (2, ):
-    normalize___pycache__ = (
-        re.compile('(\n?)d  __pycache__\n'), '\\1')
-else:
-    normalize___pycache__ = (
-        re.compile(r'(\n?)-  \S+\.pyc\n'), '\\1')
+normalize___pycache__ = (
+    re.compile('(\n?)d  __pycache__\n'), '\\1')
 
 normalize_egg_py = (
     re.compile(r'-py\d[.]\d+(-\S+)?\.egg'),

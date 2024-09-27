@@ -71,9 +71,7 @@ the local file itself:
 
 We can also have the downloaded file's MD5 sum checked:
 
->>> try: from hashlib import md5
-... except ImportError: from md5 import new as md5
-
+>>> from hashlib import md5
 >>> path, is_temp = download(server_url+'foo.txt',
 ...                          md5('This is a foo text.'.encode()).hexdigest())
 >>> is_temp

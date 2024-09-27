@@ -133,10 +133,7 @@ Let's make sure the generated ``buildout`` script uses it::
 For a completely offline install we want to avoid downloading ``ez_setup.py``,
 specify the setuptools version, and to reuse the setuptools zipfile::
 
-    >>> try:
-    ...     from urllib.request import urlopen
-    ... except ImportError:
-    ...     from urllib2 import urlopen
+    >>> from urllib.request import urlopen
     >>> ez_setup = urlopen('https://bootstrap.pypa.io/ez_setup.py').read()
     >>> write('ez_setup.py',
     ... '''print("Using local ez_setup.py")

@@ -39,7 +39,6 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 from zc.buildout import WINDOWS
-from zc.buildout import PY3
 from zc.buildout._compat import packaging_utils
 from zc.buildout._compat import specifiers
 from zc.buildout.utils import normalize_name
@@ -1557,11 +1556,6 @@ def _pyscript(path, dest, rsetup, initialization=''):
     generated.append(dest)
     return generated
 
-if sys.version_info[0] < 3:
-    universal_newline_option = ", 'U'"
-else:
-    universal_newline_option = ''
-
 py_script_template = script_header + '''\
 
 %%(relative_paths_setup)s
@@ -1591,13 +1585,13 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        with open(__file__%s) as __file__f:
+        with open(__file__) as __file__f:
             exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
     __import__("code").interact(banner="", local=globals())
-''' % universal_newline_option
+'''
 
 runsetup_template = """
 import sys
@@ -1611,9 +1605,9 @@ __file__ = %%(__file__)r
 os.chdir(%%(setupdir)r)
 sys.argv[0] = %%(setup)r
 
-with open(%%(setup)r%s) as f:
+with open(%%(setup)r) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
-""" % (setuptools_path, universal_newline_option)
+""" % setuptools_path
 
 
 class VersionConflict(zc.buildout.UserError):
@@ -1855,12 +1849,8 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
     if os.path.isfile(record_file):
-        if PY3:
-            with open(record_file, newline='') as f:
-                all_files = [row[0] for row in csv.reader(f)]
-        else:
-            with open(record_file, 'rb') as f:
-                all_files = [row[0] for row in csv.reader(f)]
+        with open(record_file, newline='') as f:
+            all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over
     for entry in all_files:
