@@ -1426,7 +1426,7 @@ def _install_and_load(spec, group, entry, buildout):
             else:
                 dest = buildout_options['eggs-directory']
                 path = [buildout_options['develop-eggs-directory']]
-            
+
             # Pin versions when processing the buildout section
             versions_section_name = buildout['buildout'].get('versions', 'versions')
             versions = buildout.get(versions_section_name, {})

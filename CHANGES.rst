@@ -169,7 +169,7 @@ Bug fixes:
 
 
 - Fix support of ``pip>=21.1`` (#567)
-- Fix confusion when using multiple Python versions and 
+- Fix confusion when using multiple Python versions and
   installing packages with C extensions
   without proper binary wheel available. (#574)
 
