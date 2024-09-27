@@ -211,7 +211,7 @@ def patch_interpret_distro_name():
     ''mauritstest.namespacepackage', instead of yielding multiple distros.
     """
     try:
-        from zc.buildout._compat import version
+        from packaging import version
         from pkg_resources import Distribution
         from pkg_resources import SOURCE_DIST
 

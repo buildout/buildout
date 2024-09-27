@@ -38,9 +38,9 @@ import sys
 import tempfile
 import zc.buildout
 import zc.buildout.rmtree
+from packaging import specifiers
+from packaging import utils as packaging_utils
 from zc.buildout import WINDOWS
-from zc.buildout._compat import packaging_utils
-from zc.buildout._compat import specifiers
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
