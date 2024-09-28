@@ -75,16 +75,6 @@ if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
 
-# Make sure we're not being run with an older bootstrap.py that gives us
-# setuptools instead of setuptools
-has_distribute = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('distribute')) is not None
-has_setuptools = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('setuptools')) is not None
-if has_distribute and not has_setuptools:
-    sys.exit("zc.buildout 3 needs setuptools, not distribute."
-             "Did you properly install with pip in a virtualenv ?")
-
 # Include buildout and setuptools eggs in paths.  We get this
 # initially from the entire working set.  Later, we'll use the install
 # function to narrow to just the buildout and setuptools paths.
@@ -1448,11 +1438,7 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
-        try:
-            new_data = setuptools.command.easy_install.get_win_launcher('cli')
-        except AttributeError:
-            # fall back for compatibility with older Distribute versions
-            new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = setuptools.command.easy_install.get_win_launcher('cli')
 
         if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
