@@ -3402,12 +3402,6 @@ def bootstrapSetup(test):
     test.globs['bootstrap_py'] = bootstrap_py
 
 
-normalize_S = (
-    re.compile(r'#!/usr/local/bin/python2.7 -S'),
-    '#!/usr/local/bin/python2.7',
-    )
-
-
 def test_suite():
 
     test_suite = [
@@ -3424,8 +3418,6 @@ def test_suite():
                     zc.buildout.testing.normalize_egg_py,
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.adding_find_link,
-                    zc.buildout.testing.python27_warning,
-                    zc.buildout.testing.python27_warning_2,
                     zc.buildout.testing.easyinstall_deprecated,
                     zc.buildout.testing.setuptools_deprecated,
                     zc.buildout.testing.pkg_resources_deprecated,
@@ -3553,8 +3545,6 @@ def test_suite():
                 zc.buildout.testing.warnings_warn,
                 zc.buildout.testing.ignore_root_logger,
                 normalize_bang,
-                normalize_S,
-                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                 (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
                  ''),
                 (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
@@ -3583,15 +3573,12 @@ def test_suite():
                 zc.buildout.testing.normalize_open_in_generated_script,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.not_found,
-                zc.buildout.testing.python27_warning,
-                zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
                 zc.buildout.testing.ignore_root_logger,
                 normalize_bang,
-                normalize_S,
                 (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
@@ -3635,8 +3622,6 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 zc.buildout.testing.adding_find_link,
-                zc.buildout.testing.python27_warning,
-                zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
