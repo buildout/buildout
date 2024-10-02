@@ -51,8 +51,10 @@ import zc.buildout.download
 PY3 = sys.version_info[0] == 3
 if PY3:
     text_type = str
+    string_type = str
 else:
     text_type = unicode
+    string_type = basestring
 
 try:
     hashed = md5_original(b'test')
@@ -836,7 +838,7 @@ class Buildout(DictMixin):
                 if installed_files is None:
                     installed_files = old_installed_files
                 else:
-                    if isinstance(installed_files, str):
+                    if isinstance(installed_files, string_type):
                         installed_files = [installed_files]
                     else:
                         installed_files = list(installed_files)
@@ -860,7 +862,7 @@ class Buildout(DictMixin):
                         "iterable os paths should be returned.",
                         part)
                     installed_files = ()
-                elif isinstance(installed_files, str):
+                elif isinstance(installed_files, string_type):
                     installed_files = [installed_files]
                 else:
                     installed_files = list(installed_files)
@@ -1053,7 +1055,7 @@ class Buildout(DictMixin):
         installed = recipe_class(self, part, options).install()
         if installed is None:
             installed = []
-        elif isinstance(installed, str):
+        elif isinstance(installed, string_type):
             installed = [installed]
         base = self._buildout_path('')
         installed = [d.startswith(base) and d[len(base):] or d
@@ -1618,7 +1620,7 @@ class Options(DictMixin):
         return v
 
     def __setitem__(self, option, value):
-        if not isinstance(value, str):
+        if not isinstance(value, string_type):
             raise TypeError('Option values must be strings', value)
         self._data[option] = value
 
@@ -2070,7 +2072,7 @@ def _doing():
     if doing:
         sys.stderr.write('While:\n')
         for d in doing:
-            if not isinstance(d, str):
+            if not isinstance(d, string_type):
                 d = d[0] % d[1:]
             sys.stderr.write('  %s\n' % d)
 
