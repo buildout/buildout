@@ -989,6 +989,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     -  foox-0.0.0-py2.4.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
