@@ -749,7 +749,7 @@ You can also use the -m option to run a module:
     ... # doctest: +ELLIPSIS
     usage: pdb.py ...
 
-    >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')
+    >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')  # if you have pdbpp installed, this may fail.
     Error: what does not exist
 
 An interpreter can also be generated without other eggs:
