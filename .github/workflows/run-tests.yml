@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
         python-version: ["3.10"]
-        setuptools-version: ["49.0.0", "60.10.0", "65.7.0", "69.5.1", "74.1.3", "75.1.0"]
+        setuptools-version: ["49.0.0", "59.8.0", "65.7.0", "69.5.1", "74.1.3", "75.1.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
