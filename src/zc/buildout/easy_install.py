@@ -1536,13 +1536,13 @@ def _pyscript(path, dest, rsetup, initialization=''):
 
 py_script_template = script_header + '''\
 
-%%(relative_paths_setup)s
+%(relative_paths_setup)s
 import sys
 
 sys.path[0:0] = [
-  %%(path)s
+  %(path)s
   ]
-%%(initialization)s
+%(initialization)s
 
 _interactive = True
 if len(sys.argv) > 1:
