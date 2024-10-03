@@ -17,44 +17,55 @@ When CI fails, please try to fix it or ask for help.
 Developing buildout itself and running the test suite
 =====================================================
 
-When you're developing buildout itself, you need to know two things:
+When you're developing buildout itself, you need to know a few things:
 
-- Use a clean Python *without* setuptools installed.  Otherwise many tests
-  will find your already-installed setuptools, leading to test differences
-  when setuptools' presence is explicitly tested.
+- The presence of ``~/.buildout/default.cfg`` may interfere with the tests.
+  If you suspect this, you may want to temporarily rename it so that it does
+  not get in the way.
 
-- Also the presence of ``~/.buildout/default.cfg`` may interfere with the
-  tests so you may want to temporarily rename it so that it does not get in
-  the way.
+- Similarly, if you manually run ``bin/buildout`` you can run it with ``-U``.
+  This ignores user (default) settings which can interfere with using the
+  development version.
 
-- Bootstrap with with ``python dev.py``.
+For your convenience we provide a Makefile to create a Python virtual
+environment in the ``venvs`` subdirectory of the buildout checkout.
+You can have several venvs next to each other, but easiest is to use only one:
+the venvs are quick to recreate.
 
-- Run buildout with -U, to ignore user (default) settings which can interfere
-  with using the development version
+To start, simply run ``make``.
+This uses ``python3``, so you get a venv with whatever your default ``python3`` version is.
 
-For your convenience we provide a Makefile to build various Python versions
-in subdirectories of the buildout checkout. To use these and run the tests
-with them do::
+* It creates a venv named after this Python, for example ``venvs/python3.10``.
+* This has our dependencies: ``pip``, ``setuptools``, ``wheel``, ``packaging``.
+  Plus ``build``, which may become a dependency, and that we need for the next step.
+* Using this venv, it creates a ``bin/buildout`` script in the main repository directory.
+* It then calls ``bin/buildout`` and this creates a ``bin/test`` script.
+* Then it calls ``bin/test`` to run the tests.
 
-    make PYTHON_VER=2.7 build
-    make PYTHON_VER=2.7 test
+You can call ``make clean`` to remove everything that was created.
 
-    make PYTHON_VER=3.9 build
-    make PYTHON_VER=3.9 test
+You can use environment variables to influence used versions:
 
-The actual Python compilation is only done once and then re-used. So on
-subsequent builds, only the development buildout itself needs to be redone.
+* Python, for example: ``PYTHON_VERSION=3.12``
+* pip, for example: ``PIP_VERSION=24.2``
+* setuptools, for example: ``SETUPTOOLS_VERSION=70.0.0``
+* Use ``PIP_ARGS`` for extra arguments.
+  The default is ``PIP_ARGS=-U``, so upgrade packages to the latest available version.
+
+So you can use this on the command line::
+
+    PYTHON_VERSION=3.12 PIP_VERSION=24.2 SETUPTOOLS_VERSION=70.0.0 make
 
 
-Releases: zc.buildout, zc.recipe.egg and bootstrap.py
-=====================================================
+Releases: zc.buildout, zc.recipe.egg
+====================================
 
 Buildout consists of two Python packages that are released separately:
 zc.buildout and zc.recipe.egg. zc.recipe.egg is changed much less often than
 zc.buildout.
 
 zc.buildout's setup.py and changelog is in the same directory as this
-``DEVELOPERS.txt`` and the code is in ``src/zc/buildout``.
+``CONTRIBUTING.txt`` and the code is in ``src/zc/buildout``.
 
 zc.recipe.egg, including setup.py and a separate changelog, is in the
 ``zc.recipe.egg_`` subdirectory.
@@ -62,11 +73,10 @@ zc.recipe.egg, including setup.py and a separate changelog, is in the
 When releasing, make sure you also build a (universal) wheel in addition to
 the regular .tar.gz::
 
-    $ python setup.py sdist bdist_wheel upload
+    $ ./venvs/python3.10/bin/python -m build .
 
 You can also use zest.releaser to release it. If you've installed it as
-``zest.releaser[recommended]`` it builds the wheel for you and uploads it via
-https (via twine).
+``zest.releaser[recommended]`` it builds the wheel for you and uploads using ``twine``.
 
 
 Roadmap
@@ -74,8 +84,8 @@ Roadmap
 
 Currently, there are two active branches:
 
-- master (development branch for the upcoming version 3)
-- 2.x (development branch for the current version 2)
+- master (development branch for the upcoming version 4)
+- 3.x (development branch for the current version 3)
 
 Active feature development and bug fixes only happen on the **master** branch.
 
@@ -84,10 +94,11 @@ Supported Python Versions
 =========================
 
 We align the support of Python versions with
-`Zope <https://www.zope.org/developer/roadmap.html>`_ and
+`Zope <https://www.zope.dev/releases.html>`_ and
 `Plone <https://plone.org/download/release-schedule>`_ development.
 
-This means, currently there are no plans to drop Python 2.7 support.
+This means, the upcoming version 4 will support Python 3.8-3.12, and hopefully in the future 3.13.
+If you need support for Python 2.7 or older Python 3 versions, use version 3.
 
 
 Licensing
