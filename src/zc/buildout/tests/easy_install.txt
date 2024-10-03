@@ -1527,8 +1527,8 @@ Environment markers
     Specifications can include PEP 496 environment markers.
 
     >>> _ = get(link_server + 'disable_server_logging')
-    >>> spec = ["demo ==0.1; python_version < '3.9'",
-    ... "demo == 0.2; python_version >= '3.9'"]
+    >>> spec = ["demo ==0.1; python_version < '3.10'",
+    ... "demo == 0.2; python_version >= '3.10'"]
     >>> ws = zc.buildout.easy_install.install(
     ... spec, dest, links=[link_server], index=link_server+'index/')
     >>> demo_version = None
@@ -1537,12 +1537,12 @@ Environment markers
     ...         demo_version = egg.version
     >>> demo_version is not None
     True
-    >>> if (sys.version_info.minor < 9):
+    >>> if (sys.version_info.minor < 10):
     ...     demo_version
     ... else:
     ...     '0.1'
     '0.1'
-    >>> if (sys.version_info.minor >= 9):
+    >>> if (sys.version_info.minor >= 10):
     ...     demo_version
     ... else:
     ...     '0.2'
