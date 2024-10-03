@@ -1620,7 +1620,7 @@ def internal_errors():
     recipe being used:
     Traceback (most recent call last):
     ...
-    NameError: global name 'os' is not defined
+    NameError: global name 'os' is not defined...
     """
 
 def whine_about_unused_options():
