@@ -3,5 +3,6 @@ sandbox/bin/python:
 	virtualenv sandbox
 
 sandbox/bin/buildout: sandbox/bin/python
+	sandbox/bin/python -mpip install setuptools
 	sandbox/bin/python setup.py develop
 
