@@ -23,7 +23,11 @@ MARKER
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
 
-PYTHON="python$PYTHON_VERSION"
+case "$OSTYPE" in
+  msys*)    PYTHON="python${PYTHON_VERSION}.exe" ;;
+  cygwin*)  PYTHON="python${PYTHON_VERSION}.exe" ;;
+  *)        PYTHON="python$PYTHON_VERSION" ;;
+esac
 echo
 echo "Python version:"
 $PYTHON --version
