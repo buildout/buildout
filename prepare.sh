@@ -23,12 +23,7 @@ MARKER
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
 
-if test "${PYTHON_VERSION::2}" == "py"; then
-    # PYTHON_VERSION is not a number, but for example python3.12.
-    PYTHON="$PYTHON_VERSION"
-else
-    PYTHON="python$PYTHON_VERSION"
-fi
+PYTHON="python$PYTHON_VERSION"
 echo
 echo "Python version:"
 $PYTHON --version
