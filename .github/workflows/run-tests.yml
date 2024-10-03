@@ -25,7 +25,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip' # caching pip dependencies
     - name: Cache eggs
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: eggs
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
@@ -56,7 +56,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip' # caching pip dependencies
     - name: Cache eggs
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: eggs
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
@@ -88,7 +88,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip' # caching pip dependencies
     - name: Cache eggs
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: eggs
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
@@ -119,7 +119,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip' # caching pip dependencies
     - name: Cache eggs
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: eggs
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
