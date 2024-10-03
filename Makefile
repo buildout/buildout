@@ -8,7 +8,7 @@ bin/test: bin/buildout buildout.cfg
 	bin/buildout
 
 test: bin/test
-	bin/test
+	PYTHONWARNINGS=ignore bin/test
 
 clean:
 	rm -rf venvs .Python .installed.cfg bin build dist lib include parts pip-selfcheck.json develop-eggs src/*.egg-info zc.recipe.egg_/src/*.egg-info
