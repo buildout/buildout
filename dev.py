@@ -6,6 +6,7 @@ from pathlib import Path
 import build
 import os
 import pkg_resources
+import platform
 import sys
 
 
@@ -30,10 +31,15 @@ zc.buildout.easy_install.scripts(
     ['zc.buildout'], pkg_resources.working_set, sys.executable, 'bin'
 )
 
-buildout_script = Path("bin/buildout")
+if platform.system() == "Windows":
+    buildout_script = Path("bin/buildout.exe")
+else:
+    buildout_script = Path("bin/buildout")
 if buildout_script.exists():
-    print(f"SUCCESS: Generated {buildout_script} script:")
-    print(buildout_script.read_text())
+    print(f"SUCCESS: Generated {buildout_script} script.")
+    if platform.system() != "Windows":
+        # On Windows you get a UnicodeDecodeError that I don't want to debug.
+        print(buildout_script.read_text())
 else:
     print(f"ERROR: Generating {buildout_script} failed.")
     sys.exit(1)

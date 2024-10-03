@@ -5,7 +5,7 @@ bin/buildout: setup.py prepare.sh dev.py
 	./prepare.sh
 
 bin/test: bin/buildout buildout.cfg
-	bin/buildout
+	bin/buildout || bin/buildout.exe
 
 test: bin/test
 	PYTHONWARNINGS=ignore bin/test

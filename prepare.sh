@@ -23,18 +23,23 @@ MARKER
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
 
+VENVS="$HERE/venvs"
 case "$OSTYPE" in
-  msys*)    PYTHON="python${PYTHON_VERSION}.exe" ;;
-  cygwin*)  PYTHON="python${PYTHON_VERSION}.exe" ;;
-  *)        PYTHON="python$PYTHON_VERSION" ;;
+  msys*)
+    # Windows
+    PYTHON="python3.exe"
+    VENV="$VENVS/python"
+    VENV_PYTHON="$VENV/Scripts/$PYTHON"
+    ;;
+  *)
+    PYTHON="python$PYTHON_VERSION"
+    VENV="$VENVS/$PYTHON"
+    VENV_PYTHON="$VENV/bin/$PYTHON"
+    ;;
 esac
 echo
 echo "Python version:"
 $PYTHON --version
-VENVS="$HERE/venvs"
-VENV="$VENVS/$PYTHON"
-VENV_PYTHON="$VENV/bin/$PYTHON"
-TEST_ENV="$HERE/test/$PYTHON"
 
 echo
 echo "Creating virtual environment in $VENV"
