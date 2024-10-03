@@ -46,7 +46,7 @@ if test $PIP_VERSION; then
 fi
 PIP_ARGS="$PIP_ARGS setuptools"
 if test $SETUPTOOLS_VERSION; then
-	PIP_ARGS="$PIP_ARGS $SETUPTOOLS_VERSION"
+	PIP_ARGS="$PIP_ARGS==$SETUPTOOLS_VERSION"
 fi
 # wheel and packaging are already dependencies of zc.buildout.
 # We add 'build' so we can build a source dist of zc.buildout,
