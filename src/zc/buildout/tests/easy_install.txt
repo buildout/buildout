@@ -1537,12 +1537,17 @@ Environment markers
     ...         demo_version = egg.version
     >>> demo_version is not None
     True
-    >>> awaited = ('0.1'
-    ... if (sys.version_info.major <= 3
-    ... and sys.version_info.minor < 9)
-    ... else '0.2')
-    >>> demo_version == awaited
-    True
+    >>> if (sys.version_info.minor < 9):
+    ...     demo_version
+    ... else:
+    ...     '0.1'
+    '0.1'
+    >>> if (sys.version_info.minor >= 9):
+    ...     demo_version
+    ... else:
+    ...     '0.2'
+    '0.2'
+
 
     Conflicts properly with version spec.
 
