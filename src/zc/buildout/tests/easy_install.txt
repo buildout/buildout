@@ -747,7 +747,7 @@ You can also use the -m option to run a module:
 
     >>> print_(system(join(bin, 'py')+' -m pdb'), end='')
     ... # doctest: +ELLIPSIS
-    usage: pdb.py ...
+    usage: pdb...
 
     >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')  # if you have pdbpp installed, this may fail.
     Error: what does not exist
