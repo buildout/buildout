@@ -1,4 +1,4 @@
-.PHONY: all create test
+.PHONY: all test help
 all: test
 
 bin/buildout: setup.py prepare.sh dev.py
@@ -9,6 +9,9 @@ bin/test: bin/buildout buildout.cfg
 
 test: bin/test
 	PYTHONWARNINGS=ignore bin/test
+
+help:
+	./prepare.sh --help
 
 clean:
 	rm -rf venvs .Python .installed.cfg bin build dist lib include parts pip-selfcheck.json develop-eggs src/*.egg-info zc.recipe.egg_/src/*.egg-info

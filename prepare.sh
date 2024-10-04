@@ -19,6 +19,15 @@ An empty version means: use whatever is already available, or install latest.
 Extra arguments for pip install: $PIP_ARGS (override with PIP_ARGS environment variable)
 MARKER
 
+case "$*" in
+  help*)
+    exit 0
+    ;;
+  --help*)
+    exit 0
+    ;;
+esac
+
 # Let's ignore all Python warnings for now.
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
