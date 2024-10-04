@@ -31,6 +31,9 @@ jobs:
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
     - name: Run tests
       env:
+        # When you install packages, you see far too many setuptools warnings.
+        # They drown out useful output, so ignore all warnings.
+        PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
@@ -62,6 +65,7 @@ jobs:
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
     - name: Run tests
       env:
+        PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
@@ -94,6 +98,7 @@ jobs:
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
     - name: Run tests
       env:
+        PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
@@ -126,6 +131,7 @@ jobs:
     - name: Run tests Mac
       if: ${{ matrix.os }} == 'macos-latest'
       env:
+        PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
@@ -133,6 +139,7 @@ jobs:
     - name: Run tests Windows
       if: ${{ matrix.os }} == 'windows-latest'
       env:
+        PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
@@ -165,6 +172,7 @@ jobs:
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
     - name: Run buildout
       env:
+        PYTHONWARNINGS: ignore
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
       run: |
