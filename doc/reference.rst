@@ -187,9 +187,9 @@ When you query the ``buildout`` section, you can pass the key only. For instance
 .. code-block:: console
 
    buildout query parts
-   
+
 is equivalent to the command above.
-   
+
 setup PATH SETUP-COMMANDS
 _________________________
 

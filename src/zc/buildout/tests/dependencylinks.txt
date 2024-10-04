@@ -20,7 +20,7 @@ testing repository.
 
 Turn on logging on this server so that we can see when eggs are pulled
 from it.
-    
+
     >>> _ = get(link_server2 + 'enable_server_logging')
     GET 200 /enable_server_logging
 

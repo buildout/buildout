@@ -1044,7 +1044,7 @@ Query values
 ------------
 
 For continuous integration, it might be useful to query the buildout config.
-    
+
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
     ... [buildout]
@@ -1059,7 +1059,7 @@ For continuous integration, it might be useful to query the buildout config.
 
     >>> print_(system(buildout+ ' query buildout:develop'), end='')
     .
-    
+
     >>> print_(system(buildout+ ' query values:host'), end='')
     buildout.org
 
@@ -1073,7 +1073,7 @@ As with assignments, if the section is omitted, 'buildout' section is assumed.
     .
 
 When used with -v option, the query command also displays section and key.
-    
+
     >>> print_(system(buildout+ ' -v query develop'), end='')
     ${buildout:develop}
     .
@@ -1083,24 +1083,24 @@ When used with -v option, the query command also displays section and key.
     buildout.org
 
 The query commands outputs proper error messages.
-    
+
     >>> print_(system(buildout+ ' query versions parts'), end='')
     Error: The query command requires a single argument.
-    
+
     >>> print_(system(buildout+ ' query'), end='')
     Error: The query command requires a single argument.
-    
+
     >>> print_(system(buildout+ ' query invalid:section:key'), end='')
     Error: Invalid option: invalid:section:key
-    
+
     >>> print_(system(buildout+ ' -v query values:port'), end='')
     ${values:port}
     Error: Key not found: port
-    
+
     >>> print_(system(buildout+ ' -v query versionx'), end='')
     ${buildout:versionx}
     Error: Key not found: versionx
-    
+
     >>> print_(system(buildout+ ' -v query specific:port'), end='')
     ${specific:port}
     Error: Section not found: specific

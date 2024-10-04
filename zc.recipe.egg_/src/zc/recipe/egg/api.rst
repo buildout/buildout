@@ -15,7 +15,7 @@ To illustrate, we create a sample recipe that is a very thin layer
 around the egg recipe:
 
     >>> mkdir(sample_buildout, 'sample')
-    >>> write(sample_buildout, 'sample', 'sample.py', 
+    >>> write(sample_buildout, 'sample', 'sample.py',
     ... """
     ... import logging, os, sys
     ... import zc.recipe.egg
@@ -56,7 +56,7 @@ of extra requirements to be included in the working set.
     >>> write(sample_buildout, 'sample', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(
     ...     name = "sample",
     ...     entry_points = {'zc.buildout': ['default = sample:Sample']},
@@ -103,7 +103,7 @@ computed by the egg recipe by looking at .installed.cfg:
     parts = sample-part
     <BLANKLINE>
     [sample-part]
-    __buildout_installed__ = 
+    __buildout_installed__ =
     __buildout_signature__ = ...
     _b = /sample-buildout/bin
     _d = /sample-buildout/develop-eggs

@@ -27,7 +27,7 @@ def default_cfg():
     >>> default_cfg = join(home, '.buildout', 'default.cfg')
     >>> write(default_cfg, '''
     ... [debug]
-    ... dec = 1 
+    ... dec = 1
     ...       2
     ... inc = 1
     ... ''')
@@ -97,7 +97,7 @@ def default_cfg_extensions():
     ...        },
     ...     )
     ... ''')
-    >>> write('buildout.cfg', ''' 
+    >>> write('buildout.cfg', '''
     ... [buildout]
     ... develop = demo demo2
     ... parts =
@@ -373,14 +373,14 @@ def no_default_with_extends_increment_in_base2_and_base3():
     ... parts =
     ... ''')
     >>> print_(system(buildout+' annotate buildout'), end='')
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
     <BLANKLINE>
     [buildout]
     ...
-    extensions= 
+    extensions=
     demo2
     demo3
         IMPLICIT_VALUE
