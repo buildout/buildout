@@ -23,6 +23,15 @@ MARKER
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
 
+case "$PYTHON_VERSION" in
+  3.13.*)
+    # TODO temporary until 3.13 is final.
+    # In GitHub Actions we must specify an exact Python version in the matrix,
+    # but the name of the binary will be python 3.13.
+    PYTHON_VERSION="3.13"
+    ;;
+esac
+
 VENVS="$HERE/venvs"
 case "$OSTYPE" in
   msys*)
