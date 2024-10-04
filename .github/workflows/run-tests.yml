@@ -103,15 +103,14 @@ jobs:
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
       run: make
 
-  operating-system:
-    name: Mac and Windows
+  mac:
+    name: Mac
     needs: pip
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
       matrix:
-        # Skip ubuntu because it is already checked above
-        os: [macos-latest, windows-latest]
+        os: [macos-latest]
         python-version: ["3.10"]
         setuptools-version: ["75.1.0"]
     runs-on: ${{ matrix.os }}
@@ -127,22 +126,44 @@ jobs:
       with:
         path: eggs
         key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests Mac
-      if: ${{ matrix.os }} == 'macos-latest'
+    - name: Run tests
       env:
         PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
       run: make
-    - name: Run tests Windows
-      if: ${{ matrix.os }} == 'windows-latest'
+
+  windows:
+    name: Windows
+    needs: pip
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        python-version: ["3.10"]
+        setuptools-version: ["75.1.0"]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip' # caching pip dependencies
+    - name: Cache eggs
+      uses: actions/cache@v4
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
+    - name: Run tests
       env:
         PYTHONWARNINGS: ignore
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-        # Defining temporary directories may help on Windows for
+        # Defining temporary directories is needed on Windows for
         # test_all.TestEasyInstall.test_move_to_eggs_dir_and_compile
         TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
         TMP: ${{ env.HOME }}/AppData/Local/Temp
