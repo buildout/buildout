@@ -97,7 +97,7 @@ We align the support of Python versions with
 `Zope <https://www.zope.dev/releases.html>`_ and
 `Plone <https://plone.org/download/release-schedule>`_ development.
 
-This means, the upcoming version 4 will support Python 3.8-3.12, and hopefully in the future 3.13.
+This means, the upcoming version 4 will support Python 3.8-3.13.
 If you need support for Python 2.7 or older Python 3 versions, use version 3.
 
 
