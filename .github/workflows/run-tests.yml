@@ -77,7 +77,6 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
-      max-parallel: 4
       matrix:
         os: [ubuntu-24.04]
         python-version: ["3.10"]
@@ -155,7 +154,6 @@ jobs:
     needs: pip
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
-      max-parallel: 4
       matrix:
         package: [zest.releaser, pyspf]
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
