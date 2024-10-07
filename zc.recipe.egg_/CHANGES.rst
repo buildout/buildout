@@ -1,10 +1,11 @@
 Change History
 **************
 
-2.0.8 (unreleased)
+3.0.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Drop support for Python 2.  Require Python 3.8 as minimum.
+  Require ``zc.buildout`` 3.1.0 as minimum.
 
 
 2.0.7 (2018-07-02)

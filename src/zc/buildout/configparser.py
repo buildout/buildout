@@ -21,7 +21,7 @@ import re
 import textwrap
 import logging
 
-from zc.buildout._compat import markers
+from packaging import markers
 
 
 Marker = markers.Marker

@@ -14,21 +14,12 @@
 """Buildout main script
 """
 
-from zc.buildout.rmtree import rmtree
-import zc.buildout.easy_install
-
+from collections.abc import MutableMapping as DictMixin
 from functools import partial
+from hashlib import md5 as md5_original
+from zc.buildout.rmtree import rmtree
 
-try:
-    from hashlib import md5 as md5_original
-except ImportError:
-    from md5 import md5 as md5_original
-
-try:
-    from collections.abc import MutableMapping as DictMixin
-except ImportError:
-    from UserDict import DictMixin
-
+import zc.buildout.easy_install
 import zc.buildout.configparser
 import copy
 import datetime
@@ -48,11 +39,6 @@ import tempfile
 import zc.buildout
 import zc.buildout.download
 
-PY3 = sys.version_info[0] == 3
-if PY3:
-    text_type = str
-else:
-    text_type = unicode
 
 try:
     hashed = md5_original(b'test')
@@ -1380,10 +1366,7 @@ class Buildout(DictMixin):
         self[name] # Add to parts
 
     def parse(self, data):
-        try:
-            from cStringIO import StringIO
-        except ImportError:
-            from io import StringIO
+        from io import StringIO
         import textwrap
 
         sections = zc.buildout.configparser.parse(
@@ -1938,7 +1921,7 @@ def _dir_hash(dir):
                                   and os.path.exists(os.path.join(dirpath, f)))
                           )
         for_hash = ' '.join(dirnames + filenames)
-        if isinstance(for_hash, text_type):
+        if isinstance(for_hash, str):
             for_hash = for_hash.encode()
         hash.update(for_hash)
         for name in filenames:
@@ -2326,12 +2309,6 @@ def main(args=None):
     finally:
         logging.shutdown()
 
-
-if sys.version_info[:2] < (2, 4):
-    def reversed(iterable):
-        result = list(iterable);
-        result.reverse()
-        return result
 
 _bool_names = {'true': True, 'false': False, True: True, False: False}
 def bool_option(options, name, default=None):

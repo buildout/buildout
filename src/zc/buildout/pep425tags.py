@@ -3,11 +3,7 @@
 import sys
 import warnings
 
-try:
-    import sysconfig
-except ImportError:  # pragma nocover
-    # Python < 2.7
-    import distutils.sysconfig as sysconfig
+import sysconfig
 import distutils.util
 
 

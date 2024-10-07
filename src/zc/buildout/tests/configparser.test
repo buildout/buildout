@@ -37,12 +37,11 @@ First, an example that illustrates a well-formed configuration::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
+    >>> from io import StringIO
     >>> from pprint import pprint
     >>> import zc.buildout.configparser
     >>> def parse(config, *args, **kw):
-    ...     return zc.buildout.configparser.parse(StringIO.StringIO(config),
+    ...     return zc.buildout.configparser.parse(StringIO(config),
     ...                                           'test', *args, **kw)
     >>> pprint(parse(text))
     {'s1': {'a': '1'},

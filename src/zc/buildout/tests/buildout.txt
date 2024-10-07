@@ -55,6 +55,7 @@ The ``bin`` directory contains scripts::
 The ``eggs`` directory has installed distributions:
 
     >>> ls(sample_buildout, 'eggs')
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
@@ -732,10 +733,9 @@ For example, in::
 
 .. -> text
 
-    >>> try: import StringIO
-    ... except ImportError: import io as StringIO
+    >>> from io import StringIO
     >>> import pprint, zc.buildout.configparser
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO(
     ...     text), 'test'))
     {'foo': {'bar': '1', 'baz': 'a\nb\nc'}}
 
@@ -759,7 +759,7 @@ example, in::
 
 .. -> text
 
-    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO.StringIO(
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO(
     ...     text), 'test'))
     {'foo': {'bar': '', 'baz': 'a\n  b\n\nc'}}
 
@@ -3313,6 +3313,7 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link

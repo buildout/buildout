@@ -1,7 +1,0 @@
-include Makefile
-
-test_without_coverage:
-	PYTHONWARNINGS=$(PYTHONWARNINGS) bin/test -c -vvv
-
-test_with_coverage:
-	PYTHONWARNINGS=$(PYTHONWARNINGS) RUN_COVERAGE= COVERAGE_REPORT= /home/buildout/sandbox/bin/test -c -vvv
