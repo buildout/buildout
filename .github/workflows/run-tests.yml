@@ -48,7 +48,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
         # Skip "3.10" because it is already checked above.
-        python-version: ["3.8", "3.9", "3.11", "3.12", "3.13.0-rc.3"]
+        python-version: ["3.8", "3.9", "3.11", "3.12", "3.13"]
         setuptools-version: ["75.1.0"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -57,6 +57,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
         cache: 'pip' # caching pip dependencies
     - name: Cache eggs
       uses: actions/cache@v4
@@ -177,7 +178,7 @@ jobs:
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-rc.3"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -186,6 +187,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
     - name: Setup buildout virtualenv
       run: |
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
