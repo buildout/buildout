@@ -8,6 +8,59 @@ Change History
 
 .. towncrier release notes start
 
+3.2.0 (2024-09-26)
+------------------
+
+New features:
+
+
+- Add config option: ``optional-extends``.
+  This is the same as the ``extends`` option, but then for optional files.
+  The names must be file paths, not URLs.  If the path does not exist,  it is silently ignored.
+  This is useful for optionally loading a ``local.cfg`` or ``custom.cfg`` with options specific for the developer or the server.
+  [maurits] (#665)
+
+
+3.1.1 (2024-09-20)
+------------------
+
+Bug fixes:
+
+
+- Fix: a variable defined with initial ``+=`` was undefined and would lead to a corrupted ``.installed.cfg``.
+  Fixes `issue 641 <https://github.com/buildout/buildout/issues/641>`_.
+  [distributist] (#641)
+- Fix: extends with increments could result in missing values.
+  Buildout processes them in the correct order now and combines them correctly.
+  Fixes `issue 176 <https://github.com/buildout/buildout/issues/176>`_ and `issue 629 <https://github.com/buildout/buildout/issues/629>`_.
+  [distributist] (#644)
+- Fix: Multiple ``+=`` or ``/-=`` in one file would lose assignment in a previous file.
+  Fixes `issue 656 <https://github.com/buildout/buildout/issues/656>`_.
+  [distributist] (#656)
+
+
+3.1.0 (2024-08-29)
+------------------
+
+Breaking changes:
+
+
+- Drop support for Python 3.5.  It is unsupported, and testing it is too hard.
+  [maurits] (#35)
+
+
+Bug fixes:
+
+
+- Normalize package names when gathering packages.
+  This should help find all distributions for package ``name.space``, whether they are called ``name.space-1.0.tar.gz`` with a dot or ``name_space-1.0.tar.gz`` with an underscore (created with ``setuptools`` 69.3 or higher).
+  [maurits] (#647)
+- Fix ImportError: cannot import name ``packaging`` from ``pkg_resources`` with setuptools 70.
+  Done by adding a compatibility module that tries to import `packaging` from several places.
+  Fixes `issue 648 <https://github.com/buildout/buildout/issues/648>`_.
+  [maurits] (#648)
+
+
 3.0.1 (2022-11-08)
 ------------------
 
@@ -116,7 +169,7 @@ Bug fixes:
 
 
 - Fix support of ``pip>=21.1`` (#567)
-- Fix confusion when using multiple Python versions and 
+- Fix confusion when using multiple Python versions and
   installing packages with C extensions
   without proper binary wheel available. (#574)
 

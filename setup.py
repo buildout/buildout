@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = '3.0.2.dev0'
+version = '3.2.1.dev0'
 
 import os
 from setuptools import setup
@@ -44,7 +44,7 @@ setup(
     url='http://buildout.org',
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
-    python_requires = '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires = '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*',
     namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=8.0',
@@ -59,13 +59,13 @@ setup(
               'zc.recipe.deployment']),
     zip_safe=False,
     classifiers = [
+       'Development Status :: 6 - Mature',
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
        'Programming Language :: Python :: 2',
        'Programming Language :: Python :: 2.7',
        'Programming Language :: Python :: 3',
-       'Programming Language :: Python :: 3.5',
        'Programming Language :: Python :: 3.6',
        'Programming Language :: Python :: 3.7',
        'Programming Language :: Python :: 3.8',

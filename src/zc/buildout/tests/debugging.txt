@@ -10,7 +10,7 @@ option to the buildout.  Let's create a recipe that has a bug:
 
     >>> mkdir(sample_buildout, 'recipes')
 
-    >>> write(sample_buildout, 'recipes', 'mkdir.py', 
+    >>> write(sample_buildout, 'recipes', 'mkdir.py',
     ... """
     ... import os, zc.buildout
     ...
@@ -35,7 +35,7 @@ option to the buildout.  Let's create a recipe that has a bug:
     >>> write(sample_buildout, 'recipes', 'setup.py',
     ... """
     ... from setuptools import setup
-    ... 
+    ...
     ... setup(name = "recipes",
     ...       entry_points = {'zc.buildout': ['mkdir = mkdir:Mkdir']},
     ...       )

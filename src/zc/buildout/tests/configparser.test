@@ -396,3 +396,123 @@ The old and new style conditional expressions can be used in the same file::
 
     >>> pprint(parse(text, zc.buildout.buildout._default_globals))
     {'section': {'a': '4', 'b': '5'}}
+
+
+Issue 656: Because conditional sections mean we can have the same
+definition twice or more in a file, the parser needs to process them in the
+order they occur in the file, and handle conflicts appropriately. For
+example, a "+=" in a non-conditional section shouldn't be overwritten by
+a "+=" in a following conditional section. Instead the second "+=" should be
+appended to the first. Likewise, an "+=" in a section *should* be overwritten
+by an "=" in a following conditional section::
+
+  [section]
+  # =, +=
+  a =
+    a
+    b
+    c
+
+  # =, -=
+  b =
+    a
+    b
+    c
+
+  # =, =
+  c =
+    a
+    b
+    c
+
+  # +=, =
+  d +=
+    a
+    b
+    c
+
+  # +=, +=
+  e +=
+    a
+    b
+    c
+
+  # +=, -=
+  f +=
+    a
+    b
+    c
+
+  # -=, =
+  g -=
+    a
+    b
+    c
+
+  # -=, +=
+  h -=
+    a
+    b
+    c
+
+  # -=, -=
+  i -=
+    a
+    b
+    c
+
+  [section:True]
+  a +=
+    d
+
+  b -=
+    b
+
+  c =
+    x
+    y
+    z
+
+  d =
+    x
+    y
+    z
+
+  e +=
+    d
+    e
+    f
+
+  f -=
+    a
+
+  g =
+    d
+    e
+    f
+
+  h +=
+    d
+    e
+    f
+
+  i -=
+    d
+
+.. -> text
+
+    >>> pprint(parse(text))
+    {'section': {'a': 'a\nb\nc',
+                 'a +': 'd',
+                 'b': 'a\nb\nc',
+                 'b -': 'b',
+                 'c': 'x\ny\nz',
+                 'd': 'x\ny\nz',
+                 'e +': 'a\nb\nc\nd\ne\nf',
+                 'f +': 'a\nb\nc',
+                 'f -': 'a',
+                 'g': 'd\ne\nf',
+                 'h +': 'd\ne\nf',
+                 'h -': 'a\nb\nc',
+                 'i -': 'a\nb\nc\nd'}}
+

@@ -1427,6 +1427,12 @@ def _install_and_load(spec, group, entry, buildout):
                 dest = buildout_options['eggs-directory']
                 path = [buildout_options['develop-eggs-directory']]
 
+            # Pin versions when processing the buildout section
+            versions_section_name = buildout['buildout'].get('versions', 'versions')
+            versions = buildout.get(versions_section_name, {})
+            zc.buildout.easy_install.allow_picked_versions(
+                bool_option(buildout['buildout'], 'allow-picked-versions')
+                )
             zc.buildout.easy_install.install(
                 [spec], dest,
                 links=buildout._links,
@@ -1434,7 +1440,8 @@ def _install_and_load(spec, group, entry, buildout):
                 path=path,
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
-                allow_hosts=buildout._allow_hosts
+                allow_hosts=buildout._allow_hosts,
+                versions=versions,
                 )
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
@@ -1879,25 +1886,42 @@ def _open(
             download_options, result['buildout']
         )
 
+    # Process extends to handle nested += and -=
+    eresults = []
     if extends:
         extends = extends.split()
-        eresult, user_defaults = _open(
-            base, extends.pop(0), seen, download_options, override,
-            downloaded, user_defaults
-        )
         for fname in extends:
             next_extend, user_defaults = _open(
                 base, fname, seen, download_options, override,
-                downloaded, user_defaults
-            )
-            eresult = _update(eresult, next_extend)
-        result = _update(eresult, result)
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
     else:
         if user_defaults:
             result = _update(user_defaults, result)
             user_defaults = {}
+
+    optional_extends = options.pop('optional-extends', None)
+    if optional_extends:
+        optional_extends = optional_extends.value.split()
+        for fname in optional_extends:
+            if not os.path.exists(fname):
+                print("optional-extends file not found: %s" % fname)
+                continue
+            next_extend, user_defaults = _open(
+                base, fname, seen, download_options, override,
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
+
+    eresults.append(result)
     seen.pop()
-    return result, user_defaults
+
+    if root_config_file:
+        final_result = {}
+        for eresult in eresults:
+            final_result = _update(final_result, eresult)
+        return final_result, user_defaults
+    else:
+        return eresults, user_defaults
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
@@ -1996,8 +2020,32 @@ def _update(in1, d2):
     for section in d2:
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
+        elif '<' not in d2[section].keys():
+            # Skip sections that extend in other sections (macros), as we don't
+            # have all the data (these will be processed when the section is
+            # extended)
+            temp = copy.deepcopy(d2[section])
+            # 641 - Process base definitions done with += and -=
+            for k, v in sorted(temp.items(), key=lambda item: item[0]):
+                # Process + before -, configparser resolves conflicts
+                if k[-1] == '+' and k[:-2] not in temp:
+                    # Turn += without a preceding = into an assignment
+                    temp[k[:-2]] = temp[k]
+                    del temp[k]
+                elif k[-1] == '-' and k[:-2] not in temp:
+                    # Turn -= without a preceding = into an empty assignment
+                    temp[k[:-2]] = temp[k]
+                    temp[k[:-2]].removeFromValue(
+                        temp[k[:-2]].value, "IMPLICIT_VALUE"
+                        )
+                    del temp[k]
+
+            # 656 - Handle multiple option assignments/extensions/removals
+            # in the same file, which can happen with conditional sections
+            d1[section] = _update_section({}, temp)
         else:
             d1[section] = copy.deepcopy(d2[section])
+
     return d1
 
 def _recipe(options):

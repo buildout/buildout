@@ -622,6 +622,31 @@ ignore_not_upgrading = (
     'Not upgrading because not running a local buildout command.\n'
     ), '')
 
+# The root logger from setuptools prints all kinds of lines.
+# This might depend on which setuptools version, or something else,
+# because it did not happen before.  Sample lines:
+# "root: Couldn't retrieve index page for 'zc.recipe.egg'"
+# "root: Scanning index of all packages.
+# "root: Found: /sample-buildout/recipe/dist/spam-2-pyN.N.egg"
+# I keep finding new lines like that, so let's ignore all.
+ignore_root_logger = (re.compile(r'root:.*'), '')
+# Now replace a multiline warning about that you should switch to native namespaces.
+ignore_native_namespace_warning_1 = (re.compile(r'!!'), '')
+ignore_native_namespace_warning_2 = (re.compile(r'\*' * 80), '')
+ignore_native_namespace_warning_3 = (re.compile(
+    r'Please replace its usage with implicit namespaces \(PEP 420\).'),
+    ''
+)
+ignore_native_namespace_warning_4 = (re.compile(
+    r'See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages for details.'),
+    ''
+)
+ignore_native_namespace_warning_5 = (re.compile(
+    r'ep.load\(\)\(self, ep.name, value\)'),
+    ''
+)
+
+
 def run_buildout(command):
     # Make sure we don't get .buildout
     os.environ['HOME'] = os.path.join(os.getcwd(), 'home')

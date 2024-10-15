@@ -57,13 +57,13 @@ jobs:
       python-version:
         type: string
     macos:
-      xcode: 12.5.1
+      xcode: 15.4.0
     environment:
       BUILD_TYPE: bare_machines
       PYTHON_VER: << parameters.python-version >>
     steps:
       - run:
-          command: brew uninstall python
+          command: brew uninstall python || true
       - run:
           command: brew install python@${PYTHON_VER}
       - run:
@@ -93,18 +93,21 @@ workflows:
           matrix:
             alias: test-containers
             parameters:
-              python-version: ["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
-              build-type: ["centos_containers", "debian_containers"]
-      - test:
-          requires:
-            - test-containers
-          matrix:
-            parameters:
-              python-version: ["3.9"]
-              build-type: ["debian_sys_container"]
+              # "3.5" and "3.6" fail for different reasons on Debian.
+              python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
+              # "centos_containers" fails installing anything with yum
+              build-type: ["debian_containers"]
+      # debian_sys_container fails because pip is not allowed to install packages.
+      # - test:
+      #     requires:
+      #       - test-containers
+      #     matrix:
+      #       parameters:
+      #         python-version: ["3.9"]
+      #         build-type: ["debian_sys_container"]
       - install-python-and-test-macos:
           requires:
             - install-python-and-test-ubuntu-all
           matrix:
             parameters:
-              python-version: ["3.7", "3.8", "3.9"]
+              python-version: ["3.11"]
