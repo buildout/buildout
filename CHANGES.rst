@@ -11,13 +11,13 @@ Change History
 3.3 (2024-10-17)
 ----------------
 
-Bug fixes:
+New features:
 
-
-- - Allow the ``-I`` option in the Python interpreter wrapper installed by
-    buildout when using the ``zc.recipe.egg`` recipe's `interpreter =` directive.
-    This solves the issue when VSCode calls the designated Python interpreter for
-    a workspace with this option to determine the Python version etc. (#627)
+- Allow the ``-I`` option in the Python interpreter wrapper installed by
+  buildout when using the ``zc.recipe.egg`` recipe's `interpreter =` directive.
+  This solves the issue when VSCode calls the designated Python interpreter for
+  a workspace with this option to determine the Python version etc.
+  (`#627 <https://github.com/buildout/buildout/issues/627>`_)
 
 
 3.2.0 (2024-09-26)
@@ -25,12 +25,12 @@ Bug fixes:
 
 New features:
 
-
-- Add config option: ``optional-extends``.
-  This is the same as the ``extends`` option, but then for optional files.
-  The names must be file paths, not URLs.  If the path does not exist,  it is silently ignored.
-  This is useful for optionally loading a ``local.cfg`` or ``custom.cfg`` with options specific for the developer or the server.
-  [maurits] (#665)
+- Add config option: ``optional-extends``. This is the same as the ``extends``
+  option, but then for optional files. The names must be file paths, not URLs.
+  If the path does not exist,  it is silently ignored. This is useful for
+  optionally loading a ``local.cfg`` or ``custom.cfg`` with options specific
+  for the developer or the server.
+  [maurits] (`#665 <https://github.com/buildout/buildout/issues/665>`_)
 
 
 3.1.1 (2024-09-20)
@@ -38,17 +38,19 @@ New features:
 
 Bug fixes:
 
-
-- Fix: a variable defined with initial ``+=`` was undefined and would lead to a corrupted ``.installed.cfg``.
+- Fix: a variable defined with initial ``+=`` was undefined and would lead to a
+  corrupted ``.installed.cfg``.
   Fixes `issue 641 <https://github.com/buildout/buildout/issues/641>`_.
-  [distributist] (#641)
+  [distributist]
 - Fix: extends with increments could result in missing values.
   Buildout processes them in the correct order now and combines them correctly.
-  Fixes `issue 176 <https://github.com/buildout/buildout/issues/176>`_ and `issue 629 <https://github.com/buildout/buildout/issues/629>`_.
+  Fixes `issue 176 <https://github.com/buildout/buildout/issues/176>`_ and
+  `issue 629 <https://github.com/buildout/buildout/issues/629>`_.
   [distributist] (#644)
-- Fix: Multiple ``+=`` or ``/-=`` in one file would lose assignment in a previous file.
+- Fix: Multiple ``+=`` or ``/-=`` in one file would lose assignment in a
+  previous file.
   Fixes `issue 656 <https://github.com/buildout/buildout/issues/656>`_.
-  [distributist] (#656)
+  [distributist]
 
 
 3.1.0 (2024-08-29)
@@ -65,10 +67,15 @@ Bug fixes:
 
 
 - Normalize package names when gathering packages.
-  This should help find all distributions for package ``name.space``, whether they are called ``name.space-1.0.tar.gz`` with a dot or ``name_space-1.0.tar.gz`` with an underscore (created with ``setuptools`` 69.3 or higher).
+  This should help find all distributions for package ``name.space``, whether
+  they are called ``name.space-1.0.tar.gz`` with a dot or
+  ``name_space-1.0.tar.gz`` with an underscore (created with ``setuptools``
+  69.3 or higher).
   [maurits] (#647)
-- Fix ImportError: cannot import name ``packaging`` from ``pkg_resources`` with setuptools 70.
-  Done by adding a compatibility module that tries to import `packaging` from several places.
+- Fix ImportError: cannot import name ``packaging`` from ``pkg_resources`` with
+  setuptools 70.
+  Done by adding a compatibility module that tries to import `packaging` from
+  several places.
   Fixes `issue 648 <https://github.com/buildout/buildout/issues/648>`_.
   [maurits] (#648)
 
@@ -145,7 +152,8 @@ Bug fixes:
 Bug fixes:
 
 
-- Fix when c extension implements namespace packages without the corresponding directories. (#589)
+- Fix when c extension implements namespace packages without the corresponding
+  directories. (#589)
 - Honor command-line buildout:extends (#592)
 
 
