@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+3.3 (2024-10-17)
+----------------
+
+Bug fixes:
+
+
+- - Allow the ``-I`` option in the Python interpreter wrapper installed by
+    buildout when using the ``zc.recipe.egg`` recipe's `interpreter =` directive.
+    This solves the issue when VSCode calls the designated Python interpreter for
+    a workspace with this option to determine the Python version etc. (#627)
+
+
 3.2.0 (2024-09-26)
 ------------------
 
