@@ -288,6 +288,8 @@ Let's run the buildout.  We do so by running the build script in the
 buildout::
 
     >>> import os
+    >>> from pprint import pprint
+    >>> pprint(os.environ)
     >>> os.chdir(sample_buildout)
     >>> print(os.getcwd())
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
