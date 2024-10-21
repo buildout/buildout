@@ -1546,9 +1546,7 @@ sys.path[0:0] = [
 
 _interactive = True
 if len(sys.argv) > 1:
-    # The Python interpreter wrapper allows only some of the options that a
-    # "regular" Python interpreter accepts.
-    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
+    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
     _interactive = False
     for (_opt, _val) in _options:
         if _opt == '-i':
@@ -1560,15 +1558,6 @@ if len(sys.argv) > 1:
             _args = []
             __import__("runpy").run_module(
                  _val, {}, "__main__", alter_sys=True)
-        elif _opt == '-I':
-            # Allow yet silently ignore the `-I` option. The original behaviour
-            # for this option is to create an isolated Python runtime. It was
-            # deemed acceptable to allow the option here as this Python wrapper
-            # is isolated from the system Python already anyway.
-            # The specific use-case that led to this change is how the Python
-            # language extension for Visual Studio Code calls the Python
-            # interpreter when initializing the extension.              
-            pass
 
     if _args:
         sys.argv[:] = _args
