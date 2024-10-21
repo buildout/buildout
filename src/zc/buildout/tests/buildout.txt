@@ -289,7 +289,11 @@ buildout::
 
     >>> import os
     >>> from pprint import pprint
-    >>> pprint(os.environ)
+    >>> pprint(list(os.environ.items()))
+    >>> os.getenv("HOME")
+    >>> os.getenv("TMPDIR")
+    >>> os.getenv("TMP")
+    >>> os.getenv("TEMP")
     >>> os.chdir(sample_buildout)
     >>> print(os.getcwd())
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
