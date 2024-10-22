@@ -439,8 +439,6 @@ def test_suite():
             zc.buildout.testing.not_found,
             zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
             zc.buildout.testing.adding_find_link,
-            zc.buildout.testing.python27_warning,
-            zc.buildout.testing.python27_warning_2,
             zc.buildout.testing.easyinstall_deprecated,
             zc.buildout.testing.setuptools_deprecated,
             zc.buildout.testing.pkg_resources_deprecated,

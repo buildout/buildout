@@ -754,17 +754,13 @@ If invoked with a script name and arguments, it will run that script, instead.
     ['ascript', 'a', 'b', 'c']
     ('__main__', 'ascript', 'demo doc')
 
-For Python 2.5 and higher, you can also use the -m option to run a
-module:
+You can also use the -m option to run a module:
 
-    >>> if sys.version_info < (2, 5):
-    ...    print ('usage: pdb.py blah blah blah')
-    ... else:
-    ...    print_(system(join(bin, 'py')+' -m pdb'), end='')
+    >>> print_(system(join(bin, 'py')+' -m pdb'), end='')
     ... # doctest: +ELLIPSIS
-    usage: pdb.py ...
+    usage: pdb...
 
-    >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')
+    >>> print_(system(join(bin, 'py')+' -m pdb what'), end='')  # if you have pdbpp installed, this may fail.
     Error: what does not exist
 
 An interpreter can also be generated without other eggs:
@@ -1553,8 +1549,8 @@ Environment markers
     Specifications can include PEP 496 environment markers.
 
     >>> _ = get(link_server + 'disable_server_logging')
-    >>> spec = ["demo ==0.1; python_version < '3.9'",
-    ... "demo == 0.2; python_version >= '3.9'"]
+    >>> spec = ["demo ==0.1; python_version < '3.10'",
+    ... "demo == 0.2; python_version >= '3.10'"]
     >>> ws = zc.buildout.easy_install.install(
     ... spec, dest, links=[link_server], index=link_server+'index/')
     >>> demo_version = None
@@ -1563,12 +1559,17 @@ Environment markers
     ...         demo_version = egg.version
     >>> demo_version is not None
     True
-    >>> awaited = ('0.1'
-    ... if (sys.version_info.major <= 3
-    ... and sys.version_info.minor < 9)
-    ... else '0.2')
-    >>> demo_version == awaited
-    True
+    >>> if (sys.version_info.minor < 10):
+    ...     demo_version
+    ... else:
+    ...     '0.1'
+    '0.1'
+    >>> if (sys.version_info.minor >= 10):
+    ...     demo_version
+    ... else:
+    ...     '0.2'
+    '0.2'
+
 
     Conflicts properly with version spec.
 

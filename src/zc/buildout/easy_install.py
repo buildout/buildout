@@ -38,23 +38,14 @@ import sys
 import tempfile
 import zc.buildout
 import zc.buildout.rmtree
+from packaging import specifiers
+from packaging import utils as packaging_utils
+from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
-from zc.buildout import PY3
-from zc.buildout._compat import packaging_utils
-from zc.buildout._compat import specifiers
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
 
-try:
-    from setuptools.wheel import Wheel  # This is the important import
-    from setuptools import __version__ as setuptools_version
-    # Now we need to check if we have at least 38.2.3 for namespace support.
-    SETUPTOOLS_SUPPORTS_WHEELS = (
-        pkg_resources.parse_version(setuptools_version) >=
-        pkg_resources.parse_version('38.2.3'))
-except ImportError:
-    SETUPTOOLS_SUPPORTS_WHEELS = False
 
 
 BIN_SCRIPTS = 'Scripts' if WINDOWS else 'bin'
@@ -83,16 +74,6 @@ is_jython = sys.platform.startswith('java')
 if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
-
-# Make sure we're not being run with an older bootstrap.py that gives us
-# setuptools instead of setuptools
-has_distribute = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('distribute')) is not None
-has_setuptools = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('setuptools')) is not None
-if has_distribute and not has_setuptools:
-    sys.exit("zc.buildout 3 needs setuptools, not distribute."
-             "Did you properly install with pip in a virtualenv ?")
 
 # Include buildout and setuptools eggs in paths.  We get this
 # initially from the entire working set.  Later, we'll use the install
@@ -1457,11 +1438,7 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
-        try:
-            new_data = setuptools.command.easy_install.get_win_launcher('cli')
-        except AttributeError:
-            # fall back for compatibility with older Distribute versions
-            new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = setuptools.command.easy_install.get_win_launcher('cli')
 
         if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
@@ -1557,20 +1534,15 @@ def _pyscript(path, dest, rsetup, initialization=''):
     generated.append(dest)
     return generated
 
-if sys.version_info[0] < 3:
-    universal_newline_option = ", 'U'"
-else:
-    universal_newline_option = ''
-
 py_script_template = script_header + '''\
 
-%%(relative_paths_setup)s
+%(relative_paths_setup)s
 import sys
 
 sys.path[0:0] = [
-  %%(path)s
+  %(path)s
   ]
-%%(initialization)s
+%(initialization)s
 
 _interactive = True
 if len(sys.argv) > 1:
@@ -1602,13 +1574,13 @@ if len(sys.argv) > 1:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        with open(__file__%s) as __file__f:
+        with open(__file__) as __file__f:
             exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
     __import__("code").interact(banner="", local=globals())
-''' % universal_newline_option
+'''
 
 runsetup_template = """
 import sys
@@ -1622,9 +1594,9 @@ __file__ = %%(__file__)r
 os.chdir(%%(setupdir)r)
 sys.argv[0] = %%(setup)r
 
-with open(%%(setup)r%s) as f:
+with open(%%(setup)r) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
-""" % (setuptools_path, universal_newline_option)
+""" % setuptools_path
 
 
 class VersionConflict(zc.buildout.UserError):
@@ -1866,12 +1838,8 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
     if os.path.isfile(record_file):
-        if PY3:
-            with open(record_file, newline='') as f:
-                all_files = [row[0] for row in csv.reader(f)]
-        else:
-            with open(record_file, 'rb') as f:
-                all_files = [row[0] for row in csv.reader(f)]
+        with open(record_file, newline='') as f:
+            all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over
     for entry in all_files:
@@ -1899,18 +1867,9 @@ def unpack_egg(location, dest):
     setuptools.archive_util.unpack_archive(location, dest)
 
 
-WHEEL_WARNING = """
-*.whl file detected (%s), you'll need setuptools >= 38.2.3 for that
-or an extension like buildout.wheel > 0.2.0.
-"""
-
-
 def unpack_wheel(location, dest):
-    if SETUPTOOLS_SUPPORTS_WHEELS:
-        wheel = Wheel(location)
-        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
-    else:
-        raise zc.buildout.UserError(WHEEL_WARNING % location)
+    wheel = Wheel(location)
+    wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
 
 
 UNPACKERS = {

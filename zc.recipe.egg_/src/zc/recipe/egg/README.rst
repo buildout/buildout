@@ -75,6 +75,7 @@ Now, if we look at the buildout eggs directory:
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
@@ -266,6 +267,7 @@ We didn't get an update for demo:
     >>> ls(sample_buildout, 'eggs')
     d  demo-0.2-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
@@ -286,6 +288,7 @@ Then we'll get a new demo egg:
     d  demo-0.2-py2.3.egg
     d  demo-0.3-py2.3.egg
     d  demoneeded-1.1-py2.3.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link

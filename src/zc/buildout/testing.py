@@ -14,14 +14,8 @@
 """Various test-support utility functions
 """
 
-try:
-    # Python 3
-    from http.server    import HTTPServer, BaseHTTPRequestHandler
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-    from urllib2        import urlopen
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.request import urlopen
 
 import errno
 import logging
@@ -134,8 +128,21 @@ def system(command, input='', with_exit_code=False, env=None):
     if env is not None:
         sub_env.update(env)
 
+    # We used to pass for example 'buildout annotate' as command, and call Popen
+    # with 'shell=True'.  Since October 2024 this no longer works on Windows on GHA.
+    # So we pass the command as a list.  But then it breaks on POSIX when we have
+    # 'shell=True', because args[1:] gets passed as options for '/bin/sh' instead
+    # of options for our command.  So let's let the value of 'shell' depend on
+    # whether command is a list or a string.
+    # See also https://stackoverflow.com/a/2401128/621201
+    # Actually, having the command as a string turns out to only be a problem on
+    # Windows if there is a space in the path, like with 'Program Files'.
+    if isinstance(command, list):
+        shell = False
+    else:
+        shell = True
     p = subprocess.Popen(command,
-                         shell=True,
+                         shell=shell,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -573,12 +580,8 @@ normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')
 
-if sys.version_info > (2, ):
-    normalize___pycache__ = (
-        re.compile('(\n?)d  __pycache__\n'), '\\1')
-else:
-    normalize___pycache__ = (
-        re.compile(r'(\n?)-  \S+\.pyc\n'), '\\1')
+normalize___pycache__ = (
+    re.compile('(\n?)d  __pycache__\n'), '\\1')
 
 normalize_egg_py = (
     re.compile(r'-py\d[.]\d+(-\S+)?\.egg'),
@@ -593,20 +596,6 @@ normalize_open_in_generated_script = (
     re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
 not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
-
-python27_warning = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
-    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
-    'longer maintained. A future version of pip will drop support for Python '
-    '2.7. More details about Python 2 support in pip, can be found at '
-    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
-    '')
-
-python27_warning_2 = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
-    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
-    'longer maintained. pip 21.0 will drop support for Python 2.7 in January 2021. '
-    'More details about Python 2 support in pip, can be found at '
-    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
-    '')
 
 easyinstall_deprecated = (re.compile(r'.*EasyInstallDeprecationWarning.*\n'),'')
 setuptools_deprecated = (re.compile(r'.*SetuptoolsDeprecationWarning.*\n'),'')
