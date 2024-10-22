@@ -572,7 +572,7 @@ normalize_path = (
     _normalize_path,
     )
 
-normalize_tmp_dir = re.compile(rf'{tempfile.gettempdir()}'), ''
+normalize_tmp_dir = re.compile('%r' % tempfile.gettempdir()), ''
 normalize_endings = re.compile('\r\n'), '\n'
 
 normalize_script = (
