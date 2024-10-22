@@ -3413,8 +3413,8 @@ def test_suite():
             manuel.doctest.Manuel(
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.normalize_tmp_dir,
                     zc.buildout.testing.normalize_path,
-                    zc.buildout.testing.normalize_program_files,
                     zc.buildout.testing.normalize_endings,
                     zc.buildout.testing.normalize_script,
                     zc.buildout.testing.normalize_egg_py,

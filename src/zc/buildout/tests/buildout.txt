@@ -40,7 +40,9 @@ of an existing buildout (method 3 above).  It has the absolute minimum
 information.  We have ``bin``, ``develop-eggs``, ``eggs`` and ``parts``
 directories, and a configuration file::
 
-    >>> sample_buildout
+    >>> print(sample_buildout)
+    >>> print(sample_buildout)
+    /sample-buildout
     >>> ls(sample_buildout)
     d  bin
     -  buildout.cfg
