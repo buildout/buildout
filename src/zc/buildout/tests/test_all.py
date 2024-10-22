@@ -3423,7 +3423,11 @@ class OwnNormalizingChecker(renormalizing.RENormalizing):
         # '_OwnNormalizingChecker__init'
         # super().__init(self, patterns=patterns)
         _tempdir = tempfile.gettempdir()
-        self.transformers = [lambda text: text.replace(_tempdir, '')]
+        self.transformers = [
+            lambda text: text.replace(_tempdir, ''),
+            lambda text: text.replace('C:/Program ', ''),
+            lambda text: text.replace(r'C:\Program ', ''),
+        ]
 
 
 def test_suite():
