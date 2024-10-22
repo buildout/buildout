@@ -252,7 +252,7 @@ def buildoutSetUp(test):
             bo_logger.removeHandler(handler)
     register_teardown(restore_root_logger_handlers)
 
-    base = tempfile.mkdtemp('buildoutSetUp')
+    base = tempfile.mkdtemp('buildoutSetUp', prefix="mytest")
     base = os.path.realpath(base)
     register_teardown(lambda base=base: rmtree(base))
 
