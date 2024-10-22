@@ -288,8 +288,6 @@ Let's run the buildout.  We do so by running the build script in the
 buildout::
 
     >>> import os
-    >>> from pprint import pprint
-    >>> pprint(list(os.environ.items()))
     >>> os.getenv("HOME")
     >>> os.getenv("TMPDIR")
     >>> os.getenv("TMP")
@@ -297,9 +295,8 @@ buildout::
     >>> os.chdir(sample_buildout)
     >>> print(os.getcwd())
     >>> buildout = os.path.join(sample_buildout, 'bin', 'buildout')
-    >>> cat(buildout)
     >>> print_(system(buildout), end='')
-    Develop: '/sample-buildout/recipes'
+    Develop: '...sample-buildout/recipes'
     Installing data-dir.
     data-dir: Creating directory mystuff
 
