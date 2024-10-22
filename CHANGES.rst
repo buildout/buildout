@@ -8,6 +8,32 @@ Change History
 
 .. towncrier release notes start
 
+4.0.0a1 (2024-10-22)
+--------------------
+
+Breaking changes:
+
+
+- Add dependency on ``packaging``.  This gets rid of ugly compatibility code.
+  [maurits] (#38)
+- Require ``setuptools >= 49.0.0``.
+  This is the first version that supports PEP 496 environment markers, for example ``demo ==0.1; python_version < '3.9'``.
+  An earlier change had ``setuptools >= 42.0.2``, otherwise we got ImportErrors.
+  Also, since this is higher than 38.2.3, we are sure to have support for wheels.
+  Remove support for ``distribute``, which was probably already broken.
+  [maurits] (#38)
+- Drop support for Python 2.  Require Python 3.8 as minimum.
+  [maurits] (#38)
+
+
+New features:
+
+
+- Support Python 3.12 and 3.13.
+  This only needed a few test fixes.
+  [maurits] (#38)
+
+
 3.3 (2024-10-17)
 ----------------
 
