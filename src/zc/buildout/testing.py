@@ -135,6 +135,8 @@ def system(command, input='', with_exit_code=False, env=None):
     # of options for our command.  So let's let the value of 'shell' depend on
     # whether command is a list or a string.
     # See also https://stackoverflow.com/a/2401128/621201
+    # Actually, having the command as a string turns out to only be a problem on
+    # Windows if there is a space in the path, like with 'Program Files'.
     if isinstance(command, list):
         shell = False
     else:
