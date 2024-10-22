@@ -795,7 +795,7 @@ all key-value pairs are displayed, sorted alphabetically, along with
 the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
 ``COMMAND_LINE_VALUE``)::
 
-    >>> print_(system(buildout+ ' annotate'), end='')
+    >>> print_(system([buildout, 'annotate']), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -869,7 +869,7 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
 The ``annotate`` command is sensitive to the verbosity flag.
 You get more information about the way values are computed::
 
-    >>> print_(system(buildout+ ' -v annotate'), end='')
+    >>> print_(system([buildout, '-v', 'annotate']), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -1027,7 +1027,7 @@ You get more information about the way values are computed::
 The output of the ``annotate`` command can be very long.
 You can restrict the output to some sections by passing section names as arguments::
 
-    >>> print_(system(buildout+ ' annotate versions'), end='')
+    >>> print_(system([buildout, 'annotate', 'versions']), end='')
     ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
@@ -1057,51 +1057,51 @@ For continuous integration, it might be useful to query the buildout config.
     ...   second
     ... """)
 
-    >>> print_(system(buildout+ ' query buildout:develop'), end='')
+    >>> print_(system([buildout, 'query', 'buildout:develop']), end='')
     .
 
-    >>> print_(system(buildout+ ' query values:host'), end='')
+    >>> print_(system([buildout, 'query', 'values:host']), end='')
     buildout.org
 
-    >>> print_(system(buildout+ ' query values:multiline'), end='')
+    >>> print_(system([buildout, 'query', 'values:multiline']), end='')
     first
     second
 
 As with assignments, if the section is omitted, 'buildout' section is assumed.
 
-    >>> print_(system(buildout+ ' query develop'), end='')
+    >>> print_(system([buildout, 'query', 'develop']), end='')
     .
 
 When used with -v option, the query command also displays section and key.
 
-    >>> print_(system(buildout+ ' -v query develop'), end='')
+    >>> print_(system([buildout, '-v', 'query', 'develop']), end='')
     ${buildout:develop}
     .
 
-    >>> print_(system(buildout+ ' -v query values:host'), end='')
+    >>> print_(system([buildout, '-v', 'query', 'values:host']), end='')
     ${values:host}
     buildout.org
 
 The query commands outputs proper error messages.
 
-    >>> print_(system(buildout+ ' query versions parts'), end='')
+    >>> print_(system([buildout, 'query', 'versions', 'parts']), end='')
     Error: The query command requires a single argument.
 
-    >>> print_(system(buildout+ ' query'), end='')
+    >>> print_(system([buildout, 'query']), end='')
     Error: The query command requires a single argument.
 
-    >>> print_(system(buildout+ ' query invalid:section:key'), end='')
+    >>> print_(system([buildout, 'query', 'invalid:section:key']), end='')
     Error: Invalid option: invalid:section:key
 
-    >>> print_(system(buildout+ ' -v query values:port'), end='')
+    >>> print_(system([buildout, '-v', 'query', 'values:port']), end='')
     ${values:port}
     Error: Key not found: port
 
-    >>> print_(system(buildout+ ' -v query versionx'), end='')
+    >>> print_(system([buildout, '-v', 'query', 'versionx']), end='')
     ${buildout:versionx}
     Error: Key not found: versionx
 
-    >>> print_(system(buildout+ ' -v query specific:port'), end='')
+    >>> print_(system([buildout, '-v', 'query', 'specific:port']), end='')
     ${specific:port}
     Error: Section not found: specific
 
@@ -1984,7 +1984,7 @@ There are several things to note about this example:
     ... op = buildout
     ... """)
 
-    >>> print_(system(buildout + ' buildout:extends="b2.cfg"'), end='')
+    >>> print_(system([buildout, 'buildout:extends=b2.cfg']), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -1995,8 +1995,8 @@ There are several things to note about this example:
     op3 b2 3
     recipe recipes:debug
 
-    >>> print_(system(buildout + ' buildout:extends="b2.cfg %(b3)s"'
-    ... % dict(b3=os.path.join(other, 'b3.cfg'))), end='')
+    >>> print_(system([buildout, 'buildout:extends=b2.cfg %(b3)s'
+    ... % dict(b3=os.path.join(other, 'b3.cfg'))]), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2118,7 +2118,7 @@ we'll set up a web server with some configuration files::
     ... name = base
     ... """ % dict(url=server_url))
 
-    >>> print_(system(buildout+ ' -c client.cfg'), end='')
+    >>> print_(system([buildout, '-c', 'client.cfg']), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2149,7 +2149,7 @@ buildout::
     ... name = remote
     ... """)
 
-    >>> print_(system(buildout + ' -c ' + server_url + '/remote.cfg'), end='')
+    >>> print_(system([buildout, '-c', server_url + '/remote.cfg']), end='')
     While:
       Initializing.
     Error: Missing option: buildout:directory
@@ -2159,10 +2159,10 @@ containing a configuration file.  This won't work for configuration
 files loaded from URLs.  In this case, the buildout directory would
 normally be defined on the command line::
 
-    >>> print_(system(buildout
-    ...              + ' -c ' + server_url + '/remote.cfg'
-    ...              + ' buildout:directory=' + sample_buildout
-    ...              ), end='')
+    >>> print_(system([buildout,
+    ... '-c', server_url + '/remote.cfg',
+    ... 'buildout:directory=' + sample_buildout,
+    ... ]), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2208,7 +2208,7 @@ delimiter.)::
 A buildout command-line argument, ``-U``, can be used to suppress reading
 user defaults::
 
-    >>> print_(system(buildout + ' -U', env=env), end='')
+    >>> print_(system([buildout, '-U'], env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2254,7 +2254,7 @@ appropriate set of defaults::
 The ``-U`` argument still suppresses reading of the ``default.cfg`` file from
 ``BUILDOUT_HOME``::
 
-    >>> print_(system(buildout + ' -U', env=env), end='')
+    >>> print_(system([buildout, '-U'], env=env), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling debug.
     Installing debug.
@@ -2671,7 +2671,7 @@ Here's an example::
 Note that we used the installed buildout option to specify an
 alternate file to store information about installed parts::
 
-    >>> print_(system(buildout+' -c other.cfg debug:op1=foo -v'), end='')
+    >>> print_(system([buildout, '-c', 'other.cfg', 'debug:op1=foo', '-v']), end='')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     name other
@@ -2684,7 +2684,7 @@ and the ``-v`` option to increase the level of logging from the default,
 
 Options can also be combined in the usual Unix way, as in::
 
-    >>> print_(system(buildout+' -vcother.cfg debug:op1=foo'), end='')
+    >>> print_(system([buildout, '-vcother.cfg', 'debug:op1=foo']), end='')
     Develop: '/sample-buildout/recipes'
     Updating debug.
     name other
@@ -2809,7 +2809,7 @@ Now we'll update our configuration file::
 
 and run the buildout specifying just ``d3`` and ``d4``::
 
-    >>> print_(system(buildout+' install d3 d4'), end='')
+    >>> print_(system([buildout, 'install', 'd3', 'd4']), end='')
     Develop: '/sample-buildout/recipes'
     Uninstalling d3.
     Installing d3.
@@ -3045,7 +3045,7 @@ database is shown::
     ... parts =
     ... """)
 
-    >>> print_(system(buildout+' -vv'), end='') # doctest: +NORMALIZE_WHITESPACE
+    >>> print_(system([buildout, '-vv']), end='') # doctest: +NORMALIZE_WHITESPACE
     Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
     ...
     Configuration data:
@@ -3281,9 +3281,9 @@ local buildout scripts::
 
     >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
 
-    >>> print_(system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-    ...              +' init'), end='')
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped, 'setup.cfg'),
+    ... 'init']), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/eggs'.
     Creating directory '/sample-bootstrapped/bin'.
@@ -3333,9 +3333,9 @@ if there isn't a configuration file::
 
     >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
 
-    >>> print_(system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-    ...              +' bootstrap'), end='')
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped2, 'setup.cfg'),
+    ... 'bootstrap']), end='')
     While:
       Initializing.
     Error: Couldn't open /sample-bootstrapped2/setup.cfg
@@ -3346,9 +3346,9 @@ if there isn't a configuration file::
     ... parts =
     ... """)
 
-    >>> print_(system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped2, 'setup.cfg')
-    ...              +' bootstrap'), end='')
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped2, 'setup.cfg'),
+    ... 'bootstrap']), end='')
     Creating directory '/sample-bootstrapped2/eggs'.
     Creating directory '/sample-bootstrapped2/bin'.
     Creating directory '/sample-bootstrapped2/parts'.
@@ -3359,9 +3359,9 @@ Similarly, if there is a configuration file and we use the ``init``
 command, we'll get an error that the configuration file already
 exists::
 
-    >>> print_(system(buildout
-    ...              +' -c'+os.path.join(sample_bootstrapped, 'setup.cfg')
-    ...              +' init'), end='')
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped, 'setup.cfg'),
+    ... 'init']), end='')
     While:
       Initializing.
     Error: '/sample-bootstrapped/setup.cfg' already exists.
@@ -3374,7 +3374,7 @@ or paths to use::
 
     >>> cd(sample_bootstrapped)
     >>> remove('setup.cfg')
-    >>> print_(system(buildout + ' -csetup.cfg init demo other ./src'), end='')
+    >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Getting distribution for 'zc.recipe.egg>=2.0.6'.
@@ -3431,9 +3431,9 @@ for us::
 .. Make sure it works if the dir is already there:
 
     >>> cd(sample_bootstrapped)
-    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> _ = system([buildout, '-csetup.cfg', 'buildout:parts='])
     >>> remove('setup.cfg')
-    >>> print_(system(buildout + ' -csetup.cfg init demo other ./src'), end='')
+    >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Installing py.
@@ -3443,7 +3443,7 @@ for us::
 
 .. cleanup
 
-    >>> _ = system(buildout + ' -csetup.cfg buildout:parts=')
+    >>> _ = system([buildout, '-csetup.cfg', 'buildout:parts='])
     >>> uncd()
 
 Finding distributions
@@ -3484,7 +3484,7 @@ or on the command line::
     ... recipe = recipes:debug
     ... """)
 
-    >>> print_(system(buildout+' buildout:installed=inst.cfg'), end='')
+    >>> print_(system([buildout, 'buildout:installed=inst.cfg']), end='')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     recipe recipes:debug
@@ -3506,7 +3506,7 @@ The installation database can be disabled by supplying an empty
 buildout installed option::
 
     >>> os.remove('inst.cfg')
-    >>> print_(system(buildout+' buildout:installed='), end='')
+    >>> print_(system([buildout, 'buildout:installed=']), end='')
     Develop: '/sample-buildout/recipes'
     Installing debug.
     recipe recipes:debug
@@ -3532,7 +3532,7 @@ Note that there will be no installation database if there are no parts::
     ... parts =
     ... """)
 
-    >>> print_(system(buildout+' buildout:installed=inst.cfg'), end='')
+    >>> print_(system([buildout, 'buildout:installed=inst.cfg']), end='')
 
     >>> ls(sample_buildout)
     -  b1.cfg
