@@ -3403,6 +3403,29 @@ def bootstrapSetup(test):
     test.globs['bootstrap_py'] = bootstrap_py
 
 
+class OwnNormalizingChecker(renormalizing.RENormalizing):
+    """Normalize the 'want' and 'got' from doctest output.
+
+    Adapted from
+    https://github.com/zopefoundation/zope.testing/blob/master/src/zope/testing/renormalizing.py
+    I get frustrated with not being able to normalize the Windows output properly.
+    'C:\Program Files\some_temp_dir\_TEST_\sample-buildout'
+    gets normalized to
+    'C:Program /sample-buildout'
+    but we want
+    '/sample-buildout'
+    That is what I try to fix here with simple text replacement.
+    See https://github.com/buildout/buildout/pull/668
+    """
+    def __init__(self, patterns=None):
+        # I tried with super, but that does not seem to work in __init__:
+        # AttributeError: 'super' object has no attribute
+        # '_OwnNormalizingChecker__init'
+        # super().__init(self, patterns=patterns)
+        _tempdir = tempfile.gettempdir()
+        self.transformers = [lambda text: text.replace(_tempdir, '')]
+
+
 def test_suite():
 
     test_suite = [
@@ -3412,8 +3435,8 @@ def test_suite():
         manuel.testing.TestSuite(
             manuel.doctest.Manuel(
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
-                checker=renormalizing.RENormalizing([
-                    zc.buildout.testing.normalize_tmp_dir,
+                checker=OwnNormalizingChecker() + renormalizing.RENormalizing([
+                    # zc.buildout.testing.normalize_tmp_dir,
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
                     zc.buildout.testing.normalize_script,
