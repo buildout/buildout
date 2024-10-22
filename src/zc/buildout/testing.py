@@ -572,7 +572,7 @@ normalize_path = (
     _normalize_path,
     )
 # The space in 'Program Files' on Windows messes up normalize_path.
-normalize_program_files = re.compile('Program Files'), 'ProgramFiles'
+normalize_program_files = re.compile('C:/Program /sample-buildout'), '/sample-buildout'
 normalize_endings = re.compile('\r\n'), '\n'
 
 normalize_script = (
