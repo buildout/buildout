@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [windows-2019]
         python-version: ["3.10"]
         setuptools-version: ["75.1.0"]
     runs-on: ${{ matrix.os }}
