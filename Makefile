@@ -8,7 +8,7 @@ bin/test: bin/buildout buildout.cfg
 	bin/buildout || bin/buildout.exe
 
 test: bin/test
-	PYTHONWARNINGS=ignore bin/test
+	PYTHONWARNINGS=ignore bin/test -t buildout.txt
 
 help:
 	./prepare.sh --help
