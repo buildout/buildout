@@ -56,6 +56,7 @@ setup(
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
+       'Programming Language :: Python :: 3.8',
        'Programming Language :: Python :: 3.9',
        'Programming Language :: Python :: 3.10',
        'Programming Language :: Python :: 3.11',
@@ -69,7 +70,7 @@ setup(
     packages = find_packages('src'),
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
-    python_requires = '>=3.9',
+    python_requires = '>=3.8',
     install_requires = [
         'zc.buildout >=3.1.0',
         'setuptools'],
