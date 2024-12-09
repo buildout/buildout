@@ -261,7 +261,12 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
     >>> found_eggs = set([n.split('-', 1)[0]
     ...      for n in ls('home', '.buildout', 'eggs', abieggs)])
-    >>> found_eggs.discard("six")  # Don't break if six is there or not.
+
+Some packages are only there on older Python versions or on newer.
+Discard them.
+
+    >>> found_eggs.discard("six")
+    >>> found_eggs.discard("legacy_cgi")
     >>> eqs(found_eggs, 'bobo', 'WebOb')
     >>> clear_here()
 
