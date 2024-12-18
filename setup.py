@@ -44,7 +44,7 @@ setup(
     url='http://buildout.org',
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
-    python_requires = '>=3.8',
+    python_requires = '>=3.9',
     namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=49.0.0',
@@ -64,7 +64,6 @@ setup(
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
-       'Programming Language :: Python :: 3.8',
        'Programming Language :: Python :: 3.9',
        'Programming Language :: Python :: 3.10',
        'Programming Language :: Python :: 3.11',
