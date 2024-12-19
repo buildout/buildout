@@ -10,6 +10,13 @@ bin/test: bin/buildout buildout.cfg
 test: bin/test
 	PYTHONWARNINGS=ignore bin/test -pvc
 
+test-recipe: bin/test
+	PYTHONWARNINGS=ignore bin/test-recipe
+
+# oltest = offline test.  But this needs test fixes.
+oltest: bin/test
+	PYTHONWARNINGS=ignore bin/oltest
+
 help:
 	./prepare.sh --help
 
