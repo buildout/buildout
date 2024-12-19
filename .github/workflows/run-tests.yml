@@ -49,8 +49,8 @@ jobs:
         os: [ubuntu-24.04]
         # Skip "3.10" because it is already checked above.
         # Use the last setuptools version that is still supported by all Python versions.
-        python-version: ["3.8", "3.9", "3.11", "3.12", "3.13"]
-        setuptools-version: ["75.3.0"]
+        python-version: ["3.9", "3.11", "3.12", "3.13"]
+        setuptools-version: ["75.6.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -179,7 +179,7 @@ jobs:
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     steps:
