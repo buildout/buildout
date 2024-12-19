@@ -4,7 +4,7 @@ Change History
 3.0.0 (unreleased)
 ==================
 
-- Drop support for Python 2.  Require Python 3.8 as minimum.
+- Drop support for Python 2.  Require Python 3.9 as minimum.
   Require ``zc.buildout`` 3.1.0 as minimum.
 
 
