@@ -8,6 +8,21 @@ Change History
 
 .. towncrier release notes start
 
+4.0 (2025-01-30)
+----------------
+
+Breaking changes:
+
+
+- Drop Python 3.8 support.  Require 3.9 as minimum. (#38)
+
+
+Development:
+
+
+- Test against `setuptools == 75.6.0`. (#671)
+
+
 4.0.0a1 (2024-10-22)
 --------------------
 
