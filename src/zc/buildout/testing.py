@@ -20,6 +20,7 @@ from urllib.request import urlopen
 import errno
 import logging
 import multiprocessing
+import operator
 import os
 import pkg_resources
 import random
@@ -66,10 +67,14 @@ def clear_here():
         else:
             shutil.rmtree(name)
 
-def ls(dir, *subs):
+def ls(dir, *subs, lowercase_and_sort_output=False):
     if subs:
         dir = os.path.join(dir, *subs)
-    names = sorted(os.listdir(dir))
+    if lowercase_and_sort_output:
+        # Get the original names, but sorted lowercase.
+        names = sorted(os.listdir(dir), key=operator.methodcaller("lower"))
+    else:
+        names = sorted(os.listdir(dir))
     for name in names:
         # If we're running under coverage, elide coverage files
         if os.getenv("COVERAGE_PROCESS_START") and name.startswith('.coverage.'):
@@ -80,6 +85,8 @@ def ls(dir, *subs):
             print_('l ', end=' ')
         else:
             print_('- ', end=' ')
+        if lowercase_and_sort_output:
+            name = name.lower()
         print_(name)
 
 def mkdir(*path):
