@@ -1,2 +1,3 @@
-Test with latest setuptools 75.8.0 and 75.8.1, and with pip 25.0.1.
+Test with latest ``setuptools`` 75.8.2 and with ``pip`` 25.0.1.
+Note that ``setuptools`` 75.8.1 can be troublesome and should be avoided.
 [maurits]
