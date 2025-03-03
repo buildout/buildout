@@ -1,0 +1,4 @@
+When trying to find a distribution for ``package.name``, first try the normalized name (``package_name``).
+This fixes an error finding entry points for namespace packages.
+The error is: ``TypeError: ('Expected str, Requirement, or Distribution', None)``.
+[maurits]

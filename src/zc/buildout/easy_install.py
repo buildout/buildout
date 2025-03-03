@@ -1207,10 +1207,33 @@ def scripts(reqs, working_set, executable, dest=None,
     distutils_scripts = []
     for req in reqs:
         if isinstance(req, str):
-            req = pkg_resources.Requirement.parse(req)
-            if req.marker and not req.marker.evaluate():
+            orig_req = pkg_resources.Requirement.parse(req)
+            if orig_req.marker and not orig_req.marker.evaluate():
                 continue
-            dist = working_set.find(req)
+            dist = None
+            if packaging_utils.is_normalized_name(orig_req.name):
+                dist = working_set.find(orig_req)
+                if dist is None:
+                    raise ValueError(
+                        f"Could not find requirement '{orig_req.name}' in working set. "
+                    )
+            else:
+                # First try finding the package by its canonical name.
+                canonicalized_name = packaging_utils.canonicalize_name(orig_req.name)
+                canonical_req = pkg_resources.Requirement.parse(canonicalized_name)
+                dist = working_set.find(canonical_req)
+                if dist is None:
+                    # Now try to find the package by the original name we got from
+                    # the requirements.  This may succeed with setuptools versions
+                    # older than 75.8.2.
+                    dist = working_set.find(orig_req)
+                    if dist is None:
+                        raise ValueError(
+                            f"Could not find requirement '{orig_req.name}' in working "
+                            f"set. Could not find it with normalized "
+                            f"'{canonicalized_name}' either."
+                        )
+
             # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
@@ -1567,7 +1590,7 @@ if len(sys.argv) > 1:
             # is isolated from the system Python already anyway.
             # The specific use-case that led to this change is how the Python
             # language extension for Visual Studio Code calls the Python
-            # interpreter when initializing the extension.              
+            # interpreter when initializing the extension.
             pass
 
     if _args:
