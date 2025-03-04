@@ -1,0 +1,2 @@
+Fix error adding minimum ``zc.buildout`` version as requirement.
+[maurits]
