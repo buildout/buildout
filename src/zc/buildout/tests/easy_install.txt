@@ -258,14 +258,16 @@ Let's enable server logging to check that the lower case file is downloaded.
     GET 200 /demoneeded-1.1.zip
 
 Let's check that the uppercase dist is installed.
+setuptools 75.8.1+ reports the name in all lowercase, earlier versions showed it in uppercase.
+So we compare lowercase.
 
     >>> for dist in ws:
-    ...     print_(dist)
+    ...     print_(str(dist).lower())
     demoneeded 1.1
-    MIXEDCASE 0.5
-    >>> ls(dest)
-    d  MIXEDCASE-0.5-pyN.N.egg
+    mixedcase 0.5
+    >>> ls(dest, lowercase_and_sort_output=True)
     d  demoneeded-1.1-py2.4.egg
+    d  mixedcase-0.5-pyN.N.egg
 
 And cleanup.
 
@@ -727,7 +729,7 @@ the path set:
                 # is isolated from the system Python already anyway.
                 # The specific use-case that led to this change is how the Python
                 # language extension for Visual Studio Code calls the Python
-                # interpreter when initializing the extension.              
+                # interpreter when initializing the extension.
                 pass
     <BLANKLINE>
         if _args:
@@ -1002,7 +1004,7 @@ We specified an interpreter and its paths are adjusted too:
                 # is isolated from the system Python already anyway.
                 # The specific use-case that led to this change is how the Python
                 # language extension for Visual Studio Code calls the Python
-                # interpreter when initializing the extension.              
+                # interpreter when initializing the extension.
                 pass
     <BLANKLINE>
         if _args:
