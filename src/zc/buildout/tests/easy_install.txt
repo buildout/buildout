@@ -258,7 +258,7 @@ Let's enable server logging to check that the lower case file is downloaded.
     GET 200 /demoneeded-1.1.zip
 
 Let's check that the uppercase dist is installed.
-setuptools 75.8 1+ reports the name in all lowercase, earlier versions showed it in uppercase.
+setuptools 75.8.1+ reports the name in all lowercase, earlier versions showed it in uppercase.
 So we compare lowercase.
 
     >>> for dist in ws:
