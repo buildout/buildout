@@ -8,6 +8,16 @@ Change History
 
 .. towncrier release notes start
 
+4.1.1 (2025-03-04)
+------------------
+
+Bug fixes:
+
+
+- Fix error adding minimum ``zc.buildout`` version as requirement.
+  [maurits] (#679)
+
+
 4.1 (2025-03-04)
 ----------------
 
