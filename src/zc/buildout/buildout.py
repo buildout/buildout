@@ -403,19 +403,45 @@ class Buildout(DictMixin):
             versions = data[versions_section_name]
         else:
             versions = {}
-        versions.update(
-            dict((k, SectionKey(v, 'DEFAULT_VALUE'))
-                 for (k, v) in (
-                     # Prevent downgrading due to prefer-final:
-                     ('zc.buildout',
-                      '>='+pkg_resources.working_set.find(
-                          pkg_resources.Requirement.parse('zc.buildout')
-                          ).version),
-                     # Use 2, even though not final
-                     ('zc.recipe.egg', '>=2.0.6'),
-                     )
-                 if k not in versions
-                 ))
+        if 'zc.buildout' not in versions:
+            # Prevent downgrading of zc.buildout itself due to prefer-final.
+            ws = pkg_resources.working_set
+            dist = ws.find(
+                pkg_resources.Requirement.parse('zc-buildout')
+            )
+            if dist is None:
+                # older setuptools
+                dist = ws.find(
+                    pkg_resources.Requirement.parse('zc.buildout')
+                )
+                if dist is None:
+                    # This would be really strange, but I prefer an explicit
+                    # failure here over an unclear error later.
+                    raise ValueError(
+                        "Could not find distribution for zc.buildout in working set."
+                    )
+            minimum = dist.version
+            versions['zc.buildout'] = SectionKey(f'>={minimum}', 'DEFAULT_VALUE')
+        if 'zc.recipe.egg' not in versions:
+            # zc.buildout and zc.recipe egg are closely linked, but zc.buildout
+            # does NOT depend on it: we do not want to add it to our
+            # install_requires.  (One could debate why, although one answer
+            # would be to avoid a circular dependency.  Maybe we could merge them,
+            # as I see no use case for Buildout without recipes.  But we would
+            # need to update the zc.recipe.egg test setup first.)
+            #
+            # Anyway: we use a different way to set a minimum version.
+            # Originally (in 2013, zc.buildout 2.0.0b1) we made sure
+            # zc.recipe.egg>=2.0.0a3 was pinned, mostly to avoid problems
+            # when prefer-final is true.
+            # Later (in 2018, zc.buildout 2.12.1) we updated the minimum version
+            # to 2.0.6, to avoid a KeyError: 'allow-unknown-extras'.
+            # See https://github.com/buildout/buildout/pull/461
+            # I wonder if we really need a minimum version, as older versions
+            # are unlikely to even be installable by supported Python versions.
+            # But if we ever really need a more recent minimum version,
+            # it is easy to update a version here.
+            versions['zc.recipe.egg'] = SectionKey('>=2.0.6', 'DEFAULT_VALUE')
 
         # Absolutize some particular directory, handling also the ~/foo form,
         # and considering the location of the configuration file that generated
