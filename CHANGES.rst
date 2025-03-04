@@ -8,6 +8,36 @@ Change History
 
 .. towncrier release notes start
 
+4.1 (2025-03-04)
+----------------
+
+New features:
+
+
+- In the ``ls`` testing method, add keyword argument ``lowercase_and_sort_output``.
+  The default is False, so no change.
+  When true, as the name says, it sorts the output by lowercase, and prints it lowercase.
+  We need this in one test because with ``setuptools`` 75.8.1 we no longer have a filename ``MIXEDCASE-0.5-pyN.N.egg``, but ``mixedcase-0.5-pyN.N.egg``.
+  [maurits] (#7581)
+
+
+Bug fixes:
+
+
+- When trying to find a distribution for ``package.name``, first try the normalized name (``package_name``).
+  This fixes an error finding entry points for namespace packages.
+  The error is: ``TypeError: ('Expected str, Requirement, or Distribution', None)``.
+  [maurits] (#7581)
+
+
+Development:
+
+
+- Test with latest ``setuptools`` 75.8.2 and with ``pip`` 25.0.1.
+  Note that ``setuptools`` 75.8.1 can be troublesome and should be avoided.
+  [maurits] (#7581)
+
+
 4.0 (2025-01-30)
 ----------------
 
