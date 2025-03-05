@@ -301,3 +301,73 @@ def patch_pkg_resources_requirement_contains():
 
 
 patch_pkg_resources_requirement_contains()
+
+
+def patch_pkg_resources_working_set_find():
+    """Patch pkg_resources.WorkingSet find method.
+
+    setuptools 75.8.1 fixed wheel file naming to follow the binary distribution
+    specification.  This broke a lot for us, especially when using editable
+    installs.  We fixed several parts of our code.
+
+    setuptools 75.8.2 fixed some of the breakage by updating the `find` method
+    of working sets.  When finding a requirement, it now considers several
+    candidates: different spellings of the requirement name.
+    See https://github.com/pypa/setuptools/pull/4856
+
+    A lot of remaining problems in Buildout are fixed if we use this setuptools
+    version.  So what we do in this patch, is to check which setuptools version
+    is used, and patch the 'find' method if the version is too old.
+    """
+    try:
+        from importlib.metadata import version
+        from packaging.version import parse
+        from packaging.version import Version
+
+        if parse(version("setuptools")) >= Version("75.8.2"):
+            return
+    except Exception:
+        return
+
+    try:
+        from pkg_resources import Distribution
+        from pkg_resources import Requirement
+        from pkg_resources import safe_name
+        from pkg_resources import VersionConflict
+        from pkg_resources import WorkingSet
+    except ImportError:
+        return
+
+    def find(self, req: Requirement) -> Distribution | None:
+        """Find a distribution matching requirement `req`
+
+        If there is an active distribution for the requested project, this
+        returns it as long as it meets the version requirement specified by
+        `req`.  But, if there is an active distribution for the project and it
+        does *not* meet the `req` requirement, ``VersionConflict`` is raised.
+        If there is no active distribution for the requested project, ``None``
+        is returned.
+        """
+        dist: Distribution | None = None
+
+        candidates = (
+            req.key,
+            self.normalized_to_canonical_keys.get(req.key),
+            safe_name(req.key).replace(".", "-"),
+        )
+
+        for candidate in filter(None, candidates):
+            dist = self.by_key.get(candidate)
+            if dist:
+                req.key = candidate
+                break
+
+        if dist is not None and dist not in req:
+            # XXX add more info
+            raise VersionConflict(dist, req)
+        return dist
+
+    WorkingSet.find = find
+
+
+patch_pkg_resources_working_set_find()

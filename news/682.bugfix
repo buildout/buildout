@@ -1,0 +1,4 @@
+Patch the ``find`` method from ``pkg_resources.WorkingSet``.
+Let this use the code from ``setuptools`` 75.8.2, if the currently used version is older.
+This is better at finding installed distributions.
+[maurits]
