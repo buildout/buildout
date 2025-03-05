@@ -351,8 +351,12 @@ def patch_pkg_resources_working_set_find():
     except ImportError:
         return
 
-    def find(self, req: Requirement) -> Distribution | None:
+    def find(self, req):
         """Find a distribution matching requirement `req`
+
+        Note: I removed the type hints, because they failed on Python 3.9:
+
+          TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'
 
         If there is an active distribution for the requested project, this
         returns it as long as it meets the version requirement specified by
@@ -361,7 +365,7 @@ def patch_pkg_resources_working_set_find():
         If there is no active distribution for the requested project, ``None``
         is returned.
         """
-        dist: Distribution | None = None
+        dist = None
 
         candidates = (
             req.key,
