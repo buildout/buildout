@@ -1159,7 +1159,7 @@ class Buildout(DictMixin):
 
         upgraded = []
 
-        for project in 'zc.buildout', 'packaging', 'setuptools', 'pip', 'wheel':
+        for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
