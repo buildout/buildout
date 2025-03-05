@@ -8,6 +8,19 @@ Change History
 
 .. towncrier release notes start
 
+4.1.3 (2025-03-05)
+------------------
+
+Bug fixes:
+
+
+- Patch the ``find`` method from ``pkg_resources.WorkingSet``.
+  Let this use the code from ``setuptools`` 75.8.2, if the currently used version is older.
+  This is better at finding installed distributions.
+  But don't patch ``setuptools`` versions older than 61: the new version of the method would give an error there.
+  [maurits] (#682)
+
+
 4.1.2 (2025-03-05)
 ------------------
 
