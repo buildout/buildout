@@ -8,6 +8,17 @@ Change History
 
 .. towncrier release notes start
 
+4.1.2 (2025-03-05)
+------------------
+
+Bug fixes:
+
+
+- Fix error finding the ``zc.buildout`` distribution when checking if we need to upgrade/restart.
+  This depends on your ``setuptools`` version.
+  [maurits] (#681)
+
+
 4.1.1 (2025-03-04)
 ------------------
 

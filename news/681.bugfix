@@ -1,3 +1,0 @@
-Fix error finding the ``zc.buildout`` distribution when checking if we need to upgrade/restart.
-This depends on your ``setuptools`` version.
-[maurits]
