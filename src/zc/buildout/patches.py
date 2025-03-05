@@ -317,14 +317,27 @@ def patch_pkg_resources_working_set_find():
 
     A lot of remaining problems in Buildout are fixed if we use this setuptools
     version.  So what we do in this patch, is to check which setuptools version
-    is used, and patch the 'find' method if the version is too old.
+    is used, and patch the 'find' method if the version is older than 75.8.2.
+
+    But: if the version is *much* older, the patch can be applied, but calling
+    the `find` method will raise:
+
+    AttributeError: 'WorkingSet' object has no attribute 'normalized_to_canonical_keys'
+
+    The first setuptools version that has this, is 61.0.0.
+    So don't patch versions that are older than that.
+
+    Alternatively, we could drop support.  That is fine with me.
     """
     try:
         from importlib.metadata import version
         from packaging.version import parse
         from packaging.version import Version
 
-        if parse(version("setuptools")) >= Version("75.8.2"):
+        setuptools_version = parse(version("setuptools"))
+        if setuptools_version >= Version("75.8.2"):
+            return
+        if setuptools_version < Version("61"):
             return
     except Exception:
         return
