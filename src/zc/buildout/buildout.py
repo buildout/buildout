@@ -17,6 +17,7 @@
 from collections.abc import MutableMapping as DictMixin
 from functools import partial
 from hashlib import md5 as md5_original
+from packaging import utils as packaging_utils
 from zc.buildout.rmtree import rmtree
 
 import zc.buildout.easy_install
@@ -1159,9 +1160,24 @@ class Buildout(DictMixin):
         upgraded = []
 
         for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
-            req = pkg_resources.Requirement.parse(project)
+            canonicalized_name = packaging_utils.canonicalize_name(project)
+            req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
+            if dist is None and canonicalized_name != project:
+                # Try with the original project name.  Depending on which setuptools
+                # version is used, this is either useless or a life saver.
+                req = pkg_resources.Requirement.parse(project)
+                dist = ws.find(req)
             importlib.import_module(project)
+            if dist is None:
+                # This is unexpected.  This must be some problem with how we use
+                # setuptools/pkg_resources.  But since the import worked, it feels
+                # safe to ignore.
+                self._logger.warning(
+                    "Could not find %s in working set during upgrade check. Ignoring.",
+                    project,
+                )
+                continue
             if not inspect.getfile(sys.modules[project]).startswith(dist.location):
                 upgraded.append(dist)
 
