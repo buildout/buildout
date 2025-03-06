@@ -1,0 +1,4 @@
+If needed, copy and rename wheels before making an egg out of them.
+This helps for wheels of namespace packages created with ``setuptools`` 75.8.1 or higher.
+For namespace package we need a dot instead of an underscore in the resulting egg name.
+[maurits]

@@ -40,6 +40,7 @@ import zc.buildout
 import zc.buildout.rmtree
 from packaging import specifiers
 from packaging import utils as packaging_utils
+from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
 from zc.buildout.utils import normalize_name
@@ -491,6 +492,9 @@ class Installer(object):
 
             result = []
             for d in dists:
+                # TODO: maybe pass a project_name.  But in my testing I did not reach
+                # this code part, so it is hard to say what exactly to use as
+                # project name and if that would help.
                 result.append(_move_to_eggs_dir_and_compile(d, dest))
 
             return result
@@ -612,7 +616,9 @@ class Installer(object):
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
-                dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
+                dists = [_move_to_eggs_dir_and_compile(
+                    dist, self._dest, project_name=requirement.project_name
+                )]
                 for _d in dists:
                     if _d not in ws:
                         ws.add(_d, replace=True)
@@ -1918,7 +1924,75 @@ def _get_matching_dist_in_location(dist, location):
     if dist_infos == [(normalize_name(dist.project_name), dist.parsed_version)]:
         return dists.pop()
 
-def _move_to_eggs_dir_and_compile(dist, dest):
+
+def _maybe_copy_and_rename_wheel(dist, dest, project_name):
+    """Maybe copy and rename wheel.
+
+    Then move to eggs dir and compile.
+    We are called by _move_to_eggs_dir_and_compile and call it ourselves when
+    we indeed needed to rename the wheel.
+
+    Return the new dist or None.
+
+    So why do we do this?  We need to check a special case:
+
+    - zest_releaser-9.4.0-py3-none-any.whl with an underscore results in:
+      zest_releaser-9.4.0-py3.13.egg
+      In the resulting `bin/fullrease` script the zest.releaser distribution
+      is not found.
+    - So in this function we copy and rename the wheel to:
+      zest.releaser-9.4.0-py3-none-any.whl with a dot, which results in:
+      zest.releaser-9.4.0-py3-none-any.whl
+      The resulting `bin/fullrease` script works fine.
+
+    See https://github.com/buildout/buildout/issues/686
+    So check if we should rename the wheel before handling it.
+
+    Note that source dists do not have this problem.  Or not anymore,
+    after some fixes in Buildout last year:
+
+    - zest_releaser-9.4.0.tar.gz with an underscore results in (in my case):
+      zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.egg
+      And this works fine, despite having an underscore.
+
+    The egg has a dist-info directory:
+    zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.dist-info
+    The egg from any of the two wheels only has an EGG-INFO directory.
+    I guess the dist-info directory somehow helps.
+    """
+    wheel = Wheel(dist.location)
+    if wheel.project_name == project_name:
+        return
+    filename = os.path.basename(dist.location)
+    new_filename = filename.replace(wheel.project_name, project_name)
+    if filename == new_filename:
+        return
+    tmp_wheeldir = tempfile.mkdtemp()
+    try:
+        new_location = os.path.join(tmp_wheeldir, new_filename)
+        shutil.copy(dist.location, new_location)
+        # Now we create a clone of the original distribution,
+        # but with the new location and the wanted project name.
+        new_dist = Distribution(
+            new_location,
+            project_name=project_name,
+            version=dist.version,
+            py_version=dist.py_version,
+            platform=dist.platform,
+            precedence=dist.precedence,
+        )
+        # We were called by _move_to_eggs_dir_and_compile.
+        # Now we call it again with the new dist.
+        # Note that here we do not pass a project_name,
+        # so it won't call us again.
+        return _move_to_eggs_dir_and_compile(new_dist, dest)
+
+    finally:
+        # Remember that temporary directories must be removed
+        zc.buildout.rmtree.rmtree(tmp_wheeldir)
+
+
+def _move_to_eggs_dir_and_compile(dist, dest, project_name=""):
     """Move distribution to the eggs destination directory.
 
     And compile the py files, if we have actually moved the dist.
@@ -1956,6 +2030,10 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
                 unpacker = UNPACKERS[ext]
+                if project_name and ext == '.whl':
+                    new_dist = _maybe_copy_and_rename_wheel(dist, dest, project_name)
+                    if new_dist is not None:
+                        return new_dist
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
             else:
