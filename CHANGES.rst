@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+4.1.4 (2025-03-07)
+------------------
+
+Bug fixes:
+
+
+- If needed, copy and rename wheels before making an egg out of them.
+  This helps for wheels of namespace packages created with ``setuptools`` 75.8.1 or higher.
+  For namespace package we need a dot instead of an underscore in the resulting egg name.
+  [maurits] (#686)
+
+
 4.1.3 (2025-03-05)
 ------------------
 
