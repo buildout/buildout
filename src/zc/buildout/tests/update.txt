@@ -73,6 +73,7 @@ new versions found in new releases:
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
     zc.buildout 99.99
+    Not found: /new_releases/zc-buildout/
 
 Our buildout script has been updated to use the new eggs:
 
@@ -119,6 +120,7 @@ Now we can see that we actually "upgrade" to an earlier version.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
     zc.buildout 1.4.4
+    Not found: /new_releases/zc-buildout/
 
 There are a number of cases, described below, in which the updates
 don't happen.
@@ -171,6 +173,7 @@ directory:
     Getting distribution for 'zc.buildout>=1.99'.
     Got zc.buildout 99.99.
     Not upgrading because not running a local buildout command.
+    Not found: /new_releases/zc-buildout/
 
     >>> ls('bin')
 
@@ -200,6 +203,7 @@ directory:
     This may be an indication for either a typo in the option's name or a bug in the used recipe.
     Updating show-versions.
     zc.buildout 99.99
+    Not found: /new_releases/zc-buildout/
 
     >>> cat('bin', 'buildout') # doctest +ELL
     #!/usr/local/bin/python2.7
@@ -281,5 +285,6 @@ Run the buildout:
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/failrecipe'
+    Not found: /new_releases/zc-buildout/
     recipe sys-exits
     EXIT CODE: 1
