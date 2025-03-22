@@ -11,6 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+import re
 
 def patch_Distribution():
     try:
@@ -192,7 +193,27 @@ def patch_PackageIndex():
         if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
+    # method copied over from setuptools 46.1.3
+    # Unchanged in setuptools 77.0.1.
+    # Implements PEP 503
+    def find_packages(self, requirement):
+        url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
+        self.scan_url(self.index_url + url_name + '/')
+
+        if not self.package_pages.get(requirement.key):
+            # Fall back to safe version of the name
+            self.scan_url(self.index_url + requirement.project_name + '/')
+
+        if not self.package_pages.get(requirement.key):
+            # We couldn't find the target package, so search the index page too
+            self.not_found_in_index(requirement)
+
+        for url in list(self.package_pages.get(requirement.key, ())):
+            # scan each page that might be related to the desired package
+            self.scan_url(url)
+
     setattr(PackageIndex, 'process_url', process_url)
+    setattr(PackageIndex, 'find_packages', find_packages)
 
 
 patch_PackageIndex()
