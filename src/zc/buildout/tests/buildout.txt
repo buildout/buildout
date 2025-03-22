@@ -3377,19 +3377,27 @@ or paths to use::
     >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')  # doctest: +ELLIPSIS
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
     Getting distribution for 'zc.recipe.egg>=2.0.6'.
     Got zc.recipe.egg
     Installing py.
+    <BLANKLINE>
+    <BLANKLINE>
     Getting distribution for 'demo'.
     Got demo 0.3.
+    <BLANKLINE>
+    <BLANKLINE>
     Getting distribution for 'other'.
     Got other 1.0.
+    <BLANKLINE>
+    <BLANKLINE>
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.1.
     Generated script '/sample-bootstrapped/bin/demo'.
     Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
-    Not found: /tmp/.../zc-recipe-egg/
 
 This causes a ``py`` part to be included that sets up a custom Python
 interpreter with the given requirements or paths::
@@ -3437,11 +3445,19 @@ for us::
     >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')  # doctest: +ELLIPSIS
     Creating '/sample-bootstrapped/setup.cfg'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
     Installing py.
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
     Generated script '/sample-bootstrapped/bin/demo'.
     Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
-    Not found: /tmp/.../zc-recipe-egg/
 
 .. cleanup
 
