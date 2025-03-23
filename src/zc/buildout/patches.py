@@ -11,7 +11,6 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import re
 
 def patch_Distribution():
     try:
@@ -193,27 +192,7 @@ def patch_PackageIndex():
         if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
-    # method copied over from setuptools 46.1.3
-    # Unchanged in setuptools 77.0.1.
-    # Implements PEP 503
-    def find_packages(self, requirement):
-        url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
-        self.scan_url(self.index_url + url_name + '/')
-
-        if not self.package_pages.get(requirement.key):
-            # Fall back to safe version of the name
-            self.scan_url(self.index_url + requirement.project_name + '/')
-
-        if not self.package_pages.get(requirement.key):
-            # We couldn't find the target package, so search the index page too
-            self.not_found_in_index(requirement)
-
-        for url in list(self.package_pages.get(requirement.key, ())):
-            # scan each page that might be related to the desired package
-            self.scan_url(url)
-
     setattr(PackageIndex, 'process_url', process_url)
-    setattr(PackageIndex, 'find_packages', find_packages)
 
 
 patch_PackageIndex()
@@ -325,7 +304,7 @@ patch_pkg_resources_requirement_contains()
 
 
 def patch_pkg_resources_working_set_find():
-    """Patch pkg_resources.WorkingSet find method.
+    """Patch pkg_resources.patch_find_packages find method.
 
     setuptools 75.8.1 fixed wheel file naming to follow the binary distribution
     specification.  This broke a lot for us, especially when using editable
@@ -409,3 +388,38 @@ def patch_pkg_resources_working_set_find():
 
 
 patch_pkg_resources_working_set_find()
+
+
+def patch_find_packages():
+    """
+    Patch setuptools.package_index.PackageIndex find_packages method.
+    Implements PEP 503
+    """
+    try:
+        from setuptools.package_index import PackageIndex
+        import re
+    except ImportError:
+        return
+
+    # method copied over from setuptools 46.1.3
+    # Unchanged in setuptools 77.0.1.    
+    def find_packages(self, requirement):
+        url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
+        self.scan_url(self.index_url + url_name + '/')
+
+        if not self.package_pages.get(requirement.key):
+            # Fall back to safe version of the name
+            self.scan_url(self.index_url + requirement.project_name + '/')
+
+        if not self.package_pages.get(requirement.key):
+            # We couldn't find the target package, so search the index page too
+            self.not_found_in_index(requirement)
+
+        for url in list(self.package_pages.get(requirement.key, ())):
+            # scan each page that might be related to the desired package
+            self.scan_url(url)
+    
+    setattr(PackageIndex, 'find_packages', find_packages)
+
+
+patch_find_packages()
