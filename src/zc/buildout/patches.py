@@ -304,7 +304,7 @@ patch_pkg_resources_requirement_contains()
 
 
 def patch_pkg_resources_working_set_find():
-    """Patch pkg_resources.patch_find_packages find method.
+    """Patch pkg_resources.WorkingSet find method.
 
     setuptools 75.8.1 fixed wheel file naming to follow the binary distribution
     specification.  This broke a lot for us, especially when using editable
