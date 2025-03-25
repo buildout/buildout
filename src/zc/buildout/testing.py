@@ -602,7 +602,7 @@ normalize_exception_type_for_python_2_and_3 = (
 normalize_open_in_generated_script = (
     re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
-not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
+not_found = (re.compile(r'Not found: [^\n]+/(\w|\.|-)+/\r?\n'), '')
 
 easyinstall_deprecated = (re.compile(r'.*EasyInstallDeprecationWarning.*\n'),'')
 setuptools_deprecated = (re.compile(r'.*SetuptoolsDeprecationWarning.*\n'),'')
