@@ -64,15 +64,14 @@ Now if we run the buildout, the buildout will upgrade itself to the
 new versions found in new releases:
 
     >>> print_(system(buildout), end='')
-    Getting distribution for 'zc.buildout>=1.99'.
-    Got zc.buildout 99.99.
+    Got zc.buildout NINETYNINE.NINETYNINE.
     Upgraded:
-      zc.buildout version 99.99;
+      zc.buildout version NINETYNINE.NINETYNINE;
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Installing show-versions.
-    zc.buildout 99.99
+    zc.buildout NINETYNINE.NINETYNINE
 
 Our buildout script has been updated to use the new eggs:
 
@@ -113,12 +112,12 @@ Now we can see that we actually "upgrade" to an earlier version.
 
     >>> print_(system(buildout), end='')
     Upgraded:
-      zc.buildout version 1.4.4,
+      zc.buildout V.V
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Updating show-versions.
-    zc.buildout 1.4.4
+    zc.buildout V.V
 
 There are a number of cases, described below, in which the updates
 don't happen.
@@ -168,8 +167,7 @@ directory:
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/develop-eggs'.
-    Getting distribution for 'zc.buildout>=1.99'.
-    Got zc.buildout 99.99.
+    Got zc.buildout NINETYNINE.NINETYNINE.
     Not upgrading because not running a local buildout command.
 
     >>> ls('bin')
@@ -192,14 +190,14 @@ directory:
 
     >>> print_(system(buildout), end='')
     Upgraded:
-      zc.buildout version 99.99;
+      zc.buildout version NINETYNINE.NINETYNINE;
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
     Section `buildout` contains unused option(s): 'relative-paths'.
     This may be an indication for either a typo in the option's name or a bug in the used recipe.
     Updating show-versions.
-    zc.buildout 99.99
+    zc.buildout NINETYNINE.NINETYNINE
 
     >>> cat('bin', 'buildout') # doctest +ELL
     #!/usr/local/bin/python2.7
@@ -277,7 +275,7 @@ Run the buildout:
 
     >>> print_(system(buildout, with_exit_code=True), end='')
     Upgraded:
-      zc.buildout version 1.4.4,
+      zc.buildout V.V
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/failrecipe'

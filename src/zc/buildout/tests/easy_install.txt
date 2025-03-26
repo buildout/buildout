@@ -253,6 +253,7 @@ Let's enable server logging to check that the lower case file is downloaded.
     >>> ws = zc.buildout.easy_install.install(
     ...     ['MIXEDCASE'], dest,
     ...     links=[link_server], index=link_server+'index/')
+    GET 404 /index/mixedcase/
     GET 404 /index/MIXEDCASE/
     GET 200 /mixedcase-0.5.zip
     GET 200 /demoneeded-1.1.zip
