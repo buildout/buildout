@@ -1138,7 +1138,7 @@ class Buildout(DictMixin):
         self._log_level = level
 
     def _maybe_upgrade(self):
-        # See if buildout or setuptools need to be upgraded.
+        # See if buildout or setuptools or other dependencies need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
 
@@ -1148,8 +1148,12 @@ class Buildout(DictMixin):
         if not self.newest:
             return
 
+        # We must install `wheel` before `setuptools`` to avoid confusion between
+        # the true `wheel` package and the one vendorized by `setuptools`.
+        # See https://github.com/buildout/buildout/issues/691
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
         ws = zc.buildout.easy_install.install(
-            ('zc.buildout', 'setuptools', 'pip', 'wheel'),
+            projects,
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
@@ -1159,7 +1163,7 @@ class Buildout(DictMixin):
 
         upgraded = []
 
-        for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
+        for project in projects:
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
