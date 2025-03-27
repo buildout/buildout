@@ -363,7 +363,7 @@ If a wrong script name is provided, buildout tells about it:
     ... scripts = undefined
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Could not generate script 'undefined' as it is not defined in the egg entry points.
@@ -383,7 +383,7 @@ If a wrong script name is provided, buildout tells about it:
     ... scripts = foo=undefined
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Could not generate script 'foo' as script 'undefined' is not defined in the egg entry points.
