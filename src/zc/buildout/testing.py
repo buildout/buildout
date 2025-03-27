@@ -186,6 +186,10 @@ def _runsetup(setup, *args):
             env=dict(os.environ,
                      PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
+            # Prevent showing several lines of output per created distribution,
+            # especially with older setuptools versions.
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             )
         if os.path.exists('build'):
             rmtree('build')
