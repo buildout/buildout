@@ -1,7 +1,7 @@
 Creating eggs with extensions needing custom build settings
 =============================================================
 
-Sometimes, It's necessary to provide extra control over how an egg is
+Sometimes, it's necessary to provide extra control over how an egg is
 created.  This is commonly true for eggs with extension modules that
 need to access libraries or include files.
 
@@ -69,7 +69,7 @@ index
    The URL of an index server, or almost any other valid URL. :)
 
    If not specified, the Python Package Index,
-   http://cheeseshop.python.org/pypi, is used.  You can specify an
+   https://pypi.org/simple/, is used.  You can specify an
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
