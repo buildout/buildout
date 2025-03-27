@@ -186,6 +186,10 @@ def _runsetup(setup, *args):
             env=dict(os.environ,
                      PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
+            # Prevent showing several lines of output per created distribution,
+            # especially with older setuptools versions.
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             )
         if os.path.exists('build'):
             rmtree('build')
@@ -193,7 +197,7 @@ def _runsetup(setup, *args):
         os.chdir(here)
 
 def sdist(setup, dest):
-    _runsetup(setup, 'sdist', '-d', dest, '--formats=zip')
+    _runsetup(setup, 'sdist', '-d', dest)
 
 def bdist_egg(setup, executable, dest=None):
     # Backward compat:
@@ -202,6 +206,9 @@ def bdist_egg(setup, executable, dest=None):
     else:
         assert executable == sys.executable, (executable, sys.executable)
     _runsetup(setup, 'bdist_egg', '-d', dest)
+
+def bdist_wheel(setup, dest):
+    _runsetup(setup, 'bdist_wheel', '-d', dest)
 
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:
@@ -464,6 +471,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/x-gzip')
             elif path.endswith('.zip'):
                 self.send_header('Content-Type', 'application/x-gzip')
+            elif path.endswith('.whl'):
+                self.send_header('Content-Type', 'application/octet-stream')
             else:
                 self.send_header('Content-Type', 'text/html')
 

@@ -33,7 +33,7 @@ Here's an example:
     >>> isinstance(ws, pkg_resources.WorkingSet)
     True
     >>> sorted(dist.project_name for dist in ws)
-    ['demo', 'demoneeded', 'pip', 'setuptools', 'wheel', 'zc.buildout', 'zc.recipe.egg']
+    ['build', 'demo', 'demoneeded', 'packaging', 'pip', 'pyproject-hooks', 'setuptools', 'tomli', 'wheel', 'zc.buildout', 'zc.recipe.egg']
 
 We'll monkey patch a method in the ``easy_install`` module in order to verify if
 the cache is working:
@@ -52,7 +52,6 @@ built only once.
     ...     distributions=['demo>=0.1'],
     ...     eggs_dir=eggs_dir,
     ...     develop_eggs_dir=develop_eggs_dir,
-    ...     offline=True,
     ... )
     >>> ws_args_2 = dict(ws_args_1)
     >>> ws_args_2['distributions'] = ['demoneeded']
