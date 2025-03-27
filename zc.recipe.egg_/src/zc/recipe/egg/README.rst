@@ -27,19 +27,19 @@ We have a link server that has a number of distributions:
 
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-pyN.N.egg">bigdemo-0.1-pyN.N.egg</a><br>
-    <a href="demo-0.1-pyN.N.egg">demo-0.1-pyN.N.egg</a><br>
-    <a href="demo-0.2-pyN.N.egg">demo-0.2-pyN.N.egg</a><br>
-    <a href="demo-0.3-pyN.N.egg">demo-0.3-pyN.N.egg</a><br>
-    <a href="demo-0.4rc1-pyN.N.egg">demo-0.4rc1-pyN.N.egg</a><br>
+    <a href="bigdemo-0.1-py3-none-any.whl">bigdemo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.1-py3-none-any.whl">demo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.2-py3-none-any.whl">demo-0.2-py3-none-any.whl</a><br>
+    <a href="demo-0.3-py3-none-any.whl">demo-0.3-py3-none-any.whl</a><br>
+    <a href="demo-0.4rc1-py3-none-any.whl">demo-0.4rc1-py3-none-any.whl</a><br>
     <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
     <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
     <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
-    <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
+    <a href="du_zipped-1.0-py3-none-any.whl">du_zipped-1.0-py3-none-any.whl</a><br>
     <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
     <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
-    <a href="other-1.0-pyN.N.egg">other-1.0-pyN.N.egg</a><br>
+    <a href="other-1.0-py3-none-any.whl">other-1.0-py3-none-any.whl</a><br>
     </body></html>
 
 We have a sample buildout.  Let's update it's configuration file to
