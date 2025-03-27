@@ -57,7 +57,7 @@ def create_sample_eggs(test, executable=sys.executable):
             "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
+        zc.buildout.testing.bdist_wheel(tmp, dest)
 
         write(
             tmp, 'setup.py',
@@ -66,7 +66,7 @@ def create_sample_eggs(test, executable=sys.executable):
             "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, executable, dest)
+        zc.buildout.testing.bdist_wheel(tmp, dest)
 
         os.remove(os.path.join(tmp, 'distutilsscript'))
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))
@@ -91,7 +91,7 @@ def create_sample_eggs(test, executable=sys.executable):
                      "['demo = eggrecipedemo:main']},"
                 " zip_safe=True, version='0.%s%s')\n" % (i, rc1)
                 )
-            zc.buildout.testing.bdist_egg(tmp, dest)
+            zc.buildout.testing.bdist_wheel(tmp, dest)
 
         write(tmp, 'mixedcase.py', 'def f():\n  pass')
         write(
@@ -121,7 +121,7 @@ def create_sample_eggs(test, executable=sys.executable):
             " py_modules=['eggrecipebigdemo'], "
             " zip_safe=True, version='0.1')\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
+        zc.buildout.testing.bdist_wheel(tmp, dest)
 
     finally:
         shutil.rmtree(tmp)

@@ -203,6 +203,9 @@ def bdist_egg(setup, executable, dest=None):
         assert executable == sys.executable, (executable, sys.executable)
     _runsetup(setup, 'bdist_egg', '-d', dest)
 
+def bdist_wheel(setup, dest):
+    _runsetup(setup, 'bdist_wheel', '-d', dest)
+
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:
         kw = dict(kw)
@@ -464,6 +467,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/x-gzip')
             elif path.endswith('.zip'):
                 self.send_header('Content-Type', 'application/x-gzip')
+            elif path.endswith('.whl'):
+                self.send_header('Content-Type', 'application/octet-stream')
             else:
                 self.send_header('Content-Type', 'text/html')
 
