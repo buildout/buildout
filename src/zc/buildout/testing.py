@@ -193,7 +193,7 @@ def _runsetup(setup, *args):
         os.chdir(here)
 
 def sdist(setup, dest):
-    _runsetup(setup, 'sdist', '-d', dest, '--formats=zip')
+    _runsetup(setup, 'sdist', '-d', dest)
 
 def bdist_egg(setup, executable, dest=None):
     # Backward compat:
