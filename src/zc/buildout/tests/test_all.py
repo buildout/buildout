@@ -459,7 +459,7 @@ if we hadn't required sampley ourselves:
 If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'...
+    Installing 'zc.buildout', 'wheel'...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
@@ -719,7 +719,7 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     [foo]
     bar = 1
@@ -2222,7 +2222,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'

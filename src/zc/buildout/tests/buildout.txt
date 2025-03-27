@@ -3046,7 +3046,7 @@ database is shown::
     ... """)
 
     >>> print_(system([buildout, '-vv']), end='') # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Configuration data:
     [buildout]
