@@ -66,7 +66,9 @@ def create_sample_eggs(test, executable=sys.executable):
             "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
-        zc.buildout.testing.bdist_wheel(tmp, dest)
+        # We still create an egg for this one, as we use it for testing
+        # distutils scripts in a zipped egg.
+        zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
         os.remove(os.path.join(tmp, 'distutilsscript'))
         os.remove(os.path.join(tmp, 'eggrecipedemoneeded.py'))

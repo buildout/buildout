@@ -97,19 +97,19 @@ We have a link server that has a number of eggs:
 
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
-    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4rc1-py2.4.egg">demo-0.4rc1-py2.4.egg</a><br>
-    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
-    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
+    <a href="bigdemo-0.1-py3-none-any.whl">bigdemo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.1-py3-none-any.whl">demo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.2-py3-none-any.whl">demo-0.2-py3-none-any.whl</a><br>
+    <a href="demo-0.3-py3-none-any.whl">demo-0.3-py3-none-any.whl</a><br>
+    <a href="demo-0.4rc1-py3-none-any.whl">demo-0.4rc1-py3-none-any.whl</a><br>
+    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
+    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
-    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
+    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
-    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
-    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
+    <a href="other-1.0-py3-none-any.whl">other-1.0-py3-none-any.whl</a><br>
     </body></html>
 
 Let's make a directory and install the demo egg to it, using the demo:
@@ -255,8 +255,8 @@ Let's enable server logging to check that the lower case file is downloaded.
     ...     links=[link_server], index=link_server+'index/')
     GET 404 /index/mixedcase/
     GET 404 /index/MIXEDCASE/
-    GET 200 /mixedcase-0.5.zip
-    GET 200 /demoneeded-1.1.zip
+    GET 200 /mixedcase-0.5.tar.gz
+    GET 200 /demoneeded-1.1.tar.gz
 
 Let's check that the uppercase dist is installed.
 setuptools 75.8.1+ reports the name in all lowercase, earlier versions showed it in uppercase.
@@ -334,7 +334,7 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install INFO
       Getting distribution for 'demo'.
     zc.buildout.easy_install DEBUG
-      Fetching demo 0.3 from: http://.../demo-0.3-pyN.N.egg
+      Fetching demo 0.3 from: http://.../demo-0.3-py3-none-any.whl
     zc.buildout.easy_install INFO
       Got demo 0.3.
     zc.buildout.easy_install DEBUG
@@ -346,7 +346,7 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install INFO
       Getting distribution for 'demoneeded'.
     zc.buildout.easy_install DEBUG
-      Fetching demoneeded 1.1 from: http://.../demoneeded-1.1.zip
+      Fetching demoneeded 1.1 from: http://.../demoneeded-1.1.tar.gz
     zc.buildout.easy_install DEBUG
       Running pip install:...
     zc.buildout.easy_install INFO
@@ -1254,20 +1254,20 @@ Let's update our link server with a new version of extdemo:
     >>> update_extdemo()
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
-    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4rc1-py2.4.egg">demo-0.4rc1-py2.4.egg</a><br>
-    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
-    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
+    <a href="bigdemo-0.1-py3-none-any.whl">bigdemo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.1-py3-none-any.whl">demo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.2-py3-none-any.whl">demo-0.2-py3-none-any.whl</a><br>
+    <a href="demo-0.3-py3-none-any.whl">demo-0.3-py3-none-any.whl</a><br>
+    <a href="demo-0.4rc1-py3-none-any.whl">demo-0.4rc1-py3-none-any.whl</a><br>
+    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
+    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
-    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
-    <a href="extdemo-1.5.zip">extdemo-1.5.zip</a><br>
+    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
+    <a href="extdemo-1.5.tar.gz">extdemo-1.5.tar.gz</a><br>
     <a href="index/">index/</a><br>
-    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
-    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
+    <a href="other-1.0-py3-none-any.whl">other-1.0-py3-none-any.whl</a><br>
     </body></html>
 
 The easy_install caches information about servers to reduce network
@@ -1425,16 +1425,16 @@ Now, if we install demo, and extdemo:
     GET 200 /
     GET 404 /index/demo/
     GET 200 /index/
-    GET 200 /demo-0.2-py2.4.egg
+    GET 200 /demo-0.2-py3-none-any.whl
     GET 404 /index/demoneeded/
-    GET 200 /demoneeded-1.1.zip
+    GET 200 /demoneeded-1.1.tar.gz
 
     >>> zc.buildout.easy_install.build(
     ...   'extdemo', dest,
     ...   {'include_dirs': os.path.join(sample_buildout, 'include')},
     ...   links=[link_server], index=link_server+'index/')
     GET 404 /index/extdemo/
-    GET 200 /extdemo-1.5.zip
+    GET 200 /extdemo-1.5.tar.gz
     ['/sample-install/extdemo-1.5-py2.4-linux-i686.egg']
 
 Not only will we get eggs in our destination directory:
@@ -1447,9 +1447,9 @@ Not only will we get eggs in our destination directory:
 But we'll get distributions in the cache directory:
 
     >>> ls(cache)
-    -  demo-0.2-py2.4.egg
-    -  demoneeded-1.1.zip
-    -  extdemo-1.5.zip
+    -  demo-0.2-py3-none-any.whl
+    -  demoneeded-1.1.tar.gz
+    -  extdemo-1.5.tar.gz
 
 The cache directory contains uninstalled distributions, such as zipped
 eggs or source distributions.
@@ -1490,7 +1490,7 @@ from the link server:
     >>> ws = zc.buildout.easy_install.install(
     ...     ['demo'], dest,
     ...     links=[link_server], index=link_server+'index/')
-    GET 200 /demo-0.3-py2.4.egg
+    GET 200 /demo-0.3-py3-none-any.whl
 
 Normally, the download cache is the preferred source of downloads, but
 not the only one.

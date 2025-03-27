@@ -35,7 +35,7 @@ We have a link server that has a number of distributions:
     <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
     <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
     <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
-    <a href="du_zipped-1.0-py3-none-any.whl">du_zipped-1.0-py3-none-any.whl</a><br>
+    <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
     <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
     <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
