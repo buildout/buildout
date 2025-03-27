@@ -27,11 +27,11 @@ We have a link server that has a number of distributions:
 
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-py2.3.egg">bigdemo-0.1-py2.3.egg</a><br>
-    <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
-    <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
-    <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
-    <a href="demo-0.4rc1-py2.3.egg">demo-0.4rc1-py2.3.egg</a><br>
+    <a href="bigdemo-0.1-pyN.N.egg">bigdemo-0.1-pyN.N.egg</a><br>
+    <a href="demo-0.1-pyN.N.egg">demo-0.1-pyN.N.egg</a><br>
+    <a href="demo-0.2-pyN.N.egg">demo-0.2-pyN.N.egg</a><br>
+    <a href="demo-0.3-pyN.N.egg">demo-0.3-pyN.N.egg</a><br>
+    <a href="demo-0.4rc1-pyN.N.egg">demo-0.4rc1-pyN.N.egg</a><br>
     <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
     <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
     <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
@@ -39,7 +39,7 @@ We have a link server that has a number of distributions:
     <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
     <a href="index/">index/</a><br>
     <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
-    <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
+    <a href="other-1.0-pyN.N.egg">other-1.0-pyN.N.egg</a><br>
     </body></html>
 
 We have a sample buildout.  Let's update it's configuration file to
@@ -73,13 +73,13 @@ Let's run the buildout:
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.2-pyN.N.egg
+    d  demoneeded-1.1-pyN.N.egg
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
-    d  zc.buildout-1.0-py2.3.egg
+    d  zc.buildout-1.0-pyN.N.egg
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, which demo requires.  (We also see an egg
@@ -265,13 +265,13 @@ We'll also run the buildout in off-line mode:
 We didn't get an update for demo:
 
     >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.2-pyN.N.egg
+    d  demoneeded-1.1-pyN.N.egg
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
-    d  zc.buildout-1.0-py2.3.egg
+    d  zc.buildout-1.0-pyN.N.egg
 
 If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
@@ -285,9 +285,9 @@ we'll get an update for demo:
 Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demo-0.3-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.2-pyN.N.egg
+    d  demo-0.3-pyN.N.egg
+    d  demoneeded-1.1-pyN.N.egg
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
