@@ -115,7 +115,7 @@ def test_suite():
                     zc.buildout.testing.warnings_warn,
                     zc.buildout.testing.ignore_root_logger,
                     (re.compile("(d  ((ext)?demo(needed)?|other)"
-                                r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                                r"-\d[.]\d-py)\d[.]\d{1,2}(-\S+)?[.]egg"),
                      '\\1V.V.egg'),
                     ]),
                 )
