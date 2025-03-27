@@ -21,6 +21,7 @@ import zc.buildout
 
 
 def create_sample_eggs(test, executable=sys.executable):
+    print("Test setup: creating sample eggs...")
     assert executable == sys.executable, (executable, sys.executable)
     write = test.globs['write']
     dest = test.globs['sample_eggs']
@@ -127,6 +128,7 @@ def create_sample_eggs(test, executable=sys.executable):
 
     finally:
         shutil.rmtree(tmp)
+        print("Test setup: done creating sample eggs.")
 
 
 extdemo_c = """
