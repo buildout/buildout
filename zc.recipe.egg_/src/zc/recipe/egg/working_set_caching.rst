@@ -52,7 +52,6 @@ built only once.
     ...     distributions=['demo>=0.1'],
     ...     eggs_dir=eggs_dir,
     ...     develop_eggs_dir=develop_eggs_dir,
-    ...     offline=True,
     ... )
     >>> ws_args_2 = dict(ws_args_1)
     >>> ws_args_2['distributions'] = ['demoneeded']

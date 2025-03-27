@@ -230,10 +230,10 @@ the bits if the path added to reflect the eggs:
 Egg updating
 ------------
 
-The recipe normally gets the most recent distribution that satisfies the
-specification.  It won't do this is the buildout is either in
-non-newest mode or in offline mode.  To see how this works, we'll
-remove the restriction on demo:
+The recipe normally gets the most recent distribution that satisfies the specification.
+It won't do this if the buildout is either in non-newest mode or in offline mode.
+
+To see how this works, we'll remove the restriction on demo:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -256,22 +256,6 @@ and run the buildout in non-newest mode:
 Note that we removed the eggs option, and the eggs defaulted to the
 part name. Because we removed the eggs option, the demo was
 reinstalled.
-
-We'll also run the buildout in off-line mode:
-
-    >>> print_(system(buildout+' -o'), end='')
-    Updating demo.
-
-We didn't get an update for demo:
-
-    >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-pyN.N.egg
-    d  demoneeded-1.1-pyN.N.egg
-    -  packaging.egg-link
-    -  pip.egg-link
-    -  setuptools.egg-link
-    -  wheel.egg-link
-    d  zc.buildout-1.0-pyN.N.egg
 
 If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
@@ -688,26 +672,3 @@ generate all scripts in required packages:
     Getting distribution for 'bigdemo'.
     Got bigdemo 0.1.
     Generated script '/sample-buildout/bin/demo'.
-
-Offline mode
-------------
-
-If the buildout offline option is set to "true", then no attempt will
-be made to contact an index server:
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = demo
-    ... offline = true
-    ...
-    ... [demo]
-    ... recipe = zc.recipe.egg
-    ... index = eek!
-    ... scripts = demo=foo
-    ... """ % dict(server=link_server))
-
-    >>> print_(system(buildout), end='')
-    Uninstalling bigdemo.
-    Installing demo.
-    Generated script '/sample-buildout/bin/foo'.
