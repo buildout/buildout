@@ -1,2 +1,0 @@
-Install ``wheel`` before ``setuptools`` when checking if an upgrade and restart are needed.
-[maurits]

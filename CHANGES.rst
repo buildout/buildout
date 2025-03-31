@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+4.1.5 (2025-03-31)
+------------------
+
+Bug fixes:
+
+
+- Implement PEP 503: request normalized package url on PyPI servers.
+  [andreclimaco] (#634)
+- Install ``wheel`` before ``setuptools`` when checking if an upgrade and restart are needed.
+  [maurits] (#691)
+
+
 4.1.4 (2025-03-07)
 ------------------
 
