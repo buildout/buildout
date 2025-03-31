@@ -117,6 +117,7 @@ def test_suite():
                     (re.compile("(d  ((ext)?demo(needed)?|other)"
                                 r"-\d[.]\d-py)\d[.]\d{1,2}(-\S+)?[.]egg"),
                      '\\1V.V.egg'),
+                    (re.compile("ld: warning.*"), ""),
                     ]),
                 )
         )

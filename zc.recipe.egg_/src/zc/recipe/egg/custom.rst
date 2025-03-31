@@ -236,9 +236,8 @@ We won't get an update.
 But if we run the buildout in the default on-line and newest modes, we
 will.
 
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    >>> print_(system(buildout), end='')
     Updating extdemo.
-    ...
 
     >>> ls(sample_buildout, 'develop-eggs')
     d  extdemo-1.4-py2.4-linux-i686.egg
@@ -491,10 +490,9 @@ Note that we added a define option to cause the preprocessor variable
 TWO to be defined.  This will cause the module-variable, 'val', to be
 set with a value of 2.
 
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    >>> print_(system(buildout), end='')
     Uninstalling extdemo.
     Installing extdemo.
-    ...
 
 Our develop-eggs now includes an egg link for extdemo:
 
