@@ -32,8 +32,11 @@ Here's an example:
     Getting...
     >>> isinstance(ws, pkg_resources.WorkingSet)
     True
-    >>> sorted(dist.project_name for dist in ws)
-    ['build', 'demo', 'demoneeded', 'packaging', 'pip', 'pyproject-hooks', 'setuptools', 'tomli', 'wheel', 'zc.buildout', 'zc.recipe.egg']
+
+We keep getting more and more dependencies installed, so let's just check that the most important ones are there.
+
+    >>> {dist.project_name for dist in ws}.issuperset({'build', 'demo', 'demoneeded', 'setuptools', 'zc.buildout', 'zc.recipe.egg'})
+    True
 
 We'll monkey patch a method in the ``easy_install`` module in order to verify if
 the cache is working:
