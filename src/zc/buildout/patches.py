@@ -214,6 +214,7 @@ def patch_interpret_distro_name():
         from packaging import version
         from pkg_resources import Distribution
         from pkg_resources import SOURCE_DIST
+        from setuptools import package_index
 
         import re
         import setuptools
@@ -257,7 +258,7 @@ def patch_interpret_distro_name():
             platform=platform,
         )
 
-    setuptools.package_index.interpret_distro_name = interpret_distro_name
+    package_index.interpret_distro_name = interpret_distro_name
 
 
 patch_interpret_distro_name()
@@ -402,7 +403,7 @@ def patch_find_packages():
         return
 
     # method copied over from setuptools 46.1.3
-    # Unchanged in setuptools 77.0.1.    
+    # Unchanged in setuptools 77.0.1.
     def find_packages(self, requirement):
         url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
         self.scan_url(self.index_url + url_name + '/')
@@ -418,7 +419,7 @@ def patch_find_packages():
         for url in list(self.package_pages.get(requirement.key, ())):
             # scan each page that might be related to the desired package
             self.scan_url(url)
-    
+
     setattr(PackageIndex, 'find_packages', find_packages)
 
 
