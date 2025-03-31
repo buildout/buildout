@@ -465,14 +465,14 @@ swig-opts
    List of SWIG command line options
 
 To illustrate this, we'll use a directory containing the extdemo
-example from the earlier section:
+example from the earlier section.
+Depending on which setuptools version you use, there may be different files or directories in there.
+We will check that the most important ones are there:
 
-    >>> ls(extdemo)
-    -  MANIFEST
-    -  MANIFEST.in
-    -  README
-    -  extdemo.c
-    -  setup.py
+    >>> "extdemo.c" in os.listdir(extdemo)
+    True
+    >>> "setup.py" in os.listdir(extdemo)
+    True
 
     >>> write('buildout.cfg',
     ... """
