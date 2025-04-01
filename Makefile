@@ -13,10 +13,6 @@ test: bin/test
 test-recipe: bin/test
 	PYTHONWARNINGS=ignore bin/test-recipe
 
-# oltest = offline test.  But this needs test fixes.
-oltest: bin/test
-	PYTHONWARNINGS=ignore bin/oltest
-
 help:
 	./prepare.sh --help
 
