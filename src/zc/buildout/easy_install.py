@@ -39,7 +39,8 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 from packaging import specifiers
-from packaging import utils as packaging_utils
+from packaging.utils import canonicalize_name
+from packaging.utils import is_normalized_name
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
@@ -265,6 +266,7 @@ def dist_needs_pkg_resources(dist):
 class Installer(object):
 
     _versions = {}
+    _canonical_to_original_name = {}
     _required_by = {}
     _picked_versions = {}
     _download_cache = None
@@ -319,6 +321,7 @@ class Installer(object):
         self._check_picked = check_picked
 
         if versions is not None:
+            self._canonical_to_original_name = canonical_to_original(versions)
             self._versions = normalize_versions(versions)
 
     def _make_env(self):
@@ -362,7 +365,7 @@ class Installer(object):
         """
         output = [
             "Version and requirements information containing %s:" % name]
-        version_constraint = self._versions.get(name)
+        version_constraint = self._versions.get(canonicalize_name(name))
         if version_constraint:
             output.append(
                 "[versions] constraint on %s: %s" % (name, version_constraint))
@@ -492,9 +495,9 @@ class Installer(object):
 
             result = []
             for d in dists:
-                # TODO: maybe pass a project_name.  But in my testing I did not reach
-                # this code part, so it is hard to say what exactly to use as
-                # project name and if that would help.
+                # Maybe pass a project_name.  But this code path only gets
+                # reached by zc/recipe/egg/custom.py, so probably it is
+                # not needed.
                 result.append(_move_to_eggs_dir_and_compile(d, dest))
 
             return result
@@ -578,6 +581,65 @@ class Installer(object):
 
         return dist.clone(location=new_location)
 
+    def _get_original_name(self, project_name):
+        """Get the original name from the project name.
+
+        We first translate the project name to its canonical name,
+        and then use the canonical name to get the original name.
+        As original name, we take whatever has been set as version pin
+        in the versions section.
+
+        If no version was pinned, there is nothing we can do.
+        We just have to hope that a working wheel will get created.
+
+        The project name can come from anywhere, and may be either canonical
+        or original.  Some examples from Plone, where we assume that
+        Products.CMFPlone and plone.restapi are in the version pins:
+
+        1. If only Products.CMFPlone is in the eggs of a buildout section:
+
+            project_name = 'Products.CMFPlone'
+            canonical_name = 'products-cmfplone'
+            original_name = 'Products.CMFPlone'
+
+        2a. If only Plone is in the eggs of a buildout section, which is a
+            package that has Products.CMFPlone as dependency, the names are the same:
+
+            project_name = 'Products.CMFPlone'
+            canonical_name = 'products-cmfplone'
+            original_name = 'Products.CMFPlone'
+
+        2b. Plone also has plone.restapi as dependency.
+            Here the names are:
+
+            project_name = 'plone.restapi'
+            canonical_name = 'plone-restapi'
+            original_name = 'plone.restapi'
+
+        3a. If only pas.plugins.authomatic is in the eggs of a buildout section, which is a
+            package that has Products.CMFPlone as dependency, the project name is different,
+            because this package is now built with hatchling instead of zc.buildout:
+
+            project_name = 'products-cmfplone'
+            canonical_name = 'products-cmfplone'
+            original_name = 'Products.CMFPlone'
+
+        3b. pas.plugins.authomatic also has plone.restapi as dependency.
+            Here the names are:
+
+            project_name = 'plone-restapi'
+            canonical_name = 'plone-restapi'
+            original_name = 'plone.restapi'
+
+        Those are probably far too many names as explanation for a very
+        short method. :-)
+
+        But the important thing is: the project name may differ depending on how
+        a requirement comes in, but the canonical and original name are constant.
+        """
+        canonical_name = canonicalize_name(project_name)
+        return self._canonical_to_original_name.get(canonical_name)
+
     def _get_dist(self, requirement, ws):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
@@ -616,8 +678,9 @@ class Installer(object):
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
+                original_name = self._get_original_name(requirement.project_name)
                 dists = [_move_to_eggs_dir_and_compile(
-                    dist, self._dest, project_name=requirement.project_name
+                    dist, self._dest, project_name=original_name
                 )]
                 for _d in dists:
                     if _d not in ws:
@@ -698,14 +761,14 @@ class Installer(object):
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""
-        constraint = self._versions.get(requirement.project_name.lower())
+        canonical_name = canonicalize_name(requirement.project_name)
+        constraint = self._versions.get(canonical_name)
         if constraint:
             try:
                 requirement = _constrained_requirement(constraint,
                                                        requirement)
             except IncompatibleConstraintError:
-                logger.info(self._version_conflict_information(
-                    requirement.project_name.lower()))
+                logger.info(self._version_conflict_information(canonical_name))
                 raise
 
         return requirement
@@ -929,17 +992,24 @@ class Installer(object):
 
 
 def normalize_versions(versions):
-    """Return version dict with keys normalized to lowercase.
+    """Return version dict with keys canonicalized.
 
     PyPI is case-insensitive and not all distributions are consistent in
-    their own naming.
+    their own naming.  Also, there are dashes, underscores, dots...
     """
-    return dict([(k.lower(), v) for (k, v) in versions.items()])
+    return dict([(canonicalize_name(k), v) for (k, v) in versions.items()])
+
+
+def canonical_to_original(versions):
+    """Return mapping from canonical name to original name in version pins.
+    """
+    return dict([(canonicalize_name(k), k) for k in versions.keys()])
 
 
 def default_versions(versions=None):
     old = Installer._versions
     if versions is not None:
+        Installer._canonical_to_original_name = canonical_to_original(versions)
         Installer._versions = normalize_versions(versions)
     return old
 
@@ -1217,7 +1287,7 @@ def scripts(reqs, working_set, executable, dest=None,
             if orig_req.marker and not orig_req.marker.evaluate():
                 continue
             dist = None
-            if packaging_utils.is_normalized_name(orig_req.name):
+            if is_normalized_name(orig_req.name):
                 dist = working_set.find(orig_req)
                 if dist is None:
                     raise ValueError(
@@ -1225,7 +1295,7 @@ def scripts(reqs, working_set, executable, dest=None,
                     )
             else:
                 # First try finding the package by its canonical name.
-                canonicalized_name = packaging_utils.canonicalize_name(orig_req.name)
+                canonicalized_name = canonicalize_name(orig_req.name)
                 canonical_req = pkg_resources.Requirement.parse(canonicalized_name)
                 dist = working_set.find(canonical_req)
                 if dist is None:
