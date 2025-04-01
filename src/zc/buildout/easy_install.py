@@ -20,12 +20,14 @@ installed.
 
 import copy
 import distutils.errors
+import email
 import errno
 import glob
 import logging
 import operator
 import os
 import pkg_resources
+import posixpath
 import py_compile
 import re
 import setuptools.archive_util
@@ -38,8 +40,10 @@ import sys
 import tempfile
 import zc.buildout
 import zc.buildout.rmtree
+import zipfile
 from packaging import specifiers
-from packaging import utils as packaging_utils
+from packaging.utils import canonicalize_name
+from packaging.utils import is_normalized_name
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
@@ -362,7 +366,7 @@ class Installer(object):
         """
         output = [
             "Version and requirements information containing %s:" % name]
-        version_constraint = self._versions.get(name)
+        version_constraint = self._versions.get(canonicalize_name(name))
         if version_constraint:
             output.append(
                 "[versions] constraint on %s: %s" % (name, version_constraint))
@@ -492,9 +496,6 @@ class Installer(object):
 
             result = []
             for d in dists:
-                # TODO: maybe pass a project_name.  But in my testing I did not reach
-                # this code part, so it is hard to say what exactly to use as
-                # project name and if that would help.
                 result.append(_move_to_eggs_dir_and_compile(d, dest))
 
             return result
@@ -616,9 +617,7 @@ class Installer(object):
                     raise zc.buildout.UserError(
                         "Couldn't download distribution %s." % avail)
 
-                dists = [_move_to_eggs_dir_and_compile(
-                    dist, self._dest, project_name=requirement.project_name
-                )]
+                dists = [_move_to_eggs_dir_and_compile(dist, self._dest)]
                 for _d in dists:
                     if _d not in ws:
                         ws.add(_d, replace=True)
@@ -698,14 +697,14 @@ class Installer(object):
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""
-        constraint = self._versions.get(requirement.project_name.lower())
+        canonical_name = canonicalize_name(requirement.project_name)
+        constraint = self._versions.get(canonical_name)
         if constraint:
             try:
                 requirement = _constrained_requirement(constraint,
                                                        requirement)
             except IncompatibleConstraintError:
-                logger.info(self._version_conflict_information(
-                    requirement.project_name.lower()))
+                logger.info(self._version_conflict_information(canonical_name))
                 raise
 
         return requirement
@@ -929,12 +928,12 @@ class Installer(object):
 
 
 def normalize_versions(versions):
-    """Return version dict with keys normalized to lowercase.
+    """Return version dict with keys canonicalized.
 
     PyPI is case-insensitive and not all distributions are consistent in
-    their own naming.
+    their own naming.  Also, there are dashes, underscores, dots...
     """
-    return dict([(k.lower(), v) for (k, v) in versions.items()])
+    return dict([(canonicalize_name(k), v) for (k, v) in versions.items()])
 
 
 def default_versions(versions=None):
@@ -1217,7 +1216,7 @@ def scripts(reqs, working_set, executable, dest=None,
             if orig_req.marker and not orig_req.marker.evaluate():
                 continue
             dist = None
-            if packaging_utils.is_normalized_name(orig_req.name):
+            if is_normalized_name(orig_req.name):
                 dist = working_set.find(orig_req)
                 if dist is None:
                     raise ValueError(
@@ -1225,7 +1224,7 @@ def scripts(reqs, working_set, executable, dest=None,
                     )
             else:
                 # First try finding the package by its canonical name.
-                canonicalized_name = packaging_utils.canonicalize_name(orig_req.name)
+                canonicalized_name = canonicalize_name(orig_req.name)
                 canonical_req = pkg_resources.Requirement.parse(canonicalized_name)
                 dist = working_set.find(canonical_req)
                 if dist is None:
@@ -1823,8 +1822,16 @@ def make_egg_after_pip_install(dest, distinfo_dir):
                 if os.path.exists(bin_dir):
                     shutil.rmtree(bin_dir)
 
+    # Get actual project name from dist-info directory.
+    with open(posixpath.join(dest, distinfo_dir, "METADATA")) as fp:
+        value = fp.read()
+    metadata = email.parser.Parser().parsestr(value)
+    project_name = metadata.get("Name")
+
     # Make properly named new egg dir
     distro = list(pkg_resources.find_distributions(dest))[0]
+    if project_name:
+        distro.project_name = project_name
     base = "{}-{}".format(
         distro.egg_name(), pkg_resources.get_supported_platform()
     )
@@ -1925,12 +1932,29 @@ def _get_matching_dist_in_location(dist, location):
         return dists.pop()
 
 
-def _maybe_copy_and_rename_wheel(dist, dest, project_name):
-    """Maybe copy and rename wheel.
+class BuildoutWheel(Wheel):
+    """Extension for Wheel class to get the actual project name."""
 
-    Then move to eggs dir and compile.
-    We are called by _move_to_eggs_dir_and_compile and call it ourselves when
-    we indeed needed to rename the wheel.
+    def get_project_name(self):
+        """Get project name by looking in the .dist-info of the wheel.
+
+        This is adapted from the Wheel.install_as_egg method and the methods
+        it calls.
+
+        Ideally, this would be the same as self.project_name.
+        """
+        with zipfile.ZipFile(self.filename) as zf:
+            dist_info = self.get_dist_info(zf)
+
+            with zf.open(posixpath.join(dist_info, 'METADATA')) as fp:
+                value = fp.read().decode('utf-8')
+                metadata = email.parser.Parser().parsestr(value)
+
+            return metadata.get("Name")
+
+
+def _maybe_copy_and_rename_wheel(dist):
+    """Maybe copy and rename wheel.
 
     Return the new dist or None.
 
@@ -1942,29 +1966,40 @@ def _maybe_copy_and_rename_wheel(dist, dest, project_name):
       is not found.
     - So in this function we copy and rename the wheel to:
       zest.releaser-9.4.0-py3-none-any.whl with a dot, which results in:
-      zest.releaser-9.4.0-py3-none-any.whl
+      zest.releaser-9.4.0-py3.13.egg
       The resulting `bin/fullrease` script works fine.
 
     See https://github.com/buildout/buildout/issues/686
     So check if we should rename the wheel before handling it.
 
-    Note that source dists do not have this problem.  Or not anymore,
+    At first, source dists seemed to not have this problem.  Or not anymore,
     after some fixes in Buildout last year:
 
     - zest_releaser-9.4.0.tar.gz with an underscore results in (in my case):
       zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.egg
       And this works fine, despite having an underscore.
+    - But: products_cmfplone-6.1.1.tar.gz with an underscore leads to
+      products_cmfplone-6.1.1-py3.13-macosx-14.7-x86_64.egg
+      and with this, a Plone instance totally fails to start.
+      Ah, but this is only because the generated zope.conf contains a
+      temporarystorage option which is added because plone.recipe.zope2instance
+      could not determine the Products.CMFPlone version.  If I work around that,
+      the instance actually starts.
 
-    The egg has a dist-info directory:
+    The zest.releaser egg generated from the source dist has a dist-info directory:
     zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.dist-info
-    The egg from any of the two wheels only has an EGG-INFO directory.
+    The egg generated from any of the two wheels only has an EGG-INFO directory.
     I guess the dist-info directory somehow helps.
+    It is there because our make_egg_after_pip_install function, which only
+    gets called after installing a source dist, has its own home grown way
+    of creating an egg.
     """
-    wheel = Wheel(dist.location)
-    if wheel.project_name == project_name:
+    wheel = BuildoutWheel(dist.location)
+    actual_project_name = wheel.get_project_name()
+    if actual_project_name and wheel.project_name == actual_project_name:
         return
     filename = os.path.basename(dist.location)
-    new_filename = filename.replace(wheel.project_name, project_name)
+    new_filename = filename.replace(wheel.project_name, actual_project_name)
     if filename == new_filename:
         return
     tmp_wheeldir = tempfile.mkdtemp()
@@ -1975,17 +2010,13 @@ def _maybe_copy_and_rename_wheel(dist, dest, project_name):
         # but with the new location and the wanted project name.
         new_dist = Distribution(
             new_location,
-            project_name=project_name,
+            project_name=actual_project_name,
             version=dist.version,
             py_version=dist.py_version,
             platform=dist.platform,
             precedence=dist.precedence,
         )
-        # We were called by _move_to_eggs_dir_and_compile.
-        # Now we call it again with the new dist.
-        # Note that here we do not pass a project_name,
-        # so it won't call us again.
-        return _move_to_eggs_dir_and_compile(new_dist, dest)
+        return new_dist
 
     finally:
         # Remember that temporary directories must be removed
@@ -2029,11 +2060,11 @@ def _move_to_eggs_dir_and_compile(dist, dest, project_name=""):
             # Figure out how to unpack it, or fall back to easy_install.
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
-                unpacker = UNPACKERS[ext]
-                if project_name and ext == '.whl':
-                    new_dist = _maybe_copy_and_rename_wheel(dist, dest, project_name)
+                if ext == '.whl':
+                    new_dist = _maybe_copy_and_rename_wheel(dist)
                     if new_dist is not None:
-                        return new_dist
+                        dist = new_dist
+                unpacker = UNPACKERS[ext]
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
             else:
