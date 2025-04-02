@@ -1985,6 +1985,7 @@ def call_pip_install(spec, dest):
             spec)
         raise
 
+    # TODO: no longer needed in our scheme.
     return make_egg_after_pip_install(dest, distinfo_dir)
 
 
@@ -2123,8 +2124,8 @@ def unpack_wheel(location, dest):
 
 
 UNPACKERS = {
-    '.egg': unpack_egg,
-    '.whl': unpack_wheel,
+    # '.egg': unpack_egg,
+    '.whl': setuptools.archive_util.unpack_zipfile,
 }
 
 
@@ -2274,19 +2275,26 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     )
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
-        installed_with_pip = False
         if (os.path.isdir(dist.location) and
                 dist.precedence >= pkg_resources.BINARY_DIST):
             # We got a pre-built directory. It must have been obtained locally.
             # Just copy it.
             logger.debug("dist is pre-built directory.")
+            # TODO Can we still support this?  Do we need to?  Maybe warn, or let pip install this.
             tmp_loc = os.path.join(tmp_dest, os.path.basename(dist.location))
             shutil.copytree(dist.location, tmp_loc)
         else:
             # It is an archive of some sort.
             # Figure out how to unpack it, or fall back to easy_install.
-            _, ext = os.path.splitext(dist.location)
+            basename, ext = os.path.splitext(dist.location)
+            if ext == ".gz" and basename.endswith(".tar"):
+                basename = basename[:-4]
+            # Set new location with name ending in '.experimental'.
+            tmp_loc = os.path.join(tmp_dest, os.path.basename(basename) + ".experimental")
             if ext in UNPACKERS:
+                # TODO Maybe simply always call pip install for all dists, without
+                # checking for unpackers.
+                # TODO Maybe never rename a wheel or other dist anymore.
                 if ext == '.whl':
                     logger.debug("Checking if wheel needs to be renamed.")
                     new_dist = _maybe_copy_and_rename_wheel(dist, dest)
@@ -2296,8 +2304,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                     logger.debug("Renaming wheel was not needed or did not help.")
                 unpacker = UNPACKERS[ext]
                 logger.debug("Calling unpacker for %s on %s", ext, dist.location)
-                unpacker(dist.location, tmp_dest)
-                [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
+                unpacker(dist.location, tmp_loc)
             else:
                 logger.debug("Calling pip install for %s on %s", ext, dist.location)
                 [tmp_loc] = call_pip_install(dist.location, tmp_dest)
@@ -2348,8 +2355,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_dest)
-    if installed_with_pip:
-        newdist.precedence = pkg_resources.EGG_DIST
     return newdist
 
 
