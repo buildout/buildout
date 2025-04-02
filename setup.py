@@ -45,7 +45,6 @@ setup(
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
-    namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=49.0.0',
         'packaging',

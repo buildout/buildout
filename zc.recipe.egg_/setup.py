@@ -69,7 +69,6 @@ setup(
 
     packages = find_packages('src'),
     package_dir = {'':'src'},
-    namespace_packages = ['zc', 'zc.recipe'],
     python_requires = '>=3.9',
     install_requires = [
         'zc.buildout >=4.0.0',
