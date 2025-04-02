@@ -1792,7 +1792,7 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
-def call_pip_install(spec, dest):
+def call_pip_install(spec, dest, project_name=""):
     """
     Call `pip install` from a subprocess to install a
     distribution specified by `spec` into `dest`.
@@ -1850,10 +1850,10 @@ def call_pip_install(spec, dest):
             spec)
         raise
 
-    return make_egg_after_pip_install(dest, distinfo_dir)
+    return make_egg_after_pip_install(dest, distinfo_dir, project_name=project_name)
 
 
-def make_egg_after_pip_install(dest, distinfo_dir):
+def make_egg_after_pip_install(dest, distinfo_dir, project_name=""):
     """build properly named egg directory"""
 
     # `pip install` does not build the namespace aware __init__.py files
@@ -1895,6 +1895,8 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     # Make properly named new egg dir
     distro = list(pkg_resources.find_distributions(dest))[0]
+    if project_name:
+        distro.project_name = project_name
     base = "{}-{}".format(
         distro.egg_name(), pkg_resources.get_supported_platform()
     )
@@ -2012,23 +2014,33 @@ def _maybe_copy_and_rename_wheel(dist, dest, project_name):
       is not found.
     - So in this function we copy and rename the wheel to:
       zest.releaser-9.4.0-py3-none-any.whl with a dot, which results in:
-      zest.releaser-9.4.0-py3-none-any.whl
+      zest.releaser-9.4.0-py3.13.egg
       The resulting `bin/fullrease` script works fine.
 
     See https://github.com/buildout/buildout/issues/686
     So check if we should rename the wheel before handling it.
 
-    Note that source dists do not have this problem.  Or not anymore,
+    At first, source dists seemed to not have this problem.  Or not anymore,
     after some fixes in Buildout last year:
 
     - zest_releaser-9.4.0.tar.gz with an underscore results in (in my case):
       zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.egg
       And this works fine, despite having an underscore.
+    - But: products_cmfplone-6.1.1.tar.gz with an underscore leads to
+      products_cmfplone-6.1.1-py3.13-macosx-14.7-x86_64.egg
+      and with this, a Plone instance totally fails to start.
+      Ah, but this is only because the generated zope.conf contains a
+      temporarystorage option which is added because plone.recipe.zope2instance
+      could not determine the Products.CMFPlone version.  If I work around that,
+      the instance actually starts.
 
-    The egg has a dist-info directory:
+    The zest.releaser egg generated from the source dist has a dist-info directory:
     zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.dist-info
-    The egg from any of the two wheels only has an EGG-INFO directory.
+    The egg generated from any of the two wheels only has an EGG-INFO directory.
     I guess the dist-info directory somehow helps.
+    It is there because our make_egg_after_pip_install function, which only
+    gets called after installing a source dist, has its own home grown way
+    of creating an egg.
     """
     wheel = Wheel(dist.location)
     if wheel.project_name == project_name:
@@ -2099,15 +2111,15 @@ def _move_to_eggs_dir_and_compile(dist, dest, project_name=""):
             # Figure out how to unpack it, or fall back to easy_install.
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
-                unpacker = UNPACKERS[ext]
                 if project_name and ext == '.whl':
                     new_dist = _maybe_copy_and_rename_wheel(dist, dest, project_name)
                     if new_dist is not None:
                         return new_dist
+                unpacker = UNPACKERS[ext]
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
             else:
-                [tmp_loc] = call_pip_install(dist.location, tmp_dest)
+                [tmp_loc] = call_pip_install(dist.location, tmp_dest, project_name)
                 installed_with_pip = True
 
         # We have installed the dist. Now try to rename/move it.
