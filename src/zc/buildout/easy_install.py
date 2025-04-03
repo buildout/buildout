@@ -1953,7 +1953,7 @@ class BuildoutWheel(Wheel):
             return metadata.get("Name")
 
 
-def _maybe_copy_and_rename_wheel(dist):
+def _maybe_copy_and_rename_wheel(dist, dest):
     """Maybe copy and rename wheel.
 
     Return the new dist or None.
@@ -2016,14 +2016,18 @@ def _maybe_copy_and_rename_wheel(dist):
             platform=dist.platform,
             precedence=dist.precedence,
         )
-        return new_dist
+        # We were called by _move_to_eggs_dir_and_compile.
+        # Now we call it again with the new dist.
+        # I tried simply returning new_dist, but then it immediately
+        # got removed because we remove its temporary directory.
+        return _move_to_eggs_dir_and_compile(new_dist, dest)
 
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_wheeldir)
 
 
-def _move_to_eggs_dir_and_compile(dist, dest, project_name=""):
+def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
 
     And compile the py files, if we have actually moved the dist.
@@ -2061,9 +2065,9 @@ def _move_to_eggs_dir_and_compile(dist, dest, project_name=""):
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
                 if ext == '.whl':
-                    new_dist = _maybe_copy_and_rename_wheel(dist)
+                    new_dist = _maybe_copy_and_rename_wheel(dist, dest)
                     if new_dist is not None:
-                        dist = new_dist
+                        return new_dist
                 unpacker = UNPACKERS[ext]
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
