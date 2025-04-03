@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+4.1.6 (2025-04-03)
+------------------
+
+Tests
+
+
+- While creating sample packages for testing, mostly create wheels instead of eggs.
+  For the sample source distributions, create ``tar.gz`` instead of ``zip`` files.
+  Then our package index for testing is more like the actual PyPI.
+  [maurits] (#675)
+
+
 4.1.5 (2025-03-31)
 ------------------
 
