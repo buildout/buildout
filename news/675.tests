@@ -1,0 +1,4 @@
+While creating sample packages for testing, mostly create wheels instead of eggs.
+For the sample source distributions, create ``tar.gz`` instead of ``zip`` files.
+Then our package index for testing is more like the actual PyPI.
+[maurits]

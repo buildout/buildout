@@ -72,7 +72,7 @@ setup(
     namespace_packages = ['zc', 'zc.recipe'],
     python_requires = '>=3.9',
     install_requires = [
-        'zc.buildout >=3.1.0',
+        'zc.buildout >=4.0.0',
         'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',

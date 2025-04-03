@@ -10,6 +10,9 @@ bin/test: bin/buildout buildout.cfg
 test: bin/test
 	PYTHONWARNINGS=ignore bin/test -pvc
 
+test-recipe: bin/test
+	PYTHONWARNINGS=ignore bin/test-recipe
+
 help:
 	./prepare.sh --help
 

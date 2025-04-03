@@ -23,3 +23,8 @@ showcontent = true
 directory = "develop"
 name = "Development:"
 showcontent = true
+
+[[tool.towncrier.type]]
+directory = "tests"
+name = "Tests"
+showcontent = true

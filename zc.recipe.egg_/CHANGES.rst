@@ -5,7 +5,16 @@ Change History
 ==================
 
 - Drop support for Python 2.  Require Python 3.9 as minimum.
-  Require ``zc.buildout`` 3.1.0 as minimum.
+  Require ``zc.buildout`` 4.0.0 as minimum.
+
+- Removed tests for the 'offline' mode of buildout, which were broken since setuptools 59.
+  This option was deprecated long time ago, and its current working is not defined.
+  See the `reference documentation <https://www.buildout.org/en/latest/reference.html>`_, which adds:
+  "If you think you want an offline mode, you probably want either the non-newest mode or the install-from-cache mode instead."
+
+- Removed tests for demoing usage of a custom egg, which were broken since setuptools 49.6.0.
+  It is not clear what this means for how well custom egg creation currently works, but the remaining base tests still pass.
+  This is when you are using ``recipe = zc.recipe.egg:custom`` or ``recipe = zc.recipe.egg:develop``, which should be rare.
 
 
 2.0.7 (2018-07-02)

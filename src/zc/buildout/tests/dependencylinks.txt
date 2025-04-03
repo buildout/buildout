@@ -55,7 +55,7 @@ Now we can run the buildout.
 
     >>> print_(system(buildout), end='')
     GET 200 /
-    GET 200 /demoneeded-1.1.zip
+    GET 200 /demoneeded-1.1.tar.gz
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.

@@ -32,8 +32,11 @@ Here's an example:
     Getting...
     >>> isinstance(ws, pkg_resources.WorkingSet)
     True
-    >>> sorted(dist.project_name for dist in ws)
-    ['demo', 'demoneeded', 'pip', 'setuptools', 'wheel', 'zc.buildout', 'zc.recipe.egg']
+
+We keep getting more and more dependencies installed, so let's just check that the most important ones are there.
+
+    >>> {dist.project_name for dist in ws}.issuperset({'build', 'demo', 'demoneeded', 'setuptools', 'zc.buildout', 'zc.recipe.egg'})
+    True
 
 We'll monkey patch a method in the ``easy_install`` module in order to verify if
 the cache is working:
@@ -52,7 +55,6 @@ built only once.
     ...     distributions=['demo>=0.1'],
     ...     eggs_dir=eggs_dir,
     ...     develop_eggs_dir=develop_eggs_dir,
-    ...     offline=True,
     ... )
     >>> ws_args_2 = dict(ws_args_1)
     >>> ws_args_2['distributions'] = ['demoneeded']
