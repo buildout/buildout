@@ -1,7 +1,7 @@
 Change History
 **************
 
-3.0.0 (unreleased)
+3.0.0 (2025-04-03)
 ==================
 
 - Drop support for Python 2.  Require Python 3.9 as minimum.
