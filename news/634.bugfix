@@ -1,0 +1,3 @@
+Prevent getting package pages twice.
+Since version 4.1.5 we first request normalized package url on PyPI servers, but a subsequent check needed a fix.
+[maurits]
