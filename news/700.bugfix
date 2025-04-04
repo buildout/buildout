@@ -1,0 +1,3 @@
+Require at least `packaging` version 23.2.
+Needed because we use the `utils.is_normalized_name` function.
+[maurits]
