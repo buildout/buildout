@@ -28,7 +28,6 @@ import operator
 import os
 import pkg_resources
 import posixpath
-import py_compile
 import re
 import setuptools.archive_util
 import setuptools.command.easy_install
@@ -1659,40 +1658,6 @@ class MissingDistribution(zc.buildout.UserError):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
 
-def redo_pyc(egg):
-    if not os.path.isdir(egg):
-        return
-    for dirpath, dirnames, filenames in os.walk(egg):
-        for filename in filenames:
-            if not filename.endswith('.py'):
-                continue
-            filepath = os.path.join(dirpath, filename)
-            if not (os.path.exists(filepath+'c')
-                    or os.path.exists(filepath+'o')):
-                # If it wasn't compiled, it may not be compilable
-                continue
-
-            # OK, it looks like we should try to compile.
-
-            # Remove old files.
-            for suffix in 'co':
-                if os.path.exists(filepath+suffix):
-                    os.remove(filepath+suffix)
-
-            # Compile under current optimization
-            try:
-                py_compile.compile(filepath)
-            except py_compile.PyCompileError:
-                logger.warning("Couldn't compile %s", filepath)
-            else:
-                # Recompile under other optimization. :)
-                args = [sys.executable]
-                if __debug__:
-                    args.append('-O')
-                args.extend(['-m', 'py_compile', filepath])
-
-                call_subprocess(args)
-
 def _constrained_requirement(constraint, requirement):
     assert isinstance(requirement, pkg_resources.Requirement)
     if constraint[0] not in '<>':
@@ -2030,7 +1995,10 @@ def _maybe_copy_and_rename_wheel(dist, dest):
 def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
 
-    And compile the py files, if we have actually moved the dist.
+    Originally we compiled the py files if we actually moved the dist.
+    But this was never updated for Python 3, so it had no effect.
+    So we removed this part.  See
+    https://github.com/buildout/buildout/issues/699
 
     Its new location is expected not to exist there yet, otherwise we
     would not be calling this function: the egg is already there.  But
@@ -2101,8 +2069,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 newloc)
         else:
             # There were no problems during the rename.
-            # Do the compile step.
-            redo_pyc(newloc)
             newdist = _get_matching_dist_in_location(dist, newloc)
             assert newdist is not None  # newloc above is missing our dist?!
     finally:
