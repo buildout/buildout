@@ -408,7 +408,15 @@ def patch_find_packages():
         url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
         self.scan_url(self.index_url + url_name + '/')
 
-        if not self.package_pages.get(requirement.key):
+        if self.package_pages.get(url_name):
+            # We have found a package page and don't need try to any other
+            # package pages for this package.
+            for url in list(self.package_pages.get(url_name)):
+                # scan each page that might be related to the desired package
+                self.scan_url(url)
+            return
+
+        if not self.package_pages.get(requirement.key) and requirement.key != url_name:
             # Fall back to safe version of the name
             self.scan_url(self.index_url + requirement.project_name + '/')
 
