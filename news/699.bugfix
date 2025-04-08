@@ -1,3 +1,0 @@
-No longer recompile py files if we moved the dist.
-This code was never updated for Python 3, where the `.pyc` files are in a `__pycache__` directory, so it had no effect.
-[maurits]

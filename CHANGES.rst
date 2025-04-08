@@ -8,6 +8,23 @@ Change History
 
 .. towncrier release notes start
 
+4.1.7 (2025-04-08)
+------------------
+
+Bug fixes:
+
+
+- Prevent getting package pages twice.
+  Since version 4.1.5 we first request normalized package url on PyPI servers, but a subsequent check needed a fix.
+  [maurits] (#634)
+- No longer recompile py files if we moved the dist.
+  This code was never updated for Python 3, where the `.pyc` files are in a `__pycache__` directory, so it had no effect.
+  [maurits] (#699)
+- Require at least `packaging` version 23.2.
+  Needed because we use the `utils.is_normalized_name` function.
+  [maurits] (#700)
+
+
 4.1.6 (2025-04-03)
 ------------------
 
