@@ -115,8 +115,13 @@ def patch_PackageIndex():
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
-        if isinstance(f, HTTPError) and f.code == 401:
-            self.info("Authentication error: %s" % f.msg)
+        # --- LOCAL CHANGES MADE HERE: ---
+        if isinstance(f, HTTPError):
+            if f.code == 401:
+                self.info("Authentication error: %s" % f.msg)
+            else:
+                self.info("HTTP error: %s" % f.msg)
+        # --- END OF LOCAL CHANGES ---
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
