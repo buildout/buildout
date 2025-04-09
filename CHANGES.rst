@@ -8,6 +8,21 @@ Change History
 
 .. towncrier release notes start
 
+4.1.8 (2025-04-09)
+------------------
+
+Bug fixes:
+
+
+- Use the canonical name of a package when checking for a version constraint.
+  [maurits] (#689)
+- Get actual project name from dist.
+  Use this for naming the egg that gets created after installing a wheel or after doing a pip install of a source dist.
+  [maurits] (#695)
+- Log all http errors when processing package url.
+  [maurits] (#1013)
+
+
 4.1.7 (2025-04-08)
 ------------------
 

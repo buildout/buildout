@@ -1,3 +1,0 @@
-Get actual project name from dist.
-Use this for naming the egg that gets created after installing a wheel or after doing a pip install of a source dist.
-[maurits]
