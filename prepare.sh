@@ -1,4 +1,6 @@
 #!/bin/sh
+# Note: if you are testing changes, you may want to temporarily change the line
+# above to use /bin/dash instead of bash.  Otherwise you may get incompatibilities.
 # Exit on error:
 set -e
 HERE="$PWD"
@@ -68,13 +70,10 @@ if test $SETUPTOOLS_VERSION; then
   # wheel is a dependency of zc.buildout, but we may need a specific version.
   # If we use setuptools older than 70.1.0, we must use at most wheel 0.45.1,
   # otherwise the bdist_wheel command is not present.
-  # Sorry, this will be some ugly bash stuff.
-  # 1. Get rid of the first dot in the version: 69.5.1 -> 695.1
-  SV="${SETUPTOOLS_VERSION/./}"
-  # 2. Take only the first three characters: 695.1 -> 695
-  SV="${SV:0:3}"
-  # 3. Do the same two transformations on the target version:
-  # 70.1.0 -> 701.0 -> 701.  Check if the SETUPTOOLS_VERSION is lighter.
+  # Take the major and minor version and remove the dot: 69.5.1 -> 695
+  SV=$(echo $SETUPTOOLS_VERSION | cut -d "." -f-2 | sed "s/\.//")
+  # Do the same transformation on the target version: 70.1.0 -> 701.
+  # Check if the SETUPTOOLS_VERSION is lighter than the target.
   if test $SV -lt 701; then
     WHEEL_VERSION="0.45.1"
     echo "Pinning wheel to $WHEEL_VERSION for compat with older setuptools."
