@@ -1,0 +1,3 @@
+Use ``wheel`` 0.45.1 when testing with ``setuptools`` older than 70.1.0.
+Otherwise, when combining an older ``setuptools`` with a newer ``wheel`` version, the ``bdist_wheel`` command exists in neither of these packages.
+[maurits]
