@@ -27,7 +27,7 @@ def default_cfg():
     >>> default_cfg = join(home, '.buildout', 'default.cfg')
     >>> write(default_cfg, '''
     ... [debug]
-    ... dec = 1 
+    ... dec = 1
     ...       2
     ... inc = 1
     ... ''')
@@ -97,7 +97,7 @@ def default_cfg_extensions():
     ...        },
     ...     )
     ... ''')
-    >>> write('buildout.cfg', ''' 
+    >>> write('buildout.cfg', '''
     ... [buildout]
     ... develop = demo demo2
     ... parts =
@@ -373,14 +373,14 @@ def no_default_with_extends_increment_in_base2_and_base3():
     ... parts =
     ... ''')
     >>> print_(system(buildout+' annotate buildout'), end='')
-    ... # doctest: +ELLIPSIS
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
     <BLANKLINE>
     [buildout]
     ...
-    extensions= 
+    extensions=
     demo2
     demo3
         IMPLICIT_VALUE
@@ -389,6 +389,41 @@ def no_default_with_extends_increment_in_base2_and_base3():
     ...
     versions= versions
         DEFAULT_VALUE
+    """
+def increment_buildout_with_multiple_extended_without_base_equals():
+    r"""
+    >>> write('buildout.cfg', '''
+    ... [buildout]
+    ... extends = base1.cfg base2.cfg
+    ... parts += foo
+    ... [foo]
+    ... recipe = zc.buildout:debug
+    ... [base1]
+    ... recipe = zc.buildout:debug
+    ... [base2]
+    ... recipe = zc.buildout:debug
+    ... ''')
+    >>> write('base1.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base1
+    ... ''')
+    >>> write('base2.cfg', '''
+    ... [buildout]
+    ... extends = base3.cfg
+    ... parts += base2
+    ... ''')
+    >>> write('base3.cfg', '''
+    ... [buildout]
+    ... ''')
+
+    >>> print_(system(buildout), end='')
+    Installing base1.
+      recipe='zc.buildout:debug'
+    Installing base2.
+      recipe='zc.buildout:debug'
+    Installing foo.
+      recipe='zc.buildout:debug'
     """
 
 def test_suite():
@@ -404,8 +439,6 @@ def test_suite():
             zc.buildout.testing.not_found,
             zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
             zc.buildout.testing.adding_find_link,
-            zc.buildout.testing.python27_warning,
-            zc.buildout.testing.python27_warning_2,
             zc.buildout.testing.easyinstall_deprecated,
             zc.buildout.testing.setuptools_deprecated,
             zc.buildout.testing.pkg_resources_deprecated,

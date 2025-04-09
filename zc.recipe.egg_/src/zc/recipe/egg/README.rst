@@ -1,7 +1,7 @@
 Installation of distributions as eggs
 =====================================
 
-The zc.recipe.egg:eggs recipe can be used to install various types if
+The zc.recipe.egg:eggs recipe can be used to install various types of
 distutils distributions as eggs.  It takes a number of options:
 
 eggs
@@ -16,7 +16,7 @@ index
    The URL of an index server, or almost any other valid URL. :)
 
    If not specified, the Python Package Index,
-   http://cheeseshop.python.org/pypi, is used.  You can specify an
+   https://pypi.org/simple/, is used.  You can specify an
    alternate index with this option.  If you use the links option and
    if the links point to the needed distributions, then the index can
    be anything and will be largely ignored.  In the examples, here,
@@ -27,19 +27,19 @@ We have a link server that has a number of distributions:
 
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-py2.3.egg">bigdemo-0.1-py2.3.egg</a><br>
-    <a href="demo-0.1-py2.3.egg">demo-0.1-py2.3.egg</a><br>
-    <a href="demo-0.2-py2.3.egg">demo-0.2-py2.3.egg</a><br>
-    <a href="demo-0.3-py2.3.egg">demo-0.3-py2.3.egg</a><br>
-    <a href="demo-0.4rc1-py2.3.egg">demo-0.4rc1-py2.3.egg</a><br>
-    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
-    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
+    <a href="bigdemo-0.1-py3-none-any.whl">bigdemo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.1-py3-none-any.whl">demo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.2-py3-none-any.whl">demo-0.2-py3-none-any.whl</a><br>
+    <a href="demo-0.3-py3-none-any.whl">demo-0.3-py3-none-any.whl</a><br>
+    <a href="demo-0.4rc1-py3-none-any.whl">demo-0.4rc1-py3-none-any.whl</a><br>
+    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
+    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
-    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
+    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
-    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
-    <a href="other-1.0-py2.3.egg">other-1.0-py2.3.egg</a><br>
+    <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
+    <a href="other-1.0-py3-none-any.whl">other-1.0-py3-none-any.whl</a><br>
     </body></html>
 
 We have a sample buildout.  Let's update it's configuration file to
@@ -73,12 +73,13 @@ Let's run the buildout:
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.2-pyN.N.egg
+    d  demoneeded-1.1-pyN.N.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
-    d  zc.buildout-1.0-py2.3.egg
+    d  zc.buildout-1.0-pyN.N.egg
 
 We see that we got an egg for demo that met the requirement, as well
 as the egg for demoneeded, which demo requires.  (We also see an egg
@@ -229,10 +230,10 @@ the bits if the path added to reflect the eggs:
 Egg updating
 ------------
 
-The recipe normally gets the most recent distribution that satisfies the
-specification.  It won't do this is the buildout is either in
-non-newest mode or in offline mode.  To see how this works, we'll
-remove the restriction on demo:
+The recipe normally gets the most recent distribution that satisfies the specification.
+It won't do this if the buildout is either in non-newest mode or in offline mode.
+
+To see how this works, we'll remove the restriction on demo:
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -256,21 +257,6 @@ Note that we removed the eggs option, and the eggs defaulted to the
 part name. Because we removed the eggs option, the demo was
 reinstalled.
 
-We'll also run the buildout in off-line mode:
-
-    >>> print_(system(buildout+' -o'), end='')
-    Updating demo.
-
-We didn't get an update for demo:
-
-    >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
-    -  pip.egg-link
-    -  setuptools.egg-link
-    -  wheel.egg-link
-    d  zc.buildout-1.0-py2.3.egg
-
 If we run the buildout on the default online and newest modes,
 we'll get an update for demo:
 
@@ -283,9 +269,10 @@ we'll get an update for demo:
 Then we'll get a new demo egg:
 
     >>> ls(sample_buildout, 'eggs')
-    d  demo-0.2-py2.3.egg
-    d  demo-0.3-py2.3.egg
-    d  demoneeded-1.1-py2.3.egg
+    d  demo-0.2-pyN.N.egg
+    d  demo-0.3-pyN.N.egg
+    d  demoneeded-1.1-pyN.N.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
@@ -360,7 +347,7 @@ If a wrong script name is provided, buildout tells about it:
     ... scripts = undefined
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Could not generate script 'undefined' as it is not defined in the egg entry points.
@@ -380,7 +367,7 @@ If a wrong script name is provided, buildout tells about it:
     ... scripts = foo=undefined
     ... """ % dict(server=link_server))
 
-    >>> print system(buildout),
+    >>> print_(system(buildout), end='')
     Uninstalling demo.
     Installing demo.
     Could not generate script 'foo' as script 'undefined' is not defined in the egg entry points.
@@ -685,26 +672,3 @@ generate all scripts in required packages:
     Getting distribution for 'bigdemo'.
     Got bigdemo 0.1.
     Generated script '/sample-buildout/bin/demo'.
-
-Offline mode
-------------
-
-If the buildout offline option is set to "true", then no attempt will
-be made to contact an index server:
-
-    >>> write(sample_buildout, 'buildout.cfg',
-    ... """
-    ... [buildout]
-    ... parts = demo
-    ... offline = true
-    ...
-    ... [demo]
-    ... recipe = zc.recipe.egg
-    ... index = eek!
-    ... scripts = demo=foo
-    ... """ % dict(server=link_server))
-
-    >>> print_(system(buildout), end='')
-    Uninstalling bigdemo.
-    Installing demo.
-    Generated script '/sample-buildout/bin/foo'.

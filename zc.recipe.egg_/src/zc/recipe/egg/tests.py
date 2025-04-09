@@ -47,14 +47,12 @@ def test_suite():
                zc.buildout.testing.normalize_script,
                zc.buildout.testing.normalize_egg_py,
                zc.buildout.tests.normalize_bang,
-               zc.buildout.tests.normalize_S,
                zc.buildout.testing.not_found,
-               zc.buildout.testing.python27_warning,
-               zc.buildout.testing.python27_warning_2,
                zc.buildout.testing.easyinstall_deprecated,
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                (re.compile(r'[d-]  zc.buildout(-\S+)?[.]egg(-link)?'),
                 'zc.buildout.egg'),
                (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
@@ -71,12 +69,11 @@ def test_suite():
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
-               zc.buildout.testing.python27_warning,
-               zc.buildout.testing.python27_warning_2,
                zc.buildout.testing.easyinstall_deprecated,
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                (re.compile('__buildout_signature__ = '
                            r'sample-\S+\s+'
                            r'zc.recipe.egg-\S+\s+'
@@ -98,6 +95,7 @@ def test_suite():
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
+               zc.buildout.testing.ignore_root_logger,
                ])
             ),
         ]
@@ -111,15 +109,15 @@ def test_suite():
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
                     zc.buildout.testing.not_found,
-                    zc.buildout.testing.python27_warning,
-                    zc.buildout.testing.python27_warning_2,
                     zc.buildout.testing.easyinstall_deprecated,
                     zc.buildout.testing.setuptools_deprecated,
                     zc.buildout.testing.pkg_resources_deprecated,
                     zc.buildout.testing.warnings_warn,
+                    zc.buildout.testing.ignore_root_logger,
                     (re.compile("(d  ((ext)?demo(needed)?|other)"
-                                r"-\d[.]\d-py)\d[.]\d(-\S+)?[.]egg"),
+                                r"-\d[.]\d-py)\d[.]\d{1,2}(-\S+)?[.]egg"),
                      '\\1V.V.egg'),
+                    (re.compile("ld: warning.*"), ""),
                     ]),
                 )
         )

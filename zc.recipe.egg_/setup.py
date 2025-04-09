@@ -14,7 +14,7 @@
 """Setup for zc.recipe.egg package
 """
 
-version = '2.0.8.dev0'
+version = '3.0.1.dev0'
 
 import os
 from setuptools import setup, find_packages
@@ -51,18 +51,16 @@ setup(
         ),
     keywords = "development build",
     classifiers = [
-       'Development Status :: 5 - Production/Stable',
+       'Development Status :: 6 - Mature',
        'Framework :: Buildout',
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
-       'Programming Language :: Python :: 2',
-       'Programming Language :: Python :: 2.7',
-       'Programming Language :: Python :: 3',
-       'Programming Language :: Python :: 3.4',
-       'Programming Language :: Python :: 3.5',
-       'Programming Language :: Python :: 3.6',
-       'Programming Language :: Python :: 3.7',
+       'Programming Language :: Python :: 3.9',
+       'Programming Language :: Python :: 3.10',
+       'Programming Language :: Python :: 3.11',
+       'Programming Language :: Python :: 3.12',
+       'Programming Language :: Python :: 3.13',
        'Topic :: Software Development :: Build Tools',
        'Topic :: Software Development :: Libraries :: Python Modules',
        ],
@@ -72,8 +70,9 @@ setup(
     packages = find_packages('src'),
     package_dir = {'':'src'},
     namespace_packages = ['zc', 'zc.recipe'],
+    python_requires = '>=3.9',
     install_requires = [
-        'zc.buildout >=2.12.0',
+        'zc.buildout >=4.0.0',
         'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',

@@ -62,7 +62,7 @@ Basé sur Python
 
 - make est un langage de script horrible
 
-  - utilise le shell 
+  - utilise le shell
 
   - non portable
 
@@ -111,7 +111,7 @@ Travailler avec des eggs
     - Vérifie toujours par défaut la version la plus récente
 
       .. class:: handout
-      
+
          Lors d'une passage à une version supérieure, ``easy_install`` ne met pas à jour
          les dépendances
 
@@ -133,7 +133,7 @@ Travailler avec des eggs
      développement et utilisera ainsi cet egg en développement plutôt que l'egg
      normal.
 
-     (``easy_install`` utilise plutôt les eggs publiés ayant la même version.) 
+     (``easy_install`` utilise plutôt les eggs publiés ayant la même version.)
 
      Lorsque j'ai fini mes changements, je crée une nouvelle publication de l'egg et j'indique
      à buildout de ne plus utiliser l'egg en développement.
@@ -156,7 +156,7 @@ Travailler avec des eggs
      Nos buildouts initiaux utilisaient make.  Ils étaient difficile à maintenir et
      à réutiliser.
 
-     Il y a deux ans, nous avons créé un prototype de buildout basé sur python. 
+     Il y a deux ans, nous avons créé un prototype de buildout basé sur python.
 
      ``zc.buildout`` n'est plus un prototype et est issu de l'expérience acquise
      en utilisant le prototype.
@@ -220,7 +220,7 @@ Jargon des Eggs
      Les eggs dépendants de la plateforme contiennent des modules d'extension construits,
      ils sont donc liés à un système d'exploitation en particulier.  En outre, ils peuvent
      dépendre d'options de construction qui ne sont pas reflétées dans le nom de l'egg.
-  
+
 - Liens d'eggs en développement
 
   .. class:: handout
@@ -228,7 +228,7 @@ Jargon des Eggs
      Les liens d'eggs en développement (ou eggs en développement) sont des fichiers spéciaux
      qui permettent à un répertoire source d'être traité comme un egg. Un lien d'egg
      en développement est un fichier contenant le chemin d'un répertoire de sources.
-  
+
 - Exigences (Requirements)
 
   .. class:: handout
@@ -284,7 +284,7 @@ Points d'entrée
     .. class:: handout
 
        Buildout permet plus de contrôle sur la génération de script.
-       Le code d'initialisation et les arguments des points d'entrée peuvent être précisés. 
+       Le code d'initialisation et les arguments des points d'entrée peuvent être précisés.
 
 
 Survol de Buildout
@@ -306,16 +306,16 @@ Survol de Buildout
 
     .. class:: handout
 
-       Cela-dit, il est possible et courant de factoriser ceci dans des fichiers multiples. 
+       Cela-dit, il est possible et courant de factoriser ceci dans des fichiers multiples.
 
 - spécifie un ensemble de ``parts``
 
   - une recette (« recipe »)
- 
+
   - données de configuration
 
   .. class:: handout
-  
+
      Chaque part est définie par une recette (« recipe »), qui est un programme Python
      permettant d'installer ou de désinstaller la part, ainsi que des données utilisées
      par la recette.
@@ -327,7 +327,7 @@ Survol de Buildout
      Si une part est retirée d'une spécification, elle est désinstallée.
 
      Si la recette ou la configuration d'une part est modifiée, elle est désinstallée et réinstallée.
-     
+
 
 survol de Buildout (suite)
 ==========================
@@ -385,7 +385,7 @@ Fichiers du projet ``zope.event``
 
      On place par convention un fichier README.txt à la racine du projet.
      distutils a l'habitude de se plaindre s'il n'est pas disponible.
-  
+
 - ``bootstrap.py`` pour amorcer le buildout
 
   .. class:: handout
@@ -399,7 +399,7 @@ buildout.cfg pour zope.event
 ============================
 
 ::
-  
+
   [buildout]
   parts = test
   develop = .
@@ -425,7 +425,7 @@ buildout.cfg pour zope.event
      parts = test
 
    Chaque buildout doit définir obligatoirement une liste de ``parts``, mais
-   cette liste peut être vide. La liste indique ce qui doit être construit. 
+   cette liste peut être vide. La liste indique ce qui doit être construit.
    Si l'une des parts de la liste dépend d'autre parts, les autres parts
    seront elles-aussi construites.
 
@@ -453,7 +453,7 @@ buildout.cfg pour zope.event
    spécification de recette est une 'exigence' de distribution. L'exigence
    peut être suivie d'une virgule ou d'un nom de recette. Les eggs de recette
    peuvent contenir plusieurs recettes et peuvent définir une recette par défaut.
-   
+
    L'egg ``zc.recipe.testrunner`` définit une recette par défaut qui crée un
    lanceur de tests en utilisant le framework ``zope.testing.testrunner``.
 
@@ -505,9 +505,9 @@ buildout.cfg pour zope.event
 
      Buildout accepte plusieurs commandes. L'une d'entre elles est
      ``setup``.  La commande ``setup`` prend un nom de répertoire et
-     lance le script de setup trouvé à cet endroit. Il fait en sorte 
+     lance le script de setup trouvé à cet endroit. Il fait en sorte
      d'importer setuptools avant le lancement du script. Ceci permet aux
-     commandes définies par setuptools de fonctionner même pour les 
+     commandes définies par setuptools de fonctionner même pour les
      distributions qui n'utilisent pas setuptools.
 
      Les commandes sdist, register, upload, bdist_egg et egg_info sont
@@ -526,7 +526,7 @@ buildout.cfg pour zope.event
      L'option -r de la commande egg_info permet d'inclure le numéro de
      révision SVN du projet dans le numéro de version de la distribution.
      L'option -b précise un tag de révision. Ici on a spécifié un tag de
-     révision « dev » qui marque la publication comme une publication de 
+     révision « dev » qui marque la publication comme une publication de
      développement.
 
 Exercice 1
@@ -577,7 +577,7 @@ Organisation du buildout
 
 .. class:: handout
 
-   Certaines personnes trouvent l'organisation du buildout surprenant, car elle 
+   Certaines personnes trouvent l'organisation du buildout surprenant, car elle
    n'est pas semblable à l'organisation des répertoires d'un système unix. Cette
    organisation a été guidée par la règle « Mieux vaut plat qu'imbriqué ».
    ("Shallow is better than nested")
@@ -694,7 +694,7 @@ Un ``setup.py`` minimal ou de développement
          __path__ = pkgutil.extend_path(__path__, __name__)
 
    Les paquets d'espace de nom doivent être déclarés, comme on l'a fait ici.
-  
+
    Nous avons toujours intérêt à inclure les données du paquet.
 
    Comme le module `__init__` utilise setuptools, on le déclare comme dépendance,
@@ -860,7 +860,7 @@ Installation de scripts
    Si une distribution n'utilise pas setuptools, elle peut ne pas déclarer
    ses points d'entrée. Dans ce cas, vous pouvez spécifier les points d'entrée
    dans les données de la recette.
-  
+
 Initialisation des scripts
 ==========================
 
@@ -873,13 +873,13 @@ Initialisation des scripts
 
   [rst2]
   recipe = zc.recipe.egg
-  eggs = zc.rst2 
+  eggs = zc.rst2
          codeblock
-  initialization = 
+  initialization =
       sys.argv[1:1] = (
         's5 '
         '--stylesheet ${buildout:directory}/zope/docutils.css '
-        '--theme-url file://${buildout:directory}/zope' 
+        '--theme-url file://${buildout:directory}/zope'
         ).split()
   scripts = rst2=s5
 
@@ -890,7 +890,7 @@ Initialisation des scripts
 
    L'option d'initialisation nous permet de spécifier du code python à inclure.
 
-   Avec l'option 'scripts' on peut contrôler quels scripts sont installés et 
+   Avec l'option 'scripts' on peut contrôler quels scripts sont installés et
    quels sont leur nom. Dans cet exemple, on a utilisé l'option 'scripts' pour
    demander un script nommé ``s5`` depuis le point d'entrée ``rst2``.
 
@@ -916,7 +916,7 @@ Ceci entraînera la création d'un script ``bin/py``.
    Les interpréteurs personnalisés peuvent être utilisés pour obtenir
    une invite python avec les eggs spécifiés et leurs dépendances dans
    le ``sys.path``.
-   
+
    Vous pouvez aussi utiliser des interpréteurs personnalisés pour lancer
    des scripts, comme vous feriez avec l'interpréteur python habituel. Il
    suffit d'appeler l'interpréteur avec le chemin du script et ses arguments.
@@ -1020,7 +1020,7 @@ Personnalisation des Eggs en développement
          l'appel de l'initialisateur pour déterminer si une configuration
          a changé afin de savoir si une part doit être réinstallée.
          Une part est désinstallée avant d'être réinstallée.
-      
+
     - install
 
       .. class:: handout
@@ -1117,17 +1117,17 @@ Recettes de désinstallation
    import os
 
    class Service:
-   
+
        def __init__(self, buildout, name, options):
            self.options = options
-   
+
        def install(self):
-           os.system("chkconfig --add %s" % self.options['script'])         
+           os.system("chkconfig --add %s" % self.options['script'])
            return ()
-   
+
        def update(self):
            pass
-   
+
    def uninstall_service(name, options):
        os.system("chkconfig --del %s" % options['script'])
 
@@ -1156,7 +1156,7 @@ Points d'entrée de Buildout
    """
 
    setup(name='recipes', entry_points=entry_points)
-   
+
 Exercice 3
 ==========
 
@@ -1190,7 +1190,7 @@ Ligne de commande buildout :
    sur la ligne de commande sont prioritaires par rapport à celles des fichiers
    de configuration.
 
-   Il existe quelques options en ligne de commande, comme -c pour spécifier un 
+   Il existe quelques options en ligne de commande, comme -c pour spécifier un
    fichier de configuration ou -U pour désactiver la lecture des réglages par
    défaut de l'utilisateur.
 
@@ -1219,8 +1219,8 @@ Modes de Buildout
 .. class:: handout
 
    Par défaut, buildout essaie toujours de trouver les distributions les plus
-   récentes qui satisfassent les exigences. La recherche de nouvelles 
-   distributions peut prendre beaucoup de temps. De nombreuses personnes 
+   récentes qui satisfassent les exigences. La recherche de nouvelles
+   distributions peut prendre beaucoup de temps. De nombreuses personnes
    auront intérêt à utiliser l'option -N pour désactiver cette recherche.
    On verra plus loin comment modifier ce comportement par défaut.
 
@@ -1357,7 +1357,7 @@ Exemple: zc.sharing (1/2)
 ::
 
   [buildout]
-  develop = . zc.security 
+  develop = . zc.security
   parts = instance test
   find-links = http://download.zope.org/distribution/
 
@@ -1366,7 +1366,7 @@ Exemple: zc.sharing (1/2)
   database = data
   user = jim:123
   eggs = zc.sharing
-  zcml = 
+  zcml =
     zc.resourcelibrary zc.resourcelibrary-meta
     zc.sharing-overrides:configure.zcml zc.sharing-meta
     zc.sharing:privs.zcml zc.sharing:zope.manager-admin.zcml
@@ -1381,7 +1381,7 @@ Exemple: zc.sharing (1/2)
    Vous pouvez ignorer en grande partie les détails de la recette pour
    l'instance Zope 3. Si vous n'êtes pas un utilisateur de Zope, vous n'avez
    pas besoin de les connaître. Si vous êtes utilisateur de Zope, vous devez
-   savoir que de bien meilleures recettes sont développées. 
+   savoir que de bien meilleures recettes sont développées.
 
    Ce projet utilise plusieurs répertoire sources, le répertoire courant et le
    répertoire zc.security qui est une référence subversion externe vers un
@@ -1389,14 +1389,14 @@ Exemple: zc.sharing (1/2)
    l'option ``develop``.
 
    On a demandé les parts ``instance`` et ``test``. Des parts supplémentaires
-   seront installées à cause des dépendances de la part ``instance``. En 
+   seront installées à cause des dépendances de la part ``instance``. En
    particulier, on va obtenir un checkout de Zope3 parce que la recette
    ``instance`` fait référence à la part ``zope3``. On va obtenir une part
    ``database`` à cause de la référence de la recette ``instance`` dans l'option
    ``database``.
 
    Le buildout va chercher des distributionsn à l'adresse
-   http://download.zope.org/distribution/. 
+   http://download.zope.org/distribution/.
 
 Exemple: zc.sharing (2/2)
 =========================
@@ -1413,7 +1413,7 @@ Exemple: zc.sharing (2/2)
   [test]
   recipe = zc.recipe.testrunner
   defaults = ['--tests-pattern', 'f?tests$']
-  eggs = zc.sharing 
+  eggs = zc.sharing
          zc.security
   extra-paths = ${zope3:location}/src
 
@@ -1428,7 +1428,7 @@ Exemple: zc.sharing (2/2)
 
    - On a utilisé l'option ``extra-paths`` pour indiquer au lanceur de tests
      d'inclure le répertoire source du checkout de Zope 3  dans sys.path.
-     Ce n'est plus nécessaire puisque Zope 3 est maintenant disponible 
+     Ce n'est plus nécessaire puisque Zope 3 est maintenant disponible
      entièrement sous forme d'eggs.
 
 Source ou Binaire
@@ -1454,21 +1454,21 @@ Source ou Binaire
      Récemment, j'ai dû supprimer des eggs de mon répertoire d'eggs partagés.
      J'avais installé une mise à jour du système d'exploitation qui a causé
      des changements dans le nom des fichiers de la bibliothèque open-ssl.
-     Les eggs construits en utilisant la bibliothèque précédente ne 
-     fonctionnaient plus. 
+     Les eggs construits en utilisant la bibliothèque précédente ne
+     fonctionnaient plus.
 
 
 Expériences avec RPM
 ====================
 
-Travaux initiaux de création de RPMs pour le déploiement dans nos 
+Travaux initiaux de création de RPMs pour le déploiement dans nos
 environnements d'hébergement:
 
 - Séparation du logiciel et de sa configuration
 
 - Utilisation de Buildout pour créer des rpm contenant des programmes
 
-- Plus tard, le buildout installé est utilisé pour établir des procédures 
+- Plus tard, le buildout installé est utilisé pour établir des procédures
   spécifiques
 
   - Fonctionne en tant que root en mode hors-ligne
@@ -1515,7 +1515,7 @@ fichier de spec pour ZRS (1/3)
    RPMs python de façon à contrôler ce qu'ils contiennent. Les mainteneurs
    de paquets systèmes on tendance à être trop créatifs pour nous.
 
-   Habituellement, pendant la construction, RPM installe les fichiers dans 
+   Habituellement, pendant la construction, RPM installe les fichiers dans
    leur emplacement réel de fonctionnement. Ceci n'est pas acceptable pour de
    nombreuses raisons. J'ai ici utilisé le mécanisme build-root de RPM pour
    que les fichiers soient construits dans une arborescence temporaire..
@@ -1524,7 +1524,7 @@ fichier de spec pour ZRS (1/3)
    finale, les chemins écrits par le buildout, comme ceux des eggs dans
    les scripts, sont faux. Il existe deux moyens de pallier ce problème :
 
-   - Je pourrais essayer de corriger les chemins au moment de la construction, 
+   - Je pourrais essayer de corriger les chemins au moment de la construction,
 
    - je pourrais corriger les chemins au moment de l'installation.
 
@@ -1560,9 +1560,9 @@ fichier de spec pour ZRS (2/3)
 
 .. class:: handout
 
-   Je ne suis pas un expert de RPM, et de vrais experts en RPM auraient 
+   Je ne suis pas un expert de RPM, et de vrais experts en RPM auraient
    peut-être une contraction de l'estomac en voyant mon fichier de spec.
-   RPM spécifie normalement plusieurs étapes de construction que j'ai 
+   RPM spécifie normalement plusieurs étapes de construction que j'ai
    contractées en une seule.
 
    - Les premières lignes établissent une racine de construction.
@@ -1596,11 +1596,11 @@ fichier de spec pour ZRS (3/3)
   bin/buildout -Uc rpmpost.cfg \
      buildout:offline=true buildout:find-links= buildout:installed= \
      mercury:name=%{name} mercury:recipe=buildoutmercury
-  chmod -R -w . 
+  chmod -R -w .
 
   %preun
   cd $RPM_INSTALL_PREFIX/%{name}
-  chmod -R +w . 
+  chmod -R +w .
   find . -name \*.pyc | xargs rm -f
 
   %files
@@ -1646,9 +1646,9 @@ puis d'être capable de l'extraire et de la reproduire..
   distributions
 
   - On le lance avec l'option -v
-  
+
   - On recherche dans la sortie les lignes de la forme :
-  
+
     ::
 
       Picked: foo = 1.2
@@ -1664,14 +1664,14 @@ puis d'être capable de l'extraire et de la reproduire..
     [myversions]
     foo = 1.2
     ...
- 
+
 Problèmes de déploiement
 ========================
 
 - Besoin d'un moyen d'enregistrer les versions des eggs utilisés.
 
-- Besoin d'un moyen de générer des buildouts distribuables qui contiennent 
-  toutes les distributions sources nécessaires à la construction sur une 
+- Besoin d'un moyen de générer des buildouts distribuables qui contiennent
+  toutes les distributions sources nécessaires à la construction sur une
   machine cible (par ex les RPMS sources).
 
 - Besoin d'un moyen de générer des distributions sources. Il faudrait pouvoir

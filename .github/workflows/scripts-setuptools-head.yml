@@ -3,23 +3,25 @@ name: Script generation with setuptools head
 on:
   schedule:
     - cron:  '0 0,12 * * *'
+  # Allow to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
         package: [zest.releaser, pyspf]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
     - name: Setup buildout virtualenv
       run: |
         make -f .github/workflows/Makefile-scripts-setuptools-head sandbox/bin/buildout

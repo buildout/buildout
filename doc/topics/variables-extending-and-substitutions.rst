@@ -259,10 +259,15 @@ is typically used to set up a shared egg or cache directory, as in:
     >>> eqs(ls(join('home', '.buildout')),
     ...     'default.cfg', 'eggs', 'download-cache')
     >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
-    >>> eqs([n.split('-', 1)[0]
-    ...      for n in ls('home', '.buildout', 'eggs', abieggs)],
-    ...     'bobo', 'WebOb', 'six')
+    >>> found_eggs = set([n.split('-', 1)[0]
+    ...      for n in ls('home', '.buildout', 'eggs', abieggs)])
 
+Some packages are only there on older Python versions or on newer.
+Discard them.
+
+    >>> found_eggs.discard("six")
+    >>> found_eggs.discard("legacy_cgi")
+    >>> eqs(found_eggs, 'bobo', 'WebOb')
     >>> clear_here()
 
 See the section on :doc:`optimizing buildouts with shared eggs and

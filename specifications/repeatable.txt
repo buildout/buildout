@@ -37,7 +37,7 @@ Consider the following example buildout.cfg::
 
   [foo]
   recipe = zc.recipe.eggs
-  eggs = foo 
+  eggs = foo
          eek
 
 Now assume that:
@@ -84,7 +84,7 @@ repeatable.cfg file::
 
   [foo]
   recipe = zc.recipe.eggs
-  eggs = foo 
+  eggs = foo
          eek
 
 When the buildout is run, the options in repeatable.cfg will override

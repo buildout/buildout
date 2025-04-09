@@ -127,7 +127,7 @@ about versions used. If we run the buildout in verbose mode without
 specifying a versions section:
 
     >>> print_(system(buildout+' buildout:versions= -v'), end='')
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Installing 'spam'.
     We have the best distribution that satisfies 'spam'.
@@ -147,7 +147,7 @@ that we can fix them in a versions section.
 If we run the buildout with the versions section:
 
     >>> print_(system(buildout+' -v'), end='')
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Installing 'spam'.
     We have the distribution that satisfies 'spam==1'.
@@ -176,7 +176,7 @@ versions for.
     ... ''' % join('recipe', 'dist'))
 
     >>> print_(system(buildout+' -v'), end='')
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Installing 'spam >0'.
     We have the distribution that satisfies 'spam==1'.
@@ -184,6 +184,34 @@ versions for.
     Installing foo.
     recipe v1
 
+Edge case (issue #577) where a substitution inside the buildout section
+which comes from a section with a recipe, then the versions versions
+specifications were ignored, and the latest version installed, even if
+allow-picked-versions is false.
+
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... allow-picked-versions = false
+    ... #show-picked-versions = true
+    ... parts = foo
+    ... find-links = %s
+    ... test = ${foo:option}
+    ...
+    ... [versions]
+    ... spam = 1
+    ...
+    ... [foo]
+    ... recipe = spam
+    ... option = TEST
+    ... ''' % join('recipe', 'dist'))
+
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
+    Uninstalling foo.
+    Section `buildout` contains unused option(s): 'test'.
+    ...
+    Installing foo.
+    recipe v1
 
 You can request buildout to generate an error if it picks any
 versions:

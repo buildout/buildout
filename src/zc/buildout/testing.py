@@ -14,18 +14,13 @@
 """Various test-support utility functions
 """
 
-try:
-    # Python 3
-    from http.server    import HTTPServer, BaseHTTPRequestHandler
-    from urllib.request import urlopen
-except ImportError:
-    # Python 2
-    from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-    from urllib2        import urlopen
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.request import urlopen
 
 import errno
 import logging
 import multiprocessing
+import operator
 import os
 import pkg_resources
 import random
@@ -72,10 +67,14 @@ def clear_here():
         else:
             shutil.rmtree(name)
 
-def ls(dir, *subs):
+def ls(dir, *subs, lowercase_and_sort_output=False):
     if subs:
         dir = os.path.join(dir, *subs)
-    names = sorted(os.listdir(dir))
+    if lowercase_and_sort_output:
+        # Get the original names, but sorted lowercase.
+        names = sorted(os.listdir(dir), key=operator.methodcaller("lower"))
+    else:
+        names = sorted(os.listdir(dir))
     for name in names:
         # If we're running under coverage, elide coverage files
         if os.getenv("COVERAGE_PROCESS_START") and name.startswith('.coverage.'):
@@ -86,6 +85,8 @@ def ls(dir, *subs):
             print_('l ', end=' ')
         else:
             print_('- ', end=' ')
+        if lowercase_and_sort_output:
+            name = name.lower()
         print_(name)
 
 def mkdir(*path):
@@ -134,8 +135,21 @@ def system(command, input='', with_exit_code=False, env=None):
     if env is not None:
         sub_env.update(env)
 
+    # We used to pass for example 'buildout annotate' as command, and call Popen
+    # with 'shell=True'.  Since October 2024 this no longer works on Windows on GHA.
+    # So we pass the command as a list.  But then it breaks on POSIX when we have
+    # 'shell=True', because args[1:] gets passed as options for '/bin/sh' instead
+    # of options for our command.  So let's let the value of 'shell' depend on
+    # whether command is a list or a string.
+    # See also https://stackoverflow.com/a/2401128/621201
+    # Actually, having the command as a string turns out to only be a problem on
+    # Windows if there is a space in the path, like with 'Program Files'.
+    if isinstance(command, list):
+        shell = False
+    else:
+        shell = True
     p = subprocess.Popen(command,
-                         shell=True,
+                         shell=shell,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -172,6 +186,10 @@ def _runsetup(setup, *args):
             env=dict(os.environ,
                      PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
                      ),
+            # Prevent showing several lines of output per created distribution,
+            # especially with older setuptools versions.
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             )
         if os.path.exists('build'):
             rmtree('build')
@@ -179,7 +197,7 @@ def _runsetup(setup, *args):
         os.chdir(here)
 
 def sdist(setup, dest):
-    _runsetup(setup, 'sdist', '-d', dest, '--formats=zip')
+    _runsetup(setup, 'sdist', '-d', dest)
 
 def bdist_egg(setup, executable, dest=None):
     # Backward compat:
@@ -188,6 +206,9 @@ def bdist_egg(setup, executable, dest=None):
     else:
         assert executable == sys.executable, (executable, sys.executable)
     _runsetup(setup, 'bdist_egg', '-d', dest)
+
+def bdist_wheel(setup, dest):
+    _runsetup(setup, 'bdist_wheel', '-d', dest)
 
 def wait_until(label, func, *args, **kw):
     if 'timeout' in kw:
@@ -450,6 +471,8 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/x-gzip')
             elif path.endswith('.zip'):
                 self.send_header('Content-Type', 'application/x-gzip')
+            elif path.endswith('.whl'):
+                self.send_header('Content-Type', 'application/octet-stream')
             else:
                 self.send_header('Content-Type', 'text/html')
 
@@ -573,12 +596,8 @@ normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')
 
-if sys.version_info > (2, ):
-    normalize___pycache__ = (
-        re.compile('(\n?)d  __pycache__\n'), '\\1')
-else:
-    normalize___pycache__ = (
-        re.compile(r'(\n?)-  \S+\.pyc\n'), '\\1')
+normalize___pycache__ = (
+    re.compile('(\n?)d  __pycache__\n'), '\\1')
 
 normalize_egg_py = (
     re.compile(r'-py\d[.]\d+(-\S+)?\.egg'),
@@ -592,21 +611,7 @@ normalize_exception_type_for_python_2_and_3 = (
 normalize_open_in_generated_script = (
     re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
-not_found = (re.compile(r'Not found: [^\n]+/(\w|\.)+/\r?\n'), '')
-
-python27_warning = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
-    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
-    'longer maintained. A future version of pip will drop support for Python '
-    '2.7. More details about Python 2 support in pip, can be found at '
-    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
-    '')
-
-python27_warning_2 = (re.compile(r'DEPRECATION: Python 2.7 reached the end of its '
-    'life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no '
-    'longer maintained. pip 21.0 will drop support for Python 2.7 in January 2021. '
-    'More details about Python 2 support in pip, can be found at '
-    'https://pip.pypa.io/en/latest/development/release-process/#python-2-support\n'),
-    '')
+not_found = (re.compile(r'Not found: [^\n]+/(\w|\.|-)+/\r?\n'), '')
 
 easyinstall_deprecated = (re.compile(r'.*EasyInstallDeprecationWarning.*\n'),'')
 setuptools_deprecated = (re.compile(r'.*SetuptoolsDeprecationWarning.*\n'),'')
@@ -621,6 +626,31 @@ ignore_not_upgrading = (
     re.compile(
     'Not upgrading because not running a local buildout command.\n'
     ), '')
+
+# The root logger from setuptools prints all kinds of lines.
+# This might depend on which setuptools version, or something else,
+# because it did not happen before.  Sample lines:
+# "root: Couldn't retrieve index page for 'zc.recipe.egg'"
+# "root: Scanning index of all packages.
+# "root: Found: /sample-buildout/recipe/dist/spam-2-pyN.N.egg"
+# I keep finding new lines like that, so let's ignore all.
+ignore_root_logger = (re.compile(r'root:.*'), '')
+# Now replace a multiline warning about that you should switch to native namespaces.
+ignore_native_namespace_warning_1 = (re.compile(r'!!'), '')
+ignore_native_namespace_warning_2 = (re.compile(r'\*' * 80), '')
+ignore_native_namespace_warning_3 = (re.compile(
+    r'Please replace its usage with implicit namespaces \(PEP 420\).'),
+    ''
+)
+ignore_native_namespace_warning_4 = (re.compile(
+    r'See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages for details.'),
+    ''
+)
+ignore_native_namespace_warning_5 = (re.compile(
+    r'ep.load\(\)\(self, ep.name, value\)'),
+    ''
+)
+
 
 def run_buildout(command):
     # Make sure we don't get .buildout

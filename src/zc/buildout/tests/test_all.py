@@ -459,7 +459,7 @@ if we hadn't required sampley ourselves:
 If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools'...
+    Installing 'zc.buildout', 'wheel'...
     Develop: '/sample-buildout/sampley'
     Develop: '/sample-buildout/samplez'
     Develop: '/sample-buildout/samplea'
@@ -719,7 +719,7 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     [foo]
     bar = 1
@@ -989,6 +989,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
 
     >>> ls('eggs') # doctest: +ELLIPSIS
     -  foox-0.0.0-py2.4.egg
+    -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
@@ -1619,7 +1620,7 @@ def internal_errors():
     recipe being used:
     Traceback (most recent call last):
     ...
-    NameError: global name 'os' is not defined
+    NameError: global name 'os' is not defined...
     """
 
 def whine_about_unused_options():
@@ -2009,77 +2010,78 @@ def bug_105081_Specific_egg_versions_are_ignored_when_newer_eggs_are_around():
     1 1
     """
 
-if sys.version_info > (2, 4):
-    def test_exit_codes():
-        """
-        >>> import subprocess
-        >>> def call(s):
-        ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
-        ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        ...     p.stdin.close()
-        ...     print_(p.stdout.read().decode())
-        ...     print_('Exit:', bool(p.wait()))
-        ...     p.stdout.close()
 
-        >>> call(buildout)
-        <BLANKLINE>
-        Exit: False
+def test_exit_codes():
+    """
+    >>> import subprocess
+    >>> def call(s):
+    ...     p = subprocess.Popen(s, stdin=subprocess.PIPE,
+    ...                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    ...     p.stdin.close()
+    ...     print_(p.stdout.read().decode())
+    ...     print_('Exit:', bool(p.wait()))
+    ...     p.stdout.close()
 
-        >>> write('buildout.cfg',
-        ... '''
-        ... [buildout]
-        ... parts = x
-        ... ''')
+    >>> call(buildout)
+    <BLANKLINE>
+    Exit: False
 
-        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
-        While:
-          Installing.
-          Getting section x.
-        Error: The referenced section, 'x', was not defined.
-        <BLANKLINE>
-        Exit: True
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... ''')
 
-        >>> write('setup.py',
-        ... '''
-        ... from setuptools import setup
-        ... setup(name='zc.buildout.testexit',
-        ...       py_modules=['testexitrecipe'],
-        ...       entry_points={'zc.buildout': ['default = testexitrecipe:x']})
-        ... ''')
+    >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE
+    While:
+        Installing.
+        Getting section x.
+    Error: The referenced section, 'x', was not defined.
+    <BLANKLINE>
+    Exit: True
 
-        >>> write('testexitrecipe.py',
-        ... '''
-        ... x y
-        ... ''')
+    >>> write('setup.py',
+    ... '''
+    ... from setuptools import setup
+    ... setup(name='zc.buildout.testexit',
+    ...       py_modules=['testexitrecipe'],
+    ...       entry_points={'zc.buildout': ['default = testexitrecipe:x']})
+    ... ''')
 
-        >>> write('buildout.cfg',
-        ... '''
-        ... [buildout]
-        ... parts = x
-        ... develop = .
-        ...
-        ... [x]
-        ... recipe = zc.buildout.testexit
-        ... ''')
+    >>> write('testexitrecipe.py',
+    ... '''
+    ... x y
+    ... ''')
 
-        >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-        Develop: '/sample-buildout/.'
-        While:
-          Installing.
-          Getting section x.
-          Initializing section x.
-          Loading zc.buildout recipe entry zc.buildout.testexit:default.
-        <BLANKLINE>
-        An internal error occurred due to a bug in either zc.buildout or in a
-        recipe being used:
-        Traceback (most recent call last):
-        ...
-             x y
-        ...^...
-         SyntaxError...
-        <BLANKLINE>
-        Exit: True
-        """
+    >>> write('buildout.cfg',
+    ... '''
+    ... [buildout]
+    ... parts = x
+    ... develop = .
+    ...
+    ... [x]
+    ... recipe = zc.buildout.testexit
+    ... ''')
+
+    >>> call(buildout) # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    Develop: '/sample-buildout/.'
+    While:
+        Installing.
+        Getting section x.
+        Initializing section x.
+        Loading zc.buildout recipe entry zc.buildout.testexit:default.
+    <BLANKLINE>
+    An internal error occurred due to a bug in either zc.buildout or in a
+    recipe being used:
+    Traceback (most recent call last):
+    ...
+            x y
+    ...^...
+        SyntaxError...
+    <BLANKLINE>
+    Exit: True
+    """
+
 
 def bug_59270_recipes_always_start_in_buildout_dir():
     r"""
@@ -2220,7 +2222,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'setuptools', 'pip', 'wheel'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Develop: '/sample-buildout/pack0'
     Develop: '/sample-buildout/pack1'
@@ -2593,12 +2595,12 @@ def wont_downgrade_due_to_prefer_final():
     ... [buildout]
     ... parts =
     ... [versions]
-    ... zc.buildout = >.1
+    ... zc.buildout = >0.1
     ... ''')
     >>> [str(l.split('= >', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
     ...        if l.startswith('zc.buildout =')]
-    ['.1']
+    ['0.1']
 
     >>> write('buildout.cfg',
     ... '''
@@ -2706,10 +2708,7 @@ def pyc_and_pyo_files_have_correct_paths():
     >>> write('t.py',
     ... r'''
     ... import eggrecipedemo, eggrecipedemoneeded, sys
-    ... if sys.version_info > (3,):
-    ...     code = lambda f: f.__code__
-    ... else:
-    ...     code = lambda f: f.func_code
+    ... code = lambda f: f.__code__
     ... sys.stdout.write(code(eggrecipedemo.main).co_filename+'\n')
     ... sys.stdout.write(code(eggrecipedemoneeded.f).co_filename+'\n')
     ... ''')
@@ -3404,12 +3403,6 @@ def bootstrapSetup(test):
     test.globs['bootstrap_py'] = bootstrap_py
 
 
-normalize_S = (
-    re.compile(r'#!/usr/local/bin/python2.7 -S'),
-    '#!/usr/local/bin/python2.7',
-    )
-
-
 def test_suite():
 
     test_suite = [
@@ -3426,12 +3419,11 @@ def test_suite():
                     zc.buildout.testing.normalize_egg_py,
                     zc.buildout.testing.not_found,
                     zc.buildout.testing.adding_find_link,
-                    zc.buildout.testing.python27_warning,
-                    zc.buildout.testing.python27_warning_2,
                     zc.buildout.testing.easyinstall_deprecated,
                     zc.buildout.testing.setuptools_deprecated,
                     zc.buildout.testing.pkg_resources_deprecated,
                     zc.buildout.testing.warnings_warn,
+                    zc.buildout.testing.ignore_root_logger,
                     # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                     (re.compile(r'__buildout_signature__ = recipes-\S+'),
                      '__buildout_signature__ = recipes-SSSSSSSSSSS'),
@@ -3481,6 +3473,7 @@ def test_suite():
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
                # (re.compile(r"Getting distribution for 'zc.buildout >=\S+"),
                #  ''),
@@ -3523,47 +3516,13 @@ def test_suite():
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
                 (re.compile('zc.buildout.buildout.MissingOption'),
                  'MissingOption'),
                 (re.compile(r'\S+buildout.py'), 'buildout.py'),
                 (re.compile(r'line \d+'), 'line NNN'),
                 (re.compile(r'py\(\d+\)'), 'py(NNN)'),
                 ])
-            ),
-
-        doctest.DocFileSuite(
-            'update.txt',
-            setUp=updateSetup,
-            tearDown=zc.buildout.testing.buildoutTearDown,
-            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
-            checker=renormalizing.RENormalizing([
-                (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                            r'-py\d.\d+.egg'),
-                 '\\1.egg'),
-                zc.buildout.testing.normalize_path,
-                zc.buildout.testing.normalize_endings,
-                zc.buildout.testing.normalize_script,
-                zc.buildout.testing.normalize_egg_py,
-                zc.buildout.testing.not_found,
-                zc.buildout.testing.adding_find_link,
-                zc.buildout.testing.easyinstall_deprecated,
-                zc.buildout.testing.setuptools_deprecated,
-                zc.buildout.testing.pkg_resources_deprecated,
-                zc.buildout.testing.warnings_warn,
-                normalize_bang,
-                normalize_S,
-                # (re.compile(r"Installing 'zc.buildout >=\S+"), ''),
-                (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
-                 ''),
-                (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
-                (re.compile(
-                    r'(zc.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'),
-                 '\\1 V.V'),
-                (re.compile('[-d]  setuptools'), '-  setuptools'),
-                (re.compile('[-d]  pip'), '-  pip'),
-                (re.compile('[-d]  wheel'), '-  wheel'),
-                (re.compile(re.escape(os.path.sep)+'+'), '/'),
-               ])
             ),
 
         doctest.DocFileSuite(
@@ -3581,25 +3540,17 @@ def test_suite():
                 zc.buildout.testing.normalize_open_in_generated_script,
                 zc.buildout.testing.adding_find_link,
                 zc.buildout.testing.not_found,
-                zc.buildout.testing.python27_warning,
-                zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
                 normalize_bang,
-                normalize_S,
                 (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
                 (re.compile(r'\\[\\]?'), '/'),
                 (re.compile('(\n?)-  ([a-zA-Z_.-]+)\n-  \\2.exe\n'),
                  '\\1-  \\2\n'),
-               ]+(sys.version_info < (2, 5) and [
-                  (re.compile('.*No module named runpy.*', re.S), ''),
-                  (re.compile('.*usage: pdb.py scriptfile .*', re.S), ''),
-                  (re.compile('.*Error: what does not exist.*', re.S), ''),
-                  ] or [])),
-
-
+               ]),
             ),
 
         doctest.DocFileSuite(
@@ -3615,6 +3566,7 @@ def test_suite():
               zc.buildout.testing.setuptools_deprecated,
               zc.buildout.testing.pkg_resources_deprecated,
               zc.buildout.testing.warnings_warn,
+              zc.buildout.testing.ignore_root_logger,
               (re.compile(' at -?0x[^>]+'), '<MEM ADDRESS>'),
               (re.compile('http://localhost:[0-9]{4,5}/'),
                'http://localhost/'),
@@ -3627,6 +3579,7 @@ def test_suite():
         doctest.DocTestSuite(
             setUp=easy_install_SetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
@@ -3636,12 +3589,16 @@ def test_suite():
                 zc.buildout.testing.not_found,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
                 zc.buildout.testing.adding_find_link,
-                zc.buildout.testing.python27_warning,
-                zc.buildout.testing.python27_warning_2,
                 zc.buildout.testing.easyinstall_deprecated,
                 zc.buildout.testing.setuptools_deprecated,
                 zc.buildout.testing.pkg_resources_deprecated,
                 zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
+                zc.buildout.testing.ignore_native_namespace_warning_1,
+                zc.buildout.testing.ignore_native_namespace_warning_2,
+                zc.buildout.testing.ignore_native_namespace_warning_3,
+                zc.buildout.testing.ignore_native_namespace_warning_4,
+                zc.buildout.testing.ignore_native_namespace_warning_5,
                 normalize_bang,
                 (re.compile(r'^(\w+\.)*(Missing\w+: )'), '\2'),
                 (re.compile(r"buildout: Running \S*setup.py"),
@@ -3686,6 +3643,7 @@ def test_suite():
             'windows.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
@@ -3697,6 +3655,7 @@ def test_suite():
                zc.buildout.testing.setuptools_deprecated,
                zc.buildout.testing.pkg_resources_deprecated,
                zc.buildout.testing.warnings_warn,
+               zc.buildout.testing.ignore_root_logger,
                (re.compile(r'__buildout_signature__ = recipes-\S+'),
                 '__buildout_signature__ = recipes-SSSSSSSSSSS'),
                (re.compile(r'[-d]  setuptools-\S+[.]egg'), 'setuptools.egg'),
@@ -3718,6 +3677,49 @@ def test_suite():
             ),
         doctest.DocFileSuite('testing_bugfix.txt'),
     ]
+
+    if not sys.platform.startswith('win'):
+        # In the update.txt tests on Windows, instead of
+        #  "Upgraded: zc.buildout version NINETYNINE.NINETYNINE;"
+        # we get:
+        #   "Not upgrading because not running a local buildout command."
+        # I don't know why that is only the case on Windows.
+
+        test_suite.append(
+            doctest.DocFileSuite(
+                'update.txt',
+                setUp=updateSetup,
+                tearDown=zc.buildout.testing.buildoutTearDown,
+                optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
+                checker=renormalizing.RENormalizing([
+                    (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
+                                r'-py\d.\d+.egg'),
+                    '\\1.egg'),
+                    zc.buildout.testing.normalize_path,
+                    zc.buildout.testing.normalize_endings,
+                    zc.buildout.testing.normalize_script,
+                    zc.buildout.testing.normalize_egg_py,
+                    zc.buildout.testing.not_found,
+                    zc.buildout.testing.adding_find_link,
+                    zc.buildout.testing.easyinstall_deprecated,
+                    zc.buildout.testing.setuptools_deprecated,
+                    zc.buildout.testing.pkg_resources_deprecated,
+                    zc.buildout.testing.warnings_warn,
+                    zc.buildout.testing.ignore_root_logger,
+                    normalize_bang,
+                    (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
+                    ''),
+                    (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
+                    (re.compile(
+                        r'(zc.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'),
+                    '\\1 V.V'),
+                    (re.compile('[-d]  setuptools'), '-  setuptools'),
+                    (re.compile('[-d]  pip'), '-  pip'),
+                    (re.compile('[-d]  wheel'), '-  wheel'),
+                    (re.compile(re.escape(os.path.sep)+'+'), '/'),
+                ])
+            )
+        )
 
     docdir = os.path.join(ancestor(__file__, 5), 'doc')
     if os.path.exists(docdir) and not sys.platform.startswith('win'):
@@ -3754,6 +3756,7 @@ def test_suite():
                         zc.buildout.testing.setuptools_deprecated,
                         zc.buildout.testing.pkg_resources_deprecated,
                         zc.buildout.testing.warnings_warn,
+                        zc.buildout.testing.ignore_root_logger,
                         ]),
                     ) + manuel.capture.Manuel(),
                 os.path.join(docdir, 'getting-started.rst'),

@@ -14,21 +14,13 @@
 """Buildout main script
 """
 
-from zc.buildout.rmtree import rmtree
-import zc.buildout.easy_install
-
+from collections.abc import MutableMapping as DictMixin
 from functools import partial
+from hashlib import md5 as md5_original
+from packaging import utils as packaging_utils
+from zc.buildout.rmtree import rmtree
 
-try:
-    from hashlib import md5 as md5_original
-except ImportError:
-    from md5 import md5 as md5_original
-
-try:
-    from collections.abc import MutableMapping as DictMixin
-except ImportError:
-    from UserDict import DictMixin
-
+import zc.buildout.easy_install
 import zc.buildout.configparser
 import copy
 import datetime
@@ -48,11 +40,6 @@ import tempfile
 import zc.buildout
 import zc.buildout.download
 
-PY3 = sys.version_info[0] == 3
-if PY3:
-    text_type = str
-else:
-    text_type = unicode
 
 try:
     hashed = md5_original(b'test')
@@ -417,19 +404,45 @@ class Buildout(DictMixin):
             versions = data[versions_section_name]
         else:
             versions = {}
-        versions.update(
-            dict((k, SectionKey(v, 'DEFAULT_VALUE'))
-                 for (k, v) in (
-                     # Prevent downgrading due to prefer-final:
-                     ('zc.buildout',
-                      '>='+pkg_resources.working_set.find(
-                          pkg_resources.Requirement.parse('zc.buildout')
-                          ).version),
-                     # Use 2, even though not final
-                     ('zc.recipe.egg', '>=2.0.6'),
-                     )
-                 if k not in versions
-                 ))
+        if 'zc.buildout' not in versions:
+            # Prevent downgrading of zc.buildout itself due to prefer-final.
+            ws = pkg_resources.working_set
+            dist = ws.find(
+                pkg_resources.Requirement.parse('zc-buildout')
+            )
+            if dist is None:
+                # older setuptools
+                dist = ws.find(
+                    pkg_resources.Requirement.parse('zc.buildout')
+                )
+                if dist is None:
+                    # This would be really strange, but I prefer an explicit
+                    # failure here over an unclear error later.
+                    raise ValueError(
+                        "Could not find distribution for zc.buildout in working set."
+                    )
+            minimum = dist.version
+            versions['zc.buildout'] = SectionKey(f'>={minimum}', 'DEFAULT_VALUE')
+        if 'zc.recipe.egg' not in versions:
+            # zc.buildout and zc.recipe egg are closely linked, but zc.buildout
+            # does NOT depend on it: we do not want to add it to our
+            # install_requires.  (One could debate why, although one answer
+            # would be to avoid a circular dependency.  Maybe we could merge them,
+            # as I see no use case for Buildout without recipes.  But we would
+            # need to update the zc.recipe.egg test setup first.)
+            #
+            # Anyway: we use a different way to set a minimum version.
+            # Originally (in 2013, zc.buildout 2.0.0b1) we made sure
+            # zc.recipe.egg>=2.0.0a3 was pinned, mostly to avoid problems
+            # when prefer-final is true.
+            # Later (in 2018, zc.buildout 2.12.1) we updated the minimum version
+            # to 2.0.6, to avoid a KeyError: 'allow-unknown-extras'.
+            # See https://github.com/buildout/buildout/pull/461
+            # I wonder if we really need a minimum version, as older versions
+            # are unlikely to even be installable by supported Python versions.
+            # But if we ever really need a more recent minimum version,
+            # it is easy to update a version here.
+            versions['zc.recipe.egg'] = SectionKey('>=2.0.6', 'DEFAULT_VALUE')
 
         # Absolutize some particular directory, handling also the ~/foo form,
         # and considering the location of the configuration file that generated
@@ -1125,7 +1138,7 @@ class Buildout(DictMixin):
         self._log_level = level
 
     def _maybe_upgrade(self):
-        # See if buildout or setuptools need to be upgraded.
+        # See if buildout or setuptools or other dependencies need to be upgraded.
         # If they do, do the upgrade and restart the buildout process.
         __doing__ = 'Checking for upgrades.'
 
@@ -1135,8 +1148,12 @@ class Buildout(DictMixin):
         if not self.newest:
             return
 
+        # We must install `wheel` before `setuptools`` to avoid confusion between
+        # the true `wheel` package and the one vendorized by `setuptools`.
+        # See https://github.com/buildout/buildout/issues/691
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
         ws = zc.buildout.easy_install.install(
-            ('zc.buildout', 'setuptools', 'pip', 'wheel'),
+            projects,
             self['buildout']['eggs-directory'],
             links = self['buildout'].get('find-links', '').split(),
             index = self['buildout'].get('index'),
@@ -1146,10 +1163,25 @@ class Buildout(DictMixin):
 
         upgraded = []
 
-        for project in 'zc.buildout', 'setuptools', 'pip', 'wheel':
-            req = pkg_resources.Requirement.parse(project)
+        for project in projects:
+            canonicalized_name = packaging_utils.canonicalize_name(project)
+            req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
+            if dist is None and canonicalized_name != project:
+                # Try with the original project name.  Depending on which setuptools
+                # version is used, this is either useless or a life saver.
+                req = pkg_resources.Requirement.parse(project)
+                dist = ws.find(req)
             importlib.import_module(project)
+            if dist is None:
+                # This is unexpected.  This must be some problem with how we use
+                # setuptools/pkg_resources.  But since the import worked, it feels
+                # safe to ignore.
+                self._logger.warning(
+                    "Could not find %s in working set during upgrade check. Ignoring.",
+                    project,
+                )
+                continue
             if not inspect.getfile(sys.modules[project]).startswith(dist.location):
                 upgraded.append(dist)
 
@@ -1380,10 +1412,7 @@ class Buildout(DictMixin):
         self[name] # Add to parts
 
     def parse(self, data):
-        try:
-            from cStringIO import StringIO
-        except ImportError:
-            from io import StringIO
+        from io import StringIO
         import textwrap
 
         sections = zc.buildout.configparser.parse(
@@ -1427,6 +1456,12 @@ def _install_and_load(spec, group, entry, buildout):
                 dest = buildout_options['eggs-directory']
                 path = [buildout_options['develop-eggs-directory']]
 
+            # Pin versions when processing the buildout section
+            versions_section_name = buildout['buildout'].get('versions', 'versions')
+            versions = buildout.get(versions_section_name, {})
+            zc.buildout.easy_install.allow_picked_versions(
+                bool_option(buildout['buildout'], 'allow-picked-versions')
+                )
             zc.buildout.easy_install.install(
                 [spec], dest,
                 links=buildout._links,
@@ -1434,7 +1469,8 @@ def _install_and_load(spec, group, entry, buildout):
                 path=path,
                 working_set=pkg_resources.working_set,
                 newest=buildout.newest,
-                allow_hosts=buildout._allow_hosts
+                allow_hosts=buildout._allow_hosts,
+                versions=versions,
                 )
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
@@ -1879,25 +1915,42 @@ def _open(
             download_options, result['buildout']
         )
 
+    # Process extends to handle nested += and -=
+    eresults = []
     if extends:
         extends = extends.split()
-        eresult, user_defaults = _open(
-            base, extends.pop(0), seen, download_options, override,
-            downloaded, user_defaults
-        )
         for fname in extends:
             next_extend, user_defaults = _open(
                 base, fname, seen, download_options, override,
-                downloaded, user_defaults
-            )
-            eresult = _update(eresult, next_extend)
-        result = _update(eresult, result)
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
     else:
         if user_defaults:
             result = _update(user_defaults, result)
             user_defaults = {}
+
+    optional_extends = options.pop('optional-extends', None)
+    if optional_extends:
+        optional_extends = optional_extends.value.split()
+        for fname in optional_extends:
+            if not os.path.exists(fname):
+                print("optional-extends file not found: %s" % fname)
+                continue
+            next_extend, user_defaults = _open(
+                base, fname, seen, download_options, override,
+                downloaded, user_defaults)
+            eresults.extend(next_extend)
+
+    eresults.append(result)
     seen.pop()
-    return result, user_defaults
+
+    if root_config_file:
+        final_result = {}
+        for eresult in eresults:
+            final_result = _update(final_result, eresult)
+        return final_result, user_defaults
+    else:
+        return eresults, user_defaults
 
 
 ignore_directories = '.svn', 'CVS', '__pycache__', '.git'
@@ -1914,7 +1967,7 @@ def _dir_hash(dir):
                                   and os.path.exists(os.path.join(dirpath, f)))
                           )
         for_hash = ' '.join(dirnames + filenames)
-        if isinstance(for_hash, text_type):
+        if isinstance(for_hash, str):
             for_hash = for_hash.encode()
         hash.update(for_hash)
         for name in filenames:
@@ -1996,8 +2049,32 @@ def _update(in1, d2):
     for section in d2:
         if section in d1:
             d1[section] = _update_section(d1[section], d2[section])
+        elif '<' not in d2[section].keys():
+            # Skip sections that extend in other sections (macros), as we don't
+            # have all the data (these will be processed when the section is
+            # extended)
+            temp = copy.deepcopy(d2[section])
+            # 641 - Process base definitions done with += and -=
+            for k, v in sorted(temp.items(), key=lambda item: item[0]):
+                # Process + before -, configparser resolves conflicts
+                if k[-1] == '+' and k[:-2] not in temp:
+                    # Turn += without a preceding = into an assignment
+                    temp[k[:-2]] = temp[k]
+                    del temp[k]
+                elif k[-1] == '-' and k[:-2] not in temp:
+                    # Turn -= without a preceding = into an empty assignment
+                    temp[k[:-2]] = temp[k]
+                    temp[k[:-2]].removeFromValue(
+                        temp[k[:-2]].value, "IMPLICIT_VALUE"
+                        )
+                    del temp[k]
+
+            # 656 - Handle multiple option assignments/extensions/removals
+            # in the same file, which can happen with conditional sections
+            d1[section] = _update_section({}, temp)
         else:
             d1[section] = copy.deepcopy(d2[section])
+
     return d1
 
 def _recipe(options):
@@ -2278,12 +2355,6 @@ def main(args=None):
     finally:
         logging.shutdown()
 
-
-if sys.version_info[:2] < (2, 4):
-    def reversed(iterable):
-        result = list(iterable);
-        result.reverse()
-        return result
 
 _bool_names = {'true': True, 'false': False, True: True, False: False}
 def bool_option(options, name, default=None):

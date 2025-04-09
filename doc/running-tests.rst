@@ -15,23 +15,29 @@ For ubuntu, use::
 Running tests
 =============
 
-By default, tests are run with Python 3.8::
+By default, tests are run with Python 3 and whatever pip and setuptools versions are available::
 
    make test
 
+You can speficy specific versions.
+The help text explains this::
 
-To run tests with another version, use the ``PYTHON_VER`` environment
-variable::
+   $ make help
+   ./prepare.sh --help
+   Prepare a virtual environment for testing zc.buildout.
 
-   PYTHON_VER=3.9 make test
+   Using:
+   * Python: 3 (override with PYTHON_VERSION environment variable)
+   * pip:  (override with PIP_VERSION environment variable)
+   * setuptools:  (override with SETUPTOOLS_VERSION environment variable)
 
-We still support the following versions.
+   An empty version means: use whatever is already available, or install latest.
+   Extra arguments for pip install: -U (override with PIP_ARGS environment variable)
 
+We support the following versions.
+
+- 3.13
+- 3.12
+- 3.11
 - 3.10
 - 3.9
-- 3.8
-- 3.7
-- 3.6
-- 3.5
-- 2.7
-- (3.11)

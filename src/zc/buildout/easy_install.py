@@ -20,13 +20,14 @@ installed.
 
 import copy
 import distutils.errors
+import email
 import errno
 import glob
 import logging
+import operator
 import os
 import pkg_resources
-from pkg_resources import packaging
-import py_compile
+import posixpath
 import re
 import setuptools.archive_util
 import setuptools.command.easy_install
@@ -38,20 +39,17 @@ import sys
 import tempfile
 import zc.buildout
 import zc.buildout.rmtree
+import zipfile
+from packaging import specifiers
+from packaging.utils import canonicalize_name
+from packaging.utils import is_normalized_name
+from pkg_resources import Distribution
+from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
-from zc.buildout import PY3
+from zc.buildout.utils import normalize_name
 import warnings
 import csv
 
-try:
-    from setuptools.wheel import Wheel  # This is the important import
-    from setuptools import __version__ as setuptools_version
-    # Now we need to check if we have at least 38.2.3 for namespace support.
-    SETUPTOOLS_SUPPORTS_WHEELS = (
-        pkg_resources.parse_version(setuptools_version) >=
-        pkg_resources.parse_version('38.2.3'))
-except ImportError:
-    SETUPTOOLS_SUPPORTS_WHEELS = False
 
 
 BIN_SCRIPTS = 'Scripts' if WINDOWS else 'bin'
@@ -80,16 +78,6 @@ is_jython = sys.platform.startswith('java')
 if is_jython:
     import java.lang.System
     jython_os_name = (java.lang.System.getProperties()['os.name']).lower()
-
-# Make sure we're not being run with an older bootstrap.py that gives us
-# setuptools instead of setuptools
-has_distribute = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('distribute')) is not None
-has_setuptools = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('setuptools')) is not None
-if has_distribute and not has_setuptools:
-    sys.exit("zc.buildout 3 needs setuptools, not distribute."
-             "Did you properly install with pip in a virtualenv ?")
 
 # Include buildout and setuptools eggs in paths.  We get this
 # initially from the entire working set.  Later, we'll use the install
@@ -122,7 +110,55 @@ class _NoWarn(object):
 
 _no_warn = _NoWarn()
 
-class AllowHostsPackageIndex(setuptools.package_index.PackageIndex):
+
+class EnvironmentMixin(object):
+    """Mixin class for Environment and PackageIndex for canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+    """
+    def __getitem__(self, project_name):
+        """Return a newest-to-oldest list of distributions for `project_name`
+
+        Uses case-insensitive `project_name` comparison, assuming all the
+        project's distributions use their project's name converted to all
+        lowercase as their key.
+
+        """
+        distribution_key = normalize_name(project_name)
+        return self._distmap.get(distribution_key, [])
+
+    def add(self, dist):
+        """Add `dist` if we ``can_add()`` it and it has not already been added
+        """
+        if self.can_add(dist) and dist.has_version():
+            # Instead of 'dist.key' we add a normalized version.
+            distribution_key = normalize_name(dist.key)
+            dists = self._distmap.setdefault(distribution_key, [])
+            if dist not in dists:
+                dists.append(dist)
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
+
+
+class Environment(EnvironmentMixin, pkg_resources.Environment):
+    """Buildout version of Environment with canonicalized names.
+
+    * pkg_resources defines the Environment class
+    * setuptools defines a PackageIndex class that inherits from Environment
+    * Buildout needs a few fixes that should be used by both.
+
+    The fixes are needed for this issue, where distributions created by
+    setuptools 69.3+ get a different name than with older versions:
+    https://github.com/buildout/buildout/issues/647
+    """
+
+
+class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
     No matter what is allow_hosts.
@@ -290,7 +326,7 @@ class Installer(object):
 
     def _make_env(self):
         full_path = self._get_dest_dist_paths() + self._path
-        env = pkg_resources.Environment(full_path)
+        env = Environment(full_path)
         # this needs to be called whenever self._env is modified (or we could
         # make an Environment subclass):
         self._eggify_env_dest_dists(env, self._dest)
@@ -329,7 +365,7 @@ class Installer(object):
         """
         output = [
             "Version and requirements information containing %s:" % name]
-        version_constraint = self._versions.get(name)
+        version_constraint = self._versions.get(canonicalize_name(name))
         if version_constraint:
             output.append(
                 "[versions] constraint on %s: %s" % (name, version_constraint))
@@ -430,7 +466,7 @@ class Installer(object):
             paths = call_pip_install(spec, tmp)
 
             dists = []
-            env = pkg_resources.Environment(paths)
+            env = Environment(paths)
             for project in env:
                 dists.extend(env[project])
 
@@ -546,7 +582,10 @@ class Installer(object):
         __doing__ = 'Getting distribution for %r.', str(requirement)
 
         # Maybe an existing dist is already the best dist that satisfies the
-        # requirement
+        # requirement.  If not, get a link to an available distribution that
+        # we could download.  The method returns a tuple with an existing
+        # dist or an available dist.  Either 'dist' is None, or 'avail'
+        # is None, or both are None.
         dist, avail = self._satisfied(requirement)
 
         if dist is None:
@@ -558,9 +597,8 @@ class Installer(object):
 
             logger.info(*__doing__)
 
-            # Retrieve the dist:
             if avail is None:
-                self._index.obtain(requirement)
+                # We have no existing dist, and none is available for download.
                 raise MissingDistribution(requirement, ws)
 
             # We may overwrite distributions, so clear importer
@@ -658,14 +696,14 @@ class Installer(object):
 
     def _constrain(self, requirement):
         """Return requirement with optional [versions] constraint added."""
-        constraint = self._versions.get(requirement.project_name.lower())
+        canonical_name = canonicalize_name(requirement.project_name)
+        constraint = self._versions.get(canonical_name)
         if constraint:
             try:
                 requirement = _constrained_requirement(constraint,
                                                        requirement)
             except IncompatibleConstraintError:
-                logger.info(self._version_conflict_information(
-                    requirement.project_name.lower()))
+                logger.info(self._version_conflict_information(canonical_name))
                 raise
 
         return requirement
@@ -709,7 +747,7 @@ class Installer(object):
         # Note that we don't use the existing environment, because we want
         # to look for new eggs unless what we have is the best that
         # matches the requirement.
-        env = pkg_resources.Environment(ws.entries)
+        env = Environment(ws.entries)
 
         while requirements:
             # Process dependencies breadth-first.
@@ -889,12 +927,12 @@ class Installer(object):
 
 
 def normalize_versions(versions):
-    """Return version dict with keys normalized to lowercase.
+    """Return version dict with keys canonicalized.
 
     PyPI is case-insensitive and not all distributions are consistent in
-    their own naming.
+    their own naming.  Also, there are dashes, underscores, dots...
     """
-    return dict([(k.lower(), v) for (k, v) in versions.items()])
+    return dict([(canonicalize_name(k), v) for (k, v) in versions.items()])
 
 
 def default_versions(versions=None):
@@ -1173,10 +1211,33 @@ def scripts(reqs, working_set, executable, dest=None,
     distutils_scripts = []
     for req in reqs:
         if isinstance(req, str):
-            req = pkg_resources.Requirement.parse(req)
-            if req.marker and not req.marker.evaluate():
+            orig_req = pkg_resources.Requirement.parse(req)
+            if orig_req.marker and not orig_req.marker.evaluate():
                 continue
-            dist = working_set.find(req)
+            dist = None
+            if is_normalized_name(orig_req.name):
+                dist = working_set.find(orig_req)
+                if dist is None:
+                    raise ValueError(
+                        f"Could not find requirement '{orig_req.name}' in working set. "
+                    )
+            else:
+                # First try finding the package by its canonical name.
+                canonicalized_name = canonicalize_name(orig_req.name)
+                canonical_req = pkg_resources.Requirement.parse(canonicalized_name)
+                dist = working_set.find(canonical_req)
+                if dist is None:
+                    # Now try to find the package by the original name we got from
+                    # the requirements.  This may succeed with setuptools versions
+                    # older than 75.8.2.
+                    dist = working_set.find(orig_req)
+                    if dist is None:
+                        raise ValueError(
+                            f"Could not find requirement '{orig_req.name}' in working "
+                            f"set. Could not find it with normalized "
+                            f"'{canonicalized_name}' either."
+                        )
+
             # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
@@ -1404,11 +1465,7 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
-        try:
-            new_data = setuptools.command.easy_install.get_win_launcher('cli')
-        except AttributeError:
-            # fall back for compatibility with older Distribute versions
-            new_data = pkg_resources.resource_string('setuptools', 'cli.exe')
+        new_data = setuptools.command.easy_install.get_win_launcher('cli')
 
         if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
@@ -1504,24 +1561,21 @@ def _pyscript(path, dest, rsetup, initialization=''):
     generated.append(dest)
     return generated
 
-if sys.version_info[0] < 3:
-    universal_newline_option = ", 'U'"
-else:
-    universal_newline_option = ''
-
 py_script_template = script_header + '''\
 
-%%(relative_paths_setup)s
+%(relative_paths_setup)s
 import sys
 
 sys.path[0:0] = [
-  %%(path)s
+  %(path)s
   ]
-%%(initialization)s
+%(initialization)s
 
 _interactive = True
 if len(sys.argv) > 1:
-    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'ic:m:')
+    # The Python interpreter wrapper allows only some of the options that a
+    # "regular" Python interpreter accepts.
+    _options, _args = __import__("getopt").getopt(sys.argv[1:], 'Iic:m:')
     _interactive = False
     for (_opt, _val) in _options:
         if _opt == '-i':
@@ -1533,18 +1587,27 @@ if len(sys.argv) > 1:
             _args = []
             __import__("runpy").run_module(
                  _val, {}, "__main__", alter_sys=True)
+        elif _opt == '-I':
+            # Allow yet silently ignore the `-I` option. The original behaviour
+            # for this option is to create an isolated Python runtime. It was
+            # deemed acceptable to allow the option here as this Python wrapper
+            # is isolated from the system Python already anyway.
+            # The specific use-case that led to this change is how the Python
+            # language extension for Visual Studio Code calls the Python
+            # interpreter when initializing the extension.
+            pass
 
     if _args:
         sys.argv[:] = _args
         __file__ = _args[0]
         del _options, _args
-        with open(__file__%s) as __file__f:
+        with open(__file__) as __file__f:
             exec(compile(__file__f.read(), __file__, "exec"))
 
 if _interactive:
     del _interactive
     __import__("code").interact(banner="", local=globals())
-''' % universal_newline_option
+'''
 
 runsetup_template = """
 import sys
@@ -1558,9 +1621,9 @@ __file__ = %%(__file__)r
 os.chdir(%%(setupdir)r)
 sys.argv[0] = %%(setup)r
 
-with open(%%(setup)r%s) as f:
+with open(%%(setup)r) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
-""" % (setuptools_path, universal_newline_option)
+""" % setuptools_path
 
 
 class VersionConflict(zc.buildout.UserError):
@@ -1595,40 +1658,6 @@ class MissingDistribution(zc.buildout.UserError):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
 
-def redo_pyc(egg):
-    if not os.path.isdir(egg):
-        return
-    for dirpath, dirnames, filenames in os.walk(egg):
-        for filename in filenames:
-            if not filename.endswith('.py'):
-                continue
-            filepath = os.path.join(dirpath, filename)
-            if not (os.path.exists(filepath+'c')
-                    or os.path.exists(filepath+'o')):
-                # If it wasn't compiled, it may not be compilable
-                continue
-
-            # OK, it looks like we should try to compile.
-
-            # Remove old files.
-            for suffix in 'co':
-                if os.path.exists(filepath+suffix):
-                    os.remove(filepath+suffix)
-
-            # Compile under current optimization
-            try:
-                py_compile.compile(filepath)
-            except py_compile.PyCompileError:
-                logger.warning("Couldn't compile %s", filepath)
-            else:
-                # Recompile under other optimization. :)
-                args = [sys.executable]
-                if __debug__:
-                    args.append('-O')
-                args.extend(['-m', 'py_compile', filepath])
-
-                call_subprocess(args)
-
 def _constrained_requirement(constraint, requirement):
     assert isinstance(requirement, pkg_resources.Requirement)
     if constraint[0] not in '<>':
@@ -1642,7 +1671,7 @@ def _constrained_requirement(constraint, requirement):
             msg = ("The requirement (%r) is not allowed by your [versions] "
                    "constraint (%s)" % (str(requirement), version))
             raise IncompatibleConstraintError(msg)
-        specifier = packaging.specifiers.SpecifierSet(constraint)
+        specifier = specifiers.SpecifierSet(constraint)
     else:
         specifier = requirement.specifier & constraint
     constrained = copy.deepcopy(requirement)
@@ -1758,8 +1787,16 @@ def make_egg_after_pip_install(dest, distinfo_dir):
                 if os.path.exists(bin_dir):
                     shutil.rmtree(bin_dir)
 
+    # Get actual project name from dist-info directory.
+    with open(posixpath.join(dest, distinfo_dir, "METADATA")) as fp:
+        value = fp.read()
+    metadata = email.parser.Parser().parsestr(value)
+    project_name = metadata.get("Name")
+
     # Make properly named new egg dir
     distro = list(pkg_resources.find_distributions(dest))[0]
+    if project_name:
+        distro.project_name = project_name
     base = "{}-{}".format(
         distro.egg_name(), pkg_resources.get_supported_platform()
     )
@@ -1802,12 +1839,8 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
     if os.path.isfile(record_file):
-        if PY3:
-            with open(record_file, newline='') as f:
-                all_files = [row[0] for row in csv.reader(f)]
-        else:
-            with open(record_file, 'rb') as f:
-                all_files = [row[0] for row in csv.reader(f)]
+        with open(record_file, newline='') as f:
+            all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over
     for entry in all_files:
@@ -1835,18 +1868,9 @@ def unpack_egg(location, dest):
     setuptools.archive_util.unpack_archive(location, dest)
 
 
-WHEEL_WARNING = """
-*.whl file detected (%s), you'll need setuptools >= 38.2.3 for that
-or an extension like buildout.wheel > 0.2.0.
-"""
-
-
 def unpack_wheel(location, dest):
-    if SETUPTOOLS_SUPPORTS_WHEELS:
-        wheel = Wheel(location)
-        wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
-    else:
-        raise zc.buildout.UserError(WHEEL_WARNING % location)
+    wheel = Wheel(location)
+    wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
 
 
 UNPACKERS = {
@@ -1866,16 +1890,115 @@ def _get_matching_dist_in_location(dist, location):
     # may be normalized (e.g., 3.3 becomes 3.3.0 when downloaded from
     # PyPI.)
 
-    env = pkg_resources.Environment([location])
+    env = Environment([location])
     dists = [ d for project_name in env for d in env[project_name] ]
-    dist_infos = [ (d.project_name.lower(), d.parsed_version) for d in dists ]
-    if dist_infos == [(dist.project_name.lower(), dist.parsed_version)]:
+    dist_infos = [ (normalize_name(d.project_name), d.parsed_version) for d in dists ]
+    if dist_infos == [(normalize_name(dist.project_name), dist.parsed_version)]:
         return dists.pop()
+
+
+class BuildoutWheel(Wheel):
+    """Extension for Wheel class to get the actual project name."""
+
+    def get_project_name(self):
+        """Get project name by looking in the .dist-info of the wheel.
+
+        This is adapted from the Wheel.install_as_egg method and the methods
+        it calls.
+
+        Ideally, this would be the same as self.project_name.
+        """
+        with zipfile.ZipFile(self.filename) as zf:
+            dist_info = self.get_dist_info(zf)
+
+            with zf.open(posixpath.join(dist_info, 'METADATA')) as fp:
+                value = fp.read().decode('utf-8')
+                metadata = email.parser.Parser().parsestr(value)
+
+            return metadata.get("Name")
+
+
+def _maybe_copy_and_rename_wheel(dist, dest):
+    """Maybe copy and rename wheel.
+
+    Return the new dist or None.
+
+    So why do we do this?  We need to check a special case:
+
+    - zest_releaser-9.4.0-py3-none-any.whl with an underscore results in:
+      zest_releaser-9.4.0-py3.13.egg
+      In the resulting `bin/fullrease` script the zest.releaser distribution
+      is not found.
+    - So in this function we copy and rename the wheel to:
+      zest.releaser-9.4.0-py3-none-any.whl with a dot, which results in:
+      zest.releaser-9.4.0-py3.13.egg
+      The resulting `bin/fullrease` script works fine.
+
+    See https://github.com/buildout/buildout/issues/686
+    So check if we should rename the wheel before handling it.
+
+    At first, source dists seemed to not have this problem.  Or not anymore,
+    after some fixes in Buildout last year:
+
+    - zest_releaser-9.4.0.tar.gz with an underscore results in (in my case):
+      zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.egg
+      And this works fine, despite having an underscore.
+    - But: products_cmfplone-6.1.1.tar.gz with an underscore leads to
+      products_cmfplone-6.1.1-py3.13-macosx-14.7-x86_64.egg
+      and with this, a Plone instance totally fails to start.
+      Ah, but this is only because the generated zope.conf contains a
+      temporarystorage option which is added because plone.recipe.zope2instance
+      could not determine the Products.CMFPlone version.  If I work around that,
+      the instance actually starts.
+
+    The zest.releaser egg generated from the source dist has a dist-info directory:
+    zest_releaser-9.4.0-py3.13-macosx-14.7-x86_64.dist-info
+    The egg generated from any of the two wheels only has an EGG-INFO directory.
+    I guess the dist-info directory somehow helps.
+    It is there because our make_egg_after_pip_install function, which only
+    gets called after installing a source dist, has its own home grown way
+    of creating an egg.
+    """
+    wheel = BuildoutWheel(dist.location)
+    actual_project_name = wheel.get_project_name()
+    if actual_project_name and wheel.project_name == actual_project_name:
+        return
+    filename = os.path.basename(dist.location)
+    new_filename = filename.replace(wheel.project_name, actual_project_name)
+    if filename == new_filename:
+        return
+    tmp_wheeldir = tempfile.mkdtemp()
+    try:
+        new_location = os.path.join(tmp_wheeldir, new_filename)
+        shutil.copy(dist.location, new_location)
+        # Now we create a clone of the original distribution,
+        # but with the new location and the wanted project name.
+        new_dist = Distribution(
+            new_location,
+            project_name=actual_project_name,
+            version=dist.version,
+            py_version=dist.py_version,
+            platform=dist.platform,
+            precedence=dist.precedence,
+        )
+        # We were called by _move_to_eggs_dir_and_compile.
+        # Now we call it again with the new dist.
+        # I tried simply returning new_dist, but then it immediately
+        # got removed because we remove its temporary directory.
+        return _move_to_eggs_dir_and_compile(new_dist, dest)
+
+    finally:
+        # Remember that temporary directories must be removed
+        zc.buildout.rmtree.rmtree(tmp_wheeldir)
+
 
 def _move_to_eggs_dir_and_compile(dist, dest):
     """Move distribution to the eggs destination directory.
 
-    And compile the py files, if we have actually moved the dist.
+    Originally we compiled the py files if we actually moved the dist.
+    But this was never updated for Python 3, so it had no effect.
+    So we removed this part.  See
+    https://github.com/buildout/buildout/issues/699
 
     Its new location is expected not to exist there yet, otherwise we
     would not be calling this function: the egg is already there.  But
@@ -1909,6 +2032,10 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             # Figure out how to unpack it, or fall back to easy_install.
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
+                if ext == '.whl':
+                    new_dist = _maybe_copy_and_rename_wheel(dist, dest)
+                    if new_dist is not None:
+                        return new_dist
                 unpacker = UNPACKERS[ext]
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
@@ -1942,8 +2069,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 newloc)
         else:
             # There were no problems during the rename.
-            # Do the compile step.
-            redo_pyc(newloc)
             newdist = _get_matching_dist_in_location(dist, newloc)
             assert newdist is not None  # newloc above is missing our dist?!
     finally:

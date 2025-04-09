@@ -33,19 +33,19 @@ download:
 
     >>> print_(get(link_server), end='')
     <html><body>
-    <a href="bigdemo-0.1-py2.4.egg">bigdemo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.1-py2.4.egg">demo-0.1-py2.4.egg</a><br>
-    <a href="demo-0.2-py2.4.egg">demo-0.2-py2.4.egg</a><br>
-    <a href="demo-0.3-py2.4.egg">demo-0.3-py2.4.egg</a><br>
-    <a href="demo-0.4rc1-py2.4.egg">demo-0.4rc1-py2.4.egg</a><br>
-    <a href="demoneeded-1.0.zip">demoneeded-1.0.zip</a><br>
-    <a href="demoneeded-1.1.zip">demoneeded-1.1.zip</a><br>
-    <a href="demoneeded-1.2rc1.zip">demoneeded-1.2rc1.zip</a><br>
+    <a href="bigdemo-0.1-py3-none-any.whl">bigdemo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.1-py3-none-any.whl">demo-0.1-py3-none-any.whl</a><br>
+    <a href="demo-0.2-py3-none-any.whl">demo-0.2-py3-none-any.whl</a><br>
+    <a href="demo-0.3-py3-none-any.whl">demo-0.3-py3-none-any.whl</a><br>
+    <a href="demo-0.4rc1-py3-none-any.whl">demo-0.4rc1-py3-none-any.whl</a><br>
+    <a href="demoneeded-1.0.tar.gz">demoneeded-1.0.tar.gz</a><br>
+    <a href="demoneeded-1.1.tar.gz">demoneeded-1.1.tar.gz</a><br>
+    <a href="demoneeded-1.2rc1.tar.gz">demoneeded-1.2rc1.tar.gz</a><br>
     <a href="du_zipped-1.0-pyN.N.egg">du_zipped-1.0-pyN.N.egg</a><br>
-    <a href="extdemo-1.4.zip">extdemo-1.4.zip</a><br>
+    <a href="extdemo-1.4.tar.gz">extdemo-1.4.tar.gz</a><br>
     <a href="index/">index/</a><br>
-    <a href="mixedcase-0.5.zip">mixedcase-0.5.zip</a><br>
-    <a href="other-1.0-py2.4.egg">other-1.0-py2.4.egg</a><br>
+    <a href="mixedcase-0.5.tar.gz">mixedcase-0.5.tar.gz</a><br>
+    <a href="other-1.0-py3-none-any.whl">other-1.0-py3-none-any.whl</a><br>
     </body></html>
 
 
@@ -61,8 +61,8 @@ server as usual:
 
     >>> print_(system(buildout), end='')
     GET ...
-    GET 200 /demo-0.2-py2.4.egg
-    GET 200 /demoneeded-1.1.zip
+    GET 200 /demo-0.2-py3-none-any.whl
+    GET 200 /demoneeded-1.1.tar.gz
     Installing eggs.
     Getting distribution for 'demo==0.2'.
     Got demo 0.2.
@@ -79,8 +79,8 @@ dist:
     d  dist
 
     >>> ls(cache, 'dist')
-    -  demo-0.2-py2.4.egg
-    -  demoneeded-1.1.zip
+    -  demo-0.2-py3-none-any.whl
+    -  demoneeded-1.1.tar.gz
 
 If we remove the installed eggs from eggs directory and re-run the buildout:
 

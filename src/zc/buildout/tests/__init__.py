@@ -57,7 +57,7 @@ def create_sample_eggs(test, executable=sys.executable):
             "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
+        zc.buildout.testing.bdist_wheel(tmp, dest)
 
         write(
             tmp, 'setup.py',
@@ -66,6 +66,8 @@ def create_sample_eggs(test, executable=sys.executable):
             "scripts=['distutilsscript'],"
             "py_modules=['eggrecipedemoneeded'])\n"
             )
+        # We still create an egg for this one, as we use it for testing
+        # distutils scripts in a zipped egg.
         zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
         os.remove(os.path.join(tmp, 'distutilsscript'))
@@ -91,7 +93,7 @@ def create_sample_eggs(test, executable=sys.executable):
                      "['demo = eggrecipedemo:main']},"
                 " zip_safe=True, version='0.%s%s')\n" % (i, rc1)
                 )
-            zc.buildout.testing.bdist_egg(tmp, dest)
+            zc.buildout.testing.bdist_wheel(tmp, dest)
 
         write(tmp, 'mixedcase.py', 'def f():\n  pass')
         write(
@@ -121,32 +123,13 @@ def create_sample_eggs(test, executable=sys.executable):
             " py_modules=['eggrecipebigdemo'], "
             " zip_safe=True, version='0.1')\n"
             )
-        zc.buildout.testing.bdist_egg(tmp, sys.executable, dest)
+        zc.buildout.testing.bdist_wheel(tmp, dest)
 
     finally:
         shutil.rmtree(tmp)
 
 
-extdemo_c2 = """
-#include <Python.h>
-#include <extdemo.h>
-
-static PyMethodDef methods[] = {{NULL}};
-
-PyMODINIT_FUNC
-initextdemo(void)
-{
-    PyObject *m;
-    m = Py_InitModule3("extdemo", methods, "");
-#ifdef TWO
-    PyModule_AddObject(m, "val", PyInt_FromLong(2));
-#else
-    PyModule_AddObject(m, "val", PyInt_FromLong(EXTDEMO));
-#endif
-}
-"""
-
-extdemo_c3 = """
+extdemo_c = """
 #include <Python.h>
 #include <extdemo.h>
 
@@ -174,8 +157,6 @@ MOD_INIT(extdemo)
     return m;
 }
 """
-
-extdemo_c = extdemo_c2 if sys.version_info[0] < 3 else extdemo_c3
 
 extdemo_setup_py = r"""
 import os, sys
@@ -225,7 +206,7 @@ def easy_install_SetUp(test):
 
 normalize_bang = (
     re.compile(re.escape('#!'+
-                         zc.buildout.easy_install._safe_arg(sys.executable))),
+                         zc.buildout.easy_install._safe_arg(sys.executable)) + ".*"),
     '#!/usr/local/bin/python2.7',
     )
 
