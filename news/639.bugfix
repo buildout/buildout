@@ -1,2 +1,0 @@
-Fix accidental changes to ``PYTHONPATH`` in ``os.environ`` when calling ``pip install``.
-[xavth]

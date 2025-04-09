@@ -8,6 +8,24 @@ Change History
 
 .. towncrier release notes start
 
+4.1.9 (2025-04-09)
+------------------
+
+Bug fixes:
+
+
+- Fix accidental changes to ``PYTHONPATH`` in ``os.environ`` when calling ``pip install``.
+  [xavth] (#639)
+
+
+Tests
+
+
+- Use ``wheel`` 0.45.1 when testing with ``setuptools`` older than 70.1.0.
+  Otherwise, when combining an older ``setuptools`` with a newer ``wheel`` version, the ``bdist_wheel`` command exists in neither of these packages.
+  [maurits] (#705)
+
+
 4.1.8 (2025-04-09)
 ------------------
 
