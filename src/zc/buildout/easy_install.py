@@ -1227,7 +1227,12 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
-        args = [executable,  tsetup, '-q', 'develop', '-mN', '-d', tmp3]
+        # We used to pass '-m', or '--multi-version' to 'setup.py develop'.
+        # The help says: "make apps have to require() a version".
+        # But this option is no longer available since setuptools 80.
+        # See https://github.com/buildout/buildout/pull/708
+        # So let's try without it.
+        args = [executable,  tsetup, '-q', 'develop', '-N', '-d', tmp3]
 
         log_level = logger.getEffectiveLevel()
         if log_level <= 0:
