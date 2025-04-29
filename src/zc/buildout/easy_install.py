@@ -165,9 +165,9 @@ class Environment(EnvironmentMixin, pkg_resources.Environment):
     """
     def __init__(
         self,
-        search_path: Iterable[str] | None = None,
-        platform: str | None = pkg_resources.get_supported_platform(),
-        python: str | None = PY_MAJOR,
+        search_path=None,
+        platform=pkg_resources.get_supported_platform(),
+        python=PY_MAJOR,
     ) -> None:
         """Snapshot distributions available on a search path
 
