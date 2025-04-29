@@ -334,6 +334,16 @@ reporting that a version was picked automatically:
       Getting distribution for 'demo'.
     zc.buildout.easy_install DEBUG
       Fetching demo 0.3 from: http://.../demo-0.3-py3-none-any.whl
+    zc.buildout.easy_install DEBUG
+      Turning dist demo 0.3 (.../demo-0.3-py3-none-any.whl) into egg, and moving to eggs dir /sample-install).
+    zc.buildout.easy_install DEBUG
+      Checking if wheel needs to be renamed.
+    zc.buildout.easy_install DEBUG
+      Renaming wheel was not needed or did not help.
+    zc.buildout.easy_install DEBUG
+      Calling unpacker for .whl on .../demo-0.3-py3-none-any.whl
+    zc.buildout.easy_install DEBUG
+      Egg for demo 0.3 installed at .../demo-0.3-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demo 0.3.
     zc.buildout.easy_install DEBUG
@@ -347,28 +357,17 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install DEBUG
       Fetching demoneeded 1.1 from: http://.../demoneeded-1.1.tar.gz
     zc.buildout.easy_install DEBUG
+      Turning dist demoneeded 1.1 (.../demoneeded-1.1.tar.gz) into egg, and moving to eggs dir /sample-install).
+    zc.buildout.easy_install DEBUG
+      Calling pip install for .gz on .../demoneeded-1.1.tar.gz
+    zc.buildout.easy_install DEBUG
       Running pip install:...
+    zc.buildout.easy_install DEBUG
+      Egg for demoneeded 1.1 installed at .../demoneeded-1.1-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demoneeded 1.1.
     zc.buildout.easy_install DEBUG
       Picked: demoneeded = 1.1
-
-
-    zc.buildout.easy_install DEBUG
-      Installing 'demo'.
-    zc.buildout.easy_install DEBUG
-      We have the best distribution that satisfies 'demo'.
-    zc.buildout.easy_install DEBUG
-      Picked: demo = 0.3
-    zc.buildout.easy_install DEBUG
-      Getting required 'demoneeded'
-    zc.buildout.easy_install DEBUG
-        required by demo 0.3.
-    zc.buildout.easy_install DEBUG
-      We have the best distribution that satisfies 'demoneeded'.
-    zc.buildout.easy_install DEBUG
-      Picked: demoneeded = 1.1
-
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
