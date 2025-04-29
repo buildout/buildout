@@ -437,3 +437,74 @@ def patch_find_packages():
 
 
 patch_find_packages()
+
+
+def patch_get_supported_platform():
+    """
+    Patch pkg_resources.get_supported_platform to have better results on Mac.
+
+    See original report by Jens Vagelpohl a few years ago for setuptools:
+    https://github.com/pypa/setuptools/issues/3687
+
+    And his comment in zopefoundation/meta explains well what happens from
+    the standpoint of Buildout:
+    https://github.com/zopefoundation/meta/issues/181#issuecomment-1757558915
+
+    Nowadays, the same can happen with a Python installed by uv, as I saw today:
+
+    % bin/zopepy
+    >>> import pkg_resources
+    >>> pkg_resources.get_platform()
+    'macosx-11.0-arm64'
+    >>> pkg_resources.get_supported_platform()
+    'macosx-15.4-arm64'
+
+    Here macosx-11.0 is the platform on which the Python was built/compiled.
+    And macosx-15.4 is the current platform (my laptop).
+
+    This gives problems when we get a Mac-specific wheel.  We turn it into an
+    egg that has the result of get_supported_platform() in its name.
+    Then our code in easy_install._get_matching_dist_in_location creates a
+    pkg_resources.Environment with the egg location.  Under the hood,
+    pkg_resources.compatible_platforms is called, and this does not find any
+    matching dists because it compares the platform in the egg name with that
+    of the system, which is pkg_resources.get_platform().
+
+    As far as I see, only Mac has this problem, depending on your Python and
+    on the packages that you install:
+
+    - uv installs a pre-built Python, so the platforms likely differ.
+    - When using pyenv, you compile a Python locally, so both platforms are
+      exactly the same, so there is no problem.
+    - When you upgrade to a new Mac OSX version, but keep the previously compiled
+      pyenv, the platforms will differ.  You should reinstall all pyenv Pythons.
+      But this patch should fix that.
+    - Wheels with only Python code (no C, Rust, etc), will have a name ending
+      in py3-none-any.whl, and this does not suffer from this problem.
+    """
+    import sys
+
+    if sys.platform != "darwin":
+        # The patch is only useful on Mac OSX.
+        return
+
+    try:
+        import pkg_resources
+        from pkg_resources import get_supported_platform
+        from sysconfig import get_platform
+    except ImportError:
+        return
+
+    supported_platform = get_supported_platform()
+    platform = get_platform()
+    if platform == supported_platform:
+        # no problem
+        return
+
+    def mac_platform():
+        return platform
+
+    pkg_resources.get_supported_platform = mac_platform
+
+
+patch_get_supported_platform()
