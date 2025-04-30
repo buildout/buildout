@@ -146,7 +146,7 @@ If we run this:
 
 .. code-block:: console
 
-  buildout
+  buildout -v
 
 .. -> src
 
