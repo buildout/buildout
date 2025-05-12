@@ -482,10 +482,12 @@ def patch_get_supported_platform():
     - Wheels with only Python code (no C, Rust, etc), will have a name ending
       in py3-none-any.whl, and this does not suffer from this problem.
     """
+    print("In patch_get_supported_platform")
     import sys
 
     if sys.platform != "darwin":
         # The patch is only useful on Mac OSX.
+        print("No Mac.")
         return
 
     try:
@@ -493,18 +495,23 @@ def patch_get_supported_platform():
         from pkg_resources import get_supported_platform
         from sysconfig import get_platform
     except ImportError:
+        print("ImportError in patch_get_supported_platform")
         return
 
     supported_platform = get_supported_platform()
+    print(f"{supported_platform=}")
     platform = get_platform()
+    print(f"{platform=}")
     if platform == supported_platform:
         # no problem
+        print("no problem")
         return
 
     def mac_platform():
         return platform
 
     pkg_resources.get_supported_platform = mac_platform
+    print(f"Changed pkg_resources.get_supported_platform from {supported_platform} to {platform}")
 
 
 patch_get_supported_platform()
