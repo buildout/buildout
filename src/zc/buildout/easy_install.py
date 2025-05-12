@@ -411,7 +411,13 @@ class Installer(object):
         if not dists:
             logger.debug('We have no distributions for %s that satisfies %r.',
                          req.project_name, str(req))
-
+            if str(req) == "bobo":
+                print("XXX")
+                print(self._env)
+                print(self._env[req.project_name])
+                from pprint import pprint
+                pprint([dist for dist in self._env[req.project_name]])
+            logger.debug("Now obtaining req %s", req.project_name)
             return None, self._obtain(req, source)
 
         # Note that dists are sorted from best to worst, as promised by
