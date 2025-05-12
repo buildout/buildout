@@ -188,6 +188,7 @@ class Environment(EnvironmentMixin, pkg_resources.Environment):
         self._distmap: dict[str, list[Distribution]] = {}
         self.platform = platform
         self.python = python
+        print(f"Environment {platform=}")
         self.scan(search_path)
 
 
@@ -414,6 +415,7 @@ class Installer(object):
             if str(req) == "bobo":
                 print("XXX")
                 print(self._env)
+                print(self._env.platform)
                 print(self._env[req.project_name])
                 from pprint import pprint
                 pprint([dist for dist in self._env[req.project_name]])
