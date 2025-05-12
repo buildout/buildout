@@ -1782,7 +1782,7 @@ def call_pip_install(spec, dest):
 
 def make_egg_after_pip_install(dest, distinfo_dir):
     """build properly named egg directory"""
-
+    logger.debug("Make egg after pip install for %s", distinfo_dir)
     # `pip install` does not build the namespace aware __init__.py files
     # but they are needed in egg directories.
     # Add them before moving files setup by pip
@@ -1830,6 +1830,9 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     distro = list(pkg_resources.find_distributions(dest))[0]
     if project_name:
         distro.project_name = project_name
+    logger.debug("distro: %s", distro)
+    logger.debug("egg name: %s", distro.egg_name())
+    logger.debug("supported platform: %s", pkg_resources.get_supported_platform())
     base = "{}-{}".format(
         distro.egg_name(), pkg_resources.get_supported_platform()
     )
@@ -1843,6 +1846,7 @@ def make_egg_after_pip_install(dest, distinfo_dir):
         os.path.join(dest, distinfo_dir),
         os.path.join(egg_dir, new_distinfo_dir)
     )
+    logger.info("egg dir: %s", egg_dir)
 
     top_level_file = os.path.join(egg_dir, new_distinfo_dir, 'top_level.txt')
     if os.path.isfile(top_level_file):
@@ -2137,6 +2141,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             newdist = _get_matching_dist_in_location(dist, newloc)
             if newdist is None:
                 raise AssertionError(f"{newloc} has no distribution for {dist}")
+            logger.debug("Egg for %s moved to %s", dist, newloc)
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_dest)
