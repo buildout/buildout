@@ -5,7 +5,7 @@ bin/buildout: setup.py prepare.sh dev.py
 	./prepare.sh
 
 bin/test: bin/buildout buildout.cfg
-	bin/buildout || bin/buildout.exe
+	bin/buildout -v || bin/buildout.exe -v
 	bin/py -m pip freeze
 	cat bin/test
 	ls downloads/dist
