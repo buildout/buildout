@@ -6,6 +6,7 @@ bin/buildout: setup.py prepare.sh dev.py
 
 bin/test: bin/buildout buildout.cfg
 	bin/buildout || bin/buildout.exe
+	bin/py -m pip freeze
 
 test: bin/test
 	PYTHONWARNINGS=ignore bin/test -pvc -t getting-started.rst
