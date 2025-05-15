@@ -40,6 +40,7 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 import zipfile
+from functools import cached_property
 from packaging import specifiers
 from packaging.utils import canonicalize_name
 from packaging.utils import is_normalized_name
@@ -67,6 +68,7 @@ default_index_url = os.environ.get(
     )
 
 logger = logging.getLogger('zc.buildout.easy_install')
+macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 
 url_match = re.compile('[a-z0-9+.-]+://').match
 is_source_encoding_line = re.compile(r'coding[:=]\s*([-\w.]+)').search
@@ -155,7 +157,88 @@ class Environment(EnvironmentMixin, pkg_resources.Environment):
     The fixes are needed for this issue, where distributions created by
     setuptools 69.3+ get a different name than with older versions:
     https://github.com/buildout/buildout/issues/647
+
+    And since May 2025 we override the can_add method to work better on Mac:
+    accept distributions when the architecture (machine type) matches,
+    instead of failing when the major or minor version do not match.
+    See long explanation in https://github.com/buildout/buildout/pull/707
+    It boils down to this, depending on how you installed Python:
+
+    % bin/zopepy
+    >>> import pkg_resources
+    >>> pkg_resources.get_platform()
+    'macosx-11.0-arm64'
+    >>> pkg_resources.get_supported_platform()
+    'macosx-15.4-arm64'
+
+    Here macosx-11.0 is the platform on which the Python was built/compiled.
+    And macosx-15.4 is the current platform (my laptop).
+
+    This gives problems when we get a Mac-specific wheel.  We turn it into an
+    egg that has the result of get_supported_platform() in its name.
+    Then our code in easy_install._get_matching_dist_in_location creates a
+    pkg_resources.Environment with the egg location.  Under the hood,
+    pkg_resources.compatible_platforms is called, and this does not find any
+    matching dists because it compares the platform in the egg name with that
+    of the system, which is pkg_resources.get_platform().
+
+    So an egg created on the current machine by the current Python may not be
+    recognized.  This is obviously wrong.
     """
+
+    @cached_property
+    def _mac_machine_type(self):
+        """Machine type (architecture) on Mac.
+
+        Adapted from pkg_resources.compatible_platforms.
+        If self.platform is something like 'macosx-15.4-arm64', we return 'arm64.
+        """
+        match = macosVersionString.match(self.platform)
+        if match is None:
+            # no Mac
+            return ""
+        return match.group(3)
+
+    def can_add(self, dist: Distribution) -> bool:
+        """Is distribution `dist` acceptable for this environment?
+
+        The distribution must match the platform and python version
+        requirements specified when this environment was created, or False
+        is returned.
+
+        For Mac we make a change compared to the original.  Platforms like
+        'macosx-11.0-arm64' and 'macosx-15.4-arm64' are considered compatible.
+        """
+        if super().can_add(dist):
+            return True
+        if sys.platform != "darwin":
+            # Our override is only useful on Mac OSX.
+            return False
+
+        # The rest of the code is a combination of the original
+        # pkg_resources.Environment.can_add and pkg_resources.compatible_platforms.
+        py_compat = (
+            self.python is None
+            or dist.py_version is None
+            or dist.py_version == self.python
+        )
+        if not py_compat:
+            return False
+        provMac = macosVersionString.match(dist.platform)
+        if not provMac:
+            # The dist is not for Mac.
+            return False
+        provided_machine_type = provMac.group(3)
+        if provided_machine_type != self._mac_machine_type:
+            return False
+        logger.debug(
+            "Accepted dist %s although its provided platform %s does not "
+            "match our supported platform %s.",
+            dist,
+            dist.platform,
+            self.platform,
+        )
+        return True
 
 
 class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
@@ -1870,6 +1953,14 @@ def unpack_egg(location, dest):
 
 def unpack_wheel(location, dest):
     wheel = Wheel(location)
+    # The egg_name method returns a string that includes:
+    # platform = None if self.platform == 'any' else get_platform()
+    # get_platform is imported from distutils.util, vendorized
+    # by setuptools, but this is really just: sysconfig.get_platform()
+    # This is the platform where Python got compiled.  This may differ
+    # from the current platform, and this trips up the logic in
+    # pkg_resources.compatible_platforms.  We have a patch for that.
+    # See the docstring of the Environment class above.
     wheel.install_as_egg(os.path.join(dest, wheel.egg_name()))
 
 
@@ -1967,6 +2058,7 @@ def _maybe_copy_and_rename_wheel(dist, dest):
     new_filename = filename.replace(wheel.project_name, actual_project_name)
     if filename == new_filename:
         return
+    logger.debug("Renaming wheel %s to %s", dist.location, new_filename)
     tmp_wheeldir = tempfile.mkdtemp()
     try:
         new_location = os.path.join(tmp_wheeldir, new_filename)
@@ -2018,6 +2110,10 @@ def _move_to_eggs_dir_and_compile(dist, dest):
         if not os.path.isdir(dest):
             # Unknown reason.  Reraise original error.
             raise
+    logger.debug(
+        "Turning dist %s (%s) into egg, and moving to eggs dir (%s).",
+        dist, dist.location, dest,
+    )
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
         installed_with_pip = False
@@ -2025,6 +2121,7 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 dist.precedence >= pkg_resources.BINARY_DIST):
             # We got a pre-built directory. It must have been obtained locally.
             # Just copy it.
+            logger.debug("dist is pre-built directory.")
             tmp_loc = os.path.join(tmp_dest, os.path.basename(dist.location))
             shutil.copytree(dist.location, tmp_loc)
         else:
@@ -2033,25 +2130,36 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             _, ext = os.path.splitext(dist.location)
             if ext in UNPACKERS:
                 if ext == '.whl':
+                    logger.debug("Checking if wheel needs to be renamed.")
                     new_dist = _maybe_copy_and_rename_wheel(dist, dest)
                     if new_dist is not None:
+                        logger.debug("Found dist after renaming wheel: %s", new_dist)
                         return new_dist
+                    logger.debug("Renaming wheel was not needed or did not help.")
                 unpacker = UNPACKERS[ext]
+                logger.debug("Calling unpacker for %s on %s", ext, dist.location)
                 unpacker(dist.location, tmp_dest)
                 [tmp_loc] = glob.glob(os.path.join(tmp_dest, '*'))
             else:
+                logger.debug("Calling pip install for %s on %s", ext, dist.location)
                 [tmp_loc] = call_pip_install(dist.location, tmp_dest)
                 installed_with_pip = True
 
         # We have installed the dist. Now try to rename/move it.
+        logger.debug("Egg for %s installed at %s", dist, tmp_loc)
         newloc = os.path.join(dest, os.path.basename(tmp_loc))
         try:
             os.rename(tmp_loc, newloc)
         except OSError:
+            logger.error(
+                "Moving/renaming egg for %s (%s) to %s failed.",
+                dist, dist.location, newloc,
+            )
             # Might be for various reasons.  If it is because newloc already
             # exists, we can investigate.
             if not os.path.exists(newloc):
                 # No, it is a different reason.  Give up.
+                logger.error("New location %s does not exist.", newloc)
                 raise
             # Try to use it as environment and check if our project is in it.
             newdist = _get_matching_dist_in_location(dist, newloc)
@@ -2059,18 +2167,26 @@ def _move_to_eggs_dir_and_compile(dist, dest):
                 # Path exists, but is not our package.  We could
                 # try something, but it seems safer to bail out
                 # with the original error.
+                logger.error(
+                    "New location %s exists, but has no distribution for %s",
+                    newloc, dist)
                 raise
-            # newloc looks okay to use.  Do print a warning.
-            logger.warn(
+            # newloc looks okay to use.
+            # This may happen more often on Mac, and is the reason why we
+            # override Environment.can_add, see above.
+            # Do print a warning.
+            logger.warning(
                 "Path %s unexpectedly already exists.\n"
+                "It contains the expected distribution for %s.\n"
                 "Maybe a buildout running in parallel has added it. "
                 "We will accept it.\n"
                 "If this contains a wrong package, please remove it yourself.",
-                newloc)
+                newloc, dist)
         else:
             # There were no problems during the rename.
             newdist = _get_matching_dist_in_location(dist, newloc)
-            assert newdist is not None  # newloc above is missing our dist?!
+            if newdist is None:
+                raise AssertionError(f"{newloc} has no distribution for {dist}")
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_dest)

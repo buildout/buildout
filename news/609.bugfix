@@ -1,0 +1,4 @@
+Override `pkg_resources.Environment.can_add` to have better results on Mac.
+Without this, a freshly created Mac-specific egg may not be considered compatible.
+This can happen when the Python you use was built on a different Mac OSX version.
+[maurits]
