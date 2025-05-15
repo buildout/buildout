@@ -9,6 +9,12 @@ PYTHON_VERSION="${PYTHON_VERSION:-3}"
 PIP_VERSION="${PIP_VERSION}"
 SETUPTOOLS_VERSION="${SETUPTOOLS_VERSION}"
 PIP_ARGS="${PIP_ARGS:--U}"
+USE_UV="${USE_UV}"
+if test "$USE_UV"; then
+    UV_LINE="YES (override by unsetting USE_UV environment variable or making it empty)"
+else
+    UV_LINE="NO (override by giving USE_UV environment variable a non-empty value)"
+fi
 cat << MARKER
 Prepare a virtual environment for testing zc.buildout.
 
@@ -16,6 +22,7 @@ Using:
 * Python: $PYTHON_VERSION (override with PYTHON_VERSION environment variable)
 * pip: $PIP_VERSION (override with PIP_VERSION environment variable)
 * setuptools: $SETUPTOOLS_VERSION (override with SETUPTOOLS_VERSION environment variable)
+* use uv: $UV_LINE
 
 An empty version means: use whatever is already available, or install latest.
 Extra arguments for pip install: $PIP_ARGS (override with PIP_ARGS environment variable)
@@ -54,7 +61,12 @@ $PYTHON --version
 echo
 echo "Creating virtual environment in $VENV"
 mkdir -p "$VENVS"
-$PYTHON -m venv "$VENV"
+if test "$USE_UV"; then
+  echo "using uv"
+  uv venv -p $PYTHON_VERSION --seed "$VENV"
+else
+  $PYTHON -m venv "$VENV"
+fi
 
 PIP_ARGS="$PIP_ARGS pip"
 if test $PIP_VERSION; then
