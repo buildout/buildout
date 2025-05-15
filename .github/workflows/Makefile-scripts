@@ -1,7 +1,7 @@
 sandbox/bin/python:
 	pip install virtualenv
 	virtualenv sandbox
-	sandbox/bin/python -mpip install setuptools
+	sandbox/bin/python -mpip install 'setuptools<80'
 
 sandbox/bin/buildout: sandbox/bin/python
 	sandbox/bin/python setup.py develop
