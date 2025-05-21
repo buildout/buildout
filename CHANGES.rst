@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+4.1.10 (2025-05-21)
+-------------------
+
+Bug fixes:
+
+
+- Override `pkg_resources.Environment.can_add` to have better results on Mac.
+  Without this, a freshly created Mac-specific egg may not be considered compatible.
+  This can happen when the Python you use was built on a different Mac OSX version.
+  [maurits] (#609)
+
+
 4.1.9 (2025-04-09)
 ------------------
 
