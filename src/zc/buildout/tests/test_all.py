@@ -216,7 +216,7 @@ We should be able to deal with setup scripts that aren't setuptools based.
     Installing...
     Develop: '/sample-buildout/foo'
     in: '/sample-buildout/foo'
-    ... -q develop -mN -d /sample-buildout/develop-eggs/...
+    ... -q develop -N -d /sample-buildout/develop-eggs/...
 
 
     """
@@ -430,7 +430,7 @@ Now, let's create a buildout that requires y and z:
     Got demoneeded 1.1.
     Version and requirements information containing demoneeded:
       Requirement of samplez: demoneeded==1.1
-      Requirement of sampley: demoneeded==1.0
+      Requirement of sampley: demoneeded==1.0...
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -461,9 +461,16 @@ If we use the verbose switch, we can see where requirements are coming from:
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'wheel'...
     Develop: '/sample-buildout/sampley'
+    in: '/sample-buildout/sampley'
+    ...
     Develop: '/sample-buildout/samplez'
+    in: '/sample-buildout/samplez'
+    ...
     Develop: '/sample-buildout/samplea'
+    in: '/sample-buildout/samplea'
+    ...
     Develop: '/sample-buildout/sampleb'
+    in: '/sample-buildout/sampleb'
     ...
     Installing eggs.
     Installing 'samplea', 'samplez'.
@@ -481,6 +488,7 @@ If we use the verbose switch, we can see where requirements are coming from:
     Version and requirements information containing demoneeded:
       Requirement of samplez: demoneeded==1.1
       Requirement of sampley: demoneeded==1.0
+    ...
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -2225,10 +2233,19 @@ def dealing_with_extremely_insane_dependencies():
     Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Develop: '/sample-buildout/pack0'
+    in: '/sample-buildout/pack0'
+    ...
     Develop: '/sample-buildout/pack1'
+    in: '/sample-buildout/pack1'
+    ...
     Develop: '/sample-buildout/pack2'
+    in: '/sample-buildout/pack2'
+    ...
     Develop: '/sample-buildout/pack3'
+    in: '/sample-buildout/pack3'
+    ...
     Develop: '/sample-buildout/pack4'
+    in: '/sample-buildout/pack4'
     ...
     Installing pack1.
     Installing 'pack0'.

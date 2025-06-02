@@ -1218,10 +1218,36 @@ def develop(setup, dest,
         undo.append(lambda: os.remove(tsetup))
         undo.append(lambda: os.close(fd))
 
+        # setuptools/distutils is showing more and more warnings.
+        # And they may be very long, like this gem of 31 lines:
+        # https://github.com/pypa/setuptools/blob/v79.0.1/setuptools/command/easy_install.py#L1336
+        # That one shows up now that setuptools 80 forces us to no longer
+        # use the --multi-version option when calling 'setup.py develop'.
+        # And they may get repeated for several packages.
+        # And they change the output of our doctests, causing lots of test
+        # failures, making us abandon a potentially working bugfix, or causing
+        # us to spend hours trying to fix or normalize test output.
+        # See the current case: I want to test if removing the --multi-version
+        # option works.  The new avalanche of log lines makes this impossible.
+        #
+        # In other words: I have *had* it with those warnings.
+        #
+        # So I set the root logger to simply not log at all.
+        # Unfortunately, this removes error logging as well; I tried to change
+        # the log level, but that somehow did not work.
+        # You will still see exceptions though.
+        # And: if you call buildout with '-v', our log level is DEBUG,
+        # and then I don't disable the root logger.
+        #
+        # Note that I currently only do this in this specific place,
+        # so when calling 'setup.py develop'.
+        log_level = logger.getEffectiveLevel()
+        extra = disable_root_logger if log_level > logging.DEBUG else ""
         os.write(fd, (runsetup_template % dict(
             setupdir=directory,
             setup=setup,
             __file__ = setup,
+            extra=extra,
             )).encode())
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
@@ -1233,14 +1259,11 @@ def develop(setup, dest,
         # See https://github.com/buildout/buildout/pull/708
         # So let's try without it.
         args = [executable,  tsetup, '-q', 'develop', '-N', '-d', tmp3]
-
-        log_level = logger.getEffectiveLevel()
-        if log_level <= 0:
-            if log_level == 0:
+        if log_level <= logging.DEBUG:
+            if log_level == logging.NOTSET:
                 del args[2]
             else:
                 args[2] == '-v'
-        if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
         call_subprocess(args)
@@ -1704,6 +1727,8 @@ sys.path[0:0] = %r
 
 import os, setuptools
 
+%%(extra)s
+
 __file__ = %%(__file__)r
 
 os.chdir(%%(setupdir)r)
@@ -1712,6 +1737,13 @@ sys.argv[0] = %%(setup)r
 with open(%%(setup)r) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
 """ % setuptools_path
+
+disable_root_logger = """
+import logging
+root_logger = logging.getLogger()
+handler = logging.NullHandler()
+root_logger.addHandler(handler)
+"""
 
 
 class VersionConflict(zc.buildout.UserError):
