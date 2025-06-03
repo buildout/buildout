@@ -405,20 +405,14 @@ class PackageIndex(Environment):
             list(map(self.add, dists))
 
     def url_ok(self, url, fatal: bool = False) -> bool:
+        """Is this url allowed by the allow-hosts option?
+
+        Buildout has changed this to not log any warning when a url
+        is not allowed, as this warning would be unavoidable.
+        """
         s = URL_SCHEME(url)
         is_file = s and s.group(1).lower() == 'file'
-        if is_file or self.allows(urllib.parse.urlparse(url)[1]):
-            return True
-        msg = (
-            "\nNote: Bypassing %s (disallowed host; see "
-            "https://setuptools.pypa.io/en/latest/deprecated/"
-            "easy_install.html#restricting-downloads-with-allow-hosts for details).\n"
-        )
-        if fatal:
-            raise DistutilsError(msg % url)
-        else:
-            self.warn(msg, url)
-            return False
+        return is_file or self.allows(urllib.parse.urlparse(url)[1])
 
     def scan_egg_links(self, search_path) -> None:
         dirs = filter(os.path.isdir, search_path)
