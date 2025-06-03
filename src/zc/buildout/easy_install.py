@@ -1341,7 +1341,7 @@ def develop(setup, dest,
         if log_level <= logging.DEBUG:
             print(output)
 
-        # TODO This won't find anything on setuptools 80+.  Can't be helped, I think.
+        # This won't find anything on setuptools 80+.  Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
 
         # This won't find anything on setuptools 80+.

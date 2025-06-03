@@ -1,4 +1,12 @@
+from importlib.metadata import version
+
+import packaging.version
 import re
+
+
+# In some cases we need to check the setuptools version to know what we can do.
+SETUPTOOLS_VERSION = packaging.version.parse(version("setuptools"))
+IS_SETUPTOOLS_80_PLUS = SETUPTOOLS_VERSION >= packaging.version.Version('80')
 
 
 def normalize_name(name):

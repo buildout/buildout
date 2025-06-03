@@ -1133,7 +1133,11 @@ scripts in the metadata. We try to detect such scripts anyhow:
     ...     ['foo2'], sys.executable, [dev_eggs_dir])
     >>> scripts = zc.buildout.easy_install.scripts(
     ...     ['foo2'], ws, sys.executable, dest=bin_dir)
-    >>> if sys.platform == 'win32':
+    >>> from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
+    >>> if IS_SETUPTOOLS_80_PLUS:
+    ...     # distutils scripts are no longer detected here
+    ...     True
+    ... elif sys.platform == 'win32':
     ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2.exe'),
     ...                 os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2-script.py')]
     ... else:
