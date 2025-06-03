@@ -43,7 +43,7 @@ from pkg_resources import (
 )
 from setuptools.wheel import Wheel
 
-from .unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
+from setuptools.unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
 
 from distutils import log
 from distutils.errors import DistutilsError
