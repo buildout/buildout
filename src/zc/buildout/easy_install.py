@@ -286,11 +286,28 @@ if is_win32:
 else:
     _safe_arg = str
 
+
 def call_subprocess(args, **kw):
     if subprocess.call(args, **kw) != 0:
         raise Exception(
             "Failed to run command:\n%s"
             % repr(args)[1:-1])
+
+
+def get_subprocess_output(args, **kw):
+    result = subprocess.run(
+        args, **kw,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    stdout = result.stdout.decode("utf-8")
+    if result.returncode:
+        cmd = repr(args)[1:-1]
+        msg = f"Failed to run command:\n{cmd}"
+        logger.error(msg + "\nError output follows:")
+        print(stdout)
+        raise Exception(msg)
+    return stdout
 
 
 def _execute_permission():
@@ -1124,20 +1141,73 @@ def _rm(*paths):
             os.remove(path)
 
 
+def _create_egg_link(setup, dest, egg_name):
+    """Create egg-link file.
+
+    We could catch exceptions, but in that case our only option
+    is to exit with an error anyway.
+    """
+    setup = os.path.realpath(setup)
+    egg_path = os.path.dirname(setup)
+    if not egg_name:
+        egg_name = os.path.basename(egg_path)
+    if 'src' in os.listdir(egg_path):
+        egg_path = os.path.join(egg_path, 'src')
+        setup_path = '..'
+    else:
+        setup_path = '.'
+    # Return TWO lines, so NO line ending on the last line.
+    contents = f"{egg_path}\n{setup_path}"
+    egg_link = os.path.join(dest, egg_name) + '.egg-link'
+    with open(egg_link, "w") as myfile:
+        myfile.write(contents)
+    return egg_link
+
+
 def _copyeggs(src, dest, suffix, undo):
-    result = []
-    undo.append(lambda : _rm(*result))
-    for name in os.listdir(src):
-        if name.endswith(suffix):
-            new = os.path.join(dest, name)
-            _rm(new)
-            os.rename(os.path.join(src, name), new)
-            result.append(new)
+    """Copy eggs.
 
-    assert len(result) == 1, str(result)
-    undo.pop()
+    Expected is:
+    * 'src' is a temporary directory where the develop egg has been built.
+    * 'dest' is the 'develop-eggs' directory
+    * 'suffix' is '.egg-link'
+    * 'undo' is a list of cleanup actions that will be undone automatically
+      after this function returns (or throws an exception).
 
-    return result[0]
+    The only thing we need to do: find the file with the given suffix in src,
+    and move it to dest.  This works until and including setuptools 79.
+
+    setuptools 80 basically removes its own 'setup.py develop' code, and replaces
+    it with 'pip install -e' (which then calls setuptools again, but okay).
+    See https://github.com/pypa/setuptools/pull/4955
+    This leads to a different outcome.  There is no longer an .egg-link file.
+    So we create it ourselves, based on the previous setuptools code.
+
+    So what should be in the .egg-link file?  Two lines: an egg path and a
+    relative setup.py path.  For example setuptools 79 we may have a file
+    zc.recipe.egg.egg-link with as contents two lines:
+
+      /Users/maurits/community/buildout/zc.recipe.egg_/src
+      ../
+
+    With setuptools 80 we have a file __editable__.zc_recipe_egg-3.0.1.dev0.pth
+    with a single line:
+
+      /Users/maurits/community/buildout/zc.recipe.egg_/src
+
+    So let's copy/rename and adapt that file.  The relative setup.py path on the
+    second line does not seem really used, but it should be there according to
+    some checks, so let's try to get that in.
+    """
+    egg_links = glob.glob(os.path.join(src, "*" + suffix))
+    if egg_links:
+        assert len(egg_links) == 1, str(egg_links)
+        egg_link = egg_links[0]
+        name = os.path.basename(egg_link)
+        new = os.path.join(dest, name)
+        _rm(new)
+        os.rename(egg_link, new)
+        return new
 
 
 _develop_distutils_scripts = {}
@@ -1266,9 +1336,36 @@ def develop(setup, dest,
                 args[2] == '-v'
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        call_subprocess(args)
+        output = get_subprocess_output(args)
+        if log_level <= logging.DEBUG:
+            print(output)
+
+        # TODO This won't find anything on setuptools 80+.  Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
-        return _copyeggs(tmp3, dest, '.egg-link', undo)
+
+        # This won't find anything on setuptools 80+.
+        egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
+        if egg_link:
+            return egg_link
+
+        # The following is needed on setuptools 80+.
+        # It might even work on older setuptools as fallback.
+        # Search for name of package that got installed. Start from the bottom.
+        # There should be a nicer way.
+        egg_name = ""
+        search = "Installing collected packages:"
+        for line in reversed(output.splitlines()):
+            if line.startswith(search):
+                egg_name = line[len(search):].strip()
+                if "," in egg_name or " " in egg_name:
+                    logger.warning(
+                        "Ignoring multiple egg names in output line: %r",
+                        line,
+                    )
+                    egg_name = ""
+                break
+
+        return _create_egg_link(setup, dest, egg_name)
 
     finally:
         undo.reverse()
