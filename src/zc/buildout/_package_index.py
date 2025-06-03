@@ -328,7 +328,15 @@ class PackageIndex(Environment):
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
     def process_url(self, url, retrieve: bool = False) -> None:  # noqa: C901
-        """Evaluate a URL as a possible download, and maybe retrieve it"""
+        """Evaluate a URL as a possible download, and maybe retrieve it
+
+        BEWARE: this method is patched by zc.buildout in patches.py.
+        I thought of merging that patch in here, but the patch uses the
+        `pip._internal` module, so it could easily break in a newer pip.
+        In patches.py we make sure that in that case the patch is simply
+        not implied.  If we would merge the patch, it could be that Buildout
+        cannot even start.
+        """
         if url in self.scanned_urls and not retrieve:
             return
         self.scanned_urls[url] = True
