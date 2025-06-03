@@ -1265,6 +1265,7 @@ def develop(setup, dest,
         setup = os.path.join(directory, 'setup.py')
     else:
         directory = os.path.dirname(setup)
+    logger.debug("Making editable install of %s", setup)
 
     undo = []
     try:
@@ -1346,6 +1347,7 @@ def develop(setup, dest,
         # This won't find anything on setuptools 80+.
         egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
         if egg_link:
+            logger.debug("Successfully made editable install: %s", egg_link)
             return egg_link
 
         # The following is needed on setuptools 80+.
@@ -1365,7 +1367,14 @@ def develop(setup, dest,
                     egg_name = ""
                 break
 
-        return _create_egg_link(setup, dest, egg_name)
+        egg_link = _create_egg_link(setup, dest, egg_name)
+        if egg_link:
+            logger.debug("Successfully made editable install: %s", egg_link)
+            return egg_link
+        logger.error(
+            "Failure making editable install: no egg-link created for %s",
+            setup,
+        )
 
     finally:
         undo.reverse()
