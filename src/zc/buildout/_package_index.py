@@ -506,9 +506,23 @@ class PackageIndex(Environment):
         self.scan_url(self.index_url)
 
     def find_packages(self, requirement) -> None:
-        self.scan_url(self.index_url + requirement.unsafe_name + '/')
+        """Find packages.
 
-        if not self.package_pages.get(requirement.key):
+        Note: Buildout had a patch for this, but that code is now merged in here.
+        The change implements PEP 503 for using canonical package names.
+        """
+        url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
+        self.scan_url(self.index_url + url_name + '/')
+
+        if self.package_pages.get(url_name):
+            # We have found a package page and don't need try to any other
+            # package pages for this package.
+            for url in list(self.package_pages.get(url_name)):
+                # scan each page that might be related to the desired package
+                self.scan_url(url)
+            return
+
+        if not self.package_pages.get(requirement.key) and requirement.key != url_name:
             # Fall back to safe version of the name
             self.scan_url(self.index_url + requirement.project_name + '/')
 
