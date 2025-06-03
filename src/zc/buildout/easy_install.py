@@ -1145,8 +1145,25 @@ def _rm(*paths):
 def _create_egg_link(setup, dest, egg_name):
     """Create egg-link file.
 
-    We could catch exceptions, but in that case our only option
-    is to exit with an error anyway.
+    setuptools 80 basically removes its own 'setup.py develop' code, and
+    replaces it with 'pip install -e' (which then calls setuptools again,
+    but okay). See https://github.com/pypa/setuptools/pull/4955
+    This leads to a different outcome.  There is no longer an .egg-link file
+    that we can copy.
+    So we create it ourselves, based on the previous setuptools code.
+
+    So what should be in the .egg-link file?  Two lines: an egg path and a
+    relative setup.py path.  For example with setuptools 79 we may have a
+    file zc.recipe.egg.egg-link with as contents two lines:
+
+      /Users/maurits/community/buildout/zc.recipe.egg_/src
+      ../
+
+    The relative setup.py path on the second line does not seem really used,
+    but it should be there according to some checks, so let's try to get it
+    right.  There is only so much we can do, but we support two common cases:
+    a src-layout and a layout with the code starting at the same level as
+    the setup.py file.
     """
     setup = os.path.realpath(setup)
     egg_path = os.path.dirname(setup)
@@ -1178,27 +1195,7 @@ def _copyeggs(src, dest, suffix, undo):
     The only thing we need to do: find the file with the given suffix in src,
     and move it to dest.  This works until and including setuptools 79.
 
-    setuptools 80 basically removes its own 'setup.py develop' code, and replaces
-    it with 'pip install -e' (which then calls setuptools again, but okay).
-    See https://github.com/pypa/setuptools/pull/4955
-    This leads to a different outcome.  There is no longer an .egg-link file.
-    So we create it ourselves, based on the previous setuptools code.
-
-    So what should be in the .egg-link file?  Two lines: an egg path and a
-    relative setup.py path.  For example setuptools 79 we may have a file
-    zc.recipe.egg.egg-link with as contents two lines:
-
-      /Users/maurits/community/buildout/zc.recipe.egg_/src
-      ../
-
-    With setuptools 80 we have a file __editable__.zc_recipe_egg-3.0.1.dev0.pth
-    with a single line:
-
-      /Users/maurits/community/buildout/zc.recipe.egg_/src
-
-    So let's copy/rename and adapt that file.  The relative setup.py path on the
-    second line does not seem really used, but it should be there according to
-    some checks, so let's try to get that in.
+    For setuptools 80+ we call _create_egg_link.
     """
     egg_links = glob.glob(os.path.join(src, "*" + suffix))
     if egg_links:
@@ -1221,6 +1218,20 @@ def _detect_distutils_scripts(directory):
     contrast to ``setup.py install``. So we have to store the information for
     later.
 
+    This won't find anything on setuptools 80.0.0+, because this does the
+    editable install with pip, instead of its previous own code.  The result
+    is different.  There is no egg-link file, so our code stops early.
+
+    Maybe we could skip this check, use a different way of getting the proper
+    egg_name, and still look for the 'EASY-INSTALL-DEV-SCRIPT' marker that
+    setuptools adds.  But after setuptools 80.3.0 this marker is not set
+    anymore: the setuptools.command.easy_install module was first removed,
+    and later only partially restored.
+
+    So if we would change the logic here, it would only be potentially useful
+    for a very short range of setuptools versions.
+    Also, we look for distutils scripts, which sounds like something that is
+    long deprecated.
     """
     dir_contents = os.listdir(directory)
     egginfo_filenames = [filename for filename in dir_contents
@@ -1260,6 +1271,19 @@ def _detect_distutils_scripts(directory):
 def develop(setup, dest,
             build_ext=None,
             executable=sys.executable):
+    """Make a development/editable install of a package.
+
+    This expects to get a path to a setup.py file (or a directory containing
+    it) as the first argument.  And then it basically calls
+    `python setup.py develop`.  This is a deprecated way of installing a
+    package.  In setuptools 80 this still works, but setuptools has internally
+    changed to call `pip install`.  So at some point we may need to do that
+    ourselves.
+
+    Also, since this expects a setup.py file, this currently does not work
+    at all for a package that does not use setuptools, but for example
+    hatchling.  This also may be solvable by calling `pip install`.
+    """
     assert executable == sys.executable, (executable, sys.executable)
     if os.path.isdir(setup):
         directory = setup
@@ -1346,10 +1370,12 @@ def develop(setup, dest,
         if log_level <= logging.DEBUG:
             print(output)
 
-        # This won't find anything on setuptools 80+.  Can't be helped, I think.
+        # This won't find anything on setuptools 80+.
+        # Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
 
         # This won't find anything on setuptools 80+.
+        # But on older setuptools it still works fine.
         egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
         if egg_link:
             logger.debug("Successfully made editable install: %s", egg_link)
