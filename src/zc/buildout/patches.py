@@ -57,9 +57,9 @@ def patch_PackageIndex():
     try:
         import logging
         logging.getLogger('pip._internal.index.collector').setLevel(logging.ERROR)
-        from setuptools.package_index import PackageIndex
-        from setuptools.package_index import URL_SCHEME
-        from setuptools.package_index import distros_for_url
+        from ._package_index import PackageIndex
+        from ._package_index import URL_SCHEME
+        from ._package_index import distros_for_url
 
         try:
             # pip 22.2+
@@ -219,7 +219,7 @@ def patch_interpret_distro_name():
         from packaging import version
         from pkg_resources import Distribution
         from pkg_resources import SOURCE_DIST
-        from setuptools import package_index
+        from . import package_index
 
         import re
         import setuptools
@@ -402,7 +402,7 @@ def patch_find_packages():
     Implements PEP 503
     """
     try:
-        from setuptools.package_index import PackageIndex
+        from ._package_index import PackageIndex
         import re
     except ImportError:
         return

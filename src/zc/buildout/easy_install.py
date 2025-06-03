@@ -32,7 +32,6 @@ import re
 import setuptools.archive_util
 import setuptools.command.easy_install
 import setuptools.command.setopt
-import setuptools.package_index
 import shutil
 import subprocess
 import sys
@@ -40,6 +39,7 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 import zipfile
+from . import _package_index
 from functools import cached_property
 from packaging import specifiers
 from packaging.utils import canonicalize_name
@@ -242,7 +242,7 @@ class Environment(EnvironmentMixin, pkg_resources.Environment):
         return True
 
 
-class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
+class AllowHostsPackageIndex(EnvironmentMixin, _package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
     No matter what is allow_hosts.
@@ -253,9 +253,8 @@ class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageI
         # distutils has its own logging, which can't be hooked / suppressed,
         # so we monkey-patch the 'log' submodule to suppress the stupid
         # "Link to <URL> ***BLOCKED*** by --allow-hosts" message.
-        with _Monkey(setuptools.package_index, log=_no_warn):
-            return setuptools.package_index.PackageIndex.url_ok(
-                                                self, url, False)
+        with _Monkey(_package_index, log=_no_warn):
+            return _package_index.PackageIndex.url_ok(self, url, False)
 
 
 _indexes = {}
