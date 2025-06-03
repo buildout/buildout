@@ -47,6 +47,7 @@ from packaging.utils import is_normalized_name
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
+from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
@@ -286,11 +287,28 @@ if is_win32:
 else:
     _safe_arg = str
 
+
 def call_subprocess(args, **kw):
     if subprocess.call(args, **kw) != 0:
         raise Exception(
             "Failed to run command:\n%s"
             % repr(args)[1:-1])
+
+
+def get_subprocess_output(args, **kw):
+    result = subprocess.run(
+        args, **kw,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    stdout = result.stdout.decode("utf-8")
+    if result.returncode:
+        cmd = repr(args)[1:-1]
+        msg = f"Failed to run command:\n{cmd}"
+        logger.error(msg + "\nError output follows:")
+        print(stdout)
+        raise Exception(msg)
+    return stdout
 
 
 def _execute_permission():
@@ -1124,20 +1142,70 @@ def _rm(*paths):
             os.remove(path)
 
 
+def _create_egg_link(setup, dest, egg_name):
+    """Create egg-link file.
+
+    setuptools 80 basically removes its own 'setup.py develop' code, and
+    replaces it with 'pip install -e' (which then calls setuptools again,
+    but okay). See https://github.com/pypa/setuptools/pull/4955
+    This leads to a different outcome.  There is no longer an .egg-link file
+    that we can copy.
+    So we create it ourselves, based on the previous setuptools code.
+
+    So what should be in the .egg-link file?  Two lines: an egg path and a
+    relative setup.py path.  For example with setuptools 79 we may have a
+    file zc.recipe.egg.egg-link with as contents two lines:
+
+      /Users/maurits/community/buildout/zc.recipe.egg_/src
+      ../
+
+    The relative setup.py path on the second line does not seem really used,
+    but it should be there according to some checks, so let's try to get it
+    right.  There is only so much we can do, but we support two common cases:
+    a src-layout and a layout with the code starting at the same level as
+    the setup.py file.
+    """
+    setup = os.path.realpath(setup)
+    egg_path = os.path.dirname(setup)
+    if not egg_name:
+        egg_name = os.path.basename(egg_path)
+    if 'src' in os.listdir(egg_path):
+        egg_path = os.path.join(egg_path, 'src')
+        setup_path = '..'
+    else:
+        setup_path = '.'
+    # Return TWO lines, so NO line ending on the last line.
+    contents = f"{egg_path}\n{setup_path}"
+    egg_link = os.path.join(dest, egg_name) + '.egg-link'
+    with open(egg_link, "w") as myfile:
+        myfile.write(contents)
+    return egg_link
+
+
 def _copyeggs(src, dest, suffix, undo):
-    result = []
-    undo.append(lambda : _rm(*result))
-    for name in os.listdir(src):
-        if name.endswith(suffix):
-            new = os.path.join(dest, name)
-            _rm(new)
-            os.rename(os.path.join(src, name), new)
-            result.append(new)
+    """Copy eggs.
 
-    assert len(result) == 1, str(result)
-    undo.pop()
+    Expected is:
+    * 'src' is a temporary directory where the develop egg has been built.
+    * 'dest' is the 'develop-eggs' directory
+    * 'suffix' is '.egg-link'
+    * 'undo' is a list of cleanup actions that will be undone automatically
+      after this function returns (or throws an exception).
 
-    return result[0]
+    The only thing we need to do: find the file with the given suffix in src,
+    and move it to dest.  This works until and including setuptools 79.
+
+    For setuptools 80+ we call _create_egg_link.
+    """
+    egg_links = glob.glob(os.path.join(src, "*" + suffix))
+    if egg_links:
+        assert len(egg_links) == 1, str(egg_links)
+        egg_link = egg_links[0]
+        name = os.path.basename(egg_link)
+        new = os.path.join(dest, name)
+        _rm(new)
+        os.rename(egg_link, new)
+        return new
 
 
 _develop_distutils_scripts = {}
@@ -1150,6 +1218,20 @@ def _detect_distutils_scripts(directory):
     contrast to ``setup.py install``. So we have to store the information for
     later.
 
+    This won't find anything on setuptools 80.0.0+, because this does the
+    editable install with pip, instead of its previous own code.  The result
+    is different.  There is no egg-link file, so our code stops early.
+
+    Maybe we could skip this check, use a different way of getting the proper
+    egg_name, and still look for the 'EASY-INSTALL-DEV-SCRIPT' marker that
+    setuptools adds.  But after setuptools 80.3.0 this marker is not set
+    anymore: the setuptools.command.easy_install module was first removed,
+    and later only partially restored.
+
+    So if we would change the logic here, it would only be potentially useful
+    for a very short range of setuptools versions.
+    Also, we look for distutils scripts, which sounds like something that is
+    long deprecated.
     """
     dir_contents = os.listdir(directory)
     egginfo_filenames = [filename for filename in dir_contents
@@ -1189,12 +1271,26 @@ def _detect_distutils_scripts(directory):
 def develop(setup, dest,
             build_ext=None,
             executable=sys.executable):
+    """Make a development/editable install of a package.
+
+    This expects to get a path to a setup.py file (or a directory containing
+    it) as the first argument.  And then it basically calls
+    `python setup.py develop`.  This is a deprecated way of installing a
+    package.  In setuptools 80 this still works, but setuptools has internally
+    changed to call `pip install`.  So at some point we may need to do that
+    ourselves.
+
+    Also, since this expects a setup.py file, this currently does not work
+    at all for a package that does not use setuptools, but for example
+    hatchling.  This also may be solvable by calling `pip install`.
+    """
     assert executable == sys.executable, (executable, sys.executable)
     if os.path.isdir(setup):
         directory = setup
         setup = os.path.join(directory, 'setup.py')
     else:
         directory = os.path.dirname(setup)
+    logger.debug("Making editable install of %s", setup)
 
     undo = []
     try:
@@ -1218,29 +1314,98 @@ def develop(setup, dest,
         undo.append(lambda: os.remove(tsetup))
         undo.append(lambda: os.close(fd))
 
+        # setuptools/distutils is showing more and more warnings.
+        # And they may be very long, like this gem of 31 lines:
+        # https://github.com/pypa/setuptools/blob/v79.0.1/setuptools/command/easy_install.py#L1336
+        # That one shows up now that setuptools 80 forces us to no longer
+        # use the --multi-version option when calling 'setup.py develop'.
+        # And they may get repeated for several packages.
+        # And they change the output of our doctests, causing lots of test
+        # failures, making us abandon a potentially working bugfix, or causing
+        # us to spend hours trying to fix or normalize test output.
+        # See the current case: I want to test if removing the --multi-version
+        # option works.  The new avalanche of log lines makes this impossible.
+        #
+        # In other words: I have *had* it with those warnings.
+        #
+        # So I set the root logger to simply not log at all.
+        # Unfortunately, this removes error logging as well; I tried to change
+        # the log level, but that somehow did not work.
+        # You will still see exceptions though.
+        # And: if you call buildout with '-v', our log level is DEBUG,
+        # and then I don't disable the root logger.
+        #
+        # Note that I currently only do this in this specific place,
+        # so when calling 'setup.py develop'.
+        log_level = logger.getEffectiveLevel()
+        extra = disable_root_logger if log_level > logging.DEBUG else ""
         os.write(fd, (runsetup_template % dict(
             setupdir=directory,
             setup=setup,
             __file__ = setup,
+            extra=extra,
             )).encode())
 
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
-        args = [executable,  tsetup, '-q', 'develop', '-mN', '-d', tmp3]
-
-        log_level = logger.getEffectiveLevel()
-        if log_level <= 0:
-            if log_level == 0:
+        # We used to pass '-m', or '--multi-version' to 'setup.py develop'.
+        # The help says: "make apps have to require() a version".
+        # But this option is no longer available since setuptools 80.
+        # See https://github.com/buildout/buildout/pull/708
+        # After some changes in our code, it seems to work without it.
+        # But let's be safe and still use this flag on older setuptools.
+        args = [executable,  tsetup, '-q', 'develop', '-N', '-d', tmp3]
+        if not IS_SETUPTOOLS_80_PLUS:
+            # Insert '-m' before '-N'.
+            args.insert(args.index('-N'), '-m')
+        if log_level <= logging.DEBUG:
+            if log_level == logging.NOTSET:
                 del args[2]
             else:
                 args[2] == '-v'
-        if log_level < logging.DEBUG:
             logger.debug("in: %r\n%s", directory, ' '.join(args))
 
-        call_subprocess(args)
+        output = get_subprocess_output(args)
+        if log_level <= logging.DEBUG:
+            print(output)
+
+        # This won't find anything on setuptools 80+.
+        # Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
-        return _copyeggs(tmp3, dest, '.egg-link', undo)
+
+        # This won't find anything on setuptools 80+.
+        # But on older setuptools it still works fine.
+        egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
+        if egg_link:
+            logger.debug("Successfully made editable install: %s", egg_link)
+            return egg_link
+
+        # The following is needed on setuptools 80+.
+        # It might even work on older setuptools as fallback.
+        # Search for name of package that got installed. Start from the bottom.
+        # There should be a nicer way.
+        egg_name = ""
+        search = "Installing collected packages:"
+        for line in reversed(output.splitlines()):
+            if line.startswith(search):
+                egg_name = line[len(search):].strip()
+                if "," in egg_name or " " in egg_name:
+                    logger.warning(
+                        "Ignoring multiple egg names in output line: %r",
+                        line,
+                    )
+                    egg_name = ""
+                break
+
+        egg_link = _create_egg_link(setup, dest, egg_name)
+        if egg_link:
+            logger.debug("Successfully made editable install: %s", egg_link)
+            return egg_link
+        logger.error(
+            "Failure making editable install: no egg-link created for %s",
+            setup,
+        )
 
     finally:
         undo.reverse()
@@ -1699,6 +1864,8 @@ sys.path[0:0] = %r
 
 import os, setuptools
 
+%%(extra)s
+
 __file__ = %%(__file__)r
 
 os.chdir(%%(setupdir)r)
@@ -1707,6 +1874,13 @@ sys.argv[0] = %%(setup)r
 with open(%%(setup)r) as f:
     exec(compile(f.read(), %%(setup)r, 'exec'))
 """ % setuptools_path
+
+disable_root_logger = """
+import logging
+root_logger = logging.getLogger()
+handler = logging.NullHandler()
+root_logger.addHandler(handler)
+"""
 
 
 class VersionConflict(zc.buildout.UserError):
