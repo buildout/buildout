@@ -47,6 +47,7 @@ from packaging.utils import is_normalized_name
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
+from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
@@ -1328,8 +1329,12 @@ def develop(setup, dest,
         # The help says: "make apps have to require() a version".
         # But this option is no longer available since setuptools 80.
         # See https://github.com/buildout/buildout/pull/708
-        # So let's try without it.
+        # After some changes in our code, it seems to work without it.
+        # But let's be safe and still use this flag on older setuptools.
         args = [executable,  tsetup, '-q', 'develop', '-N', '-d', tmp3]
+        if not IS_SETUPTOOLS_80_PLUS:
+            # Insert '-m' before '-N'.
+            args.insert(args.index('-N'), '-m')
         if log_level <= logging.DEBUG:
             if log_level == logging.NOTSET:
                 del args[2]
