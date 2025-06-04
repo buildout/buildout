@@ -32,7 +32,6 @@ import re
 import setuptools.archive_util
 import setuptools.command.easy_install
 import setuptools.command.setopt
-import setuptools.package_index
 import shutil
 import subprocess
 import sys
@@ -40,6 +39,7 @@ import tempfile
 import zc.buildout
 import zc.buildout.rmtree
 import zipfile
+from . import _package_index
 from functools import cached_property
 from packaging import specifiers
 from packaging.utils import canonicalize_name
@@ -92,26 +92,6 @@ logger.debug('before restricting versions: pip_path %r', pip_path)
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
-
-class _Monkey(object):
-    def __init__(self, module, **kw):
-        mdict = self._mdict = module.__dict__
-        self._before = mdict.copy()
-        self._overrides = kw
-
-    def __enter__(self):
-        self._mdict.update(self._overrides)
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._mdict.clear()
-        self._mdict.update(self._before)
-
-class _NoWarn(object):
-    def warn(self, *args, **kw):
-        pass
-
-_no_warn = _NoWarn()
 
 
 class EnvironmentMixin(object):
@@ -242,20 +222,13 @@ class Environment(EnvironmentMixin, pkg_resources.Environment):
         return True
 
 
-class AllowHostsPackageIndex(EnvironmentMixin, setuptools.package_index.PackageIndex):
+class AllowHostsPackageIndex(EnvironmentMixin, _package_index.PackageIndex):
     """Will allow urls that are local to the system.
 
-    No matter what is allow_hosts.
+    This class had its own url_ok method, but we merged this into
+    _package_index.py.
     """
-    def url_ok(self, url, fatal=False):
-        if FILE_SCHEME(url):
-            return True
-        # distutils has its own logging, which can't be hooked / suppressed,
-        # so we monkey-patch the 'log' submodule to suppress the stupid
-        # "Link to <URL> ***BLOCKED*** by --allow-hosts" message.
-        with _Monkey(setuptools.package_index, log=_no_warn):
-            return setuptools.package_index.PackageIndex.url_ok(
-                                                self, url, False)
+    pass
 
 
 _indexes = {}

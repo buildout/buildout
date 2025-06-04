@@ -1,0 +1,4 @@
+Use a copy of ``package_index.py`` from ``setuptools`` 80.2.0.
+This fixes compatibility with ``setuptools`` 80.3.0 where this module was removed.
+Merged some of our patches into this copy.
+[maurits]
