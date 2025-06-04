@@ -66,8 +66,6 @@ from pkg_resources import (
 )
 from setuptools.wheel import Wheel
 
-from setuptools.unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
-
 from distutils import log
 from distutils.errors import DistutilsError
 
@@ -91,6 +89,73 @@ _SOCKET_TIMEOUT = 15
 
 user_agent = f"setuptools/{setuptools.__version__} Python-urllib/{sys.version_info.major}.{sys.version_info.minor}"
 
+try:
+    from setuptools.unicode_utils import _cfg_read_utf8_with_fallback
+    from setuptools.unicode_utils import _read_utf8_with_fallback
+except ImportError:
+    # BBB These functions were introduced in setuptools 70.0.0.
+    from configparser import RawConfigParser
+    from setuptools.warnings import SetuptoolsDeprecationWarning
+
+    # Explicitly use the ``"locale"`` encoding in versions that support it,
+    # otherwise just rely on the implicit handling of ``encoding=None``.
+    # Since all platforms that support ``EncodingWarning`` also support
+    # ``encoding="locale"``, this can be used to suppress the warning.
+    # However, please try to use UTF-8 when possible
+    # (.pth files are the notorious exception: python/cpython#77102, pypa/setuptools#3937).
+    # This definition is copied from setuptools.compat.py39.
+    LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
+
+    class _Utf8EncodingNeeded(SetuptoolsDeprecationWarning):
+        _SUMMARY = """
+        `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
+        """
+
+        _DETAILS = """
+        Fallback behavior for UTF-8 is considered **deprecated** and future versions of
+        `setuptools` may not implement it.
+
+        Please encode {file!r} with "utf-8" to ensure future builds will succeed.
+
+        If this file was produced by `setuptools` itself, cleaning up the cached files
+        and re-building/re-installing the package with a newer version of `setuptools`
+        (e.g. by updating `build-system.requires` in its `pyproject.toml`)
+        might solve the problem.
+        """
+        # TODO: Add a deadline?
+        #       Will we be able to remove this?
+        #       The question comes to mind mainly because of sdists that have been produced
+        #       by old versions of setuptools and published to PyPI...
+
+    def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> str:
+        """
+        First try to read the file with UTF-8, if there is an error fallback to a
+        different encoding ("locale" by default). Returns the content of the file.
+        Also useful when reading files that might have been produced by an older version of
+        setuptools.
+        """
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                return f.read()
+        except UnicodeDecodeError:  # pragma: no cover
+            _Utf8EncodingNeeded.emit(file=file, fallback_encoding=fallback_encoding)
+            with open(file, "r", encoding=fallback_encoding) as f:
+                return f.read()
+
+    def _cfg_read_utf8_with_fallback(
+        cfg: RawConfigParser, file: str, fallback_encoding=LOCALE_ENCODING
+    ) -> None:
+        """Same idea as :func:`_read_utf8_with_fallback`, but for the
+        :meth:`RawConfigParser.read` method.
+
+        This method may call ``cfg.clear()``.
+        """
+        try:
+            cfg.read(file, encoding="utf-8")
+        except UnicodeDecodeError:  # pragma: no cover
+            _Utf8EncodingNeeded.emit(file=file, fallback_encoding=fallback_encoding)
+            cfg.clear()
+            cfg.read(file, encoding=fallback_encoding)
 
 
 def unique_everseen(iterable, key=None):
