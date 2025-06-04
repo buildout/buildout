@@ -95,7 +95,7 @@ try:
 except ImportError:
     # BBB These functions were introduced in setuptools 70.0.0.
     from configparser import RawConfigParser
-    from setuptools.warnings import SetuptoolsDeprecationWarning
+    from setuptools import SetuptoolsDeprecationWarning
 
     # Explicitly use the ``"locale"`` encoding in versions that support it,
     # otherwise just rely on the implicit handling of ``encoding=None``.
