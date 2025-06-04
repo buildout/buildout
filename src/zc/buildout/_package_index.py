@@ -1000,12 +1000,8 @@ class PackageIndex(Environment):
         'setuptools-78.1.0.tar.gz'
         """
         name, _fragment = egg_info_for_url(url)
-        name = cls._sanitize(
-            name
-            or
-            # default if URL has no path contents
-            '__downloaded__'
-        )
+        # Sanitize, and use a default if URL has no path contents
+        name = cls._sanitize(name or '__downloaded__')
 
         # strip any extra .zip before download
         name = re.sub(r'\.egg\.zip$', '.egg', name)
