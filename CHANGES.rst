@@ -8,6 +8,16 @@ Change History
 
 .. towncrier release notes start
 
+4.1.12 (2025-06-11)
+-------------------
+
+Bug fixes:
+
+
+- Fix error ``get_win_launcher`` not found on Windows on setuptools 80.3+.
+  [maurits] (#713)
+
+
 4.1.11 (2025-06-11)
 -------------------
 
