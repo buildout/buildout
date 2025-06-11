@@ -1,7 +1,5 @@
 Fix development installs to still work when using setuptools 80.0.0.
 From then on, setuptools internally calls ``pip install --editable``.
-It works until and including setuptools 80.2.0.
-Later versions have other problems.
 Note that "distutils scripts" can no longer be detected with setuptools 80.
 This seems an ancient technology, and probably hardly used.
 [maurits]
