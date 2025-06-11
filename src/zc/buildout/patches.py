@@ -57,9 +57,9 @@ def patch_PackageIndex():
     try:
         import logging
         logging.getLogger('pip._internal.index.collector').setLevel(logging.ERROR)
-        from setuptools.package_index import PackageIndex
-        from setuptools.package_index import URL_SCHEME
-        from setuptools.package_index import distros_for_url
+        from ._package_index import PackageIndex
+        from ._package_index import URL_SCHEME
+        from ._package_index import distros_for_url
 
         try:
             # pip 22.2+
@@ -219,7 +219,7 @@ def patch_interpret_distro_name():
         from packaging import version
         from pkg_resources import Distribution
         from pkg_resources import SOURCE_DIST
-        from setuptools import package_index
+        from . import package_index
 
         import re
         import setuptools
@@ -394,46 +394,3 @@ def patch_pkg_resources_working_set_find():
 
 
 patch_pkg_resources_working_set_find()
-
-
-def patch_find_packages():
-    """
-    Patch setuptools.package_index.PackageIndex find_packages method.
-    Implements PEP 503
-    """
-    try:
-        from setuptools.package_index import PackageIndex
-        import re
-    except ImportError:
-        return
-
-    # method copied over from setuptools 46.1.3
-    # Unchanged in setuptools 77.0.1.
-    def find_packages(self, requirement):
-        url_name = re.sub(r"[-_.]+", "-", requirement.unsafe_name).lower()
-        self.scan_url(self.index_url + url_name + '/')
-
-        if self.package_pages.get(url_name):
-            # We have found a package page and don't need try to any other
-            # package pages for this package.
-            for url in list(self.package_pages.get(url_name)):
-                # scan each page that might be related to the desired package
-                self.scan_url(url)
-            return
-
-        if not self.package_pages.get(requirement.key) and requirement.key != url_name:
-            # Fall back to safe version of the name
-            self.scan_url(self.index_url + requirement.project_name + '/')
-
-        if not self.package_pages.get(requirement.key):
-            # We couldn't find the target package, so search the index page too
-            self.not_found_in_index(requirement)
-
-        for url in list(self.package_pages.get(requirement.key, ())):
-            # scan each page that might be related to the desired package
-            self.scan_url(url)
-
-    setattr(PackageIndex, 'find_packages', find_packages)
-
-
-patch_find_packages()
