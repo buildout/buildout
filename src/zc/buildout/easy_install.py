@@ -265,9 +265,9 @@ if is_win32:
     # removed, and later only partially restored as wrapper around the new
     # setuptools._scripts module.
     try:
-        get_win_launcher = setuptools._scripts.get_win_launcher
+        from setuptools._scripts import get_win_launcher
     except ImportError:
-        get_win_launcher = setuptools.command.easy_install.get_win_launcher
+        from setuptools.command.easy_install import get_win_launcher
 else:
     get_win_launcher = None
 
