@@ -8,6 +8,23 @@ Change History
 
 .. towncrier release notes start
 
+4.1.11 (2025-06-11)
+-------------------
+
+Bug fixes:
+
+
+- Fix development installs to still work when using setuptools 80.0.0.
+  From then on, setuptools internally calls ``pip install --editable``.
+  Note that "distutils scripts" can no longer be detected with setuptools 80.
+  This seems an ancient technology, and probably hardly used.
+  [maurits] (#708)
+- Use a copy of ``package_index.py`` from ``setuptools`` 80.2.0.
+  This fixes compatibility with ``setuptools`` 80.3.0 where this module was removed.
+  Merged some of our patches into this copy.
+  [maurits] (#710)
+
+
 4.1.10 (2025-05-21)
 -------------------
 
