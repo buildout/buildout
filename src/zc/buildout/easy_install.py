@@ -260,6 +260,17 @@ if is_win32:
 else:
     _safe_arg = str
 
+if is_win32:
+    # In setuptools 80.3 the setuptools.command.easy_install module was first
+    # removed, and later only partially restored as wrapper around the new
+    # setuptools._scripts module.
+    try:
+        get_win_launcher = setuptools._scripts.get_win_launcher
+    except ImportError:
+        get_win_launcher = setuptools.command.easy_install.get_win_launcher
+else:
+    get_win_launcher = None
+
 
 def call_subprocess(args, **kw):
     if subprocess.call(args, **kw) != 0:
@@ -1686,7 +1697,7 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
-        new_data = setuptools.command.easy_install.get_win_launcher('cli')
+        new_data = get_win_launcher('cli')
 
         if _file_changed(win32_exe, new_data, 'rb'):
             # Only write it if it's different.
