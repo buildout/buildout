@@ -1330,6 +1330,7 @@ class Buildout(DictMixin):
                 setupdir=os.path.dirname(setup),
                 setup=setup,
                 __file__ = setup,
+                extra="",
                 )).encode())
             args = [sys.executable, tsetup] + args
             zc.buildout.easy_install.call_subprocess(args)

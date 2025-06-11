@@ -181,9 +181,12 @@ We should be able to deal with setup scripts that aren't setuptools based.
 
     """
 
+
 def develop_verbose():
-    """
-We should be able to deal with setup scripts that aren't setuptools based.
+    """Check how we deal with multiple times the verbose option.
+
+    We don't really test the output anymore: this is just too different
+    depending on which setuptools version you use.
 
     >>> mkdir('foo')
     >>> write('foo', 'setup.py',
@@ -202,9 +205,9 @@ We should be able to deal with setup scripts that aren't setuptools based.
     >>> print_(system(join('bin', 'buildout')+' -vv'), end='')
     ... # doctest: +ELLIPSIS
     Installing...
-    Develop: '/sample-buildout/foo'
+    Making editable install of /sample-buildout/foo/setup.py
     ...
-    Installed /sample-buildout/foo
+    Successfully made editable install: /sample-buildout/develop-eggs/foo.egg-link
     ...
 
     >>> ls('develop-eggs')
@@ -214,10 +217,10 @@ We should be able to deal with setup scripts that aren't setuptools based.
     >>> print_(system(join('bin', 'buildout')+' -vvv'), end='')
     ... # doctest: +ELLIPSIS
     Installing...
-    Develop: '/sample-buildout/foo'
-    in: '/sample-buildout/foo'
-    ... -q develop -mN -d /sample-buildout/develop-eggs/...
-
+    Making editable install of /sample-buildout/foo/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/foo.egg-link
+    ...
 
     """
 
@@ -430,7 +433,7 @@ Now, let's create a buildout that requires y and z:
     Got demoneeded 1.1.
     Version and requirements information containing demoneeded:
       Requirement of samplez: demoneeded==1.1
-      Requirement of sampley: demoneeded==1.0
+      Requirement of sampley: demoneeded==1.0...
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -460,10 +463,21 @@ If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'wheel'...
-    Develop: '/sample-buildout/sampley'
-    Develop: '/sample-buildout/samplez'
-    Develop: '/sample-buildout/samplea'
-    Develop: '/sample-buildout/sampleb'
+    Making editable install of /sample-buildout/sampley/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/sampley.egg-link
+    ...
+    Making editable install of /sample-buildout/samplez/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/samplez.egg-link
+    ...
+    Making editable install of /sample-buildout/samplea/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/samplea.egg-link
+    ...
+    Making editable install of /sample-buildout/sampleb/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/sampleb.egg-link
     ...
     Installing eggs.
     Installing 'samplea', 'samplez'.
@@ -480,7 +494,7 @@ If we use the verbose switch, we can see where requirements are coming from:
     We have a develop egg: sampley 1
     Version and requirements information containing demoneeded:
       Requirement of samplez: demoneeded==1.1
-      Requirement of sampley: demoneeded==1.0
+      Requirement of sampley: demoneeded==1.0...
     While:
       Installing eggs.
     Error: There is a version conflict.
@@ -2224,11 +2238,25 @@ def dealing_with_extremely_insane_dependencies():
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
-    Develop: '/sample-buildout/pack0'
-    Develop: '/sample-buildout/pack1'
-    Develop: '/sample-buildout/pack2'
-    Develop: '/sample-buildout/pack3'
-    Develop: '/sample-buildout/pack4'
+    Making editable install of /sample-buildout/pack0/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/pack0.egg-link
+    ...
+    Making editable install of /sample-buildout/pack1/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/pack1.egg-link
+    ...
+    Making editable install of /sample-buildout/pack2/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/pack2.egg-link
+    ...
+    Making editable install of /sample-buildout/pack3/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/pack3.egg-link
+    ...
+    Making editable install of /sample-buildout/pack4/setup.py
+    ...
+    Successfully made editable install: /sample-buildout/develop-eggs/pack4.egg-link
     ...
     Installing pack1.
     Installing 'pack0'.
