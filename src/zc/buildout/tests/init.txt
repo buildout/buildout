@@ -1,0 +1,261 @@
+Creating new buildouts and bootstrapping
+----------------------------------------
+
+If ``zc.buildout`` is installed, you can use it to create a new buildout
+with its own local copies of ``zc.buildout`` and ``setuptools`` and with
+local buildout scripts::
+
+    >>> sample_bootstrapped = tmpdir('sample-bootstrapped')
+
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped, 'setup.cfg'),
+    ... 'init']), end='')
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Creating directory '/sample-bootstrapped/eggs'.
+    Creating directory '/sample-bootstrapped/bin'.
+    Creating directory '/sample-bootstrapped/parts'.
+    Creating directory '/sample-bootstrapped/develop-eggs'.
+    Generated script '/sample-bootstrapped/bin/buildout'.
+
+Note that a basic ``setup.cfg`` was created for us.  This is because we
+provided an ``init`` argument.  By default, the generated
+``setup.cfg`` is as minimal as can be::
+
+    >>> cat(sample_bootstrapped, 'setup.cfg')
+    [buildout]
+    parts =
+
+We also get other buildout artifacts::
+
+    >>> ls(sample_bootstrapped)
+    d  bin
+    d  develop-eggs
+    d  eggs
+    d  parts
+    -  setup.cfg
+
+    >>> ls(sample_bootstrapped, 'bin')
+    -  buildout
+
+    >>> _ = (ls(sample_bootstrapped, 'eggs'),
+    ...      ls(sample_bootstrapped, 'develop-eggs'))
+    -  packaging.egg-link
+    -  pip.egg-link
+    -  setuptools.egg-link
+    -  wheel.egg-link
+    -  zc.buildout.egg-link
+
+(We list both the ``eggs`` and ``develop-eggs`` directories because the
+buildout or setuptools egg could be installed in the ``develop-eggs``
+directory if the original buildout had develop eggs for either
+buildout or setuptools.)
+
+Note that the buildout script was installed but not run.  To run
+the buildout, we'd have to run the installed buildout script.
+
+If we have an existing buildout that already has a ``buildout.cfg``, we'll
+normally use the ``bootstrap`` command instead of ``init``.  It will complain
+if there isn't a configuration file::
+
+    >>> sample_bootstrapped2 = tmpdir('sample-bootstrapped2')
+
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped2, 'setup.cfg'),
+    ... 'bootstrap']), end='')
+    While:
+      Initializing.
+    Error: Couldn't open /sample-bootstrapped2/setup.cfg
+
+    >>> write(sample_bootstrapped2, 'setup.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped2, 'setup.cfg'),
+    ... 'bootstrap']), end='')
+    Creating directory '/sample-bootstrapped2/eggs'.
+    Creating directory '/sample-bootstrapped2/bin'.
+    Creating directory '/sample-bootstrapped2/parts'.
+    Creating directory '/sample-bootstrapped2/develop-eggs'.
+    Generated script '/sample-bootstrapped2/bin/buildout'.
+
+Similarly, if there is a configuration file and we use the ``init``
+command, we'll get an error that the configuration file already
+exists::
+
+    >>> print_(system([buildout,
+    ... '-c' + os.path.join(sample_bootstrapped, 'setup.cfg'),
+    ... 'init']), end='')
+    While:
+      Initializing.
+    Error: '/sample-bootstrapped/setup.cfg' already exists.
+
+Initial eggs
+------------
+
+When using the ``init`` command, you can specify distribution requirements
+or paths to use::
+
+    >>> cd(sample_bootstrapped)
+    >>> remove('setup.cfg')
+    >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Creating directory '/sample-bootstrapped/develop-eggs'.
+    Getting distribution for 'zc.recipe.egg>=2.0.6'.
+    Got zc.recipe.egg
+    Installing py.
+    Getting distribution for 'demo'.
+    Got demo 0.3.
+    Getting distribution for 'other'.
+    Got other 1.0.
+    Getting distribution for 'demoneeded'.
+    Got demoneeded 1.1.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated script '/sample-bootstrapped/bin/distutilsscript'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+This causes a ``py`` part to be included that sets up a custom Python
+interpreter with the given requirements or paths::
+
+    >>> cat('setup.cfg')
+    [buildout]
+    parts = py
+    <BLANKLINE>
+    [py]
+    recipe = zc.recipe.egg
+    interpreter = py
+    eggs =
+      demo
+      other
+    extra-paths =
+      ./src
+
+Passing requirements or paths causes the buildout to be run as part
+of initialization.  In the example above, we got a number of
+distributions installed and 2 scripts generated.  The first, ``demo``,
+was defined by the ``demo`` project. The second, ``py`` was defined by
+the generated configuration.  It's a *custom interpreter* that behaves
+like a standard Python interpreter, except that it includes the specified
+eggs and extra paths in its Python path.
+
+We specified a source directory that didn't exist. Buildout created it
+for us::
+
+    >>> ls('.')
+    -  .installed.cfg
+    d  bin
+    d  develop-eggs
+    d  eggs
+    d  parts
+    -  setup.cfg
+    d  src
+
+    >>> uncd()
+
+.. Make sure it works if the dir is already there:
+
+    >>> cd(sample_bootstrapped)
+    >>> _ = system([buildout, '-csetup.cfg', 'buildout:parts='])
+    >>> remove('setup.cfg')
+    >>> print_(system([buildout, '-csetup.cfg', 'init', 'demo', 'other', './src']), end='')
+    Creating '/sample-bootstrapped/setup.cfg'.
+    Creating directory '/sample-bootstrapped/develop-eggs'.
+    Installing py.
+    Generated script '/sample-bootstrapped/bin/demo'.
+    Generated script '/sample-bootstrapped/bin/distutilsscript'.
+    Generated interpreter '/sample-bootstrapped/bin/py'.
+
+.. cleanup
+
+    >>> _ = system([buildout, '-csetup.cfg', 'buildout:parts='])
+    >>> uncd()
+
+Finding distributions
+---------------------
+
+By default, buildout searches the Python Package Index when looking
+for distributions. You can, instead, specify your own index to search
+using the `index` option::
+
+  [buildout]
+  ...
+  index = https://index.example.com/
+
+This index, or the default of https://pypi.org/simple/ if no
+index is specified, will always be searched for distributions unless
+running buildout with options that prevent searching for
+distributions. The latest version of the distribution that meets the
+requirements of the buildout will always be used.
+
+You can also specify more locations to search for distributions using
+the ``find-links`` option. See its description above.
+
+Controlling the installation database
+-------------------------------------
+
+The buildout ``installed`` option is used to specify the file used to save
+information on installed parts.  This option is initialized to
+``.installed.cfg``, but it can be overridden in the configuration file
+or on the command line::
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... """)
+
+    >>> print_(system([buildout, 'buildout:installed=inst.cfg']), end='')
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
+    recipe recipes:debug
+
+    >>> ls(sample_buildout)
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    -  inst.cfg
+    d  parts
+    d  recipes
+
+The installation database can be disabled by supplying an empty
+buildout installed option::
+
+    >>> os.remove('inst.cfg')
+    >>> print_(system([buildout, 'buildout:installed=']), end='')
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
+    recipe recipes:debug
+
+    >>> ls(sample_buildout)
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    d  recipes
+
+
+Note that there will be no installation database if there are no parts::
+
+    >>> write('buildout.cfg',
+    ... """
+    ... [buildout]
+    ... parts =
+    ... """)
+
+    >>> print_(system([buildout, 'buildout:installed=inst.cfg']), end='')
+
+    >>> ls(sample_buildout)
+    d  bin
+    -  buildout.cfg
+    d  develop-eggs
+    d  eggs
+    d  parts
+    d  recipes

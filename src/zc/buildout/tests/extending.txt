@@ -1,0 +1,880 @@
+Extending sections (macros) - Adding and removing options
+---------------------------------------------------------
+
+..
+
+    >>> import os
+
+We can also add and remove options in extended sections.
+
+This is illustrated below; first we define a base configuration.
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... parts = part1 part2 part3
+    ...
+    ... [part1]
+    ... recipe =
+    ... option = a1
+    ...          a2
+    ...
+    ... [part2]
+    ... <= part1
+    ... option -= a1
+    ... option += c3 c4
+    ...
+    ... [part3]
+    ... <= part2
+    ... option += d2
+    ...            c5 d1 d6
+    ... option -= a2
+    ... """)
+
+To verify that the options are adjusted correctly, we'll set up an
+extension that prints out the options.
+
+    >>> mkdir(sample_buildout, 'demo')
+    >>> write(sample_buildout, 'demo', 'demo.py',
+    ... """
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write(str(
+    ...         [part['option'] for name, part in sorted(buildout.items())
+    ...          if name.startswith('part')])+'\\n')
+    ... """)
+
+    >>> write(sample_buildout, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name="demo",
+    ...     entry_points={'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+Set up a buildout configuration for this extension.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts =
+    ... """)
+
+    >>> os.chdir(sample_buildout)
+    >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='') # doctest: +ELLIPSIS
+    Develop: '/sample-buildout/demo'
+
+Verify option values.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... extends = base.cfg
+    ... """)
+
+    >>> print_(system(os.path.join('bin', 'buildout')), end='')
+    ['a1/na2', 'a2/nc3 c4', 'c3 c4/nd2/nc5 d1 d6']
+    Develop: '/sample-buildout/demo'
+
+Cleanup.
+
+    >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
+    >>> rmdir(sample_buildout, 'demo')
+
+Adding and removing options
+---------------------------
+
+We can append and remove values to an option by using the ``+`` and ``-``
+operators.
+
+This is illustrated below; first we define a base configuration::
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... parts = part1 part2 part3
+    ...
+    ... [part1]
+    ... recipe =
+    ... option = a1 a2
+    ...
+    ... [part2]
+    ... recipe =
+    ... option = b1 b2 b3 b4
+    ...
+    ... [part3]
+    ... recipe =
+    ... option = c1 c2
+    ...
+    ... [part4]
+    ... recipe =
+    ... option = d2
+    ...     d3
+    ...     d5
+    ...
+    ... # Issue #641 - Properly handle options which are initially defined
+    ... # using += / -=
+    ... [part6]
+    ... option += e1
+    ...
+    ... [part7]
+    ... option -= f1
+    ...
+    ... """)
+
+Extending this configuration, we can "adjust" the values set in the
+base configuration file::
+
+    >>> write(sample_buildout, 'extension1.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... # appending values
+    ... [part1]
+    ... option += a3 a4
+    ...
+    ... # removing values
+    ... [part2]
+    ... option -= b1 b2
+    ...
+    ... # alt. spelling
+    ... [part3]
+    ... option+=c3 c4 c5
+    ...
+    ... # combining both adding and removing
+    ... [part4]
+    ... option += d1
+    ...      d4
+    ... option -= d5
+    ...
+    ... # normal assignment
+    ... [part5]
+    ... option = h1 h2
+    ...
+    ... """)
+
+An additional extension::
+
+    >>> write(sample_buildout, 'extension2.cfg',
+    ... """
+    ... [buildout]
+    ... extends = extension1.cfg
+    ...
+    ... # appending values
+    ... [part1]
+    ... option += a5
+    ...
+    ... # removing values
+    ... [part2]
+    ... option -= b1 b2 b3
+    ...
+    ... """)
+
+To verify that the options are adjusted correctly, we'll set up an
+extension that prints out the options::
+
+    >>> mkdir(sample_buildout, 'demo')
+    >>> write(sample_buildout, 'demo', 'demo.py',
+    ... """
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write(str(
+    ...         [part.get('option') for name, part in sorted(buildout.items())
+    ...          if name.startswith('part')])+'\\n')
+    ... """)
+
+    >>> write(sample_buildout, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name="demo",
+    ...     entry_points={'zc.buildout.extension': ['ext = demo:ext']},
+    ...     )
+    ... """)
+
+Set up a buildout configuration for this extension::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts =
+    ... """)
+
+    >>> os.chdir(sample_buildout)
+    >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')), end='')
+    ... # doctest: +ELLIPSIS
+    Develop: '/sample-buildout/demo'...
+
+Verify option values::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... extends = extension2.cfg
+    ... """)
+
+    >>> print_(system(os.path.join('bin', 'buildout')), end='')
+    ['a1 a2/na3 a4/na5', 'b1 b2 b3 b4', 'c1 c2/nc3 c4 c5', 'd2/nd3/nd1/nd4', 'h1 h2', 'e1', '']
+    Develop: '/sample-buildout/demo'
+
+Annotated sections output shows which files are responsible for which
+operations::
+
+    >>> print_(system(os.path.join('bin', 'buildout') + ' annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    ...
+    <BLANKLINE>
+    [part1]
+    option= a1 a2
+    a3 a4
+    a5
+        base.cfg
+    +=  extension1.cfg
+    +=  extension2.cfg
+    recipe=
+        base.cfg
+    <BLANKLINE>
+    [part2]
+    option= b1 b2 b3 b4
+        base.cfg
+    -=  extension1.cfg
+    -=  extension2.cfg
+    recipe=
+        base.cfg
+    <BLANKLINE>
+    [part3]
+    option= c1 c2
+    c3 c4 c5
+        base.cfg
+    +=  extension1.cfg
+    recipe=
+        base.cfg
+    <BLANKLINE>
+    [part4]
+    option= d2
+    d3
+    d1
+    d4
+        base.cfg
+    +=  extension1.cfg
+    -=  extension1.cfg
+    recipe=
+        base.cfg
+    <BLANKLINE>
+    [part5]
+    option= h1 h2
+        extension1.cfg
+    <BLANKLINE>
+    [part6]
+    option= e1
+        base.cfg
+    <BLANKLINE>
+    [part7]
+    option=
+        base.cfg
+    -=  IMPLICIT_VALUE
+    <BLANKLINE>
+    [versions]
+    zc.buildout= >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg= >=1.99
+        DEFAULT_VALUE
+    <BLANKLINE>
+
+With more verbosity::
+
+    >>> print_(system(os.path.join('bin', 'buildout') + ' -v annotate'), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    ...
+    [part1]
+    option= a1 a2
+    a3 a4
+    a5
+    <BLANKLINE>
+       IN extension2.cfg
+       ADD VALUE = a5
+       IN extension1.cfg
+       ADD VALUE = a3 a4
+       IN base.cfg
+       SET VALUE = a1 a2
+    <BLANKLINE>
+    ...
+    [part2]
+    option= b1 b2 b3 b4
+    <BLANKLINE>
+       IN extension2.cfg
+       REMOVE VALUE = b1 b2 b3
+       IN extension1.cfg
+       REMOVE VALUE = b1 b2
+       IN base.cfg
+       SET VALUE = b1 b2 b3 b4
+    <BLANKLINE>
+    ...
+    [part3]
+    option=
+       c1 c2
+       c3 c4 c5
+    <BLANKLINE>
+       IN extension1.cfg
+       ADD VALUE = c3 c4 c5
+       IN base.cfg
+       SET VALUE = c1 c2
+    <BLANKLINE>
+    ...
+    [part4]
+    option=
+       d2
+       d3
+       d1
+       d4
+    <BLANKLINE>
+       IN extension1.cfg
+       REMOVE VALUE = d5
+       IN extension1.cfg
+       ADD VALUE =
+          d1
+          d4
+       IN base.cfg
+       SET VALUE =
+          d2
+          d3
+          d5
+    <BLANKLINE>
+    ...
+    [part5]
+    option= h1 h2
+    <BLANKLINE>
+       IN extension1.cfg
+       SET VALUE = h1 h2
+    <BLANKLINE>
+    [part6]
+    option= e1
+    <BLANKLINE>
+       IN base.cfg
+       SET VALUE = e1
+    <BLANKLINE>
+    <BLANKLINE>
+    [part7]
+    option=
+    <BLANKLINE>
+       IN IMPLICIT_VALUE
+       REMOVE VALUE = f1
+       IN base.cfg
+       SET VALUE = f1
+    <BLANKLINE>
+    <BLANKLINE>
+    <BLANKLINE>
+    ...
+
+Issue #656 - If an option was defined in one file, then extended twice in
+another - once in a regular section and again in a conditonal, the original
+definition is lost, not extended::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends =
+    ...     extension1.cfg
+    ...     extension2.cfg
+    ... develop = demo
+    ... extensions = demo
+    ... parts = part1
+    ... """)
+
+    >>> write(sample_buildout, 'extension1.cfg',
+    ... """
+    ... [part1]
+    ... recipe =
+    ... option =
+    ...     a
+    ...     b
+    ... """)
+
+    >>> write(sample_buildout, 'extension2.cfg',
+    ... """
+    ... [part1]
+    ... option +=
+    ...     c
+    ...     d
+    ...
+    ... [part1:False]
+    ... option +=
+    ...     z
+    ...
+    ... [part1:True]
+    ... option +=
+    ...     e
+    ... """)
+
+        ... parts = part1
+    >>> print_(system(os.path.join('bin', 'buildout')), end='')
+    ['a/nb/nc/nd/ne']
+    Develop: '/sample-buildout/demo'
+
+Cleanup::
+
+    >>> os.remove(os.path.join(sample_buildout, 'base.cfg'))
+    >>> os.remove(os.path.join(sample_buildout, 'extension1.cfg'))
+    >>> os.remove(os.path.join(sample_buildout, 'extension2.cfg'))
+
+Multiple configuration files
+----------------------------
+
+A configuration file can *extend* another configuration file.
+Options are read from the other configuration file if they aren't
+already defined by your configuration file.
+
+The configuration files your file extends can extend
+other configuration files.  The same file may be
+used more than once although, of course, cycles aren't allowed.
+
+To see how this works, we use an example::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """)
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... op = base
+    ... """)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Installing debug.
+    op buildout
+    recipe recipes:debug
+
+The example is pretty trivial, but the pattern it illustrates is
+pretty common.  In a more practical example, the base buildout might
+represent a product and the extending buildout might be a
+customization.
+
+Here is a more elaborate example::
+
+    >>> other = tmpdir('other')
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg %(b3)s
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
+
+    >>> write(sample_buildout, 'b1.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op1 = b1 1
+    ... op2 = b1 2
+    ... """)
+
+    >>> write(sample_buildout, 'b2.cfg',
+    ... """
+    ... [buildout]
+    ... extends = base.cfg
+    ...
+    ... [debug]
+    ... op2 = b2 2
+    ... op3 = b2 3
+    ... """)
+
+    >>> write(other, 'b3.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b3base.cfg
+    ...
+    ... [debug]
+    ... op4 = b3 4
+    ... """)
+
+    >>> write(other, 'b3base.cfg',
+    ... """
+    ... [debug]
+    ... op5 = b3base 5
+    ... """)
+
+    >>> write(sample_buildout, 'base.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = base
+    ...
+    ... [environ]
+    ... recipe = recipes:environ
+    ... name = base
+    ... """)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
+There are several things to note about this example:
+
+- We can name multiple files in an ``extends`` option.
+
+- We can reference files recursively.
+
+- Relative file names in extended options are interpreted relative to
+  the directory containing the referencing configuration file.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """)
+
+    >>> print_(system([buildout, 'buildout:extends=b2.cfg']), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    recipe recipes:debug
+
+    >>> print_(system([buildout, 'buildout:extends=b2.cfg %(b3)s'
+    ... % dict(b3=os.path.join(other, 'b3.cfg'))]), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg %(b3)s
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
+
+
+Optional extends
+----------------
+
+With ``optional-extends`` you can specify an extends file that is only loaded when it exists.
+The main idea is that a Buildout project in a shared Git repository can specify an ``optional-extends`` line with ``local.cfg`` or ``custom.cfg``.
+This optional file would be added to the files ignored by Git, and would only exist on individual computers.
+Any developer who wants this, can then create such a file and for example use this to always add the ``pdbpp`` egg to one of the Buildout parts.
+Or they can add a part, or other options specific to their system.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg
+    ... optional-extends = optional.cfg
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """)
+    >>> print_(system(buildout), end='')
+    optional-extends file not found: optional.cfg
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b1 2
+    recipe recipes:debug
+
+Now add the optional config:
+
+    >>> write('optional.cfg',
+    ... """
+    ... [debug]
+    ... op2 = optional2 2
+    ... """)
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 optional2 2
+    recipe recipes:debug
+
+Restore the previous ``buildout.cfg`` and remove the new file,
+so we do not interfere with existing tests::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... extends = b1.cfg b2.cfg %(b3)s
+    ...
+    ... [debug]
+    ... op = buildout
+    ... """ % dict(b3=os.path.join(other, 'b3.cfg')))
+    >>> remove(sample_buildout, 'optional.cfg')
+
+
+Loading Configuration from URLs
+-------------------------------
+
+Configuration files can be loaded from URLs.  To see how this works,
+we'll set up a web server with some configuration files::
+
+    >>> server_data = tmpdir('server_data')
+
+    >>> write(server_data, "r1.cfg",
+    ... """
+    ... [debug]
+    ... op1 = r1 1
+    ... op2 = r1 2
+    ... """)
+
+    >>> write(server_data, "r2.cfg",
+    ... """
+    ... [buildout]
+    ... extends = r1.cfg
+    ...
+    ... [debug]
+    ... op2 = r2 2
+    ... op3 = r2 3
+    ... """)
+
+    >>> server_url = start_server(server_data)
+
+    >>> write('client.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... extends = %(url)s/r2.cfg
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = base
+    ... """ % dict(url=server_url))
+
+    >>> print_(system([buildout, '-c', 'client.cfg']), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op1 r1 1
+    op2 r2 2
+    op3 r2 3
+    recipe recipes:debug
+
+Here we specified a URL for the file we extended.  The file we
+downloaded itself referred to a file on the server using a relative
+URL reference.  Relative references are interpreted relative to the
+base URL when they appear in configuration files loaded via URL.
+
+We can also specify a URL as the configuration file to be used by a
+buildout::
+
+    >>> os.remove('client.cfg')
+    >>> write(server_data, 'remote.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... extends = r2.cfg
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... name = remote
+    ... """)
+
+    >>> print_(system([buildout, '-c', server_url + '/remote.cfg']), end='')
+    While:
+      Initializing.
+    Error: Missing option: buildout:directory
+
+Normally, the buildout directory defaults to a directory
+containing a configuration file.  This won't work for configuration
+files loaded from URLs.  In this case, the buildout directory would
+normally be defined on the command line::
+
+    >>> print_(system([buildout,
+    ... '-c', server_url + '/remote.cfg',
+    ... 'buildout:directory=' + sample_buildout,
+    ... ]), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name remote
+    op1 r1 1
+    op2 r2 2
+    op3 r2 3
+    recipe recipes:debug
+
+User defaults
+-------------
+
+If the file ``$HOME/.buildout/default.cfg`` exists, it is read before
+reading the configuration file.  (``$HOME`` is the value of the ``HOME``
+environment variable. The ``/`` is replaced by the operating system file
+delimiter.)::
+
+    >>> home = tmpdir('home')
+    >>> mkdir(home, '.buildout')
+    >>> default_cfg = join(home, '.buildout', 'default.cfg')
+    >>> write(default_cfg,
+    ... """
+    ... [debug]
+    ... op1 = 1
+    ... op7 = 7
+    ... """)
+
+    >>> env = dict(HOME=home, USERPROFILE=home)
+    >>> print_(system(buildout, env=env), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    op7 7
+    recipe recipes:debug
+
+A buildout command-line argument, ``-U``, can be used to suppress reading
+user defaults::
+
+    >>> print_(system([buildout, '-U'], env=env), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
+If the environment variable ``BUILDOUT_HOME`` is non-empty, that is used to
+locate ``default.cfg`` instead of looking in ``~/.buildout/``.  Let's set up a
+configuration file in an alternate directory and verify that we get the
+appropriate set of defaults::
+
+    >>> alterhome = tmpdir('alterhome')
+    >>> write(alterhome, 'default.cfg',
+    ... """
+    ... [debug]
+    ... op1 = 1'
+    ... op7 = 7'
+    ... op8 = eight!
+    ... """)
+
+    >>> env['BUILDOUT_HOME'] = alterhome
+    >>> print_(system(buildout, env=env), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    op7 7'
+    op8 eight!
+    recipe recipes:debug
+
+The ``-U`` argument still suppresses reading of the ``default.cfg`` file from
+``BUILDOUT_HOME``::
+
+    >>> print_(system([buildout, '-U'], env=env), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Installing debug.
+    name base
+    op buildout
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    op4 b3 4
+    op5 b3base 5
+    recipe recipes:debug
+
+Log level
+---------
+
+We can control the level of logging by specifying a log level in our
+configuration file.  For example, to suppress info messages, we can
+set the logging level to *WARNING*::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... log-level = WARNING
+    ... extends = b1.cfg b2.cfg
+    ... """)
+
+    >>> print_(system(buildout), end='')
+    name base
+    op1 b1 1
+    op2 b2 2
+    op3 b2 3
+    recipe recipes:debug
+
+..
+
+    >>> stop_server(server_url)

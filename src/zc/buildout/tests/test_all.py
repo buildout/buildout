@@ -31,6 +31,7 @@ import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
 import zipfile
+from pathlib import Path
 from zc.buildout.tests import easy_install_SetUp
 from zc.buildout.tests import normalize_bang
 from zc.buildout.tests import create_egg
@@ -39,6 +40,7 @@ from zc.buildout.tests import create_sample_eggs
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
     os_path_sep *= 2
+HERE = Path(__file__).parent
 
 
 class TestEasyInstall(unittest.TestCase):
@@ -3318,6 +3320,13 @@ def buildout_txt_setup(test):
         os.path.join(eggs, 'zc.recipe.egg'),
         )
 
+    sample_buildout = test.globs['sample_buildout']
+
+    # Copy recipes directory
+    recipes_dir = HERE / 'recipes'
+    shutil.copytree(recipes_dir, Path(sample_buildout) / 'recipes')
+
+
 egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d+)$'
                        ).match
 def makeNewRelease(project, ws, dest, version='99.99'):
@@ -3482,6 +3491,11 @@ def test_suite():
                     ])
                 ) + manuel.capture.Manuel(),
             'buildout.txt',
+            'configuration.txt',
+            'extending.txt',
+            'options.txt',
+            'init.txt',
+            'extensions.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             ),
