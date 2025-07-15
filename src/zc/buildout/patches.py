@@ -330,7 +330,7 @@ def patch_pkg_resources_working_set_find():
 
     AttributeError: 'WorkingSet' object has no attribute 'normalized_to_canonical_keys'
 
-    The first setuptools version that has this, is 61.0.0.
+    The first setuptools version that has this, is 62.0.0.
     So don't patch versions that are older than that.
 
     Alternatively, we could drop support.  That is fine with me.
@@ -343,7 +343,7 @@ def patch_pkg_resources_working_set_find():
         setuptools_version = parse(version("setuptools"))
         if setuptools_version >= Version("75.8.2"):
             return
-        if setuptools_version < Version("61"):
+        if setuptools_version < Version("62"):
             return
     except Exception:
         return
