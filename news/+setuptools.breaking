@@ -1,0 +1,5 @@
+Require at least ``setuptools`` version 61.0.0.
+This is needed due to the changes in the test setup.
+According to semantic versioning, updating a dependency is not a breaking change, and does not require a major version bump.
+It does seem significant here.  As a compromise, I mark this as a breaking change, and do a minor version bump.
+[maurits]
