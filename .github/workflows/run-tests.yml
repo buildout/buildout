@@ -80,13 +80,16 @@ jobs:
         package: [zest.releaser, pyspf]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         os: ["ubuntu-22.04"]
+        setuptools-version: ["68.0.0"]
         include:
           - os: "ubuntu-20.04"
             python-version: "3.6"
             package: zest.releaser
+            setuptools-version: ["59.6.0"]
           - os: "ubuntu-20.04"
             python-version: "3.6"
             package: pyspf
+            setuptools-version: ["59.6.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -101,6 +104,8 @@ jobs:
       env:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
+        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
