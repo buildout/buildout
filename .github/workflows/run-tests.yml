@@ -37,6 +37,8 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        SETUPTOOLS_VERSION: 75.3.0
+        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
       run: |
         echo $TMPDIR
         ./ci_build.sh
