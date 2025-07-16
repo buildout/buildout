@@ -104,6 +104,11 @@ logger.debug('before restricting versions: pip_path %r', pip_path)
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
+BUILDOUT_PIP_NO_BUILD_ISOLATION = os.getenv("BUILDOUT_PIP_NO_BUILD_ISOLATION")
+if BUILDOUT_PIP_NO_BUILD_ISOLATION and BUILDOUT_PIP_NO_BUILD_ISOLATION.lower() in (
+    "0", "false", "no", "off"
+):
+    BUILDOUT_PIP_NO_BUILD_ISOLATION=False
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -1729,6 +1734,8 @@ def call_pip_install(spec, dest):
     Returns all the paths inside `dest` created by the above.
     """
     args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
+    if BUILDOUT_PIP_NO_BUILD_ISOLATION:
+        args.append('--no-build-isolation')
     level = logger.getEffectiveLevel()
     if level >= logging.INFO:
         args.append('-q')
