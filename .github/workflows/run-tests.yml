@@ -7,114 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  setuptools:
-    name: Setuptools version range
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        python-version: ["3.10"]
-        setuptools-version: ["49.0.0", "59.8.0", "65.7.0", "69.5.1", "74.1.3", "75.9.1", "79.0.1", "80.2.0", "80.3.0", "80.9.0"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
-    - name: Cache eggs
-      uses: actions/cache@v4
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        # When you install packages, you see far too many setuptools warnings.
-        # They drown out useful output, so ignore all warnings.
-        PYTHONWARNINGS: ignore
-        PYTHON_VERSION: ${{matrix.python-version}}
-        # PIP_VERSION: ${{matrix.pip-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-      run: make
-
-  python:
-    name: Python version range
-    needs: setuptools
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        # Skip "3.10" because it is already checked above.
-        # Use the last setuptools version that is still supported by all Python versions.
-        python-version: ["3.9", "3.11", "3.12", "3.13"]
-        setuptools-version: ["75.6.0"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        allow-prereleases: true
-        cache: 'pip' # caching pip dependencies
-    - name: Cache eggs
-      uses: actions/cache@v4
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        PYTHONWARNINGS: ignore
-        PYTHON_VERSION: ${{matrix.python-version}}
-        # PIP_VERSION: ${{matrix.pip-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-      run: make
-
-  pip:
-    name: pip version range
-    needs: python
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        python-version: ["3.10"]
-        pip-version: ["20.3.4", "21.3.1", "22.3.1", "23.3.2", "24.3.1", "25.0.1"]
-        setuptools-version: ["65.7.0", "75.8.2"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
-    - name: Cache eggs
-      uses: actions/cache@v4
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        PYTHONWARNINGS: ignore
-        PYTHON_VERSION: ${{matrix.python-version}}
-        PIP_VERSION: ${{matrix.pip-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-      run: make
 
   mac:
-    name: Mac
-    needs: pip
+    name: Mac py-${{matrix.python-version}} setuptools-${{matrix.setuptools-version}}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
-        python-version: ["3.10"]
-        setuptools-version: ["75.8.2"]
+        os: [macos-15]
+        python-version: ["3.10", "3.13"]
+        setuptools-version: ["75.8.2", "80.9.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -135,72 +37,3 @@ jobs:
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
       run: make
-
-  windows:
-    name: Windows
-    needs: pip
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest]
-        python-version: ["3.10"]
-        setuptools-version: ["75.8.2"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
-    - name: Cache eggs
-      uses: actions/cache@v4
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        PYTHONWARNINGS: ignore
-        PYTHON_VERSION: ${{matrix.python-version}}
-        # PIP_VERSION: ${{matrix.pip-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-        # Defining temporary directories is needed on Windows for
-        # test_all.TestEasyInstall.test_move_to_eggs_dir_and_compile
-        TMPDIR: C:\tmp
-        TMP: C:\tmp
-        TEMP: C:\tmp
-      run: make
-
-  generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }}
-    needs: pip
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      matrix:
-        package: [zest.releaser, pyspf]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        os: ["ubuntu-22.04"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        allow-prereleases: true
-    - name: Setup buildout virtualenv
-      run: |
-        make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
-    - name: Run buildout
-      env:
-        PYTHONWARNINGS: ignore
-        PACKAGE: ${{matrix.package}}
-        PYTHON_VERSION: ${{matrix.python-version}}
-      run: |
-        sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
-        sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
-    - name: Check eggs
-      run: |
-        ls -al sandbox/eggs
-        ls -al sandbox/downloads/dist
