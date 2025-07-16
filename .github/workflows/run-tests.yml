@@ -45,7 +45,7 @@ jobs:
         ./ci_build.sh
 
   generate-scripts-py2:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       matrix:
@@ -74,7 +74,7 @@ jobs:
         ls -al sandbox/downloads/dist
 
   generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       max-parallel: 4
