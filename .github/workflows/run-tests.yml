@@ -8,7 +8,7 @@ on:
 
 jobs:
   setuptools:
-    name: Setuptools version range
+    name: setuptools ${{ matrix.setuptools-version}}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
@@ -40,7 +40,7 @@ jobs:
       run: make
 
   python:
-    name: Python version range
+    name: Python ${{ matrix.python-version}}
     needs: setuptools
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -74,7 +74,7 @@ jobs:
       run: make
 
   pip:
-    name: pip version range
+    name: pip ${{ matrix.pip-version}} st ${{ matrix.setuptools-version}}
     needs: python
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -173,7 +173,7 @@ jobs:
       run: make
 
   generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: Scripts Python ${{ matrix.python-version }}
     needs: pip
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
