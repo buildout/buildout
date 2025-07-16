@@ -18,7 +18,7 @@ import sys
 def patch_Distribution():
     try:
         from pkg_resources import Distribution
-        from .compat import version
+        from ._compat import version
     except ImportError:
         return
 
