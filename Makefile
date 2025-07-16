@@ -13,6 +13,9 @@ test: bin/test
 test-recipe: bin/test
 	PYTHONWARNINGS=ignore bin/test-recipe
 
+test-small: bin/test
+	PYTHONWARNINGS=ignore bin/test -pvc -t buildout.txt
+
 help:
 	./prepare.sh --help
 
