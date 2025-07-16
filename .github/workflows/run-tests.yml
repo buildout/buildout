@@ -100,6 +100,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup buildout virtualenv
+      env:
+        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+        PYTHONWARNINGS: ignore
       run: |
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
     - name: Run buildout
