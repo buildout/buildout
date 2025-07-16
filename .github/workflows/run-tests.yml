@@ -39,6 +39,7 @@ jobs:
         BUILD_TYPE: bare_machines
         SETUPTOOLS_VERSION: 75.3.0
         BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
@@ -63,6 +64,7 @@ jobs:
       env:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
+        PYTHONWARNINGS: ignore
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
@@ -106,6 +108,7 @@ jobs:
         PYTHON_VERSION: ${{matrix.python-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
         BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
+        PYTHONWARNINGS: ignore
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
@@ -138,6 +141,7 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
@@ -180,6 +184,7 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
@@ -201,6 +206,7 @@ jobs:
       env:
         PYTHON_VER: ${{matrix.python-version}}
         BUILD_TYPE: debian_containers
+        PYTHONWARNINGS: ignore
       run: |
         ./ci_build.sh
 
