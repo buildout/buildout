@@ -108,6 +108,7 @@ workflows:
             alias: install-python-and-test-ubuntu-older-pythons
             parameters:
               python-version: ["2.7", "3.5", "3.6", "3.7"]
+              setuptools-version: [""]
       - test:
           requires:
             - install-python-and-test-ubuntu-newer-pythons
@@ -126,6 +127,7 @@ workflows:
             parameters:
               # "3.5" and "3.6" fail for different reasons on Debian.
               python-version: ["2.7"]
+              setuptools-version: [""]
               # "centos_containers" fails installing anything with yum
               build-type: ["debian_containers"]
       # debian_sys_container fails because pip is not allowed to install packages.
