@@ -189,13 +189,17 @@ jobs:
     needs: python-runners
     name: in Debian container - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         # 3.5 and 3.6 fail during 'make PYTHON_VER=3.x build'
         # See https://github.com/buildout/buildout/actions/runs/9555363465
-        python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        os: ["ubuntu-24.04"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        include:
+          - os: "ubuntu-22.04"
+            python-version: "2.7"
     steps:
     - uses: actions/checkout@v4
     - name: in container with Python ${{ matrix.python-version }}
