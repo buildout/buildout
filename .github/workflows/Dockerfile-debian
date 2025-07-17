@@ -12,6 +12,7 @@ RUN make PYTHON_VER=${PYTHON_VER} download_python
 RUN make PYTHON_VER=${PYTHON_VER} python
 FROM debian-python
 ARG PYTHON_VER
+ARG SETUPTOOLS_VERSION
 COPY doc /home/buildout/sandbox/doc
 COPY src /home/buildout/sandbox/src
 COPY zc.recipe.egg_ /home/buildout/sandbox/zc.recipe.egg_
@@ -19,5 +20,5 @@ COPY setup.* dev.py *.rst *.txt buildout.cfg .coveragerc /home/buildout/sandbox/
 USER root
 RUN chown -R buildout:buildout *
 USER buildout
-RUN make PYTHON_VER=${PYTHON_VER} build
+RUN make PYTHON_VER=${PYTHON_VER} SETUPTOOLS_VERSION=${SETUPTOOLS_VERSION} build
 COPY Makefile.builds /home/buildout/sandbox/
