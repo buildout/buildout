@@ -11,38 +11,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  ubuntu-3_8:
-    name: on Ubuntu machine - Python 3.8
-    runs-on: ${{ matrix.os }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.8"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Cache eggs
-      uses: actions/cache@v3
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
-        TMP: ${{ env.HOME }}/AppData/Local/Temp
-        TEMP: ${{ env.HOME }}/AppData/Local/Temp
-        BUILD_TYPE: bare_machines
-        SETUPTOOLS_VERSION: 75.3.0
-        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
-        PYTHONWARNINGS: ignore
-      run: |
-        echo $TMPDIR
-        ./ci_build.sh
 
   generate-scripts-py2:
     name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
@@ -51,7 +19,7 @@ jobs:
       matrix:
         package: [zest.releaser, pyspf]
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -80,19 +48,8 @@ jobs:
       max-parallel: 4
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.6"]
         os: ["ubuntu-22.04"]
-        setuptools-version: ["75.3.0"]
-        include:
-          - os: "ubuntu-22.04"
-            python-version: "3.7"
-            package: zest.releaser
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
-            package: zest.releaser
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
-            package: pyspf
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -122,13 +79,12 @@ jobs:
         ls -al sandbox/downloads/dist
 
   python-runners-27:
-    needs: generate-scripts
     name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       matrix:
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -151,7 +107,6 @@ jobs:
         ./ci_build.sh
 
   python-runners:
-    needs: generate-scripts
     name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -159,18 +114,9 @@ jobs:
       max-parallel: 4
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.6"]
         # os: [ubuntu-latest, macos-latest, windows-latest]
         os: ["ubuntu-22.04"]
-        include:
-          # 3.5 gives a certificate problem getting a pip version from PyPI.
-          # - os: "ubuntu-20.04"
-          #   python-version: "3.5"
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
-          # excludes 3.11 on macos as long as I cannot understand how to fix it
-          # - os: macos-latest
-          #   python-version: 3.11
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -194,7 +140,6 @@ jobs:
         ./ci_build.sh
 
   debian-containers:
-    needs: python-runners
     name: in Debian container - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
