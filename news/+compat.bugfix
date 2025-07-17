@@ -1,2 +1,5 @@
-Fix typo in import that made patch_Distribution do nothing.
+Disable ``patch_Distribution`` completely.
+For a long time this patch did nothing, because of a typo.
+When I fixed the typo, I would sometimes get errors during sorting of distributions, which was exactly what the patch was trying to solve, so it was breaking what it was trying to fix.
+If you still run into ``TypeError: '<' not supported between instances of 'Version' and 'Version'``, try a different setuptools version.
 [maurits]
