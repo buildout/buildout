@@ -41,43 +41,6 @@ jobs:
         ls -al sandbox/eggs
         ls -al sandbox/downloads/dist
 
-  generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      max-parallel: 4
-      matrix:
-        package: [zest.releaser, pyspf]
-        python-version: ["3.6"]
-        os: ["ubuntu-22.04"]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Setup buildout virtualenv
-      env:
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-        PYTHONWARNINGS: ignore
-      run: |
-        make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
-    - name: Run buildout
-      env:
-        PACKAGE: ${{matrix.package}}
-        PYTHON_VERSION: ${{matrix.python-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
-        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
-        PYTHONWARNINGS: ignore
-      run: |
-        sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
-        sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
-    - name: Check eggs
-      run: |
-        ls -al sandbox/eggs
-        ls -al sandbox/downloads/dist
-
   python-runners-27:
     name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -90,39 +53,6 @@ jobs:
       image: python:2.7.18-buster
     steps:
     - uses: actions/checkout@v4
-    - name: Cache eggs
-      uses: actions/cache@v3
-      with:
-        path: eggs
-        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
-    - name: Run tests
-      env:
-        TMPDIR: ${{ env.HOME }}/AppData/Local/Temp
-        TMP: ${{ env.HOME }}/AppData/Local/Temp
-        TEMP: ${{ env.HOME }}/AppData/Local/Temp
-        BUILD_TYPE: bare_machines
-        PYTHONWARNINGS: ignore
-      run: |
-        echo $TMPDIR
-        ./ci_build.sh
-
-  python-runners:
-    name: on ${{ matrix.os }} machine - Python ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    strategy:
-      max-parallel: 4
-      fail-fast: false
-      matrix:
-        python-version: ["3.6"]
-        # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: ["ubuntu-22.04"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: Cache eggs
       uses: actions/cache@v3
       with:
