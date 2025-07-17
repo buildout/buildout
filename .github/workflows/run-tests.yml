@@ -51,7 +51,7 @@ jobs:
       matrix:
         package: [zest.releaser, pyspf]
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
