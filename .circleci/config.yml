@@ -90,6 +90,7 @@ workflows:
     jobs:
       - install-python-and-test-ubuntu:
           matrix:
+            alias: install-python-and-test-ubuntu-3.8
             parameters:
               python-version: ["3.8"]
               setuptools-version: ["75.3.0"]
