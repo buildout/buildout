@@ -37,7 +37,6 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
-        SETUPTOOLS_VERSION: 75.3.0
         BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
         PYTHONWARNINGS: ignore
       run: |
@@ -82,7 +81,6 @@ jobs:
         package: [zest.releaser, pyspf]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         os: ["ubuntu-22.04"]
-        setuptools-version: ["68.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -92,7 +90,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Setup buildout virtualenv
       env:
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
         PYTHONWARNINGS: ignore
       run: |
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
@@ -100,7 +97,6 @@ jobs:
       env:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
-        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
         BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
         PYTHONWARNINGS: ignore
       run: |
