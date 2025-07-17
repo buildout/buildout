@@ -9,11 +9,15 @@ jobs:
         type: string
       python-version:
         type: string
+      setuptools-version:
+        type: string
     machine:
       image: ubuntu-2004:202111-01
     environment:
+      BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
       BUILD_TYPE: << parameters.build-type >>
       PYTHON_VER: << parameters.python-version >>
+      SETUPTOOLS_VERSION: << parameters.setuptools-version >>
     steps:
       - checkout
       - run:
@@ -23,11 +27,15 @@ jobs:
     parameters:
       python-version:
         type: string
+      setuptools-version:
+        type: string
     machine:
       image: ubuntu-2004:2022.10.1
     environment:
+      BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
       BUILD_TYPE: bare_machines
       PYTHON_VER: << parameters.python-version >>
+      SETUPTOOLS_VERSION: << parameters.setuptools-version >>
     steps:
       - run:
           command: sudo add-apt-repository ppa:deadsnakes/ppa
@@ -56,11 +64,15 @@ jobs:
     parameters:
       python-version:
         type: string
+      setuptools-version:
+        type: string
     macos:
       xcode: 15.4.0
     environment:
+      BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
       BUILD_TYPE: bare_machines
       PYTHON_VER: << parameters.python-version >>
+      SETUPTOOLS_VERSION: << parameters.setuptools-version >>
     steps:
       - run:
           command: brew uninstall python || true
@@ -80,21 +92,40 @@ workflows:
           matrix:
             parameters:
               python-version: ["3.8"]
+              setuptools-version: ["75.3.0"]
       - install-python-and-test-ubuntu:
           requires:
             - install-python-and-test-ubuntu-3.8
           matrix:
-            alias: install-python-and-test-ubuntu-all
+            alias: install-python-and-test-ubuntu-newer-pythons
             parameters:
-              python-version: ["2.7", "3.5", "3.6", "3.7", "3.9", "3.10", "3.11"]
+              python-version: ["3.9", "3.10", "3.11"]
+              setuptools-version: ["75.3.0"]
+      - install-python-and-test-ubuntu:
+          requires:
+            - install-python-and-test-ubuntu-3.8
+          matrix:
+            alias: install-python-and-test-ubuntu-older-pythons
+            parameters:
+              python-version: ["2.7", "3.5", "3.6", "3.7"]
       - test:
           requires:
-            - install-python-and-test-ubuntu-all
+            - install-python-and-test-ubuntu-newer-pythons
           matrix:
-            alias: test-containers
+            alias: test-containers-newer-pythons
+            parameters:
+              python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+              setuptools-version: ["68.0.0"]
+              # "centos_containers" fails installing anything with yum
+              build-type: ["debian_containers"]
+      - test:
+          requires:
+            - install-python-and-test-ubuntu-older-pythons
+          matrix:
+            alias: test-containers-older-pythons
             parameters:
               # "3.5" and "3.6" fail for different reasons on Debian.
-              python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
+              python-version: ["2.7"]
               # "centos_containers" fails installing anything with yum
               build-type: ["debian_containers"]
       # debian_sys_container fails because pip is not allowed to install packages.
@@ -107,7 +138,8 @@ workflows:
       #         build-type: ["debian_sys_container"]
       - install-python-and-test-macos:
           requires:
-            - install-python-and-test-ubuntu-all
+            - install-python-and-test-ubuntu-newer-pythons
           matrix:
             parameters:
               python-version: ["3.11"]
+              setuptools-version: ["75.3.0"]
