@@ -37,18 +37,21 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        SETUPTOOLS_VERSION: 75.3.0
+        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
 
   generate-scripts-py2:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -61,6 +64,7 @@ jobs:
       env:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
+        PYTHONWARNINGS: ignore
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
@@ -70,7 +74,7 @@ jobs:
         ls -al sandbox/downloads/dist
 
   generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: generate scripts - Python ${{ matrix.python-version }} ${{ matrix.package }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       max-parallel: 4
@@ -78,13 +82,7 @@ jobs:
         package: [zest.releaser, pyspf]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         os: ["ubuntu-22.04"]
-        include:
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
-            package: zest.releaser
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
-            package: pyspf
+        setuptools-version: ["68.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -93,12 +91,18 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Setup buildout virtualenv
+      env:
+        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+        PYTHONWARNINGS: ignore
       run: |
         make -f .github/workflows/Makefile-scripts sandbox/bin/buildout
     - name: Run buildout
       env:
         PACKAGE: ${{matrix.package}}
         PYTHON_VERSION: ${{matrix.python-version}}
+        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+        BUILDOUT_PIP_NO_BUILD_ISOLATION: yes
+        PYTHONWARNINGS: ignore
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
@@ -114,7 +118,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["2.7"]
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     container:
       image: python:2.7.18-buster
@@ -131,6 +135,7 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
@@ -147,12 +152,14 @@ jobs:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         # os: [ubuntu-latest, macos-latest, windows-latest]
         os: ["ubuntu-22.04"]
-        include:
+        # include:
           # 3.5 gives a certificate problem getting a pip version from PyPI.
           # - os: "ubuntu-20.04"
           #   python-version: "3.5"
-          - os: "ubuntu-20.04"
-            python-version: "3.6"
+          # 3.6 ran on ubuntu-20.04, but this no longer exists.
+          # And 3.6 does not exist on ubuntu-22.04
+          # - os: "ubuntu-20.04"
+          #   python-version: "3.6"
           # excludes 3.11 on macos as long as I cannot understand how to fix it
           # - os: macos-latest
           #   python-version: 3.11
@@ -173,6 +180,7 @@ jobs:
         TMP: ${{ env.HOME }}/AppData/Local/Temp
         TEMP: ${{ env.HOME }}/AppData/Local/Temp
         BUILD_TYPE: bare_machines
+        PYTHONWARNINGS: ignore
       run: |
         echo $TMPDIR
         ./ci_build.sh
@@ -181,19 +189,24 @@ jobs:
     needs: python-runners
     name: in Debian container - Python ${{ matrix.python-version }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         # 3.5 and 3.6 fail during 'make PYTHON_VER=3.x build'
         # See https://github.com/buildout/buildout/actions/runs/9555363465
-        python-version: ["2.7", "3.7", "3.8", "3.9", "3.10", "3.11"]
+        os: ["ubuntu-24.04"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        include:
+          - os: "ubuntu-22.04"
+            python-version: "2.7"
     steps:
     - uses: actions/checkout@v4
     - name: in container with Python ${{ matrix.python-version }}
       env:
         PYTHON_VER: ${{matrix.python-version}}
         BUILD_TYPE: debian_containers
+        PYTHONWARNINGS: ignore
       run: |
         ./ci_build.sh
 

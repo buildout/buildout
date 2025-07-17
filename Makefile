@@ -7,7 +7,7 @@ PYTHON_BUILD_DIR = $(HERE)/python_builds
 PLATFORM = $(shell uname)
 VENV = $(HERE)/venvs/$(PYTHON_VER)
 BUILD_VARIABLES =
-PYTHONWARNINGS = "ignore:Setuptools is replacing distutils,ignore:setup.py install is deprecated,ignore:easy_install command is deprecated,ignore:SetuptoolsDeprecationWarning"
+PYTHONWARNINGS = "ignore"
 
 ifeq ($(PIP_VERSION),)
 	PIP_ARG =

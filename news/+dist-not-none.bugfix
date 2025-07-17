@@ -1,0 +1,4 @@
+Check if the dist exists before trying to install its console_scripts.
+In the exception, report the requirement for which this failed.
+Previously you would just get another traceback that did not tell you which package gave the problem.
+[maurits]

@@ -18,7 +18,7 @@ import sys
 def patch_Distribution():
     try:
         from pkg_resources import Distribution
-        from .compat import version
+        from ._compat import version
     except ImportError:
         return
 
@@ -46,8 +46,15 @@ def patch_Distribution():
 
     setattr(Distribution, 'hashcmp', property(hashcmp))
 
-
-patch_Distribution()
+# TODO Enable this patch again:
+# patch_Distribution()
+#
+# It was inactive for a long time because of a typo in one of its imports.
+# But now that it is fixed, there are errors in the scripts that install pyspf:
+# TypeError: '<' not supported between instances of 'Version' and 'Version'.
+# Problem is that those Version classes are not the same:
+# - <class 'pkg_resources.extern.packaging.version.Version'> for most
+# - <class 'pip._vendor.packaging.version.Version'> for version 2.0.12t
 
 
 def patch_PackageIndex():

@@ -1,7 +1,15 @@
+SETUPTOOLS_VERSION ?=
+ifeq ($(SETUPTOOLS_VERSION),)
+	SETUPTOOLS_ARG =
+else
+	SETUPTOOLS_ARG = ==$(SETUPTOOLS_VERSION)
+endif
+
 sandbox/bin/python:
 	pip install virtualenv
 	virtualenv sandbox
 
 sandbox/bin/buildout: sandbox/bin/python
+	sandbox/bin/python -m pip install setuptools$(SETUPTOOLS_ARG) wheel
 	sandbox/bin/python setup.py develop
 

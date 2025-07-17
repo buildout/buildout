@@ -8,5 +8,6 @@ cd ../..
 # Some machines come with preinstalled six
 # which breaks test suite
 python${PYTHON_VER} -mpip uninstall -y six || true
-python${PYTHON_VER} dev.py
+python${PYTHON_VER} dev.py --pip-version=${PIP_VERSION} --setuptools-version=${SETUPTOOLS_VERSION}
+
 make -f Makefile.builds test_without_coverage

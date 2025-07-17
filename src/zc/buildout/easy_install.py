@@ -104,6 +104,11 @@ logger.debug('before restricting versions: pip_path %r', pip_path)
 
 FILE_SCHEME = re.compile('file://', re.I).match
 DUNDER_FILE_PATTERN = re.compile(r"__file__ = '(?P<filename>.+)'$")
+BUILDOUT_PIP_NO_BUILD_ISOLATION = os.getenv("BUILDOUT_PIP_NO_BUILD_ISOLATION")
+if BUILDOUT_PIP_NO_BUILD_ISOLATION and BUILDOUT_PIP_NO_BUILD_ISOLATION.lower() in (
+    "0", "false", "no", "off"
+):
+    BUILDOUT_PIP_NO_BUILD_ISOLATION=False
 
 class _Monkey(object):
     def __init__(self, module, **kw):
@@ -1230,6 +1235,7 @@ def scripts(reqs, working_set, executable, dest=None,
             if req.marker and not req.marker.evaluate():
                 continue
             dist = working_set.find(req)
+            assert dist is not None, 'distribution not found for %s' % req.name
             # regular console_scripts entry points
             for name in pkg_resources.get_entry_map(dist, 'console_scripts'):
                 entry_point = dist.get_entry_info('console_scripts', name)
@@ -1595,7 +1601,7 @@ if len(sys.argv) > 1:
             # is isolated from the system Python already anyway.
             # The specific use-case that led to this change is how the Python
             # language extension for Visual Studio Code calls the Python
-            # interpreter when initializing the extension.              
+            # interpreter when initializing the extension.
             pass
 
     if _args:
@@ -1728,6 +1734,8 @@ def call_pip_install(spec, dest):
     Returns all the paths inside `dest` created by the above.
     """
     args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
+    if BUILDOUT_PIP_NO_BUILD_ISOLATION:
+        args.append('--no-build-isolation')
     level = logger.getEffectiveLevel()
     if level >= logging.INFO:
         args.append('-q')

@@ -54,7 +54,9 @@ setup(
     include_package_data = True,
     entry_points = entry_points,
     extras_require = dict(
-        test=['zope.testing', 'manuel',
+        test=['zope.testing',
+              'manuel; python_version >= "3.0"',
+              'manuel<1.13; python_version < "3.0"',
               'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe',
               'zc.recipe.deployment']),
     zip_safe=False,
