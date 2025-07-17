@@ -1,3 +1,8 @@
+[build-system]
+# We still support older Pythons, and that means it is better to use an
+# older setuptools to create the distributions.
+requires = ["setuptools<69"]
+
 [tool.towncrier]
 filename = "CHANGES.rst"
 directory = "news/"
