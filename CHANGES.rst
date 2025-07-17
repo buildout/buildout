@@ -8,6 +8,34 @@ Change History
 
 .. towncrier release notes start
 
+3.4 (2025-07-17)
+----------------
+
+New features:
+
+
+- When OS environment variable ``BUILDOUT_PIP_NO_BUILD_ISOLATION`` is set, call ``pip install`` with the ``no-build-isolation`` option.
+  This may be needed when installing packages that cannot be installed with the latest setuptools version.
+  See `issue 718 <https://github.com/buildout/buildout/issues/718>`_ for an explanation and alternative solutions.
+  Better is to use ``zc.buildout`` 4.1.12 or later, but that requires Python 3.9 or later.
+  Note that on Python 3.8 you may want to use at most ``setuptools`` 75.3.0, whether you use the new environment variable or not.
+  [maurits] (#718)
+
+
+Bug fixes:
+
+
+- Check if the dist exists before trying to install its console_scripts.
+  In the exception, report the requirement for which this failed.
+  Previously you would just get another traceback that did not tell you which package gave the problem.
+  [maurits]
+- Disable ``patch_Distribution`` completely.
+  For a long time this patch did nothing, because of a typo.
+  When I fixed the typo, I would sometimes get errors during sorting of distributions, which was exactly what the patch was trying to solve, so it was breaking what it was trying to fix.
+  If you still run into ``TypeError: '<' not supported between instances of 'Version' and 'Version'``, try a different setuptools version.
+  [maurits]
+
+
 3.3 (2024-10-17)
 ----------------
 
