@@ -186,7 +186,30 @@ def main(args):
     if args.setuptools_version:
         did_upgrade = install_pinned_version(package, args.setuptools_version)
     else:
-        did_upgrade = check_upgrade(package)
+        # We used to do this with no explicit version is asked:
+        # did_upgrade = check_upgrade(package)
+        # But nowadays we *really* need some upper bounds on setuptools.
+        # And passing SETUPTOOLS_VERSION from a GitHub Actions workflow to
+        # ci_build.sh script, and then to a Dockerfile and then a Makefile
+        # or even longer routes, is making my hair fall out.
+        if sys.version_info.major == 2:
+            # no problems
+            did_upgrade = check_upgrade(package)
+        elif sys.version_info.minor < 8:
+            # no problems
+            did_upgrade = check_upgrade(package)
+        elif sys.version_info.minor == 8:
+            # 75.3.1 and 75.3.2 (the last that works on 3.8) have changes that
+            # should help for finding namespace packages with underscores,
+            # but that actually don't, except it you have the changes from
+            # zc.buildout 4.
+            did_upgrade = install_pinned_version(package, "75.3.0")
+        else:
+            # 75.8.1 and higher have the same changes, and the same problems.
+            # And in setuptools 80 multiple other things break, leading to
+            # import errors.
+            did_upgrade = install_pinned_version(package, "75.8.0")
+
     show(package)
     need_restart = need_restart or did_upgrade
 
