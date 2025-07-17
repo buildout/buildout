@@ -80,18 +80,19 @@ jobs:
       max-parallel: 4
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
         os: ["ubuntu-22.04"]
-        setuptools-version: ["68.0.0"]
+        setuptools-version: ["75.3.0"]
         include:
+          - os: "ubuntu-22.04"
+            python-version: "3.7"
+            package: zest.releaser
           - os: "ubuntu-20.04"
             python-version: "3.6"
             package: zest.releaser
-            setuptools-version: ["59.6.0"]
           - os: "ubuntu-20.04"
             python-version: "3.6"
             package: pyspf
-            setuptools-version: ["59.6.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
