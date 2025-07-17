@@ -44,7 +44,14 @@ def patch_Distribution():
     setattr(Distribution, 'hashcmp', property(hashcmp))
 
 
-patch_Distribution()
+# patch_Distribution()
+# XXX This patch is disabled.
+# For a long time this patch did nothing, because of a typo in one of the imports.
+# When I fixed the typo, I would sometimes get errors during sorting of distributions,
+# which was exactly what the patch was trying to solve, so it was breaking what it was
+# trying to fix. If you still run into this error:
+#   TypeError: '<' not supported between instances of 'Version' and 'Version'
+# you should try a different setuptools version.
 
 
 def patch_PackageIndex():
