@@ -381,6 +381,7 @@ def buildoutSetUp(test):
         wait_until = wait_until,
         print_ = print_,
         clean_up_pyc = clean_up_pyc,
+        os = os,
         ))
 
     zc.buildout.easy_install.prefer_final(prefer_final)

@@ -8,14 +8,14 @@ on:
 
 jobs:
   setuptools:
-    name: Setuptools version range
+    name: setuptools ${{ matrix.setuptools-version}}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04]
         python-version: ["3.10"]
-        setuptools-version: ["49.0.0", "59.8.0", "65.7.0", "69.5.1", "74.1.3", "75.9.1", "79.0.1", "80.2.0", "80.3.0", "80.9.0"]
+        setuptools-version: ["63.0.0", "65.7.0", "69.5.1", "74.1.3", "75.9.1", "79.0.1", "80.2.0", "80.9.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -39,8 +39,42 @@ jobs:
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
       run: make
 
+  setuptools61:
+    # setuptools 61 is much slower, so we do not run all tests on it.
+    name: setuptools 61
+    needs: setuptools
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04]
+        python-version: ["3.10"]
+        setuptools-version: ["61.0.0"]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip' # caching pip dependencies
+    - name: Cache eggs
+      uses: actions/cache@v4
+      with:
+        path: eggs
+        key: ${{ matrix.os }}-${{ matrix.python-version }}-eggs
+    - name: Run tests
+      env:
+        # When you install packages, you see far too many setuptools warnings.
+        # They drown out useful output, so ignore all warnings.
+        PYTHONWARNINGS: ignore
+        PYTHON_VERSION: ${{matrix.python-version}}
+        # PIP_VERSION: ${{matrix.pip-version}}
+        SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+      run: make test-small
+
   python:
-    name: Python version range
+    name: Python ${{ matrix.python-version}}
     needs: setuptools
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -74,7 +108,7 @@ jobs:
       run: make
 
   pip:
-    name: pip version range
+    name: pip ${{ matrix.pip-version}} st ${{ matrix.setuptools-version}}
     needs: python
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
@@ -138,7 +172,9 @@ jobs:
 
   windows:
     name: Windows
-    needs: pip
+    # These tests are the slowest, so start them immediately after the first batch
+    # of tests have finished, instead of after the both the Python and pip matrixes.
+    needs: setuptools
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:
       fail-fast: false
@@ -173,7 +209,7 @@ jobs:
       run: make
 
   generate-scripts:
-    name: generate scripts - Python ${{ matrix.python-version }}
+    name: Scripts Python ${{ matrix.python-version }}
     needs: pip
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     strategy:

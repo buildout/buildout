@@ -1,0 +1,658 @@
+Configuration file syntax
+-------------------------
+
+A buildout configuration file consists of a sequence of sections.  A
+section has a *section header* followed by 0 or more *section options*.
+(Buildout configuration files may be viewed as a variation on INI
+files.)
+
+A section header consists of a section name enclosed in square braces.
+A section name consists of one or more non-whitespace characters other
+than square braces (``[``, ``]``), curly braces (``{``, ``}``), colons (``:``)
+or equal signs (``=``). Whitespace surrounding section names is ignored.
+
+A section header can optionally have a condition expression separated
+by a colon.  See `Conditional sections`_.
+
+Options consist of option names, followed by optional space or tab
+characters, an optional plus or minus sign and an equal sign and
+values.  An option value may be spread over multiple lines as long as
+the lines after the first start with a whitespace character.  An
+option name consists of one or more non-whitespace characters other
+than equal signs, square braces (``[``, ``]``), curly braces (``{``, ``}``),
+plus signs or colons (``:``). The option name ``<`` is reserved.  An
+option's data consists of the characters following the equal sign on
+the start line, plus the continuation lines.
+
+Option values have extra whitespace stripped.  How this is done
+depends on whether the value has non-whitespace characters on the
+first line.  If an option value has non-whitespace characters on the
+first line, then each line is stripped and blank lines are removed.
+For example, in::
+
+  [foo]
+  bar = 1
+  baz = a
+        b
+
+        c
+
+.. -> text
+
+    >>> from io import StringIO
+    >>> import pprint, zc.buildout.configparser
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO(
+    ...     text), 'test'))
+    {'foo': {'bar': '1', 'baz': 'a\nb\nc'}}
+
+The value of of ``bar`` is ``'1'`` and the value of ``baz`` is
+``'a\nb\nc'``.
+
+If the first line of an option does **not** contain whitespace, then the
+value is dedented (with ``textwrap.dedent``), trailing spaces in lines
+are removed, and leading and trailing blank lines are removed.  For
+example, in::
+
+
+  [foo]
+  bar =
+  baz =
+
+    a
+      b
+
+    c
+
+.. -> text
+
+    >>> pprint.pprint(zc.buildout.configparser.parse(StringIO(
+    ...     text), 'test'))
+    {'foo': {'bar': '', 'baz': 'a\n  b\n\nc'}}
+
+The value of bar is ``''``, and the value of baz is ``'a\n  b\n\nc'``.
+
+Lines starting with ``#`` or ``;`` characters are comments.  Comments can
+also be placed after the closing square bracket (``]``) in a section header.
+
+Buildout configuration data are Python strings, which are bytes in
+Python 2 and unicode in Python 3.
+
+Sections and options within sections may be repeated.  Multiple
+occurrences of a section are treated as if they were concatenated.
+The last option value for a given name in a section overrides previous
+values.
+
+In addition to the syntactic details above:
+
+- option names are case sensitive
+
+- option values can use a substitution syntax, described below, to
+  refer to option values in specific sections.
+
+- option values can be appended or removed using the - and +
+  operators.
+
+Annotated sections
+------------------
+
+When used with the ``annotate`` command, buildout displays annotated sections.
+All sections are displayed, sorted alphabetically. For each section,
+all key-value pairs are displayed, sorted alphabetically, along with
+the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
+``COMMAND_LINE_VALUE``)::
+
+    >>> print_(system([buildout, 'annotate']), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+        DEFAULT_VALUE
+    allow-picked-versions= true
+        DEFAULT_VALUE
+    allow-unknown-extras= false
+        DEFAULT_VALUE
+    bin-directory= bin
+        DEFAULT_VALUE
+    develop-eggs-directory= develop-eggs
+        DEFAULT_VALUE
+    directory= /sample-buildout
+        COMPUTED_VALUE
+    eggs-directory= /sample-buildout/eggs
+        DEFAULT_VALUE
+    executable= ...
+        DEFAULT_VALUE
+    find-links=
+        DEFAULT_VALUE
+    install-from-cache= false
+        DEFAULT_VALUE
+    installed= .installed.cfg
+        DEFAULT_VALUE
+    log-format=
+        DEFAULT_VALUE
+    log-level= INFO
+        DEFAULT_VALUE
+    newest= true
+        DEFAULT_VALUE
+    offline= false
+        DEFAULT_VALUE
+    parts=
+        buildout.cfg
+    parts-directory= parts
+        DEFAULT_VALUE
+    prefer-final= true
+        DEFAULT_VALUE
+    python= buildout
+        DEFAULT_VALUE
+    show-picked-versions= false
+        DEFAULT_VALUE
+    socket-timeout=
+        DEFAULT_VALUE
+    update-versions-file=
+        DEFAULT_VALUE
+    use-dependency-links= true
+        DEFAULT_VALUE
+    versions= versions
+        DEFAULT_VALUE
+    <BLANKLINE>
+    [versions]
+    zc.buildout = >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg = >=1.99
+        DEFAULT_VALUE
+
+The ``annotate`` command is sensitive to the verbosity flag.
+You get more information about the way values are computed::
+
+    >>> print_(system([buildout, '-v', 'annotate']), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [buildout]
+    allow-hosts= *
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = *
+    <BLANKLINE>
+    allow-picked-versions= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    allow-unknown-extras= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    bin-directory= bin
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = bin
+    <BLANKLINE>
+    develop-eggs-directory= develop-eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = develop-eggs
+    <BLANKLINE>
+    directory= /sample-buildout
+    <BLANKLINE>
+       AS COMPUTED_VALUE
+       SET VALUE = /sample-buildout
+    <BLANKLINE>
+    eggs-directory= /sample-buildout/eggs
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       DIRECTORY VALUE = /sample-buildout/eggs
+       AS DEFAULT_VALUE
+       SET VALUE = eggs
+    <BLANKLINE>
+    executable= ...
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = ...
+    <BLANKLINE>
+    find-links=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    install-from-cache= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    installed= .installed.cfg
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = .installed.cfg
+    <BLANKLINE>
+    log-format=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    log-level= INFO
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = INFO
+    <BLANKLINE>
+    newest= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    offline= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    parts=
+    <BLANKLINE>
+       IN buildout.cfg
+       SET VALUE =
+    <BLANKLINE>
+    parts-directory= parts
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = parts
+    <BLANKLINE>
+    prefer-final= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    python= buildout
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = buildout
+    <BLANKLINE>
+    show-picked-versions= false
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = false
+    <BLANKLINE>
+    socket-timeout=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    update-versions-file=
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE =
+    <BLANKLINE>
+    use-dependency-links= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
+    <BLANKLINE>
+    verbosity= 10
+    <BLANKLINE>
+       AS COMMAND_LINE_VALUE
+       SET VALUE = 10
+    <BLANKLINE>
+    versions= versions
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = versions
+    <BLANKLINE>
+    <BLANKLINE>
+    [versions]
+    ...
+
+The output of the ``annotate`` command can be very long.
+You can restrict the output to some sections by passing section names as arguments::
+
+    >>> print_(system([buildout, 'annotate', 'versions']), end='')
+    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    <BLANKLINE>
+    Annotated sections
+    ==================
+    <BLANKLINE>
+    [versions]
+    zc.buildout= >=1.99
+        DEFAULT_VALUE
+    zc.recipe.egg= >=1.99
+        DEFAULT_VALUE
+    <BLANKLINE>
+
+Query values
+------------
+
+For continuous integration, it might be useful to query the buildout config.
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = .
+    ...
+    ... [values]
+    ... host = buildout.org
+    ... multiline =
+    ...   first
+    ...   second
+    ... """)
+
+    >>> print_(system([buildout, 'query', 'buildout:develop']), end='')
+    .
+
+    >>> print_(system([buildout, 'query', 'values:host']), end='')
+    buildout.org
+
+    >>> print_(system([buildout, 'query', 'values:multiline']), end='')
+    first
+    second
+
+As with assignments, if the section is omitted, 'buildout' section is assumed.
+
+    >>> print_(system([buildout, 'query', 'develop']), end='')
+    .
+
+When used with -v option, the query command also displays section and key.
+
+    >>> print_(system([buildout, '-v', 'query', 'develop']), end='')
+    ${buildout:develop}
+    .
+
+    >>> print_(system([buildout, '-v', 'query', 'values:host']), end='')
+    ${values:host}
+    buildout.org
+
+The query commands outputs proper error messages.
+
+    >>> print_(system([buildout, 'query', 'versions', 'parts']), end='')
+    Error: The query command requires a single argument.
+
+    >>> print_(system([buildout, 'query']), end='')
+    Error: The query command requires a single argument.
+
+    >>> print_(system([buildout, 'query', 'invalid:section:key']), end='')
+    Error: Invalid option: invalid:section:key
+
+    >>> print_(system([buildout, '-v', 'query', 'values:port']), end='')
+    ${values:port}
+    Error: Key not found: port
+
+    >>> print_(system([buildout, '-v', 'query', 'versionx']), end='')
+    ${buildout:versionx}
+    Error: Key not found: versionx
+
+    >>> print_(system([buildout, '-v', 'query', 'specific:port']), end='')
+    ${specific:port}
+    Error: Section not found: specific
+
+Variable substitutions
+----------------------
+
+Buildout configuration files support variable substitution.
+To illustrate this, we'll create an debug recipe to
+allow us to see interactions with the buildout.
+See the ``debug.py`` and ``environ.py`` files in the ``tests/recipes`` directory.
+
+This recipe doesn't actually create anything. The install method
+doesn't return anything, because it didn't create any files or
+directories.
+
+We also have to update our setup script::
+
+    >>> write(sample_buildout, 'recipes', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ... entry_points = (
+    ... '''
+    ... [zc.buildout]
+    ... mkdir = mkdir:Mkdir
+    ... debug = debug:Debug
+    ... environ = environ:Environ
+    ... ''')
+    ... setup(name="recipes", entry_points=entry_points)
+    ... """)
+
+We've rearranged the script a bit to make the entry points easier to
+edit.  Specifically, entry points are now defined as a configuration
+string, rather than a dictionary.
+
+Let's update our configuration to provide variable substitution
+examples::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+We used a string-template substitution for ``File-1`` and ``File-2``.  This
+type of substitution uses the ``string.Template`` syntax.  Names
+substituted are qualified option names, consisting of a section name
+and option name joined by a colon.
+
+Now, if we run the buildout, we'll see the options with the values
+substituted::
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Installing data-dir.
+    data-dir: Creating directory mydata
+    Installing debug.
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+Note that the substitution of the ``data-dir`` path option reflects the
+update to the option performed by the ``mkdir`` recipe.
+
+It might seem surprising that ``mydata`` was created again.  This is
+because we changed our ``recipes`` package by adding the ``debug`` module.
+The buildout system didn't know if this module could affect the ``mkdir``
+recipe, so it assumed it could and reinstalled ``mydata``.  If we rerun
+the buildout::
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+we can see that ``mydata`` was not recreated.
+
+Note that, in this case, we didn't specify a log level, so
+we didn't get output about what the buildout was doing.
+
+Section and option names in variable substitutions are only allowed to
+contain alphanumeric characters, hyphens, periods and spaces. This
+restriction might be relaxed in future releases.
+
+We can omit the section name in a variable substitution to refer to
+the current section.  We can also use the special option,
+``_buildout_section_name_`` to get the current section name::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = data-dir debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${:File-1}/log
+    ... my_name = ${:_buildout_section_name_}
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Updating data-dir.
+    Installing debug.
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
+    my_name debug
+    recipe recipes:debug
+
+Automatic part selection and ordering
+-------------------------------------
+
+When a section with a recipe is referred to, either through variable
+substitution or by an initializing recipe, the section is treated as a
+part and added to the part list before the referencing part.  For
+example, we can leave ``data-dir`` out of the parts list::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+
+It will still be treated as a part::
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Updating data-dir.
+    Installing debug.
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+    >>> cat('.installed.cfg') # doctest: +ELLIPSIS
+    [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    parts = data-dir debug
+    ...
+
+Note that the ``data-dir`` part is included *before* the ``debug`` part,
+because the ``debug`` part refers to the ``data-dir`` part.  Even if we list
+the ``data-dir`` part after the ``debug`` part, it will be included before::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = debug data-dir
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ... File-1 = ${data-dir:path}/file
+    ... File-2 = ${debug:File-1}/log
+    ...
+    ... [data-dir]
+    ... recipe = recipes:mkdir
+    ... path = mydata
+    ... """)
+
+
+It will still be treated as a part::
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Updating data-dir.
+    Updating debug.
+    File-1 /sample-buildout/mydata/file
+    File-2 /sample-buildout/mydata/file/log
+    recipe recipes:debug
+
+    >>> cat('.installed.cfg') # doctest: +ELLIPSIS
+    [buildout]
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    parts = data-dir debug
+    ...
+
+Extending sections (macros)
+---------------------------
+
+A section (other than the buildout section) can extend one or more
+other sections using the ``<`` option.  Options from the referenced
+sections are copied to the referring section *before* variable
+substitution.  This, together with the ability to refer to variables
+of the current section, allows sections to be used as macros::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts = myfiles
+    ... log-level = INFO
+    ...
+    ... [debug]
+    ... recipe = recipes:debug
+    ...
+    ... [with_file1]
+    ... <= debug
+    ... file1 = ${:path}/file1
+    ... color = red
+    ...
+    ... [with_file2]
+    ... <= debug
+    ... file2 = ${:path}/file2
+    ... color = blue
+    ...
+    ... [myfiles]
+    ... <= with_file1
+    ...    with_file2
+    ... path = mydata
+    ... """)
+
+    >>> print_(system(buildout), end='')
+    Develop: '/sample-buildout/recipes'
+    Uninstalling debug.
+    Uninstalling data-dir.
+    Installing myfiles.
+    color blue
+    file1 mydata/file1
+    file2 mydata/file2
+    path mydata
+    recipe recipes:debug
+
+In this example, the ``debug``, ``with_file1`` and ``with_file2`` sections act
+as macros. In particular, the variable substitutions are performed
+relative to the ``myfiles`` section.
+
+.. note:: Don't be fooled by the appearance of the ``<= section`` lines ---
+    though ``<=`` may look like a new operator, it's still just the familiar
+    ``key = value`` syntax.
+
+.. cleanup buildout
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = recipes
+    ... parts =
+    ... """)
+
+    >>> _ = system(buildout)

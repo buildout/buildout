@@ -15,7 +15,7 @@
 def patch_Distribution():
     try:
         from pkg_resources import Distribution
-        from .compat import version
+        from packaging import version
     except ImportError:
         return
 
@@ -44,7 +44,14 @@ def patch_Distribution():
     setattr(Distribution, 'hashcmp', property(hashcmp))
 
 
-patch_Distribution()
+# patch_Distribution()
+# XXX This patch is disabled.
+# For a long time this patch did nothing, because of a typo in one of the imports.
+# When I fixed the typo, I would sometimes get errors during sorting of distributions,
+# which was exactly what the patch was trying to solve, so it was breaking what it was
+# trying to fix. If you still run into this error:
+#   TypeError: '<' not supported between instances of 'Version' and 'Version'
+# you should try a different setuptools version.
 
 
 def patch_PackageIndex():
@@ -330,7 +337,7 @@ def patch_pkg_resources_working_set_find():
 
     AttributeError: 'WorkingSet' object has no attribute 'normalized_to_canonical_keys'
 
-    The first setuptools version that has this, is 61.0.0.
+    The first setuptools version that has this, is 62.0.0.
     So don't patch versions that are older than that.
 
     Alternatively, we could drop support.  That is fine with me.
@@ -343,7 +350,7 @@ def patch_pkg_resources_working_set_find():
         setuptools_version = parse(version("setuptools"))
         if setuptools_version >= Version("75.8.2"):
             return
-        if setuptools_version < Version("61"):
+        if setuptools_version < Version("62"):
             return
     except Exception:
         return

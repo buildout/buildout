@@ -31,6 +31,7 @@ import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
 import zipfile
+from pathlib import Path
 from zc.buildout.tests import easy_install_SetUp
 from zc.buildout.tests import normalize_bang
 from zc.buildout.tests import create_egg
@@ -39,6 +40,7 @@ from zc.buildout.tests import create_sample_eggs
 os_path_sep = os.path.sep
 if os_path_sep == '\\':
     os_path_sep *= 2
+HERE = Path(__file__).parent
 
 
 class TestEasyInstall(unittest.TestCase):
@@ -3318,6 +3320,13 @@ def buildout_txt_setup(test):
         os.path.join(eggs, 'zc.recipe.egg'),
         )
 
+    sample_buildout = test.globs['sample_buildout']
+
+    # Copy recipes directory
+    recipes_dir = HERE / 'recipes'
+    shutil.copytree(recipes_dir, Path(sample_buildout) / 'recipes')
+
+
 egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d+)$'
                        ).match
 def makeNewRelease(project, ws, dest, version='99.99'):
@@ -3417,20 +3426,6 @@ def ancestor(path, level):
 
     return path
 
-bootstrap_py = os.path.join(ancestor(__file__, 4), 'bootstrap', 'bootstrap.py')
-
-def bootstrapSetup(test):
-    buildout_txt_setup(test)
-    test.globs['link_server'] = test.globs['start_server'](
-        test.globs['sample_eggs'])
-    sample_eggs = test.globs['sample_eggs']
-    ws = getWorkingSetWithBuildoutEgg(test)
-    makeNewRelease('zc.buildout', ws, sample_eggs, '2.0.0')
-    makeNewRelease('zc.buildout', ws, sample_eggs, '22.0.0')
-    os.environ['bootstrap-testing-find-links'] = test.globs['link_server']
-    test.globs['bootstrap_py'] = bootstrap_py
-
-
 def test_suite():
 
     test_suite = [
@@ -3482,6 +3477,11 @@ def test_suite():
                     ])
                 ) + manuel.capture.Manuel(),
             'buildout.txt',
+            'configuration.txt',
+            'extending.txt',
+            'options.txt',
+            'init.txt',
+            'extensions.txt',
             setUp=buildout_txt_setup,
             tearDown=zc.buildout.testing.buildoutTearDown,
             ),
@@ -3799,25 +3799,6 @@ def test_suite():
                 os.path.join(docdir, 'topics', 'meta-recipes.rst'),
                 setUp=docSetUp, tearDown=setupstack.tearDown
                 ))
-
-
-    # adding bootstrap.txt doctest to the suite
-    # only if bootstrap.py is present
-    if os.path.exists(bootstrap_py):
-        test_suite.append(doctest.DocFileSuite(
-            'bootstrap.txt', 'bootstrap_cl_settings.test',
-            setUp=bootstrapSetup,
-            tearDown=zc.buildout.testing.buildoutTearDown,
-            checker=renormalizing.RENormalizing([
-               zc.buildout.testing.normalize_path,
-               zc.buildout.testing.normalize_endings,
-               zc.buildout.testing.normalize_script,
-               zc.buildout.testing.not_found,
-               normalize_bang,
-               zc.buildout.testing.adding_find_link,
-               (re.compile('Downloading.*setuptools.*egg\n'), ''),
-               ]),
-            ))
 
     test_suite.append(unittest.defaultTestLoader.loadTestsFromName(__name__))
 

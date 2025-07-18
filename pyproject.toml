@@ -26,5 +26,5 @@ showcontent = true
 
 [[tool.towncrier.type]]
 directory = "tests"
-name = "Tests"
+name = "Tests:"
 showcontent = true

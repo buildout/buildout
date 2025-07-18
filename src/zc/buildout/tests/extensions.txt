@@ -1,0 +1,82 @@
+Extensions
+----------
+
+A feature allows code to be loaded and run *after*
+configuration files have been read, but *before* the buildout has begun
+any processing.  The intent is to allow special plugins such as
+``urllib2`` request handlers to be loaded.
+
+To load an extension we use the ``extensions`` option and list one or
+more distribution requirements, on separate lines.  The distributions
+named will be loaded and any ``zc.buildout.extension`` entry points found
+will be called with the buildout as an argument.  When buildout
+finishes processing, any ``zc.buildout.unloadextension`` entry points
+found will be called with the buildout as an argument.
+
+Let's create a sample extension in our sample buildout created in the
+previous section::
+
+    >>> mkdir(sample_buildout, 'demo')
+
+    >>> write(sample_buildout, 'demo', 'demo.py',
+    ... """
+    ... import sys
+    ... def ext(buildout):
+    ...     sys.stdout.write('%s %s\\n' % ('ext', sorted(buildout)))
+    ... def unload(buildout):
+    ...     sys.stdout.write('%s %s\\n' % ('unload', sorted(buildout)))
+    ... """)
+
+    >>> write(sample_buildout, 'demo', 'setup.py',
+    ... """
+    ... from setuptools import setup
+    ...
+    ... setup(
+    ...     name = "demo",
+    ...     entry_points = {
+    ...        'zc.buildout.extension': ['ext = demo:ext'],
+    ...        'zc.buildout.unloadextension': ['ext = demo:unload'],
+    ...        },
+    ...     )
+    ... """)
+
+Our extension just prints out the word 'demo', and lists the sections
+found in the buildout passed to it.
+
+We'll update our ``buildout.cfg`` to list the demo directory as a develop
+egg to be built::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... parts =
+    ... """)
+
+    >>> os.chdir(sample_buildout)
+    >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    ...        end='')
+    Develop: '/sample-buildout/demo'
+
+Now we can add the ``extensions`` option.  We were a bit tricky and ran
+the buildout once with the demo develop egg defined but without the
+extension option.  This is because extensions are loaded before the
+buildout creates develop eggs. We needed to use a separate buildout
+run to create the develop egg.  Normally, when eggs are loaded from
+the network, we wouldn't need to do anything special. ::
+
+    >>> write(sample_buildout, 'buildout.cfg',
+    ... """
+    ... [buildout]
+    ... develop = demo
+    ... extensions = demo
+    ... parts =
+    ... """)
+
+We see that our extension is loaded and executed::
+
+    >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')),
+    ...        end='')
+    ext ['buildout', 'versions']
+    Develop: '/sample-buildout/demo'
+    unload ['buildout', 'versions']
