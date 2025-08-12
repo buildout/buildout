@@ -34,7 +34,7 @@ import zipfile
 from pathlib import Path
 from zc.buildout.tests import easy_install_SetUp
 from zc.buildout.tests import normalize_bang
-from zc.buildout.tests import create_egg
+from zc.buildout.tests import create_wheel
 from zc.buildout.tests import create_sample_eggs
 
 os_path_sep = os.path.sep
@@ -2375,9 +2375,9 @@ def prefer_final_permutation(existing, available):
             shutil.rmtree(d)
         os.mkdir(d)
     for version in existing:
-        create_egg('spam', version, 'existing')
+        create_wheel('spam', version, 'existing')
     for version in available:
-        create_egg('spam', version, 'available')
+        create_wheel('spam', version, 'available')
 
     zc.buildout.easy_install.clear_index_cache()
     [dist] = list(

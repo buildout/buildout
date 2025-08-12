@@ -1218,6 +1218,8 @@ def _detect_distutils_scripts(directory):
     long deprecated.
     """
     dir_contents = os.listdir(directory)
+    # TODO For newer dists maybe just look for a 'bin' directory and get
+    # any script in there.
     egginfo_filenames = [filename for filename in dir_contents
                          if filename.endswith('.egg-link')]
     if not egginfo_filenames:
@@ -1995,27 +1997,27 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     # `pip install` does not build the namespace aware __init__.py files
     # but they are needed in egg directories.
     # Add them before moving files setup by pip
-    namespace_packages_file = os.path.join(
-        dest, distinfo_dir,
-        'namespace_packages.txt'
-    )
-    if os.path.isfile(namespace_packages_file):
-        with open(namespace_packages_file) as f:
-            namespace_packages = [
-                line.strip().replace('.', os.path.sep)
-                for line in f.readlines()
-            ]
+    # namespace_packages_file = os.path.join(
+    #     dest, distinfo_dir,
+    #     'namespace_packages.txt'
+    # )
+    # if os.path.isfile(namespace_packages_file):
+    #     with open(namespace_packages_file) as f:
+    #         namespace_packages = [
+    #             line.strip().replace('.', os.path.sep)
+    #             for line in f.readlines()
+    #         ]
 
-        for namespace_package in namespace_packages:
-            namespace_package_dir = os.path.join(dest, namespace_package)
-            if os.path.isdir(namespace_package_dir):
-                init_py_file = os.path.join(
-                    namespace_package_dir, '__init__.py')
-                with open(init_py_file, 'w') as f:
-                    f.write(
-                        "__import__('pkg_resources')."
-                        "declare_namespace(__name__)"
-                    )
+    #     for namespace_package in namespace_packages:
+    #         namespace_package_dir = os.path.join(dest, namespace_package)
+    #         if os.path.isdir(namespace_package_dir):
+    #             init_py_file = os.path.join(
+    #                 namespace_package_dir, '__init__.py')
+    #             with open(init_py_file, 'w') as f:
+    #                 f.write(
+    #                     "__import__('pkg_resources')."
+    #                     "declare_namespace(__name__)"
+    #                 )
 
     # Remove `bin` directory if needed
     # as there is no way to avoid script installation
@@ -2106,7 +2108,8 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 def unpack_egg(location, dest):
     # Buildout 2 no longer installs zipped eggs,
     # so we always want to unpack it.
-    dest = os.path.join(dest, os.path.basename(location))
+    # XXX The next line seems double now.
+    # dest = os.path.join(dest, os.path.basename(location))
     setuptools.archive_util.unpack_archive(location, dest)
 
 
@@ -2124,8 +2127,8 @@ def unpack_wheel(location, dest):
 
 
 UNPACKERS = {
-    # '.egg': unpack_egg,
-    '.whl': setuptools.archive_util.unpack_zipfile,
+    '.egg': unpack_egg,
+    # '.whl': setuptools.archive_util.unpack_zipfile,
 }
 
 
@@ -2290,18 +2293,20 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             if ext == ".gz" and basename.endswith(".tar"):
                 basename = basename[:-4]
             # Set new location with name ending in '.experimental'.
-            tmp_loc = os.path.join(tmp_dest, os.path.basename(basename) + ".experimental")
+            # XXX TODO some our code or tests expects '.egg' at the end.
+            # tmp_loc = os.path.join(tmp_dest, os.path.basename(basename) + ".experimental")
+            tmp_loc = os.path.join(tmp_dest, os.path.basename(basename) + ".egg")
             if ext in UNPACKERS:
                 # TODO Maybe simply always call pip install for all dists, without
                 # checking for unpackers.
                 # TODO Maybe never rename a wheel or other dist anymore.
-                if ext == '.whl':
-                    logger.debug("Checking if wheel needs to be renamed.")
-                    new_dist = _maybe_copy_and_rename_wheel(dist, dest)
-                    if new_dist is not None:
-                        logger.debug("Found dist after renaming wheel: %s", new_dist)
-                        return new_dist
-                    logger.debug("Renaming wheel was not needed or did not help.")
+                # if ext == '.whl':
+                #     logger.debug("Checking if wheel needs to be renamed.")
+                #     new_dist = _maybe_copy_and_rename_wheel(dist, dest)
+                #     if new_dist is not None:
+                #         logger.debug("Found dist after renaming wheel: %s", new_dist)
+                #         return new_dist
+                #     logger.debug("Renaming wheel was not needed or did not help.")
                 unpacker = UNPACKERS[ext]
                 logger.debug("Calling unpacker for %s on %s", ext, dist.location)
                 unpacker(dist.location, tmp_loc)

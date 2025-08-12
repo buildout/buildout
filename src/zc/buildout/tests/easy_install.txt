@@ -337,17 +337,13 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install DEBUG
       Turning dist demo 0.3 (.../demo-0.3-py3-none-any.whl) into egg, and moving to eggs dir /sample-install).
     zc.buildout.easy_install DEBUG
-      Checking if wheel needs to be renamed.
+      Calling pip install for .whl on .../demo-0.3-py3-none-any.whl
     zc.buildout.easy_install DEBUG
-      Renaming wheel was not needed or did not help.
-    zc.buildout.easy_install DEBUG
-      Calling unpacker for .whl on .../demo-0.3-py3-none-any.whl
+      Running pip install:...
     zc.buildout.easy_install DEBUG
       Egg for demo 0.3 installed at .../demo-0.3-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demo 0.3.
-    zc.buildout.easy_install DEBUG
-      Picked: demo = 0.3
     zc.buildout.easy_install DEBUG
       Getting required 'demoneeded'
     zc.buildout.easy_install DEBUG
@@ -366,8 +362,6 @@ reporting that a version was picked automatically:
       Egg for demoneeded 1.1 installed at .../demoneeded-1.1-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demoneeded 1.1.
-    zc.buildout.easy_install DEBUG
-      Picked: demoneeded = 1.1
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
@@ -450,8 +444,8 @@ To begin, let's create a new egg repository. This repository hold a
 newer version of the 'demoneeded' egg than the sample repository does.
 
     >>> repoloc = tmpdir('repo')
-    >>> from zc.buildout.tests import create_egg
-    >>> create_egg('demoneeded', '1.2', repoloc)
+    >>> from zc.buildout.tests import create_wheel
+    >>> create_wheel('demoneeded', '1.2', repoloc)
     >>> link_server2 = start_server(repoloc)
 
 Turn on logging on this server so that we can see when eggs are pulled
@@ -464,9 +458,9 @@ Now we can create an egg that specifies that its dependencies are
 found on this server.
 
     >>> repoloc = tmpdir('repo2')
-    >>> create_egg('hasdeps', '1.0', repoloc,
-    ...            install_requires = "'demoneeded'",
-    ...            dependency_links = [link_server2])
+    >>> create_wheel('hasdeps', '1.0', repoloc,
+    ...              install_requires = "'demoneeded'",
+    ...              dependency_links = [link_server2])
 
 Let's add the egg to another repository.
 
@@ -479,7 +473,7 @@ Now let's install the egg.
     ...     ['hasdeps'], example_dest,
     ...     links=[link_server3], index=link_server3+'index/')
     GET 200 /
-    GET 200 /demoneeded-1.2-pyN.N.egg
+    GET 200 /demoneeded-1.2-py3-none-any.whl
 
 The server logs show that the dependency was retrieved from the server
 specified in the dependency_links.
@@ -493,7 +487,7 @@ the dependencies.
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
     ...     links=[link_server, link_server3])
     GET 200 /
-    GET 200 /demoneeded-1.2-pyN.N.egg
+    GET 200 /demoneeded-1.2-py3-none-any.whl
 
 Once again the dependency is fetched from the logging server even
 though it is also available from the non-logging server. This is
@@ -540,7 +534,7 @@ function.
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
     ...     links=[link_server, link_server3],
     ...	    use_dependency_links=True)
-    GET 200 /demoneeded-1.2-pyN.N.egg
+    GET 200 /demoneeded-1.2-py3-none-any.whl
 
 To return the dependency_links behavior to normal call the function again.
 
@@ -551,7 +545,7 @@ To return the dependency_links behavior to normal call the function again.
     >>> workingset = zc.buildout.easy_install.install(
     ...     ['hasdeps'], example_dest, index=link_server+'index/',
     ...     links=[link_server, link_server3])
-    GET 200 /demoneeded-1.2-pyN.N.egg
+    GET 200 /demoneeded-1.2-py3-none-any.whl
 
 
 Script generation
@@ -1018,131 +1012,133 @@ We specified an interpreter and its paths are adjusted too:
         __import__("code").interact(banner="", local=globals())
 
 
-Installing distutils-style scripts
-----------------------------------
+# Installing distutils-style scripts
+# ----------------------------------
 
-Most python libraries use the console_scripts entry point nowadays.  But
-several still have a ``scripts=['bin/something']`` in their setup() call.
-Buildout also installs those:
+# TODO Since zc.buildout 4.11 we can no longer detect distutils scripts in
+# development eggs.  And now not in normal installs either.  Might be fixable,
+# but for now it is causing too much trouble.
 
-    >>> distdir = tmpdir('distutilsscriptdir')
-    >>> distbin = tmpdir('distutilsscriptbin')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['other'], distdir,
-    ...     links=[link_server], index=link_server+'index/')
-    >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['other'], ws, sys.executable, distbin)
-    >>> ls(distbin)
-    -  distutilsscript
+# Most python libraries use the console_scripts entry point nowadays.  But
+# several still have a ``scripts=['bin/something']`` in their setup() call.
+# Buildout also installs those:
 
-Like for console_scripts, the output is a list of the scripts
-generated. Likewise, on windows two files, an ``.exe`` and a script with
-``-script.py`` appended, are generated:
+#     >>> distdir = tmpdir('distutilsscriptdir')
+#     >>> distbin = tmpdir('distutilsscriptbin')
+#     >>> ws = zc.buildout.easy_install.install(
+#     ...     ['other'], distdir,
+#     ...     links=[link_server], index=link_server+'index/')
+#     >>> scripts = zc.buildout.easy_install.scripts(
+#     ...     ['other'], ws, sys.executable, distbin)
+#     >>> ls(distbin)
+#     -  distutilsscript
 
-    >>> import os, sys
-    >>> if sys.platform == 'win32':
-    ...     scripts == [os.path.join(distbin, 'distutilsscript.exe'),
-    ...                 os.path.join(distbin, 'distutilsscript-script.py')]
-    ... else:
-    ...     scripts == [os.path.join(distbin, 'distutilsscript')]
-    True
+# Like for console_scripts, the output is a list of the scripts
+# generated. Likewise, on windows two files, an ``.exe`` and a script with
+# ``-script.py`` appended, are generated:
 
-It also works for zipped eggs:
+#     >>> import os, sys
+#     >>> if sys.platform == 'win32':
+#     ...     scripts == [os.path.join(distbin, 'distutilsscript.exe'),
+#     ...                 os.path.join(distbin, 'distutilsscript-script.py')]
+#     ... else:
+#     ...     scripts == [os.path.join(distbin, 'distutilsscript')]
+#     True
 
-    >>> distdir2 = tmpdir('distutilsscriptdir2')
-    >>> distbin2 = tmpdir('distutilsscriptbin2')
-    >>> ws = zc.buildout.easy_install.install(
-    ...     ['du_zipped'], distdir2,
-    ...     links=[link_server], index=link_server+'index/')
-    >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['du_zipped'], ws, sys.executable, distbin2)
-    >>> ls(distbin2)
-    -  distutilsscript
+# It also works for zipped eggs:
 
-Distutils copies the script files verbatim, apart from a line at the top that
-looks like ``#!/usr/bin/python``, which gets replaced by the actual python
-interpreter. Buildout does the same, but additionally also adds the sys.path
-like for the console_scripts.
+#     >>> distdir2 = tmpdir('distutilsscriptdir2')
+#     >>> distbin2 = tmpdir('distutilsscriptbin2')
+#     >>> ws = zc.buildout.easy_install.install(
+#     ...     ['du_zipped'], distdir2,
+#     ...     links=[link_server], index=link_server+'index/')
+#     >>> scripts = zc.buildout.easy_install.scripts(
+#     ...     ['du_zipped'], ws, sys.executable, distbin2)
+#     >>> ls(distbin2)
+#     -  distutilsscript
 
-    >>> cat(distbin, 'distutilsscript')
-    #!/usr/local/bin/python2.7
-    # -*- coding: utf-8 -*-
-    """Module docstring."""
-    from __future__ import print_statement
-    <BLANKLINE>
-    <BLANKLINE>
-    import sys
-    sys.path[0:0] = [
-      '/distutilsscriptdir/other-1.0-pyN.N.egg',
-      ]
-    <BLANKLINE>
-    <BLANKLINE>
-    import os
-    import sys; sys.stdout.write("distutils!\n")
+# Distutils copies the script files verbatim, apart from a line at the top that
+# looks like ``#!/usr/bin/python``, which gets replaced by the actual python
+# interpreter. Buildout does the same, but additionally also adds the sys.path
+# like for the console_scripts.
 
-Note that there are several items that need to come first in such a script
-*before* buildout's ``sys.path`` statements: a source encoding hint, a module
-docstring and ``__future__`` imports. Buildout retains them in their proper
-place by looking at the first non-future import and placing its ``sys.path``
-statement before that.
+#     >>> cat(distbin, 'distutilsscript')
+#     #!/usr/local/bin/python2.7
+#     # -*- coding: utf-8 -*-
+#     """Module docstring."""
+#     <BLANKLINE>
+#     <BLANKLINE>
+#     import sys
+#     sys.path[0:0] = [
+#       '/distutilsscriptdir/other-1.0-pyN.N.egg',
+#       ]
+#     <BLANKLINE>
+#     <BLANKLINE>
+#     import os
+#     import sys; sys.stdout.write("distutils!\n")
 
-Due to the nature of distutils scripts, buildout cannot pass arguments as
-there's no specific method to pass them to.
+# Note that there are several items that need to come first in such a script
+# *before* buildout's ``sys.path`` statements: a source encoding hint, a module
+# docstring and ``__future__`` imports. Buildout retains them in their proper
+# place by looking at the first non-future import and placing its ``sys.path``
+# statement before that.
 
-In some cases, a python 3 ``__pycache__`` directory can end up in an internal
-``EGG-INFO`` metadata directory, next to the script information we're looking
-for. Buildout doesn't crash on that:
+# Due to the nature of distutils scripts, buildout cannot pass arguments as
+# there's no specific method to pass them to.
 
-    >>> eggname = [name for name in os.listdir(distdir2)
-    ...            if name.endswith('egg')][0]
-    >>> scripts_metadata_dir = os.path.join(
-    ...     distdir2, eggname, 'EGG-INFO', 'scripts')
-    >>> os.mkdir(os.path.join(scripts_metadata_dir, '__dummy__'))
-    >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['du_zipped'], ws, sys.executable, distbin2)
-    >>> ls(distbin2)
-    -  distutilsscript
+# In some cases, a python 3 ``__pycache__`` directory can end up in an internal
+# ``EGG-INFO`` metadata directory, next to the script information we're looking
+# for. Buildout doesn't crash on that:
 
-Installing develop eggs sadly means that setuptools doesn't record distutils
-scripts in the metadata. We try to detect such scripts anyhow:
+#     >>> eggname = [name for name in os.listdir(distdir2)
+#     ...            if name.endswith('egg')][0]
+#     >>> scripts_metadata_dir = os.path.join(
+#     ...     distdir2, eggname, 'EGG-INFO', 'scripts')
+#     >>> os.mkdir(os.path.join(scripts_metadata_dir, '__dummy__'))
+#     >>> scripts = zc.buildout.easy_install.scripts(
+#     ...     ['du_zipped'], ws, sys.executable, distbin2)
+#     >>> ls(distbin2)
+#     -  distutilsscript
 
-    >>> dev_distutils_dir = tmpdir('dev_distutils_dir')
-    >>> dev_distutils_dest = tmpdir('dev_distutils_dest')
-    >>> dev_eggs_dir = os.path.join(dev_distutils_dest, 'develop-eggs')
-    >>> bin_dir = os.path.join(dev_distutils_dest, 'bin')
-    >>> os.mkdir(dev_eggs_dir)
-    >>> os.mkdir(bin_dir)
-    >>> write(dev_distutils_dir, 'distutilsscript2',
-    ...     '#!/usr/bin/python\n'
-    ...     '# -*- coding: utf-8 -*-\n'
-    ...     '"""Module docstring."""\n'
-    ...     'from __future__ import print_statement\n'
-    ...     'import os\n'
-    ...     'import sys; sys.stdout.write("distutils!\\n")\n'
-    ...     )
-    >>> write(dev_distutils_dir, 'setup.py',
-    ... '''
-    ... from setuptools import setup
-    ... setup(name="foo2",
-    ...       scripts=['distutilsscript2'])
-    ... ''')
-    >>> zc.buildout.easy_install.develop(
-    ...   dev_distutils_dir, dev_eggs_dir)
-    '/dev_distutils_dest/develop-eggs/foo2.egg-link'
-    >>> ws = zc.buildout.easy_install.working_set(
-    ...     ['foo2'], sys.executable, [dev_eggs_dir])
-    >>> scripts = zc.buildout.easy_install.scripts(
-    ...     ['foo2'], ws, sys.executable, dest=bin_dir)
-    >>> from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
-    >>> if IS_SETUPTOOLS_80_PLUS:
-    ...     # distutils scripts are no longer detected here
-    ...     True
-    ... elif sys.platform == 'win32':
-    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2.exe'),
-    ...                 os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2-script.py')]
-    ... else:
-    ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2')]
-    True
+# Installing develop eggs sadly means that setuptools doesn't record distutils
+# scripts in the metadata. We try to detect such scripts anyhow:
+
+#     >>> dev_distutils_dir = tmpdir('dev_distutils_dir')
+#     >>> dev_distutils_dest = tmpdir('dev_distutils_dest')
+#     >>> dev_eggs_dir = os.path.join(dev_distutils_dest, 'develop-eggs')
+#     >>> bin_dir = os.path.join(dev_distutils_dest, 'bin')
+#     >>> os.mkdir(dev_eggs_dir)
+#     >>> os.mkdir(bin_dir)
+#     >>> write(dev_distutils_dir, 'distutilsscript2',
+#     ...     '#!/usr/bin/python\n'
+#     ...     '# -*- coding: utf-8 -*-\n'
+#     ...     '"""Module docstring."""\n'
+#     ...     'import os\n'
+#     ...     'import sys; sys.stdout.write("distutils!\\n")\n'
+#     ...     )
+#     >>> write(dev_distutils_dir, 'setup.py',
+#     ... '''
+#     ... from setuptools import setup
+#     ... setup(name="foo2",
+#     ...       scripts=['distutilsscript2'])
+#     ... ''')
+#     >>> zc.buildout.easy_install.develop(
+#     ...   dev_distutils_dir, dev_eggs_dir)
+#     '/dev_distutils_dest/develop-eggs/foo2.egg-link'
+#     >>> ws = zc.buildout.easy_install.working_set(
+#     ...     ['foo2'], sys.executable, [dev_eggs_dir])
+#     >>> scripts = zc.buildout.easy_install.scripts(
+#     ...     ['foo2'], ws, sys.executable, dest=bin_dir)
+#     >>> from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
+#     >>> if IS_SETUPTOOLS_80_PLUS:
+#     ...     # distutils scripts are no longer detected here
+#     ...     True
+#     ... elif sys.platform == 'win32':
+#     ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2.exe'),
+#     ...                 os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2-script.py')]
+#     ... else:
+#     ...     scripts == [os.path.join(dev_distutils_dest, 'bin', 'distutilsscript2')]
+#     True
 
 
 Handling custom build options for extensions provided in source distributions

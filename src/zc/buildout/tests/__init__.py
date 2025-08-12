@@ -46,7 +46,6 @@ def create_sample_eggs(test, executable=sys.executable):
             '#!/usr/bin/python\n'
             '# -*- coding: utf-8 -*-\n'
             '"""Module docstring."""\n'
-            'from __future__ import print_statement\n'
             'import os\n'
             'import sys; sys.stdout.write("distutils!\\n")\n'
             )
@@ -68,6 +67,7 @@ def create_sample_eggs(test, executable=sys.executable):
             )
         # We still create an egg for this one, as we use it for testing
         # distutils scripts in a zipped egg.
+        # TODO No, we should not support this anymore.
         zc.buildout.testing.bdist_egg(tmp, executable, dest)
 
         os.remove(os.path.join(tmp, 'distutilsscript'))
@@ -211,8 +211,8 @@ normalize_bang = (
     )
 
 
-def create_egg(name, version, dest, install_requires=None,
-               dependency_links=None):
+def create_wheel(name, version, dest, install_requires=None,
+                 dependency_links=None):
     d = tempfile.mkdtemp()
     if dest=='available':
         extras = dict(x=['x'])
@@ -234,6 +234,6 @@ def create_egg(name, version, dest, install_requires=None,
                 '      %s %s py_modules=["setup"]\n)'
                 % (name, str(version), extras, requires, links)
             )
-        zc.buildout.testing.bdist_egg(d, sys.executable, os.path.abspath(dest))
+        zc.buildout.testing.bdist_wheel(d, os.path.abspath(dest))
     finally:
         shutil.rmtree(d)
