@@ -2370,18 +2370,42 @@ need to make it to the download cache.
     """
 
 def prefer_final_permutation(existing, available):
-    for d in ('existing', 'available'):
+    """Test different permutations of existing and available versions.
+
+    We used to do this:
+
+    * Call create_egg on the list of 'existing' versions and put this
+      in a directory 'existing'.
+    * Call create_egg on the list of 'available' versions and put this
+      in a directory 'available'.
+    * Call 'install' with as destination the 'existing' directory and as
+      find-links the 'available' directory.
+
+    We have switched to calling create_wheel instead of create_egg.  This means
+    the items in the 'existing' directory are not regarded as being installed:
+    it is not an eggs directory, but a downloads cache.  So we need to
+    explicitly install them.  For clarity we now use the 'installed' directory
+    as destination.
+    """
+    # Create the necessary empty directories.
+    for d in ('existing', 'available', 'installed'):
         if os.path.exists(d):
             shutil.rmtree(d)
         os.mkdir(d)
     for version in existing:
         create_wheel('spam', version, 'existing')
+        # Install the package (we expect only one version, really).
+        zc.buildout.easy_install.clear_index_cache()
+        [dist] = list(
+            zc.buildout.easy_install.install(['spam'], 'installed', ['existing'])
+            )
+        assert dist is not None
     for version in available:
         create_wheel('spam', version, 'available')
 
     zc.buildout.easy_install.clear_index_cache()
     [dist] = list(
-        zc.buildout.easy_install.install(['spam'], 'existing', ['available'])
+        zc.buildout.easy_install.install(['spam'], 'installed', ['available'])
         )
 
     if dist.extras:
@@ -2397,6 +2421,10 @@ This test tests several permutations:
 Using different version numbers to work around zip importer cache problems. :(
 
 - With prefer final:
+
+    - Check that we indeed currently prefer final releases.
+    >>> zc.buildout.easy_install.prefer_final()
+    True
 
     - no existing and newer dev available
     >>> prefer_final_permutation((), [1, '2a1'])
