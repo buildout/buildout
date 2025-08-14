@@ -2278,7 +2278,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
     )
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
-        installed_with_pip = False
         if (os.path.isdir(dist.location) and
                 dist.precedence >= pkg_resources.BINARY_DIST):
             # We got a pre-built directory. It must have been obtained locally.
@@ -2314,7 +2313,6 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             else:
                 logger.debug("Calling pip install for %s on %s", ext, dist.location)
                 [tmp_loc] = call_pip_install(dist.location, tmp_dest)
-                installed_with_pip = True
 
         # We have installed the dist. Now try to rename/move it.
         logger.debug("Egg for %s installed at %s", dist, tmp_loc)
@@ -2358,12 +2356,15 @@ def _move_to_eggs_dir_and_compile(dist, dest):
             newdist = _get_matching_dist_in_location(dist, newloc)
             if newdist is None:
                 raise AssertionError(f"{newloc} has no distribution for {dist}")
-        if installed_with_pip:
-            # The new dist automatically has precedence DEVELOP_DIST, which sounds
-            # wrong.  And this interferes with a check for printing picked versions.
-            # So set it to EGG_DIST.  We already did this for a long time, then I
-            # removed it because I thought it would no longer be needed, but it is.
-            newdist.precedence = pkg_resources.EGG_DIST
+        # The new dist automatically has precedence DEVELOP_DIST, which sounds
+        # wrong.  And this interferes with a check for printing picked versions.
+        # So set it to EGG_DIST.  We already did this for a long time, then I
+        # removed it because I thought it would no longer be needed, but it is.
+        # Also, we used to do this only when the dist was installed by pip,
+        # but it seems needed always, otherwise dists installed from eggs won't
+        # be reported in picked versions either.  It could be that we report
+        # too much then, but we will see.
+        newdist.precedence = pkg_resources.EGG_DIST
     finally:
         # Remember that temporary directories must be removed
         zc.buildout.rmtree.rmtree(tmp_dest)
