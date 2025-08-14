@@ -26,6 +26,7 @@ import os
 import pkg_resources
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 import zc.buildout.easy_install
@@ -3357,97 +3358,121 @@ def buildout_txt_setup(test):
     shutil.copytree(recipes_dir, Path(sample_buildout) / 'recipes')
 
 
+from build import ProjectBuilder
+from build.env import DefaultIsolatedEnv
+from pathlib import Path
+import tarfile
+
+
+
+def _silent_project_builder_runner(cmd, cwd=None, extra_environ=None):
+    """Run the build command silently.
+
+    The default runner is `pyproject_hooks.default_subprocess_runner`,
+    which currently does this:
+
+        env = os.environ.copy()
+        if extra_environ:
+            env.update(extra_environ)
+        check_call(cmd, cwd=cwd, env=env)
+
+    We do the same, but ignore the output.
+    """
+    env = os.environ.copy()
+    if extra_environ:
+        env.update(extra_environ)
+    subprocess.check_output(cmd, cwd=cwd, env=env, stderr=subprocess.STDOUT)
+
+
+def _build_in_isolated_env(distribution, source_dir, dest_dir):
+    """Build distribution in isolated env.
+
+    This is our variant of the _build_in_isolated_env function from the
+    `build` module.
+    """
+    if distribution not in {"sdist", "wheel"}:
+        raise ValueError(f"Invalid argument passed: {distribution=}")
+    with DefaultIsolatedEnv(installer="pip") as env:
+        builder = ProjectBuilder.from_isolated_env(
+            env,
+            source_dir=source_dir,
+            runner=_silent_project_builder_runner,
+            )
+        env.install(builder.build_system_requires)
+        env.install(builder.get_requires_for_build(distribution))
+        builder.build(distribution, dest_dir)
+
+
 egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d+)$'
                        ).match
-def makeNewRelease(project, ws, dest, version='99.99'):
+def makeNewRelease(project, ws, dest, versions=['91.0', '99.99']):
+    """Make a new release for a project.
+
+    Theoretically this can work for various projects, but currently we are
+    only considering the project being zc.buildout.  We expect that it is a
+    real development install, no egg, so dist.location is buildout-repo/src.
+    """
+    if project != "zc.buildout":
+        print(
+            f"WARNING: Unexpected project: {project} instead of zc.buildout.\n"
+            "If makeNewRelease works, great, otherwise you have been warned."
+        )
     dist = ws.find(pkg_resources.Requirement.parse(project))
-    eggname, oldver, pyver = egg_parse(dist.egg_name()).groups()
-    dest = os.path.join(dest, "%s-%s-py%s.egg" % (eggname, version, pyver))
+    oldver = dist.version
     if os.path.isfile(dist.location):
-        shutil.copy(dist.location, dest)
-        zip = zipfile.ZipFile(dest, 'a')
-        zip.writestr(
-            'EGG-INFO/PKG-INFO',
-            ((zip.read('EGG-INFO/PKG-INFO').decode('ISO-8859-1')
-              ).replace("Version: %s" % oldver,
-                        "Version: %s" % version)
-             ).encode('ISO-8859-1')
-            )
-        zip.close()
+        # We used to handle this, but not anymore.
+        raise ValueError(f"We expected a directory, but got a file: {dist.location}")
     elif dist.location.endswith('site-packages'):
-        os.mkdir(dest)
-        shutil.copytree(
-            os.path.join(dist.location, project),
-            os.path.join(dest, project),
-        )
-        distinfo = '%s-%s.dist-info' % (project, oldver)
-        shutil.copytree(
-            os.path.join(dist.location, distinfo),
-            os.path.join(dest, distinfo),
-        )
-        info_path = os.path.join(dest, distinfo, 'METADATA')
-        with open(info_path) as f:
-            info = f.read().replace("Version: %s" % oldver,
-                                    "Version: %s" % version)
-        with open(info_path, 'w') as f:
-            f.write(info)
-        new_distinfo = '%s-%s.dist-info' % (project, version)
-        os.rename(
-            os.path.join(dest, distinfo),
-            os.path.join(dest, new_distinfo),
-        )
-    else:
-        shutil.copytree(dist.location, dest)
-        info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
-        with open(info_path) as f:
-            info = f.read().replace("Version: %s" % oldver,
-                                    "Version: %s" % version)
-        with open(info_path, 'w') as f:
-            f.write(info)
+        # We used to handle this, but not anymore.
+        raise ValueError(f"We don't expect a dist in site-packages anymore: {dist.location}")
 
-def getWorkingSetWithBuildoutEgg(test):
-    sample_buildout = test.globs['sample_buildout']
-    eggs = os.path.join(sample_buildout, 'eggs')
+    # So we have a directory and it is not in site-packages.  This is currently
+    # expected to be the only case we really need to handle.  Let's get a proper
+    # Path object.
+    location = Path(dist.location)
 
-    # If the zc.buildout dist is a develop dist, convert it to a
-    # regular egg in the sample buildout
-    req = pkg_resources.Requirement.parse('zc.buildout')
-    dist = pkg_resources.working_set.find(req)
-    if dist.precedence == pkg_resources.DEVELOP_DIST:
-        # We have a develop egg, create a real egg for it:
-        here = os.getcwd()
-        os.chdir(os.path.dirname(dist.location))
-        zc.buildout.easy_install.call_subprocess(
-            [sys.executable,
-             os.path.join(os.path.dirname(dist.location), 'setup.py'),
-             '-q', 'bdist_egg', '-d', eggs],
-            env=dict(os.environ,
-                     PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
-                     ),
-            )
-        os.chdir(here)
-        os.remove(os.path.join(eggs, 'zc.buildout.egg-link'))
+    # For zc.buildout we need the parent dir.
+    if location.name == "src":
+        location = location.parent
 
-        # Rebuild the buildout script
-        ws = pkg_resources.WorkingSet([eggs])
-        ws.require('zc.buildout')
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            os.path.join(sample_buildout, 'bin'))
-    else:
-        ws = pkg_resources.working_set
-    return ws
+    # First create a source dist in a temporary directory.
+    with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = Path(tempdir)
+        _build_in_isolated_env("sdist", location, tempdir)
+        # Get the tarball and extract it.
+        tarball = os.listdir(tempdir)[0]
+        with tarfile.open(os.path.join(tempdir, tarball)) as tar:
+            tar.extractall(path=tempdir)
+        os.remove(os.path.join(tempdir, tarball))
+        # Now the only directory enty is what was extracted.
+        extracted = tempdir / os.listdir(tempdir)[0]
+        setup_py_path = extracted / 'setup.py'
+        assert setup_py_path.exists()
+        old_line = f'version = "{oldver}"'
+        for version in versions:
+            # In the setup.py we expect a line like this:
+            # version = "4.2.0.dev0"
+            info = setup_py_path.read_text()
+            new_line = f'version = "{version}"'
+            if old_line not in info:
+                raise ValueError(f"Expected line not found: {old_line}")
+            info = info.replace(old_line, new_line)
+            old_line = new_line
+            setup_py_path.write_text(info)
+            # Now we need to build the new wheel distribution.
+            _build_in_isolated_env("wheel", extracted, dest)
+
 
 def updateSetup(test):
     zc.buildout.testing.buildoutSetUp(test)
     new_releases = test.globs['tmpdir']('new_releases')
     test.globs['new_releases'] = new_releases
-    ws = getWorkingSetWithBuildoutEgg(test)
+    # ws = getWorkingSetWithBuildoutEgg(test)
+    ws = pkg_resources.working_set
     # now let's make the new releases
-    # TODO enable new releases of pip wheel setuptools
-    # when eggs enforced
     makeNewRelease('zc.buildout', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+    # os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+
 
 def ancestor(path, level):
     while level > 0:
