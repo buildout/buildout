@@ -2521,6 +2521,8 @@ preference for newer distributions.
 
 The default is prefer-final = true:
 
+    >>> zc.buildout.easy_install.prefer_final()
+    True
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
