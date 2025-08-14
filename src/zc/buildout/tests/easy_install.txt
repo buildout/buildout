@@ -345,6 +345,8 @@ reporting that a version was picked automatically:
     zc.buildout.easy_install INFO
       Got demo 0.3.
     zc.buildout.easy_install DEBUG
+      Picked: demo = 0.3
+    zc.buildout.easy_install DEBUG
       Getting required 'demoneeded'
     zc.buildout.easy_install DEBUG
         required by demo 0.3.
@@ -362,6 +364,8 @@ reporting that a version was picked automatically:
       Egg for demoneeded 1.1 installed at .../demoneeded-1.1-pyN.N.egg
     zc.buildout.easy_install INFO
       Got demoneeded 1.1.
+    zc.buildout.easy_install DEBUG
+      Picked: demoneeded = 1.1
     >>> handler.uninstall()
     >>> logging.getLogger('zc.buildout.easy_install').propagate = True
 
