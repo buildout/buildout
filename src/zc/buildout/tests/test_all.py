@@ -28,10 +28,12 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
-import zipfile
+from build import ProjectBuilder
+from build.env import DefaultIsolatedEnv
 from pathlib import Path
 from zc.buildout.tests import easy_install_SetUp
 from zc.buildout.tests import normalize_bang
@@ -3331,38 +3333,31 @@ if sys.platform == 'win32':
 def buildout_txt_setup(test):
     zc.buildout.testing.buildoutSetUp(test)
     mkdir = test.globs['mkdir']
-    eggs = os.environ['buildout_testing_index_url'][7:]
-    test.globs['sample_eggs'] = eggs
+    index = os.environ['buildout_testing_index_url'][7:]
+    test.globs['sample_eggs'] = index
     create_sample_eggs(test)
 
-    for name in os.listdir(eggs):
+    index = Path(index)
+    for name in os.listdir(index):
         if '-' in name:
             pname = name.split('-')[0]
-            if not os.path.exists(os.path.join(eggs, pname)):
-                mkdir(eggs, pname)
-            shutil.move(os.path.join(eggs, name),
-                        os.path.join(eggs, pname, name))
+            if not (index / pname).exists():
+                mkdir(index, pname)
+            shutil.move(index / name, index / pname / name)
 
     dist = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('zc.recipe.egg'))
-    mkdir(eggs, 'zc.recipe.egg')
-    zc.buildout.testing.sdist(
+    mkdir(index, 'zc.recipe.egg')
+    zc.buildout.testing.bdist_wheel(
         os.path.dirname(dist.location),
-        os.path.join(eggs, 'zc.recipe.egg'),
-        )
+        index / 'zc.recipe.egg',
+    )
 
     sample_buildout = test.globs['sample_buildout']
 
     # Copy recipes directory
     recipes_dir = HERE / 'recipes'
     shutil.copytree(recipes_dir, Path(sample_buildout) / 'recipes')
-
-
-from build import ProjectBuilder
-from build.env import DefaultIsolatedEnv
-from pathlib import Path
-import tarfile
-
 
 
 def _silent_project_builder_runner(cmd, cwd=None, extra_environ=None):
