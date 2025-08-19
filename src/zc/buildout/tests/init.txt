@@ -113,7 +113,6 @@ or paths to use::
     Getting distribution for 'demoneeded'.
     Got demoneeded 1.1.
     Generated script '/sample-bootstrapped/bin/demo'.
-    Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
 
 This causes a ``py`` part to be included that sets up a custom Python
@@ -164,7 +163,6 @@ for us::
     Creating directory '/sample-bootstrapped/develop-eggs'.
     Installing py.
     Generated script '/sample-bootstrapped/bin/demo'.
-    Generated script '/sample-bootstrapped/bin/distutilsscript'.
     Generated interpreter '/sample-bootstrapped/bin/py'.
 
 .. cleanup
