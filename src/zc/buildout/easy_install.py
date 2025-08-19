@@ -1976,6 +1976,12 @@ def call_pip_install(spec, dest):
             spec)
         sys.exit(1)
 
+    if level <= logging.DEBUG:
+        logger.debug("Pip install completed successfully.")
+        logger.debug("Contents of %s:", dest)
+        for entry in os.listdir(dest):
+            logger.debug("- %s", entry)
+
     split_entries = [os.path.splitext(entry) for entry in os.listdir(dest)]
     try:
         distinfo_dir = [
@@ -1987,12 +1993,13 @@ def call_pip_install(spec, dest):
             spec)
         raise
 
-    # TODO: no longer needed in our scheme.
+    # TODO: we should no longer make an egg, but we still need some of this.
     return make_egg_after_pip_install(dest, distinfo_dir)
 
 
 def make_egg_after_pip_install(dest, distinfo_dir):
     """build properly named egg directory"""
+    logger.debug('Making egg in %s from pip installation in %s', dest, distinfo_dir)
 
     # `pip install` does not build the namespace aware __init__.py files
     # but they are needed in egg directories.
