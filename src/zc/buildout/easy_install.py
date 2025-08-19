@@ -1997,34 +1997,82 @@ def call_pip_install(spec, dest):
     return make_egg_after_pip_install(dest, distinfo_dir)
 
 
+def check_namespace_init_file(ns_file):
+    """Look for namespace declaration in file.
+
+    This can be spelled in different ways.  It can be a one-liner:
+
+    __import__('pkg_resources').declare_namespace(__name__)
+
+    Or it can be a multi-line declaration, including comments, like this:
+
+    # See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
+    try:
+        __import__("pkg_resources").declare_namespace(__name__)
+    except ImportError:
+        from pkgutil import extend_path
+
+        __path__ = extend_path(__path__, __name__)
+    """
+    logger.debug("Checking namespace __init__.py file: %s", ns_file)
+    with open(ns_file, 'r') as myfile:
+        contents = [line for line in myfile.readlines() if line.strip() and not line.strip().startswith('#')]
+    if len(contents) == 0:
+        logger.debug("Found too few lines to be a namespace declaration.")
+        return False
+    if len(contents) > 6:
+        logger.debug("Found too many lines to be a namespace declaration.")
+        return False
+    for combo in [
+        ("pkg_resources", "declare_namespace"),
+        ("pkgutil", "extend_path"),
+    ]:
+        found_first = False
+        for line in contents:
+            if found_first and combo[1] in line:
+                logger.debug("Found namespace declaration in %s", ns_file)
+                return True
+            if combo[0] in line:
+                found_first = True
+    logger.debug("No namespace declaration found in %s", ns_file)
+    return False
+
+
+def find_namespace_init_files(directory):
+    logger.debug("Searching for namespace __init__.py files in %s", directory)
+    found_files = []
+    for root, dirs, files in os.walk(directory):
+        if root.endswith('__pycache__'):
+            continue
+        if len(files) != 1 or '__init__.py' not in files:
+            continue
+        ns_file = os.path.join(root, '__init__.py')
+        logger.debug('Found possible namespace __init__.py file: %s', ns_file)
+        if check_namespace_init_file(ns_file):
+            found_files.append(ns_file)
+    if found_files:
+        logger.debug("Found namespace __init__.py files: %s", found_files)
+    else:
+        logger.debug("No namespace __init__.py files found.")
+    return found_files
+
+
 def make_egg_after_pip_install(dest, distinfo_dir):
     """build properly named egg directory"""
     logger.debug('Making egg in %s from pip installation in %s', dest, distinfo_dir)
 
-    # `pip install` does not build the namespace aware __init__.py files
-    # but they are needed in egg directories.
-    # Add them before moving files setup by pip
-    # namespace_packages_file = os.path.join(
-    #     dest, distinfo_dir,
-    #     'namespace_packages.txt'
-    # )
-    # if os.path.isfile(namespace_packages_file):
-    #     with open(namespace_packages_file) as f:
-    #         namespace_packages = [
-    #             line.strip().replace('.', os.path.sep)
-    #             for line in f.readlines()
-    #         ]
 
-    #     for namespace_package in namespace_packages:
-    #         namespace_package_dir = os.path.join(dest, namespace_package)
-    #         if os.path.isdir(namespace_package_dir):
-    #             init_py_file = os.path.join(
-    #                 namespace_package_dir, '__init__.py')
-    #             with open(init_py_file, 'w') as f:
-    #                 f.write(
-    #                     "__import__('pkg_resources')."
-    #                     "declare_namespace(__name__)"
-    #                 )
+    # `pip install` does not build the namespace aware __init__.py files.
+    # In the new situation we are happy with that.  But actually, for some
+    # packages, pip *does* include these files, so we need to remove them.
+    # For example try `pip install zope.interface==4.1.3`.  You get a warning:
+    # "DEPRECATION: zope.interface is being installed using the legacy
+    # 'setup.py install' method, because it does not have a 'pyproject.toml'""
+    # Apparently this has the side effect that the namespace files get installed.
+    # zope.interface 7.0.3 does not have this problem.
+    for ns_file in find_namespace_init_files(dest):
+        os.remove(ns_file)
+        logger.debug("Removed namespace __init__.py file: %s", ns_file)
 
     # Remove `bin` directory if needed
     # as there is no way to avoid script installation
