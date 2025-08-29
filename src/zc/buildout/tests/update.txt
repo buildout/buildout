@@ -99,7 +99,7 @@ Our buildout script has been updated to use the new eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg',
+      '/sample-buildout/eggs/v5/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg',
     ...
       ]
     <BLANKLINE>
@@ -185,7 +185,7 @@ directory:
 
     >>> cd(sample_buildout2)
     >>> print_(system(buildout), end='')
-    Creating directory '/sample_buildout2/eggs'.
+    Creating directory '/sample_buildout2/eggs/v5'.
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/develop-eggs'.
@@ -233,7 +233,7 @@ directory:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg'),
+      join(base, 'eggs/v5/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg'),
     ...
       ]
     <BLANKLINE>

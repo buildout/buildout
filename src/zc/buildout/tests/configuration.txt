@@ -122,6 +122,8 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         COMPUTED_VALUE
     eggs-directory= /sample-buildout/eggs
         DEFAULT_VALUE
+    eggs-directory-version= v5
+        DEFAULT_VALUE
     executable= ...
         DEFAULT_VALUE
     find-links=
@@ -209,6 +211,11 @@ You get more information about the way values are computed::
        DIRECTORY VALUE = /sample-buildout/eggs
        AS DEFAULT_VALUE
        SET VALUE = eggs
+    <BLANKLINE>
+    eggs-directory-version= v5
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = v5
     <BLANKLINE>
     executable= ...
     <BLANKLINE>

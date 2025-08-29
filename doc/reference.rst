@@ -310,6 +310,36 @@ eggs-directory, default: 'eggs'
   substitutions, and the result is a relative path, then it will be
   interpreted relative to the buildout directory.)
 
+eggs-directory-version, default: 'v5'
+  This option was introduced in ``zc.buildout`` 5.  Earlier versions ignore it.
+  The reason is that version 5 changes the way in which eggs are created.
+  We install with pip in more cases, and we treat all namespaces as native
+  namespaces.  For packages that use ``pkg_resources`` namespaces, this
+  means a package installed in a shared eggs cache by ``zc.buildout`` 4 may not
+  work correctly with ``zc.buildout`` 5 and the other way around.
+
+  So since ``zc.buildout`` version 5 we maintain separate directories for each
+  "buildout eggs format version".  Current idea: we use v5 from ``zc.buildout``
+  5.x onwards.  Later versions will likely also use v5, as the current
+  expectation is that they will be compatible, just like ``zc.buildout``
+  1.x through 4.x are compatible.
+
+  If you know what you are doing, you can set eggs-directory-version to
+  an empty string.  This can be fine if you don't have any previous eggs
+  and only use ``zc.buildout`` 5 or later.  It should also be fine in case
+  you don't use any namespace packages; but you would be wrong, because
+  you are using ``zc.buildout`` and probably ``zc.recipe.egg``, so you use the
+  zc namespace.  Still, if those are the only two packages, it might
+  possibly work.
+
+  If the value is non-blank, the name will be used as a sub directory of
+  the eggs directory name. For example, if ``eggs-directory`` is
+  ``eggs`` and ``eggs-directory-version`` is ``v5``, then the actual
+  eggs directory will be ``eggs/v5``.
+
+  If ``abi-tag-eggs`` is true, then the actual eggs directory will be
+  for example ``eggs/v5/cp313`` (for CPython 3.13).
+
 executable, default: sys.executable, read-only
   The full path to the Python executable used to run the buildout.
 

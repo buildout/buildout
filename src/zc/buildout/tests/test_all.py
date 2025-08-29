@@ -807,7 +807,7 @@ bootstrapping.
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
-    Creating directory '/sample-bootstrap/eggs'.
+    Creating directory '/sample-bootstrap/eggs/v5'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
     Creating directory '/sample-bootstrap/develop-eggs'.
@@ -834,7 +834,7 @@ def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
-    Creating directory '/sample-bootstrap/eggs'.
+    Creating directory '/sample-bootstrap/eggs/v5'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
     Creating directory '/sample-bootstrap/develop-eggs'.
@@ -977,7 +977,7 @@ and we will get setuptools included in the working set.
     >>> logging.getLogger('zc.buildout.easy_install').propagate = False
 
     >>> def get_working_set(*project_names):
-    ...     paths = [join(sample_buildout, 'eggs'),
+    ...     paths = [join(sample_buildout, 'eggs', 'v5'),
     ...              join(sample_buildout, 'develop-eggs')]
     ...     return [
     ...        dist.project_name
@@ -1002,11 +1002,13 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
     >>> foox_dist = join('foo', 'dist')
     >>> import glob
     >>> [foox_egg] = glob.glob(join(foox_dist, 'foox-*.egg'))
-    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs'))
+    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs', 'v5'))
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
 
-    >>> ls('eggs') # doctest: +ELLIPSIS
+    >>> ls('eggs')
+    d  v5
+    >>> ls('eggs', 'v5')
     -  foox-0.0.0-py2.4.egg
     -  packaging.egg-link
     -  pip.egg-link
@@ -1024,9 +1026,9 @@ We do not get a warning, but we do get setuptools included in the working set:
 Likewise for an unzipped egg:
 
     >>> foox_egg_basename = os.path.basename(foox_egg)
-    >>> os.remove(join(sample_buildout, 'eggs', foox_egg_basename))
+    >>> os.remove(join(sample_buildout, 'eggs', 'v5', foox_egg_basename))
     >>> _ = zc.buildout.easy_install.install(
-    ...     ['foox'], join(sample_buildout, 'eggs'), links=[foox_dist],
+    ...     ['foox'], join(sample_buildout, 'eggs', 'v5'), links=[foox_dist],
     ...     index='file://' + foox_dist)
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
@@ -1072,7 +1074,7 @@ implement its namespaces, even if just as fallback from the absence of
 ``pkg_resources``, then ``setuptools`` should not be added as requirement to
 its unzipped egg:
 
-    >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
+    >>> foox_installed_egg = join(sample_buildout, 'eggs', 'v5', foox_egg_basename)
     >>> namespace_init = join(foox_installed_egg, 'stuff', '__init__.py')
     >>> write(namespace_init,
     ... """try:
@@ -1242,7 +1244,7 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     ... """)
 
     >>> bdist_egg(join(sample_buildout, "demo"), sys.executable,
-    ...           join(sample_buildout, "eggs"))
+    ...           join(sample_buildout, "eggs", "v5"))
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1945,7 +1947,7 @@ def install_source_dist_with_bad_py():
     <BLANKLINE>
     X
 
-    >>> ls('eggs') # doctest: +ELLIPSIS
+    >>> ls('eggs', 'v5') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
     ...
 
@@ -2777,8 +2779,8 @@ def pyc_and_pyo_files_have_correct_paths():
     ... ''')
 
     >>> print_(system(join('bin', 'py')+ ' t.py'), end='')
-    /sample-buildout/eggs/demo-0.3-py2.4.egg/eggrecipedemo.py
-    /sample-buildout/eggs/demoneeded-1.1-py2.4.egg/eggrecipedemoneeded.py
+    /sample-buildout/eggs/v5/demo-0.3-py2.4.egg/eggrecipedemo.py
+    /sample-buildout/eggs/v5/demoneeded-1.1-py2.4.egg/eggrecipedemoneeded.py
     """
 
 def dont_mess_with_standard_dirs_with_variable_refs():
@@ -2787,6 +2789,7 @@ def dont_mess_with_standard_dirs_with_variable_refs():
     ... '''
     ... [buildout]
     ... eggs-directory = ${buildout:directory}/develop-eggs
+    ... eggs-directory-version =
     ... parts =
     ... ''' % globals())
     >>> print_(system(buildout), end='')
@@ -3283,8 +3286,10 @@ def test_abi_tag_eggs():
     >>> from zc.buildout.pep425tags import get_abi_tag
     >>> abi_tag = get_abi_tag()
     >>> abi_tag in os.listdir(join(sample_buildout, 'eggs'))
+    False
+    >>> abi_tag in os.listdir(join(sample_buildout, 'eggs', 'v5'))
     True
-    >>> ls('eggs', abi_tag)
+    >>> ls('eggs', 'v5', abi_tag)
     d  demo-0.3-py3.7.egg
     d  demoneeded-1.1-py3.7.egg
     """

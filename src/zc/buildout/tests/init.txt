@@ -11,7 +11,7 @@ local buildout scripts::
     ... '-c' + os.path.join(sample_bootstrapped, 'setup.cfg'),
     ... 'init']), end='')
     Creating '/sample-bootstrapped/setup.cfg'.
-    Creating directory '/sample-bootstrapped/eggs'.
+    Creating directory '/sample-bootstrapped/eggs/v5'.
     Creating directory '/sample-bootstrapped/bin'.
     Creating directory '/sample-bootstrapped/parts'.
     Creating directory '/sample-bootstrapped/develop-eggs'.
@@ -37,7 +37,7 @@ We also get other buildout artifacts::
     >>> ls(sample_bootstrapped, 'bin')
     -  buildout
 
-    >>> _ = (ls(sample_bootstrapped, 'eggs'),
+    >>> _ = (ls(sample_bootstrapped, 'eggs', 'v5'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
     -  packaging.egg-link
     -  pip.egg-link
@@ -75,7 +75,7 @@ if there isn't a configuration file::
     >>> print_(system([buildout,
     ... '-c' + os.path.join(sample_bootstrapped2, 'setup.cfg'),
     ... 'bootstrap']), end='')
-    Creating directory '/sample-bootstrapped2/eggs'.
+    Creating directory '/sample-bootstrapped2/eggs/v5'.
     Creating directory '/sample-bootstrapped2/bin'.
     Creating directory '/sample-bootstrapped2/parts'.
     Creating directory '/sample-bootstrapped2/develop-eggs'.

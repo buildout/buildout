@@ -85,9 +85,9 @@ dist:
 If we remove the installed eggs from eggs directory and re-run the buildout:
 
     >>> import os
-    >>> for  f in os.listdir('eggs'):
+    >>> for f in os.listdir(os.path.join('eggs', 'v5')):
     ...     if f.startswith('demo'):
-    ...         remove('eggs', f)
+    ...         remove('eggs', 'v5', f)
 
     >>> print_(system(buildout), end='')
     GET ...
@@ -115,9 +115,9 @@ cache.
 Let's remove our installed eggs and run the buildout with the
 install-from-cache option set to true:
 
-    >>> for  f in os.listdir('eggs'):
+    >>> for f in os.listdir(os.path.join('eggs', 'v5')):
     ...     if f.startswith('demo'):
-    ...         remove('eggs', f)
+    ...         remove('eggs', 'v5', f)
 
     >>> write('buildout.cfg',
     ... '''
