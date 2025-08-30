@@ -57,7 +57,7 @@ def test_suite():
                 'zc.buildout.egg'),
                (re.compile(r'[d-]  setuptools-[^-]+-'), 'setuptools-X-'),
                (re.compile(r'[d-]  pip-[^-]+-'), 'pip-X-'),
-               (re.compile(r'eggs\\\\demo'), 'eggs/demo'),
+               (re.compile(r'eggs\\\\v5\\\\demo'), 'eggs/v5/demo'),
                (re.compile(r'[a-zA-Z]:\\\\foo\\\\bar'), '/foo/bar'),
                ])
             ),
