@@ -1318,14 +1318,14 @@ def develop(setup, dest,
 
         # This won't find anything on setuptools 80+.
         # Can't be helped, I think.
-        # _detect_distutils_scripts(tmp3)
+        _detect_distutils_scripts(tmp3)
 
         # This won't find anything on setuptools 80+.
         # But on older setuptools it still works fine.
-        # egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
-        # if egg_link:
-        #     logger.debug("Successfully made editable install: %s", egg_link)
-        #     return egg_link
+        egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
+        if egg_link:
+            logger.debug("Successfully made editable install: %s", egg_link)
+            return egg_link
 
         egg_link = _create_egg_link(directory, dest, egg_name)
         if egg_link:
@@ -1876,7 +1876,11 @@ def call_pip_install(spec, dest, editable=False):
     """
     Call `pip install` from a subprocess to install a
     distribution specified by `spec` into `dest`.
-    Returns all the paths inside `dest` created by the above.
+
+    For normal (non-editable) installs, returns all the paths inside `dest`
+    created by the above.  For editable installs, it returns the package name.
+    These very different return values may seem strange, but it is because
+    what needs to happen afterwards is very different for the two cases.
     """
     args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
     level = logger.getEffectiveLevel()
@@ -1921,6 +1925,19 @@ def call_pip_install(spec, dest, editable=False):
             logger.debug("- %s", entry)
 
     split_entries = [os.path.splitext(entry) for entry in os.listdir(dest)]
+    if editable:
+        # On setuptools 79 and earlier, the egg-link file is created.
+        for base, ext in split_entries:
+            if ext == ".egg-link":
+                logger.debug(
+                    "Found .egg-link file after successful pip install of %s",
+                    spec,
+                )
+                return base
+
+    # With normal (non-editable) installs, there won't be an egg-link file created.
+    # The same is true for editable installs with setuptools 80+.
+    # In both cases, we need to look for the .dist-info directory.
     try:
         distinfo_dir = [
             base + ext for base, ext in split_entries if ext == ".dist-info"
