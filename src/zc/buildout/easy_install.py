@@ -945,22 +945,26 @@ class Installer(object):
             try:
                 setuptools.archive_util.unpack_archive(dist.location,
                                                        build_tmp)
-                if os.path.exists(os.path.join(build_tmp, 'setup.py')):
-                    base = build_tmp
-                else:
+                base = build_tmp
+                if not os.path.exists(os.path.join(build_tmp, 'setup.py')):
                     setups = glob.glob(
                         os.path.join(build_tmp, '*', 'setup.py'))
                     if not setups:
-                        raise distutils.errors.DistutilsError(
-                            "Couldn't find a setup script in %s"
+                        # We used to raise an error, but now we just log a warning.
+                        # Maybe there is a pyproject.toml file that pip can use.
+                        # Otherwise we let pip do the complaining.
+                        logger.warning(
+                            "Couldn't find a setup script to build in %s. "
+                            "Trying pip install anyway."
                             % os.path.basename(dist.location)
-                            )
-                    if len(setups) > 1:
+                        )
+                    elif len(setups) > 1:
                         raise distutils.errors.DistutilsError(
                             "Multiple setup scripts in %s"
                             % os.path.basename(dist.location)
                             )
-                    base = os.path.dirname(setups[0])
+                    else:
+                        base = os.path.dirname(setups[0])
 
                 setup_cfg = os.path.join(base, 'setup.cfg')
                 if not os.path.exists(setup_cfg):
