@@ -41,6 +41,7 @@ import zc.buildout.rmtree
 import zipfile
 from . import _package_index
 from functools import cached_property
+from importlib import metadata
 from packaging import specifiers
 from packaging.utils import canonicalize_name
 from packaging.utils import is_normalized_name
@@ -1126,7 +1127,7 @@ def _rm(*paths):
             os.remove(path)
 
 
-def _create_egg_link(setup, dest, egg_name):
+def _create_egg_link(directory, dest, egg_name):
     """Create egg-link file.
 
     setuptools 80 basically removes its own 'setup.py develop' code, and
@@ -1149,8 +1150,8 @@ def _create_egg_link(setup, dest, egg_name):
     a src-layout and a layout with the code starting at the same level as
     the setup.py file.
     """
-    setup = os.path.realpath(setup)
-    egg_path = os.path.dirname(setup)
+    egg_path = os.path.realpath(directory)
+    assert os.path.isdir(egg_path)
     if not egg_name:
         egg_name = os.path.basename(egg_path)
     if 'src' in os.listdir(egg_path):
@@ -1259,21 +1260,27 @@ def develop(setup, dest,
             executable=sys.executable):
     """Make a development/editable install of a package.
 
-    This expects to get a path to a setup.py file (or a directory containing
-    it) as the first argument.  And then it basically calls
-    `python setup.py develop`.  This is a deprecated way of installing a
-    package.  In setuptools 80 this still works, but setuptools has internally
-    changed to call `pip install`.  So at some point we may need to do that
-    ourselves.
+    This expects to get a path to a directory or a file as the first argument.
+    If it is a file, we used to expect it to be a `setup.py` file.
+    And then we would basically call `python setup.py develop`.
+    Nowadays it could also be a `pyproject.toml` file.
 
-    Also, since this expects a setup.py file, this currently does not work
-    at all for a package that does not use setuptools, but for example
-    hatchling.  This also may be solvable by calling `pip install`.
+    Calling `setup.py develop` is a deprecated way of installing a package.
+    In setuptools 80 this still works, but setuptools has internally
+    changed to call `pip install`.  Since zc.buildout 5 we also do that.
+
+    We basically ignore the file, and just get its directory instead.
+
+    With the `build_ext` option you can influence how C extensions in the
+    package are built.  This may not be possible in a project that is using
+    hatchling, unless you have some hatchling extensions.  So the current
+    code assumes you are using setuptools.  It will create or edit a
+    `setup.cfg` file in the package directory and put the build_ext
+    options in there.
     """
     assert executable == sys.executable, (executable, sys.executable)
     if os.path.isdir(setup):
         directory = setup
-        setup = os.path.join(directory, 'setup.py')
     else:
         directory = os.path.dirname(setup)
     logger.debug("Making editable install of %s", setup)
@@ -1296,95 +1303,27 @@ def develop(setup, dest,
             setuptools.command.setopt.edit_config(
                 setup_cfg, dict(build_ext=build_ext))
 
-        fd, tsetup = tempfile.mkstemp()
-        undo.append(lambda: os.remove(tsetup))
-        undo.append(lambda: os.close(fd))
-
-        # setuptools/distutils is showing more and more warnings.
-        # And they may be very long, like this gem of 31 lines:
-        # https://github.com/pypa/setuptools/blob/v79.0.1/setuptools/command/easy_install.py#L1336
-        # That one shows up now that setuptools 80 forces us to no longer
-        # use the --multi-version option when calling 'setup.py develop'.
-        # And they may get repeated for several packages.
-        # And they change the output of our doctests, causing lots of test
-        # failures, making us abandon a potentially working bugfix, or causing
-        # us to spend hours trying to fix or normalize test output.
-        # See the current case: I want to test if removing the --multi-version
-        # option works.  The new avalanche of log lines makes this impossible.
-        #
-        # In other words: I have *had* it with those warnings.
-        #
-        # So I set the root logger to simply not log at all.
-        # Unfortunately, this removes error logging as well; I tried to change
-        # the log level, but that somehow did not work.
-        # You will still see exceptions though.
-        # And: if you call buildout with '-v', our log level is DEBUG,
-        # and then I don't disable the root logger.
-        #
-        # Note that I currently only do this in this specific place,
-        # so when calling 'setup.py develop'.
-        log_level = logger.getEffectiveLevel()
-        extra = disable_root_logger if log_level > logging.DEBUG else ""
-        os.write(fd, (runsetup_template % dict(
-            setupdir=directory,
-            setup=setup,
-            __file__ = setup,
-            extra=extra,
-            )).encode())
-
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
-        # We used to pass '-m', or '--multi-version' to 'setup.py develop'.
-        # The help says: "make apps have to require() a version".
-        # But this option is no longer available since setuptools 80.
-        # See https://github.com/buildout/buildout/pull/708
-        # After some changes in our code, it seems to work without it.
-        # But let's be safe and still use this flag on older setuptools.
-        args = [executable,  tsetup, '-q', 'develop', '-N', '-d', tmp3]
-        if not IS_SETUPTOOLS_80_PLUS:
-            # Insert '-m' before '-N'.
-            args.insert(args.index('-N'), '-m')
-        if log_level <= logging.DEBUG:
-            if log_level == logging.NOTSET:
-                del args[2]
-            else:
-                args[2] == '-v'
-            logger.debug("in: %r\n%s", directory, ' '.join(args))
+        egg_name = call_pip_install(directory, tmp3, editable=True)
 
-        output = get_subprocess_output(args)
-        if log_level <= logging.DEBUG:
-            print(output)
+        # output = get_subprocess_output(args)
+        # if log_level <= logging.DEBUG:
+        #     print(output)
 
         # This won't find anything on setuptools 80+.
         # Can't be helped, I think.
-        _detect_distutils_scripts(tmp3)
+        # _detect_distutils_scripts(tmp3)
 
         # This won't find anything on setuptools 80+.
         # But on older setuptools it still works fine.
-        egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
-        if egg_link:
-            logger.debug("Successfully made editable install: %s", egg_link)
-            return egg_link
+        # egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
+        # if egg_link:
+        #     logger.debug("Successfully made editable install: %s", egg_link)
+        #     return egg_link
 
-        # The following is needed on setuptools 80+.
-        # It might even work on older setuptools as fallback.
-        # Search for name of package that got installed. Start from the bottom.
-        # There should be a nicer way.
-        egg_name = ""
-        search = "Installing collected packages:"
-        for line in reversed(output.splitlines()):
-            if line.startswith(search):
-                egg_name = line[len(search):].strip()
-                if "," in egg_name or " " in egg_name:
-                    logger.warning(
-                        "Ignoring multiple egg names in output line: %r",
-                        line,
-                    )
-                    egg_name = ""
-                break
-
-        egg_link = _create_egg_link(setup, dest, egg_name)
+        egg_link = _create_egg_link(directory, dest, egg_name)
         if egg_link:
             logger.debug("Successfully made editable install: %s", egg_link)
             return egg_link
@@ -1929,7 +1868,7 @@ class IncompatibleConstraintError(zc.buildout.UserError):
 IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
 
 
-def call_pip_install(spec, dest):
+def call_pip_install(spec, dest, editable=False):
     """
     Call `pip install` from a subprocess to install a
     distribution specified by `spec` into `dest`.
@@ -1941,7 +1880,8 @@ def call_pip_install(spec, dest):
         args.append('-q')
     else:
         args.append('-v')
-
+    if editable:
+        args.append('-e')
     args.append(spec)
 
     try:
@@ -1966,17 +1906,11 @@ def call_pip_install(spec, dest):
 
     sys.stdout.flush() # We want any pending output first
 
-    exit_code = subprocess.call(list(args), env=env)
-
-    if exit_code:
-        logger.error(
-            "An error occurred when trying to install %s. "
-            "Look above this message for any errors that "
-            "were output by pip install.",
-            spec)
-        sys.exit(1)
-
+    # This will quit the buildout process if there is an error.
+    output = get_subprocess_output(list(args), env=env)
     if level <= logging.DEBUG:
+        if output:
+            logger.debug(output)
         logger.debug("Pip install completed successfully.")
         logger.debug("Contents of %s:", dest)
         for entry in os.listdir(dest):
@@ -1993,8 +1927,20 @@ def call_pip_install(spec, dest):
             spec)
         raise
 
-    # TODO: we should no longer make an egg, but we still need some of this.
-    return make_egg_after_pip_install(dest, distinfo_dir)
+    distrib = metadata.Distribution.at(dest + "/" + distinfo_dir)
+    # On Python 3.10 we could use `distrib.name`.
+    name = distrib.metadata['Name']
+    if not name:
+        logger.error(
+            "Could not find package name in metadata after installing %s.",
+            spec,
+        )
+        sys.exit(1)
+
+    if not editable:
+        # TODO: we should no longer make an egg, but we still need some of this.
+        return make_egg_after_pip_install(dest, distinfo_dir)
+    return name
 
 
 def check_namespace_init_file(ns_file):

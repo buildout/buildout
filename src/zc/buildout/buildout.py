@@ -961,7 +961,11 @@ class Buildout(DictMixin):
                 os.mkdir(d)
 
     def _develop(self):
-        """Install sources by running setup.py develop on them
+        """Install sources by running in editable mode.
+
+        Traditionally: run `setup.py develop` on them.
+        Nowadays: run `pip install -e` on them, as there may not be a `setup.py`,
+        but `pyproject.toml` instead, using for example `hatchling`.
         """
         __doing__ = 'Processing directories listed in the develop option'
 
