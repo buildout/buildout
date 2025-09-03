@@ -45,10 +45,12 @@ from importlib import metadata
 from packaging import specifiers
 from packaging.utils import canonicalize_name
 from packaging.utils import is_normalized_name
+from pathlib import Path
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
 from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
+from zc.buildout.utils import get_source_from_pth_file
 from zc.buildout.utils import normalize_name
 import warnings
 import csv
@@ -412,6 +414,15 @@ class Installer(object):
 
     def _make_env(self):
         full_path = self._get_dest_dist_paths() + self._path
+        # Check for .pth files in self._path and include them in the full path.
+        # We should do this at least for the develop-eggs directory, which is
+        # expected to be the first in self._path.  But let's do it for all,
+        # and see how it goes.
+        for path in self._path:
+            for pth_file in Path(path).glob('*.pth'):
+                source = get_source_from_pth_file(pth_file)
+                if source:
+                    full_path.append(source)
         env = Environment(full_path)
         # this needs to be called whenever self._env is modified (or we could
         # make an Environment subclass):
@@ -1312,10 +1323,6 @@ def develop(setup, dest,
 
         egg_name = call_pip_install(directory, tmp3, editable=True)
 
-        # output = get_subprocess_output(args)
-        # if log_level <= logging.DEBUG:
-        #     print(output)
-
         # This won't find anything on setuptools 80+.
         # Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
@@ -1327,14 +1334,31 @@ def develop(setup, dest,
             logger.debug("Successfully made editable install: %s", egg_link)
             return egg_link
 
-        egg_link = _create_egg_link(directory, dest, egg_name)
-        if egg_link:
-            logger.debug("Successfully made editable install: %s", egg_link)
-            return egg_link
-        logger.error(
-            "Failure making editable install: no egg-link created for %s",
-            setup,
-        )
+        # For a while we 'manually' created .egg-link files for editable installs.
+        # But with zc.buildout 5, where we do more with pip, we switched to handling
+        # the .pth files instead that pip creates.
+        # In the normal case, we would have one .pth file and one dist-info directory.
+        # The .pth file should point to the source directory of the package.
+        # This can be the same as the 'directory' we already have, but it can
+        # also be a 'src' sub directory.
+        tmp3 = Path(tmp3)
+        dist_infos = list(tmp3.glob("*.dist-info"))
+        if not dist_infos:
+            logger.error(
+                "Failure making editable install: no dist-info found for %s",
+                setup,
+            )
+            sys.exit(1)
+        dist_info_target = Path(directory)
+        for pth in tmp3.glob("*.pth"):
+            source = get_source_from_pth_file(pth)
+            if source:
+                dist_info_target = source
+                shutil.move(pth, dest)
+        for dist_info in dist_infos:
+            if (dist_info_target / dist_info.name).exists():
+                shutil.rmtree(dist_info_target / dist_info.name)
+            shutil.move(dist_info, dist_info_target)
 
     finally:
         undo.reverse()

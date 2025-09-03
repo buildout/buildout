@@ -18,6 +18,7 @@ from collections.abc import MutableMapping as DictMixin
 from functools import partial
 from hashlib import md5 as md5_original
 from packaging import utils as packaging_utils
+from pathlib import Path
 from zc.buildout.rmtree import rmtree
 
 import zc.buildout.easy_install
@@ -1014,15 +1015,22 @@ class Buildout(DictMixin):
         finally:
             os.chdir(here)
 
+    def _develop_eggs_entry_is_sane(self, entry):
+        if os.path.isdir(entry):
+            return entry.name.endswith('.dist-info')
+        if not os.path.isfile(entry):
+            return False
+        return entry.name.endswith('.pth') or entry.name.endswith('.egg-link')
 
     def _sanity_check_develop_eggs_files(self, dest, old_files):
-        for f in os.listdir(dest):
-            if f in old_files:
+        dest = Path(dest)
+        for filename in os.listdir(dest):
+            if filename in old_files:
                 continue
-            if not (os.path.isfile(os.path.join(dest, f))
-                    and f.endswith('.egg-link')):
+            entry = dest / filename
+            if not self._develop_eggs_entry_is_sane(entry):
                 self._logger.warning(
-                    "Unexpected entry, %r, in develop-eggs directory.", f)
+                    "Unexpected entry, %r, in develop-eggs directory.", filename)
 
     def _compute_part_signatures(self, parts):
         # Compute recipe signature and add to options
