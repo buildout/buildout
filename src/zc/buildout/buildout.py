@@ -48,6 +48,13 @@ try:
 except ValueError:
     md5 = partial(md5_original, usedforsecurity=False)
 
+if sys.version_info.major == 3 and sys.version_info.minor < 10:
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
+logger = logging.getLogger('zc.buildout')
+
 
 def command(method):
     method.buildout_command = True
@@ -943,7 +950,8 @@ class Buildout(DictMixin):
             uninstaller = _install_and_load(
                 recipe, 'zc.buildout.uninstall', entry, self)
             self._logger.info('Running uninstall recipe.')
-            uninstaller(part, installed_part_options[part])
+            if uninstaller is not None:
+                uninstaller(part, installed_part_options[part])
         except (ImportError, pkg_resources.DistributionNotFound):
             pass
 
@@ -1095,8 +1103,15 @@ class Buildout(DictMixin):
     def _install(self, part):
         options = self[part]
         recipe, entry = _recipe(options)
-        recipe_class = pkg_resources.load_entry_point(
-            recipe, 'zc.buildout', entry)
+        # recipe_class = pkg_resources.load_entry_point(
+        #     recipe, 'zc.buildout', entry)
+        for ep in entry_points(group='zc.buildout', name=entry):
+            if ep.value.startswith(f"{str(recipe)}:"):
+                recipe_class = ep.load()
+                break
+        if recipe_class is None:
+            self._logger.error("Entry point %s in recipe %s could not be loaded.", entry, recipe)
+            sys.exit(1)
         installed = recipe_class(self, part, options).install()
         if installed is None:
             installed = []
@@ -1305,15 +1320,16 @@ class Buildout(DictMixin):
             # couldn't read before.
             zc.buildout.easy_install.clear_index_cache()
 
-            for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
+            # for ep in pkg_resources.iter_entry_points('zc.buildout.extension'):
+            #     ep.load()(self)
+            for ep in entry_points().select(group='zc.buildout.extension'):
                 ep.load()(self)
 
     def _unload_extensions(self):
         __doing__ = 'Unloading extensions.'
         specs = self['buildout'].get('extensions', '').split()
         if specs:
-            for ep in pkg_resources.iter_entry_points(
-                'zc.buildout.unloadextension'):
+            for ep in entry_points().select(group='zc.buildout.unloadextension'):
                 ep.load()(self)
 
     def _print_picked_versions(self):
@@ -1509,8 +1525,10 @@ def _install_and_load(spec, group, entry, buildout):
                 )
 
         __doing__ = 'Loading %s recipe entry %s:%s.', group, spec, entry
-        return pkg_resources.load_entry_point(
-            req.project_name, group, entry)
+        for ep in entry_points(group=group, name=entry):
+            if ep.value.startswith(f"{req.project_name}:"):
+                return ep.load()
+
 
     except Exception:
         v = sys.exc_info()[1]
@@ -1556,7 +1574,9 @@ class Options(DictMixin):
         reqs, entry = _recipe(self._data)
         buildout = self.buildout
         recipe_class = _install_and_load(reqs, 'zc.buildout', entry, buildout)
-
+        if recipe_class is None:
+            logger.error("Recipe %s could not be loaded.", reqs)
+            sys.exit(1)
         name = self.name
         self.recipe = recipe_class(buildout, name, self)
 

@@ -50,6 +50,7 @@ setup(
         'packaging>=23.2',
         'pip',
         'wheel',
+        "importlib-metadata; python_version<'3.10'",
     ],
     include_package_data = True,
     entry_points = entry_points,
