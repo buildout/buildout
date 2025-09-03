@@ -20,4 +20,4 @@ help:
 	./prepare.sh --help
 
 clean:
-	rm -rf venvs .Python .installed.cfg bin build dist lib include parts pip-selfcheck.json develop-eggs src/*.egg-info zc.recipe.egg_/src/*.egg-info
+	rm -rf venvs .Python .installed.cfg bin build dist lib include parts pip-selfcheck.json develop-eggs src/*.*-info zc.recipe.egg_/src/*.*-info

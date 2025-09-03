@@ -19,6 +19,7 @@ installed.
 """
 
 import copy
+from pprint import pp
 import distutils.errors
 import email
 import errno
@@ -33,6 +34,7 @@ import setuptools.archive_util
 import setuptools.command.easy_install
 import setuptools.command.setopt
 import shutil
+import site
 import subprocess
 import sys
 import tempfile
@@ -1342,6 +1344,7 @@ def develop(setup, dest,
         # This can be the same as the 'directory' we already have, but it can
         # also be a 'src' sub directory.
         tmp3 = Path(tmp3)
+        dest = Path(dest)
         dist_infos = list(tmp3.glob("*.dist-info"))
         if not dist_infos:
             logger.error(
@@ -1349,16 +1352,41 @@ def develop(setup, dest,
                 setup,
             )
             sys.exit(1)
+
         dist_info_target = Path(directory)
         for pth in tmp3.glob("*.pth"):
             source = get_source_from_pth_file(pth)
             if source:
                 dist_info_target = source
-                shutil.move(pth, dest)
+            if (dest / pth.name).exists():
+                os.remove(dest / pth.name)
+            shutil.move(pth, dest)
+        # For some packages a .pth file is enough, for others setuptools installs
+        # a Python file, typically named `__editable__.<name>.py`.
+        for py_file in tmp3.glob("*.py"):
+            if (dest / py_file.name).exists():
+                os.remove(dest / py_file.name)
+            shutil.move(py_file, dest)
         for dist_info in dist_infos:
+            # TODO: should this be in develop-eggs and/or in the package src?
             if (dist_info_target / dist_info.name).exists():
                 shutil.rmtree(dist_info_target / dist_info.name)
+            if (dest / dist_info.name).exists():
+                shutil.rmtree(dest / dist_info.name)
+            shutil.copytree(dist_info, dest / dist_info.name)
             shutil.move(dist_info, dist_info_target)
+
+        # Check for new available packages in develop-eggs (or other dest).
+        site.addsitedir(str(dest))
+        # Check that a distribution now actually can be found.
+        try:
+            metadata.distribution(egg_name)
+        except metadata.PackageNotFoundError:
+            logger.error(
+                "After editable install of %s no package metadata was found.",
+                setup,
+            )
+            sys.exit(1)
 
     finally:
         undo.reverse()

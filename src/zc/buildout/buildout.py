@@ -1017,10 +1017,15 @@ class Buildout(DictMixin):
 
     def _develop_eggs_entry_is_sane(self, entry):
         if os.path.isdir(entry):
+            if entry.name == '__pycache__':
+                return True
             return entry.name.endswith('.dist-info')
         if not os.path.isfile(entry):
             return False
-        return entry.name.endswith('.pth') or entry.name.endswith('.egg-link')
+        for suffix in ('.pth', '.py', '.egg-link'):
+            if entry.name.endswith(suffix):
+                return True
+        return False
 
     def _sanity_check_develop_eggs_files(self, dest, old_files):
         dest = Path(dest)
