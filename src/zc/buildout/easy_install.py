@@ -424,7 +424,7 @@ class Installer(object):
             for pth_file in Path(path).glob('*.pth'):
                 source = get_source_from_pth_file(pth_file)
                 if source:
-                    full_path.append(source)
+                    full_path.append(str(source.absolute()))
         env = Environment(full_path)
         # this needs to be called whenever self._env is modified (or we could
         # make an Environment subclass):
