@@ -1,0 +1,1 @@
+The tests have mostly been changed to use wheels instead of eggs, so they more closely resemble real life.  [maurits]
