@@ -1,4 +1,0 @@
-Install development eggs (editable installs) using pip.
-Theoretically this means that you could develop a package that uses for example ``hatchling`` as build system.
-In practice this does not work yet, but the foundation is there.
-[maurits]

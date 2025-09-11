@@ -1,1 +1,0 @@
-Install all namespace packages as native namespaces.  [maurits]

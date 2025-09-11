@@ -8,6 +8,37 @@ Change History
 
 .. towncrier release notes start
 
+5.0.0a1 (2025-09-11)
+--------------------
+
+Breaking changes:
+
+
+- Install development eggs (editable installs) using pip.
+  Theoretically this means that you could develop a package that uses for example ``hatchling`` as build system.
+  In practice this does not work yet, but the foundation is there.
+  [maurits] (#676)
+- Install all namespace packages as native namespaces.  [maurits] (#676)
+- Store eggs in a sub directory: ``eggs/v5``.
+  Or with abi tags for example: ``eggs/v5/cp313``.
+  [maurits] (#676)
+- Install most packages with pip, with only rare exceptions.  [maurits] (#676)
+- The ``zc.buildout`` package itself uses native namespaces now.  [maurits] (#676)
+- Require at least ``setuptools`` version 61.0.0.
+  This is needed due to the changes in the test setup.
+  [maurits]
+
+
+Tests:
+
+
+- The tests have mostly been changed to use wheels instead of eggs, so they more closely resemble real life.  [maurits] (#676)
+- Removed inactive tests for no longer existing ``bootstrap.py``.
+  [maurits]
+- Split the ``buildout.txt`` test file into multiple files.
+  [maurits]
+
+
 4.1.12 (2025-06-11)
 -------------------
 

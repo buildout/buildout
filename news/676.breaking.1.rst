@@ -1,1 +1,0 @@
-Install most packages with pip, with only rare exceptions.  [maurits]

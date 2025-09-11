@@ -1,3 +1,0 @@
-Require at least ``setuptools`` version 61.0.0.
-This is needed due to the changes in the test setup.
-[maurits]

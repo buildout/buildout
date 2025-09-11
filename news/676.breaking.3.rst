@@ -1,3 +1,0 @@
-Store eggs in a sub directory: ``eggs/v5``.
-Or with abi tags for example: ``eggs/v5/cp313``.
-[maurits]

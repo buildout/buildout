@@ -1,1 +1,0 @@
-The ``zc.buildout`` package itself uses native namespaces now.  [maurits]
