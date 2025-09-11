@@ -26,15 +26,18 @@ import os
 import pkg_resources
 import re
 import shutil
+import subprocess
 import sys
+import tarfile
 import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
-import zipfile
+from build import ProjectBuilder
+from build.env import DefaultIsolatedEnv
 from pathlib import Path
 from zc.buildout.tests import easy_install_SetUp
 from zc.buildout.tests import normalize_bang
-from zc.buildout.tests import create_egg
+from zc.buildout.tests import create_wheel
 from zc.buildout.tests import create_sample_eggs
 
 os_path_sep = os.path.sep
@@ -207,7 +210,7 @@ def develop_verbose():
     >>> print_(system(join('bin', 'buildout')+' -vv'), end='')
     ... # doctest: +ELLIPSIS
     Installing...
-    Making editable install of /sample-buildout/foo/setup.py
+    Making editable install of /sample-buildout/foo
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/foo.egg-link
     ...
@@ -219,7 +222,7 @@ def develop_verbose():
     >>> print_(system(join('bin', 'buildout')+' -vvv'), end='')
     ... # doctest: +ELLIPSIS
     Installing...
-    Making editable install of /sample-buildout/foo/setup.py
+    Making editable install of /sample-buildout/foo
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/foo.egg-link
     ...
@@ -465,19 +468,19 @@ If we use the verbose switch, we can see where requirements are coming from:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'wheel'...
-    Making editable install of /sample-buildout/sampley/setup.py
+    Making editable install of /sample-buildout/sampley
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/sampley.egg-link
     ...
-    Making editable install of /sample-buildout/samplez/setup.py
+    Making editable install of /sample-buildout/samplez
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/samplez.egg-link
     ...
-    Making editable install of /sample-buildout/samplea/setup.py
+    Making editable install of /sample-buildout/samplea
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/samplea.egg-link
     ...
-    Making editable install of /sample-buildout/sampleb/setup.py
+    Making editable install of /sample-buildout/sampleb
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/sampleb.egg-link
     ...
@@ -804,7 +807,7 @@ bootstrapping.
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
-    Creating directory '/sample-bootstrap/eggs'.
+    Creating directory '/sample-bootstrap/eggs/v5'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
     Creating directory '/sample-bootstrap/develop-eggs'.
@@ -831,7 +834,7 @@ def bug_92891_bootstrap_crashes_with_egg_recipe_in_buildout_section():
     >>> os.chdir(d)
     >>> print_(system(os.path.join(sample_buildout, 'bin', 'buildout')
     ...              + ' bootstrap'), end='')
-    Creating directory '/sample-bootstrap/eggs'.
+    Creating directory '/sample-bootstrap/eggs/v5'.
     Creating directory '/sample-bootstrap/bin'.
     Creating directory '/sample-bootstrap/parts'.
     Creating directory '/sample-bootstrap/develop-eggs'.
@@ -974,7 +977,7 @@ and we will get setuptools included in the working set.
     >>> logging.getLogger('zc.buildout.easy_install').propagate = False
 
     >>> def get_working_set(*project_names):
-    ...     paths = [join(sample_buildout, 'eggs'),
+    ...     paths = [join(sample_buildout, 'eggs', 'v5'),
     ...              join(sample_buildout, 'develop-eggs')]
     ...     return [
     ...        dist.project_name
@@ -999,11 +1002,13 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
     >>> foox_dist = join('foo', 'dist')
     >>> import glob
     >>> [foox_egg] = glob.glob(join(foox_dist, 'foox-*.egg'))
-    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs'))
+    >>> _ = shutil.copy(foox_egg, join(sample_buildout, 'eggs', 'v5'))
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
 
-    >>> ls('eggs') # doctest: +ELLIPSIS
+    >>> ls('eggs')
+    d  v5
+    >>> ls('eggs', 'v5')
     -  foox-0.0.0-py2.4.egg
     -  packaging.egg-link
     -  pip.egg-link
@@ -1021,9 +1026,9 @@ We do not get a warning, but we do get setuptools included in the working set:
 Likewise for an unzipped egg:
 
     >>> foox_egg_basename = os.path.basename(foox_egg)
-    >>> os.remove(join(sample_buildout, 'eggs', foox_egg_basename))
+    >>> os.remove(join(sample_buildout, 'eggs', 'v5', foox_egg_basename))
     >>> _ = zc.buildout.easy_install.install(
-    ...     ['foox'], join(sample_buildout, 'eggs'), links=[foox_dist],
+    ...     ['foox'], join(sample_buildout, 'eggs', 'v5'), links=[foox_dist],
     ...     index='file://' + foox_dist)
     >>> ls('develop-eggs')
     -  zc.recipe.egg.egg-link
@@ -1069,7 +1074,7 @@ implement its namespaces, even if just as fallback from the absence of
 ``pkg_resources``, then ``setuptools`` should not be added as requirement to
 its unzipped egg:
 
-    >>> foox_installed_egg = join(sample_buildout, 'eggs', foox_egg_basename)
+    >>> foox_installed_egg = join(sample_buildout, 'eggs', 'v5', foox_egg_basename)
     >>> namespace_init = join(foox_installed_egg, 'stuff', '__init__.py')
     >>> write(namespace_init,
     ... """try:
@@ -1239,7 +1244,7 @@ def extensions_installed_as_eggs_work_in_offline_mode():
     ... """)
 
     >>> bdist_egg(join(sample_buildout, "demo"), sys.executable,
-    ...           join(sample_buildout, "eggs"))
+    ...           join(sample_buildout, "eggs", "v5"))
 
     >>> write(sample_buildout, 'buildout.cfg',
     ... """
@@ -1942,7 +1947,7 @@ def install_source_dist_with_bad_py():
     <BLANKLINE>
     X
 
-    >>> ls('eggs') # doctest: +ELLIPSIS
+    >>> ls('eggs', 'v5') # doctest: +ELLIPSIS
     d  badegg-1-py2.4.egg
     ...
 
@@ -2240,23 +2245,23 @@ def dealing_with_extremely_insane_dependencies():
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
     Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
-    Making editable install of /sample-buildout/pack0/setup.py
+    Making editable install of /sample-buildout/pack0
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/pack0.egg-link
     ...
-    Making editable install of /sample-buildout/pack1/setup.py
+    Making editable install of /sample-buildout/pack1
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/pack1.egg-link
     ...
-    Making editable install of /sample-buildout/pack2/setup.py
+    Making editable install of /sample-buildout/pack2
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/pack2.egg-link
     ...
-    Making editable install of /sample-buildout/pack3/setup.py
+    Making editable install of /sample-buildout/pack3
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/pack3.egg-link
     ...
-    Making editable install of /sample-buildout/pack4/setup.py
+    Making editable install of /sample-buildout/pack4
     ...
     Successfully made editable install: /sample-buildout/develop-eggs/pack4.egg-link
     ...
@@ -2370,18 +2375,42 @@ need to make it to the download cache.
     """
 
 def prefer_final_permutation(existing, available):
-    for d in ('existing', 'available'):
+    """Test different permutations of existing and available versions.
+
+    We used to do this:
+
+    * Call create_egg on the list of 'existing' versions and put this
+      in a directory 'existing'.
+    * Call create_egg on the list of 'available' versions and put this
+      in a directory 'available'.
+    * Call 'install' with as destination the 'existing' directory and as
+      find-links the 'available' directory.
+
+    We have switched to calling create_wheel instead of create_egg.  This means
+    the items in the 'existing' directory are not regarded as being installed:
+    it is not an eggs directory, but a downloads cache.  So we need to
+    explicitly install them.  For clarity we now use the 'installed' directory
+    as destination.
+    """
+    # Create the necessary empty directories.
+    for d in ('existing', 'available', 'installed'):
         if os.path.exists(d):
             shutil.rmtree(d)
         os.mkdir(d)
     for version in existing:
-        create_egg('spam', version, 'existing')
+        create_wheel('spam', version, 'existing')
+        # Install the package (we expect only one version, really).
+        zc.buildout.easy_install.clear_index_cache()
+        [dist] = list(
+            zc.buildout.easy_install.install(['spam'], 'installed', ['existing'])
+            )
+        assert dist is not None
     for version in available:
-        create_egg('spam', version, 'available')
+        create_wheel('spam', version, 'available')
 
     zc.buildout.easy_install.clear_index_cache()
     [dist] = list(
-        zc.buildout.easy_install.install(['spam'], 'existing', ['available'])
+        zc.buildout.easy_install.install(['spam'], 'installed', ['available'])
         )
 
     if dist.extras:
@@ -2397,6 +2426,10 @@ This test tests several permutations:
 Using different version numbers to work around zip importer cache problems. :(
 
 - With prefer final:
+
+    - Check that we indeed currently prefer final releases.
+    >>> zc.buildout.easy_install.prefer_final()
+    True
 
     - no existing and newer dev available
     >>> prefer_final_permutation((), [1, '2a1'])
@@ -2493,6 +2526,8 @@ preference for newer distributions.
 
 The default is prefer-final = true:
 
+    >>> zc.buildout.easy_install.prefer_final()
+    True
     >>> write('buildout.cfg',
     ... '''
     ... [buildout]
@@ -2744,8 +2779,8 @@ def pyc_and_pyo_files_have_correct_paths():
     ... ''')
 
     >>> print_(system(join('bin', 'py')+ ' t.py'), end='')
-    /sample-buildout/eggs/demo-0.3-py2.4.egg/eggrecipedemo.py
-    /sample-buildout/eggs/demoneeded-1.1-py2.4.egg/eggrecipedemoneeded.py
+    /sample-buildout/eggs/v5/demo-0.3-py2.4.egg/eggrecipedemo.py
+    /sample-buildout/eggs/v5/demoneeded-1.1-py2.4.egg/eggrecipedemoneeded.py
     """
 
 def dont_mess_with_standard_dirs_with_variable_refs():
@@ -2754,6 +2789,7 @@ def dont_mess_with_standard_dirs_with_variable_refs():
     ... '''
     ... [buildout]
     ... eggs-directory = ${buildout:directory}/develop-eggs
+    ... eggs-directory-version =
     ... parts =
     ... ''' % globals())
     >>> print_(system(buildout), end='')
@@ -3250,8 +3286,10 @@ def test_abi_tag_eggs():
     >>> from zc.buildout.pep425tags import get_abi_tag
     >>> abi_tag = get_abi_tag()
     >>> abi_tag in os.listdir(join(sample_buildout, 'eggs'))
+    False
+    >>> abi_tag in os.listdir(join(sample_buildout, 'eggs', 'v5'))
     True
-    >>> ls('eggs', abi_tag)
+    >>> ls('eggs', 'v5', abi_tag)
     d  demo-0.3-py3.7.egg
     d  demoneeded-1.1-py3.7.egg
     """
@@ -3300,25 +3338,25 @@ if sys.platform == 'win32':
 def buildout_txt_setup(test):
     zc.buildout.testing.buildoutSetUp(test)
     mkdir = test.globs['mkdir']
-    eggs = os.environ['buildout_testing_index_url'][7:]
-    test.globs['sample_eggs'] = eggs
+    index = os.environ['buildout_testing_index_url'][7:]
+    test.globs['sample_eggs'] = index
     create_sample_eggs(test)
 
-    for name in os.listdir(eggs):
+    index = Path(index)
+    for name in os.listdir(index):
         if '-' in name:
             pname = name.split('-')[0]
-            if not os.path.exists(os.path.join(eggs, pname)):
-                mkdir(eggs, pname)
-            shutil.move(os.path.join(eggs, name),
-                        os.path.join(eggs, pname, name))
+            if not (index / pname).exists():
+                mkdir(index, pname)
+            shutil.move(index / name, index / pname / name)
 
     dist = pkg_resources.working_set.find(
         pkg_resources.Requirement.parse('zc.recipe.egg'))
-    mkdir(eggs, 'zc.recipe.egg')
-    zc.buildout.testing.sdist(
+    mkdir(index, 'zc.recipe.egg')
+    zc.buildout.testing.bdist_wheel(
         os.path.dirname(dist.location),
-        os.path.join(eggs, 'zc.recipe.egg'),
-        )
+        index / 'zc.recipe.egg',
+    )
 
     sample_buildout = test.globs['sample_buildout']
 
@@ -3327,97 +3365,114 @@ def buildout_txt_setup(test):
     shutil.copytree(recipes_dir, Path(sample_buildout) / 'recipes')
 
 
+def _silent_project_builder_runner(cmd, cwd=None, extra_environ=None):
+    """Run the build command silently.
+
+    The default runner is `pyproject_hooks.default_subprocess_runner`,
+    which currently does this:
+
+        env = os.environ.copy()
+        if extra_environ:
+            env.update(extra_environ)
+        check_call(cmd, cwd=cwd, env=env)
+
+    We do the same, but ignore the output.
+    """
+    env = os.environ.copy()
+    if extra_environ:
+        env.update(extra_environ)
+    subprocess.check_output(cmd, cwd=cwd, env=env, stderr=subprocess.STDOUT)
+
+
+def _build_in_isolated_env(distribution, source_dir, dest_dir):
+    """Build distribution in isolated env.
+
+    This is our variant of the _build_in_isolated_env function from the
+    `build` module.
+    """
+    if distribution not in {"sdist", "wheel"}:
+        raise ValueError(f"Invalid argument passed: {distribution=}")
+    with DefaultIsolatedEnv(installer="pip") as env:
+        builder = ProjectBuilder.from_isolated_env(
+            env,
+            source_dir=source_dir,
+            runner=_silent_project_builder_runner,
+            )
+        env.install(builder.build_system_requires)
+        env.install(builder.get_requires_for_build(distribution))
+        builder.build(distribution, dest_dir)
+
+
 egg_parse = re.compile(r'([0-9a-zA-Z_.]+)-([0-9a-zA-Z_.]+)-py(\d[.]\d+)$'
                        ).match
-def makeNewRelease(project, ws, dest, version='99.99'):
+def makeNewRelease(project, ws, dest, versions=['91.0', '99.99']):
+    """Make a new release for a project.
+
+    Theoretically this can work for various projects, but currently we are
+    only considering the project being zc.buildout.  We expect that it is a
+    real development install, no egg, so dist.location is buildout-repo/src.
+    """
+    if project != "zc.buildout":
+        print(
+            f"WARNING: Unexpected project: {project} instead of zc.buildout.\n"
+            "If makeNewRelease works, great, otherwise you have been warned."
+        )
     dist = ws.find(pkg_resources.Requirement.parse(project))
-    eggname, oldver, pyver = egg_parse(dist.egg_name()).groups()
-    dest = os.path.join(dest, "%s-%s-py%s.egg" % (eggname, version, pyver))
+    oldver = dist.version
     if os.path.isfile(dist.location):
-        shutil.copy(dist.location, dest)
-        zip = zipfile.ZipFile(dest, 'a')
-        zip.writestr(
-            'EGG-INFO/PKG-INFO',
-            ((zip.read('EGG-INFO/PKG-INFO').decode('ISO-8859-1')
-              ).replace("Version: %s" % oldver,
-                        "Version: %s" % version)
-             ).encode('ISO-8859-1')
-            )
-        zip.close()
+        # We used to handle this, but not anymore.
+        raise ValueError(f"We expected a directory, but got a file: {dist.location}")
     elif dist.location.endswith('site-packages'):
-        os.mkdir(dest)
-        shutil.copytree(
-            os.path.join(dist.location, project),
-            os.path.join(dest, project),
-        )
-        distinfo = '%s-%s.dist-info' % (project, oldver)
-        shutil.copytree(
-            os.path.join(dist.location, distinfo),
-            os.path.join(dest, distinfo),
-        )
-        info_path = os.path.join(dest, distinfo, 'METADATA')
-        with open(info_path) as f:
-            info = f.read().replace("Version: %s" % oldver,
-                                    "Version: %s" % version)
-        with open(info_path, 'w') as f:
-            f.write(info)
-        new_distinfo = '%s-%s.dist-info' % (project, version)
-        os.rename(
-            os.path.join(dest, distinfo),
-            os.path.join(dest, new_distinfo),
-        )
-    else:
-        shutil.copytree(dist.location, dest)
-        info_path = os.path.join(dest, 'EGG-INFO', 'PKG-INFO')
-        with open(info_path) as f:
-            info = f.read().replace("Version: %s" % oldver,
-                                    "Version: %s" % version)
-        with open(info_path, 'w') as f:
-            f.write(info)
+        # We used to handle this, but not anymore.
+        raise ValueError(f"We don't expect a dist in site-packages anymore: {dist.location}")
 
-def getWorkingSetWithBuildoutEgg(test):
-    sample_buildout = test.globs['sample_buildout']
-    eggs = os.path.join(sample_buildout, 'eggs')
+    # So we have a directory and it is not in site-packages.  This is currently
+    # expected to be the only case we really need to handle.  Let's get a proper
+    # Path object.
+    location = Path(dist.location)
 
-    # If the zc.buildout dist is a develop dist, convert it to a
-    # regular egg in the sample buildout
-    req = pkg_resources.Requirement.parse('zc.buildout')
-    dist = pkg_resources.working_set.find(req)
-    if dist.precedence == pkg_resources.DEVELOP_DIST:
-        # We have a develop egg, create a real egg for it:
-        here = os.getcwd()
-        os.chdir(os.path.dirname(dist.location))
-        zc.buildout.easy_install.call_subprocess(
-            [sys.executable,
-             os.path.join(os.path.dirname(dist.location), 'setup.py'),
-             '-q', 'bdist_egg', '-d', eggs],
-            env=dict(os.environ,
-                     PYTHONPATH=zc.buildout.easy_install.pip_pythonpath,
-                     ),
-            )
-        os.chdir(here)
-        os.remove(os.path.join(eggs, 'zc.buildout.egg-link'))
+    # For zc.buildout we need the parent dir.
+    if location.name == "src":
+        location = location.parent
 
-        # Rebuild the buildout script
-        ws = pkg_resources.WorkingSet([eggs])
-        ws.require('zc.buildout')
-        zc.buildout.easy_install.scripts(
-            ['zc.buildout'], ws, sys.executable,
-            os.path.join(sample_buildout, 'bin'))
-    else:
-        ws = pkg_resources.working_set
-    return ws
+    # First create a source dist in a temporary directory.
+    with tempfile.TemporaryDirectory() as tempdir:
+        tempdir = Path(tempdir)
+        _build_in_isolated_env("sdist", location, tempdir)
+        # Get the tarball and extract it.
+        tarball = os.listdir(tempdir)[0]
+        with tarfile.open(os.path.join(tempdir, tarball)) as tar:
+            tar.extractall(path=tempdir)
+        os.remove(os.path.join(tempdir, tarball))
+        # Now the only directory enty is what was extracted.
+        extracted = tempdir / os.listdir(tempdir)[0]
+        setup_py_path = extracted / 'setup.py'
+        assert setup_py_path.exists()
+        old_line = f'version = "{oldver}"'
+        for version in versions:
+            # In the setup.py we expect a line like this:
+            # version = "4.2.0.dev0"
+            info = setup_py_path.read_text()
+            new_line = f'version = "{version}"'
+            if old_line not in info:
+                raise ValueError(f"Expected line not found: {old_line}")
+            info = info.replace(old_line, new_line)
+            old_line = new_line
+            setup_py_path.write_text(info)
+            # Now we need to build the new wheel distribution.
+            _build_in_isolated_env("wheel", extracted, dest)
+
 
 def updateSetup(test):
     zc.buildout.testing.buildoutSetUp(test)
     new_releases = test.globs['tmpdir']('new_releases')
     test.globs['new_releases'] = new_releases
-    ws = getWorkingSetWithBuildoutEgg(test)
+    # ws = getWorkingSetWithBuildoutEgg(test)
+    ws = pkg_resources.working_set
     # now let's make the new releases
-    # TODO enable new releases of pip wheel setuptools
-    # when eggs enforced
     makeNewRelease('zc.buildout', ws, new_releases)
-    os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+    # os.mkdir(os.path.join(new_releases, 'zc.buildout'))
+
 
 def ancestor(path, level):
     while level > 0:

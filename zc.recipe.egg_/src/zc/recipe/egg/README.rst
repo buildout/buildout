@@ -73,6 +73,8 @@ Let's run the buildout:
 Now, if we look at the buildout eggs directory:
 
     >>> ls(sample_buildout, 'eggs')
+    d  v5
+    >>> ls(sample_buildout, 'eggs', 'v5')
     d  demo-0.2-pyN.N.egg
     d  demoneeded-1.1-pyN.N.egg
     -  packaging.egg-link
@@ -268,7 +270,7 @@ we'll get an update for demo:
 
 Then we'll get a new demo egg:
 
-    >>> ls(sample_buildout, 'eggs')
+    >>> ls(sample_buildout, 'eggs', 'v5')
     d  demo-0.2-pyN.N.egg
     d  demo-0.3-pyN.N.egg
     d  demoneeded-1.1-pyN.N.egg
@@ -408,8 +410,8 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/v5/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/v5/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]
@@ -461,8 +463,8 @@ Let's look at the script that was generated:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.3-pyN.N.egg'),
-      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
+      join(base, 'eggs/v5/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/v5/demoneeded-1.1-pyN.N.egg'),
       '/foo/bar',
       join(base, 'spam'),
       ]
@@ -508,8 +510,8 @@ each individual script section:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/demo-0.3-pyN.N.egg'),
-      join(base, 'eggs/demoneeded-1.1-pyN.N.egg'),
+      join(base, 'eggs/v5/demo-0.3-pyN.N.egg'),
+      join(base, 'eggs/v5/demoneeded-1.1-pyN.N.egg'),
       '/foo/bar',
       join(base, 'spam'),
       ]
@@ -557,8 +559,8 @@ to be included in generated scripts:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/v5/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/v5/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]
@@ -585,8 +587,8 @@ Our interpreter also has the initialization code:
     import sys
     <BLANKLINE>
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.3-py3.3.egg',
-      '/sample-buildout/eggs/demoneeded-1.1-py3.3.egg',
+      '/sample-buildout/eggs/v5/demo-0.3-py3.3.egg',
+      '/sample-buildout/eggs/v5/demoneeded-1.1-py3.3.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]
@@ -637,8 +639,8 @@ declare entry points using the entry-points option:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/demo-0.3-py2.4.egg',
-      '/sample-buildout/eggs/demoneeded-1.1-py2.4.egg',
+      '/sample-buildout/eggs/v5/demo-0.3-py2.4.egg',
+      '/sample-buildout/eggs/v5/demoneeded-1.1-py2.4.egg',
       '/foo/bar',
       '/sample-buildout/spam',
       ]

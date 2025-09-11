@@ -1,10 +1,10 @@
 Change History
 **************
 
-3.0.1 (unreleased)
-==================
+4.0.0a1 (unreleased)
+====================
 
-- Nothing changed yet.
+- Switch from ``pkg_resources`` namespaces to native namespaces for ``zc.recipe.egg``.
 
 
 3.0.0 (2025-04-03)

@@ -31,9 +31,9 @@ Buildout work better:
     ...     'develop-eggs', 'parts', 'bin')
     >>> eqs(ls(join('home', '.buildout')),
     ...     'default.cfg', 'eggs', 'download-cache')
-    >>> [abieggs] = ls(join('home', '.buildout', 'eggs'))
+    >>> [abieggs] = ls(join('home', '.buildout', 'eggs', 'v5'))
     >>> found_eggs = set([n.split('-', 1)[0]
-    ...      for n in ls('home', '.buildout', 'eggs', abieggs)])
+    ...      for n in ls('home', '.buildout', 'eggs', 'v5', abieggs)])
 
 Some packages are only there on older Python versions or on newer.
 Discard them.

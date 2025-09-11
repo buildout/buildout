@@ -467,7 +467,7 @@ We'll write a development buildout to run our tests with:
     >>> testing.write('buildout.cfg', src)
     >>> testing.run_buildout_in_process()
 
-Running Buildout with this gives is an interpreter script that we can
+Running Buildout with this gives us an interpreter script that we can
 run our tests with.  The script will make sure that ``zc.buildout``
 and our recipe can be imported.
 

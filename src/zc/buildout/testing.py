@@ -235,9 +235,9 @@ class TestOptions(zc.buildout.buildout.Options):
 class Buildout(zc.buildout.buildout.Buildout):
 
     def __init__(self):
-        for name in 'eggs', 'parts':
+        for name in os.path.join('eggs', 'v5'), 'parts':
             if not os.path.exists(name):
-                os.mkdir(name)
+                os.makedirs(name)
         zc.buildout.buildout.Buildout.__init__(
             self, '', [('buildout', 'directory', os.getcwd())], False)
 
@@ -310,7 +310,7 @@ def buildoutSetUp(test):
         [('buildout', 'log-level', 'WARNING'),
          # trick bootstrap into putting the buildout develop egg
          # in the eggs dir.
-         ('buildout', 'develop-eggs-directory', 'eggs'),
+         ('buildout', 'develop-eggs-directory', os.path.join('eggs', 'v5')),
          ]
         ).bootstrap([])
 

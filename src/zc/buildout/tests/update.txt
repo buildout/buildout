@@ -7,8 +7,8 @@ demonstrate this, we've created some "new releases" of buildout and
 setuptools in a new_releases folder:
 
     >>> ls(new_releases)
-    d  zc.buildout
-    -  zc.buildout-99.99-py2.4.egg
+    -  zc_buildout-91.0-py3-none-any.whl
+    -  zc_buildout-NINETYNINE.NINETYNINE-py3-none-any.whl
 
 Let's update the sample buildout.cfg to look in this area:
 
@@ -59,9 +59,28 @@ zc.buildout used:
     ...     )
     ... """)
 
+The installed zc.buildout version is in development mode, so it won't upgrade itself.
 
-Now if we run the buildout, the buildout will upgrade itself to the
-new versions found in new releases:
+    >>> print_(system(buildout), end='')
+    Develop:...
+    Installing show-versions.
+    zc.buildout V.V
+
+But if we run the buildout and tell it to use version 50, the buildout will upgrade itself:
+
+    >>> print_(system(buildout + ' versions:zc.buildout=91.0'), end='')
+    Getting distribution for 'zc.buildout==91.0'.
+    Got zc.buildout V.V
+    Upgraded:
+      zc.buildout V.V
+    Restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout V.V
+
+Now if we run the buildout without explicit version, the buildout will upgrade itself to the
+newest version found in new releases:
 
     >>> print_(system(buildout), end='')
     Got zc.buildout NINETYNINE.NINETYNINE.
@@ -70,7 +89,7 @@ new versions found in new releases:
     Restarting.
     Generated script '/sample-buildout/bin/buildout'.
     Develop: '/sample-buildout/showversions'
-    Installing show-versions.
+    Updating show-versions.
     zc.buildout NINETYNINE.NINETYNINE
 
 Our buildout script has been updated to use the new eggs:
@@ -80,7 +99,7 @@ Our buildout script has been updated to use the new eggs:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '/sample-buildout/eggs/zc.buildout-99.99-py2.4.egg',
+      '/sample-buildout/eggs/v5/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg',
     ...
       ]
     <BLANKLINE>
@@ -159,14 +178,18 @@ directory:
     ... find-links = %(new_releases)s
     ... index = %(new_releases)s
     ... parts =
+    ...
+    ... [versions]
+    ... zc.buildout = 99.99
     ... """ % dict(new_releases=new_releases))
 
     >>> cd(sample_buildout2)
     >>> print_(system(buildout), end='')
-    Creating directory '/sample_buildout2/eggs'.
+    Creating directory '/sample_buildout2/eggs/v5'.
     Creating directory '/sample_buildout2/bin'.
     Creating directory '/sample_buildout2/parts'.
     Creating directory '/sample_buildout2/develop-eggs'.
+    Getting distribution for 'zc.buildout==NINETYNINE.NINETYNINE'.
     Got zc.buildout NINETYNINE.NINETYNINE.
     Not upgrading because not running a local buildout command.
 
@@ -210,7 +233,7 @@ directory:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      join(base, 'eggs/zc.buildout-99.99-py3.3.egg'),
+      join(base, 'eggs/v5/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg'),
     ...
       ]
     <BLANKLINE>

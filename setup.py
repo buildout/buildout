@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = '4.2.0.dev0'
+version = "5.0.0a1.dev0"
 
 import os
 from setuptools import setup
@@ -45,7 +45,6 @@ setup(
     packages = ['zc', 'zc.buildout'],
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
-    namespace_packages = ['zc'],
     install_requires = [
         'setuptools>=61.0.0',
         'packaging>=23.2',

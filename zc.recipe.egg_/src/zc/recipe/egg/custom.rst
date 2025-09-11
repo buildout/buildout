@@ -310,14 +310,15 @@ Create our buildout:
     Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Develop: '/sample-buildout/recipes'
+    Making editable install of /sample-buildout/recipes
+    Running pip install:
     ...
     Uninstalling extdemo.
     ...
     Installing extdemo.
+    ...Have environment test_environment_variable: foo
     ...
     Installing checkenv.
-    ...Running command python setup.py egg_info
-    ...Have environment test_environment_variable: foo
     ...
 
 The setup.py also printed out that we have set the environment `test_environment_variable`
@@ -367,14 +368,15 @@ are interpolated with os.environ before the're set:
     Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Develop: '/sample-buildout/recipes'
+    Making editable install of /sample-buildout/recipes
+    Running pip install:
     ...
     Uninstalling extdemo.
     ...
     Installing extdemo.
+    ...Have environment test_environment_variable: foo:bar
     ...
     Updating checkenv.
-    ...Running command python setup.py egg_info
-    ...Have environment test_environment_variable: foo:bar
     ...
 
     >>> os.environ['test_environment_variable']

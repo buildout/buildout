@@ -69,7 +69,7 @@ with a ``parts`` option.  If we run Buildout:
 
    TODO: fix upgrading so eggs is empty
 
-   >>> nope('bobo' in ls('eggs'))
+   >>> nope('bobo' in ls('eggs', 'v5'))
 
 Four directories are created:
 
@@ -171,7 +171,7 @@ Then a number of things will happen:
 
   .. bobo in eggs:
 
-     >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+     >>> yup([n for n in ls('eggs', 'v5') if n.startswith('bobo-2.3.0-')])
 
 - A ``bobo`` script will be installed in the ``bin`` directory:
 
@@ -259,7 +259,7 @@ If we run Buildout:
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      '.../eggs/zdaemon...
+      '.../eggs/v5/zdaemon...
     <BLANKLINE>
     import zdaemon.zdctl
     <BLANKLINE>
@@ -434,7 +434,7 @@ where you list them, as in:
    >>> import shutil
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup([n for n in ls('eggs', 'v5') if n.startswith('bobo-2.3.0-')])
    >>> yup('bobo==2.3.0' in read('out'))
 
 In this example, we've requested a version of bobo less than 5.0.
@@ -478,7 +478,7 @@ The more common way to pin a version is using a ``versions`` section:
    >>> write(src, 'buildout.cfg')
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup([n for n in ls('eggs', 'v5') if n.startswith('bobo-2.3.0-')])
    >>> nope('bobo = 2.3.0' in read('out'))
 
 Larger projects may need to pin many versions, so it's common to put
@@ -524,7 +524,7 @@ might look like:
    >>> write(versions_cfg, 'versions.cfg')
    >>> shutil.rmtree('eggs')
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup([n for n in ls('eggs', 'v5') if n.startswith('bobo-2.3.0-')])
    >>> nope('bobo = 2.3.0' in read('out'))
 
 We can use the ``update-versions-file`` option to ask Buildout to
@@ -555,7 +555,7 @@ maintain our ``versions.cfg`` file for us:
    >>> write(src, 'buildout.cfg')
    >>> eq(versions_cfg, read('versions.cfg'))
    >>> run_buildout('buildout show-picked-versions=true')
-   >>> yup([n for n in ls('eggs') if n.startswith('bobo-2.3.0-')])
+   >>> yup([n for n in ls('eggs', 'v5') if n.startswith('bobo-2.3.0-')])
    >>> yup('WebOb = ' in read('versions.cfg'))
 
 With ``update-versions-file``, whenever Buildout gets the newest

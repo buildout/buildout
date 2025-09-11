@@ -615,7 +615,7 @@ Alternate directory and file locations
 --------------------------------------
 
 The buildout normally puts the ``bin``, ``eggs``, and ``parts`` directories in
-the directory in the directory containing the configuration file. You can
+the directory containing the configuration file. You can
 provide alternate locations, and even names for these directories::
 
     >>> alt = tmpdir('sample-alt')
@@ -627,6 +627,7 @@ provide alternate locations, and even names for these directories::
     ... parts =
     ... develop-eggs-directory = %(developbasket)s
     ... eggs-directory = %(basket)s
+    ... eggs-directory-version = v2
     ... bin-directory = %(scripts)s
     ... parts-directory = %(work)s
     ... """ % dict(
@@ -637,7 +638,7 @@ provide alternate locations, and even names for these directories::
     ... ))
 
     >>> print_(system(buildout), end='')
-    Creating directory '/sample-alt/basket'.
+    Creating directory '/sample-alt/basket/v2'.
     Creating directory '/sample-alt/scripts'.
     Creating directory '/sample-alt/work'.
     Creating directory '/sample-alt/developbasket'.
@@ -673,7 +674,7 @@ You can also specify an alternate buildout directory::
     ...    ))
 
     >>> print_(system(buildout), end='')
-    Creating directory '/sample-alt/eggs'.
+    Creating directory '/sample-alt/eggs/v5'.
     Creating directory '/sample-alt/bin'.
     Creating directory '/sample-alt/parts'.
     Creating directory '/sample-alt/develop-eggs'.
@@ -753,7 +754,8 @@ database is shown::
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     directory = /sample-buildout
-    eggs-directory = /sample-buildout/eggs
+    eggs-directory = /sample-buildout/eggs/v5
+    eggs-directory-version = v5
     executable = python
     find-links =
     install-from-cache = false

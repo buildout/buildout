@@ -14,10 +14,11 @@
 """Setup for zc.recipe.egg package
 """
 
-version = '3.0.1.dev0'
+version = '4.0.0a1.dev0'
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
+
 
 def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
@@ -66,10 +67,8 @@ setup(
        ],
     url='https://github.com/buildout/buildout/tree/master/zc.recipe.egg_',
     license = "ZPL 2.1",
-
-    packages = find_packages('src'),
-    package_dir = {'':'src'},
-    namespace_packages = ['zc', 'zc.recipe'],
+    packages = ['zc', 'zc.recipe', 'zc.recipe.egg'],
+    package_dir = {'': 'src'},
     python_requires = '>=3.9',
     install_requires = [
         'zc.buildout >=4.0.0',

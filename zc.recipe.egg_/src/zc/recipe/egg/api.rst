@@ -107,11 +107,11 @@ computed by the egg recipe by looking at .installed.cfg:
     __buildout_signature__ = ...
     _b = /sample-buildout/bin
     _d = /sample-buildout/develop-eggs
-    _e = /sample-buildout/eggs
+    _e = /sample-buildout/eggs/v5
     bin-directory = /sample-buildout/bin
     develop-eggs-directory = /sample-buildout/develop-eggs
     eggs = demo<0.3
-    eggs-directory = /sample-buildout/eggs
+    eggs-directory = /sample-buildout/eggs/v5
     extras = other
     find-links = http://localhost:27071/
     index = http://localhost:27071/index
