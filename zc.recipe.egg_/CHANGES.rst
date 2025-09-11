@@ -4,6 +4,7 @@ Change History
 4.0.0a1 (unreleased)
 ====================
 
+- Require ``zc.buildout`` 5.0.0a1 or higher.
 - Switch from ``pkg_resources`` namespaces to native namespaces for ``zc.recipe.egg``.
 
 

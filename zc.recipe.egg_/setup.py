@@ -71,7 +71,7 @@ setup(
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
     install_requires = [
-        'zc.buildout >=4.0.0',
+        'zc.buildout >=5.0.0a1',
         'setuptools'],
     tests_require = ['zope.testing'],
     test_suite = name+'.tests.test_suite',
