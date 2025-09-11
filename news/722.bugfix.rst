@@ -1,0 +1,1 @@
+Fix reading metadata files from dist-info in Windows.  [maurits]
