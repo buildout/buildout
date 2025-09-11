@@ -2046,7 +2046,7 @@ def make_egg_after_pip_install(dest, distinfo_dir):
     # when running `pip install`
     entry_points_file = os.path.join(dest, distinfo_dir, 'entry_points.txt')
     if os.path.isfile(entry_points_file):
-        with open(entry_points_file) as f:
+        with open(entry_points_file, encoding='utf-8', errors="replace") as f:
             content = f.read()
             if "console_scripts" in content or "gui_scripts" in content:
                 bin_dir = os.path.join(dest, BIN_SCRIPTS)
@@ -2054,7 +2054,10 @@ def make_egg_after_pip_install(dest, distinfo_dir):
                     shutil.rmtree(bin_dir)
 
     # Get actual project name from dist-info directory.
-    with open(posixpath.join(dest, distinfo_dir, "METADATA")) as fp:
+    metadata_path = posixpath.join(dest, distinfo_dir, "METADATA")
+    # The encoding and errors arguments can be needed on Windows.
+    # See https://github.com/buildout/buildout/issues/722
+    with open(metadata_path, encoding='utf-8', errors="replace") as fp:
         value = fp.read()
     metadata = email.parser.Parser().parsestr(value)
     project_name = metadata.get("Name")
@@ -2079,7 +2082,7 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     top_level_file = os.path.join(egg_dir, new_distinfo_dir, 'top_level.txt')
     if os.path.isfile(top_level_file):
-        with open(top_level_file) as f:
+        with open(top_level_file, encoding='utf-8', errors="replace") as f:
             top_levels = filter(
                 (lambda x: len(x) != 0),
                 [line.strip() for line in f.readlines()]
@@ -2105,7 +2108,7 @@ def make_egg_after_pip_install(dest, distinfo_dir):
 
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
     if os.path.isfile(record_file):
-        with open(record_file, newline='') as f:
+        with open(record_file, newline='', encoding='utf-8', errors="replace") as f:
             all_files = [row[0] for row in csv.reader(f)]
 
     # There might be some c extensions left over
