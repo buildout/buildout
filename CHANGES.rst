@@ -8,6 +8,15 @@ Change History
 
 .. towncrier release notes start
 
+5.0.0a2 (2025-09-11)
+--------------------
+
+Bug fixes:
+
+
+- Fix reading metadata files from dist-info in Windows.  [maurits] (#722)
+
+
 5.0.0a1 (2025-09-11)
 --------------------
 
