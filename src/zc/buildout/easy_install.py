@@ -1996,11 +1996,11 @@ def check_namespace_init_file(ns_file):
     ]:
         found_first = False
         for line in contents:
+            if combo[0] in line:
+                found_first = True
             if found_first and combo[1] in line:
                 logger.debug("Found namespace declaration in %s", ns_file)
                 return True
-            if combo[0] in line:
-                found_first = True
     logger.debug("No namespace declaration found in %s", ns_file)
     return False
 
