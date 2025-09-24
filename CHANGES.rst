@@ -8,6 +8,15 @@ Change History
 
 .. towncrier release notes start
 
+5.0.0a3 (2025-09-24)
+--------------------
+
+Bug fixes:
+
+
+- Fix logic in detecting namespace init files for deletion.  [maurits] (#720)
+
+
 5.0.0a2 (2025-09-11)
 --------------------
 

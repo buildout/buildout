@@ -1,1 +1,0 @@
-Fix logic in detecting namespace init files for deletion.  [maurits]
