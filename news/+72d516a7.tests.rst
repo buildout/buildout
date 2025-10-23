@@ -1,0 +1,2 @@
+Fix zc.recipe.egg tests with pip 25.3.
+[maurits]

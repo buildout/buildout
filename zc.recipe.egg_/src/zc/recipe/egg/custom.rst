@@ -316,7 +316,6 @@ Create our buildout:
     Installing extdemo.
     ...
     Installing checkenv.
-    ...Running command python setup.py egg_info
     ...Have environment test_environment_variable: foo
     ...
 
@@ -373,7 +372,6 @@ are interpolated with os.environ before the're set:
     Installing extdemo.
     ...
     Updating checkenv.
-    ...Running command python setup.py egg_info
     ...Have environment test_environment_variable: foo:bar
     ...
 
