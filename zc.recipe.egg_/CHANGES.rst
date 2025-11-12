@@ -4,7 +4,7 @@ Change History
 4.0.0a2 (unreleased)
 ====================
 
-- Nothing changed yet.
+- Require ``zc.buildout`` 5.0.0 or higher.
 
 
 4.0.0a1 (2025-09-11)
