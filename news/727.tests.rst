@@ -1,1 +1,0 @@
-Test with ``pip`` 25.3.

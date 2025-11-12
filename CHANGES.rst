@@ -8,6 +8,15 @@ Change History
 
 .. towncrier release notes start
 
+5.0.0 (2025-11-12)
+------------------
+
+Tests:
+
+
+- Test with ``pip`` 25.3. (#727)
+
+
 5.0.0a3 (2025-09-24)
 --------------------
 
