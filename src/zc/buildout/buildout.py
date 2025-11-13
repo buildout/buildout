@@ -1222,6 +1222,18 @@ class Buildout(DictMixin):
             should_run += '-script.py'
 
         if (realpath(os.path.abspath(sys.argv[0])) != should_run):
+            # On Windows, somehow '/sample-buildout/bin/buildout-script.py'
+            # is not equal to '/sample-buildout/bin/buildout-script.py'...
+            one = realpath(os.path.abspath(sys.argv[0]))
+            two = should_run
+            for index, item in enumerate([one, two]):
+                self._logger.warning("Path item %d: %r.", index, item)
+                self._logger.warning("Type %r.", type(item))
+                if isinstance(item, str):
+                    self._logger.warning("Encoded: %r.", item.encode("utf-8"))
+                print(item)
+                self._logger.warning("ord: %r.", [ord(char) for char in item])
+
             self._logger.warning("Pure sys.argv[0]: %r.", sys.argv[0])
             self._logger.warning("Absolute: %r.", os.path.abspath(sys.argv[0]))
             self._logger.warning("Real Absolute: %r.", realpath(os.path.abspath(sys.argv[0])))
