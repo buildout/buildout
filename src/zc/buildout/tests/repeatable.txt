@@ -127,7 +127,7 @@ about versions used. If we run the buildout in verbose mode without
 specifying a versions section:
 
     >>> print_(system(buildout+' buildout:versions= -v'), end='')
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
     ...
     Installing 'spam'.
     We have the best distribution that satisfies 'spam'.
@@ -147,7 +147,7 @@ that we can fix them in a versions section.
 If we run the buildout with the versions section:
 
     >>> print_(system(buildout+' -v'), end='')
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
     ...
     Installing 'spam'.
     We have the distribution that satisfies 'spam==1'.
@@ -176,7 +176,7 @@ versions for.
     ... ''' % join('recipe', 'dist'))
 
     >>> print_(system(buildout+' -v'), end='')
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
     ...
     Installing 'spam >0'.
     We have the distribution that satisfies 'spam==1'.

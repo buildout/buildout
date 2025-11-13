@@ -1173,9 +1173,7 @@ class Buildout(DictMixin):
         # the true `wheel` package and the one vendorized by `setuptools`.
         # See https://github.com/buildout/buildout/issues/691
         # We explicitly install all our dependencies here.
-        # They must be importable, so we specify 'horse_with_no_namespace'
-        # instead of 'horse-with-no-namespace'.
-        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace')
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace')
         ws = zc.buildout.easy_install.install(
             projects,
             self['buildout']['eggs-directory'],
@@ -1196,6 +1194,7 @@ class Buildout(DictMixin):
                 # version is used, this is either useless or a life saver.
                 req = pkg_resources.Requirement.parse(project)
                 dist = ws.find(req)
+            project = project.replace('-', '_')
             importlib.import_module(project)
             if dist is None:
                 # This is unexpected.  This must be some problem with how we use
@@ -1206,7 +1205,8 @@ class Buildout(DictMixin):
                     project,
                 )
                 continue
-            if not inspect.getfile(sys.modules[project]).startswith(dist.location):
+            project_file = realpath(inspect.getfile(sys.modules[project]))
+            if not project_file.startswith(realpath(dist.location)):
                 upgraded.append(dist)
 
         if not upgraded:
@@ -1218,11 +1218,19 @@ class Buildout(DictMixin):
             os.path.join(os.path.abspath(self['buildout']['bin-directory']),
                          'buildout')
             )
+        current_run = realpath(os.path.abspath(sys.argv[0]))
         if sys.platform == 'win32':
             should_run += '-script.py'
+            # On Windows sys.argv can have '\\\\?' as prefix...
+            # to be sure, we remove it from both paths for comparison.
+            marker = '\\\\?\\'
+            if current_run.startswith(marker):
+                current_run = current_run[len(marker):]
+            if should_run.startswith(marker):
+                should_run = should_run[len(marker):]
 
-        if (realpath(os.path.abspath(sys.argv[0])) != should_run):
-            self._logger.debug("Running %r.", realpath(sys.argv[0]))
+        if current_run != should_run:
+            self._logger.debug("Running %r.", current_run)
             self._logger.debug("Local buildout is %r.", should_run)
             self._logger.warning("Not upgrading because not running a local "
                                  "buildout command.")
