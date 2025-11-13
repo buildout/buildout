@@ -1230,7 +1230,7 @@ class Buildout(DictMixin):
                 should_run = should_run[len(marker):]
 
         if current_run != should_run:
-            self._logger.debug("Running %r.", realpath(sys.argv[0]))
+            self._logger.debug("Running %r.", current_run)
             self._logger.debug("Local buildout is %r.", should_run)
             self._logger.warning("Not upgrading because not running a local "
                                  "buildout command.")
