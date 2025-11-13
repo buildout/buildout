@@ -307,7 +307,7 @@ Create our buildout:
     ...
     ... """ % dict(server=link_server))
     >>> print_(system(buildout+' -vvv'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
     ...
     Develop: '/sample-buildout/recipes'
     Making editable install of /sample-buildout/recipes
@@ -365,7 +365,7 @@ are interpolated with os.environ before the're set:
     ...
     ... """ % dict(server=link_server))
     >>> print_(system(buildout+' -vvv'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
     ...
     Develop: '/sample-buildout/recipes'
     Making editable install of /sample-buildout/recipes
