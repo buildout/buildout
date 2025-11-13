@@ -1222,8 +1222,9 @@ class Buildout(DictMixin):
             should_run += '-script.py'
 
         if (realpath(os.path.abspath(sys.argv[0])) != should_run):
-            self._logger.warning("Pure sys.argv[=]: %r.", sys.argv[0])
+            self._logger.warning("Pure sys.argv[0]: %r.", sys.argv[0])
             self._logger.warning("Absolute: %r.", os.path.abspath(sys.argv[0]))
+            self._logger.warning("Real Absolute: %r.", realpath(os.path.abspath(sys.argv[0])))
             self._logger.warning("Running %r.", realpath(sys.argv[0]))
             self._logger.warning("Local buildout is %r.", should_run)
             self._logger.warning("Not upgrading because not running a local "
