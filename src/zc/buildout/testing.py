@@ -652,7 +652,7 @@ ignore_native_namespace_warning_5 = (re.compile(
     ''
 )
 ignore_horse = (re.compile(
-    r'🐎 This Python \(.*\) uses horse-with-no-namespace to make the following pkg_resources namespace packages compatible with PEP 420 namespace packages:'),
+    r'.*This Python \(.*\) uses horse-with-no-namespace.*'),
     ''
 )
 
