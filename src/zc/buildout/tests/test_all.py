@@ -3770,50 +3770,42 @@ def test_suite():
         doctest.DocFileSuite('testing_bugfix.txt'),
     ]
 
-    # if not sys.platform.startswith('win'):
-    if True:
-        # In the update.txt tests on Windows, instead of
-        #  "Upgraded: zc.buildout version NINETYNINE.NINETYNINE;"
-        # we get:
-        #   "Not upgrading because not running a local buildout command."
-        # I don't know why that is only the case on Windows.
-
-        test_suite.append(
-            doctest.DocFileSuite(
-                'update.txt',
-                setUp=updateSetup,
-                tearDown=zc.buildout.testing.buildoutTearDown,
-                optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
-                checker=renormalizing.RENormalizing([
-                    zc.buildout.testing.ignore_horse,
-                    (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
-                                r'-py\d.\d+.egg'),
-                    '\\1.egg'),
-                    zc.buildout.testing.normalize_path,
-                    zc.buildout.testing.normalize_endings,
-                    zc.buildout.testing.normalize_script,
-                    zc.buildout.testing.normalize_egg_py,
-                    zc.buildout.testing.not_found,
-                    zc.buildout.testing.adding_find_link,
-                    zc.buildout.testing.easyinstall_deprecated,
-                    zc.buildout.testing.setuptools_deprecated,
-                    zc.buildout.testing.pkg_resources_deprecated,
-                    zc.buildout.testing.warnings_warn,
-                    zc.buildout.testing.ignore_root_logger,
-                    normalize_bang,
-                    (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
-                    ''),
-                    (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
-                    (re.compile(
-                        r'(zc.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'),
-                    '\\1 V.V'),
-                    (re.compile('[-d]  setuptools'), '-  setuptools'),
-                    (re.compile('[-d]  pip'), '-  pip'),
-                    (re.compile('[-d]  wheel'), '-  wheel'),
-                    (re.compile(re.escape(os.path.sep)+'+'), '/'),
-                ])
-            )
+    test_suite.append(
+        doctest.DocFileSuite(
+            'update.txt',
+            setUp=updateSetup,
+            tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
+            checker=renormalizing.RENormalizing([
+                zc.buildout.testing.ignore_horse,
+                (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
+                            r'-py\d.\d+.egg'),
+                '\\1.egg'),
+                zc.buildout.testing.normalize_path,
+                zc.buildout.testing.normalize_endings,
+                zc.buildout.testing.normalize_script,
+                zc.buildout.testing.normalize_egg_py,
+                zc.buildout.testing.not_found,
+                zc.buildout.testing.adding_find_link,
+                zc.buildout.testing.easyinstall_deprecated,
+                zc.buildout.testing.setuptools_deprecated,
+                zc.buildout.testing.pkg_resources_deprecated,
+                zc.buildout.testing.warnings_warn,
+                zc.buildout.testing.ignore_root_logger,
+                normalize_bang,
+                (re.compile(r"Getting distribution for 'zc.buildout>=\S+"),
+                ''),
+                (re.compile('99[.]99'), 'NINETYNINE.NINETYNINE'),
+                (re.compile(
+                    r'(zc.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'),
+                '\\1 V.V'),
+                (re.compile('[-d]  setuptools'), '-  setuptools'),
+                (re.compile('[-d]  pip'), '-  pip'),
+                (re.compile('[-d]  wheel'), '-  wheel'),
+                (re.compile(re.escape(os.path.sep)+'+'), '/'),
+            ])
         )
+    )
 
     docdir = os.path.join(ancestor(__file__, 5), 'doc')
     if os.path.exists(docdir) and not sys.platform.startswith('win'):
