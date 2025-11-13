@@ -102,7 +102,9 @@ fi
 # which has a side effect we need: generate 'src/zc.buildout.egg-info'
 # This is needed so in Python we can do:
 # >>> pkg_resources.working_set.add_entry('src')
-PIP_ARGS="$PIP_ARGS packaging build"
+# horse-with-no-namespace was recently added as dependency of zc.buildout.
+# We explicitly add it here to ensure it is installed in the venv.
+PIP_ARGS="$PIP_ARGS packaging build horse-with-no-namespace"
 echo
 echo "Using arguments for pip install: $PIP_ARGS"
 # "$VENV_PYTHON" -m pip install -e .[test] -e zc.recipe.egg_[test] $PIP_ARGS

@@ -1172,7 +1172,10 @@ class Buildout(DictMixin):
         # We must install `wheel` before `setuptools`` to avoid confusion between
         # the true `wheel` package and the one vendorized by `setuptools`.
         # See https://github.com/buildout/buildout/issues/691
-        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
+        # We explicitly install all our dependencies here.
+        # They must be importable, so we specify 'horse_with_no_namespace'
+        # instead of 'horse-with-no-namespace'.
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace')
         ws = zc.buildout.easy_install.install(
             projects,
             self['buildout']['eggs-directory'],

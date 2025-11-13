@@ -1,0 +1,3 @@
+Depend on ``horse-with-no-namespace``.
+This is needed when you use development/editable installs of ``pkg_resources`` style namespaces.
+[maurits]

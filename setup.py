@@ -47,6 +47,7 @@ setup(
     python_requires = '>=3.9',
     install_requires = [
         'setuptools>=61.0.0,<81',
+        'horse-with-no-namespace',
         'packaging>=23.2',
         'pip',
         'wheel',
