@@ -1205,13 +1205,8 @@ class Buildout(DictMixin):
                     project,
                 )
                 continue
-            if not inspect.getfile(sys.modules[project]).startswith(dist.location):
-                project_file = inspect.getfile(sys.modules[project])
-                self._logger.warning("Module %s is loaded from %s, but distribution is at %s.",
-                                     project, project_file, dist.location)
-                # In tests, the normalizers make manually inspecting paths impossible.
-                self._logger.warning("project file: %r", [ord(x) for x in project_file])
-                self._logger.warning("dist location: %r", [ord(x) for x in dist.location])
+            project_file = realpath(inspect.getfile(sys.modules[project]))
+            if not project_file.startswith(realpath(dist.location)):
                 upgraded.append(dist)
 
         if not upgraded:
