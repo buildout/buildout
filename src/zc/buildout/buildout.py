@@ -1218,27 +1218,20 @@ class Buildout(DictMixin):
             os.path.join(os.path.abspath(self['buildout']['bin-directory']),
                          'buildout')
             )
+        current_run = realpath(os.path.abspath(sys.argv[0]))
         if sys.platform == 'win32':
             should_run += '-script.py'
+            # On Windows sys.argv can have '\\\\?' as prefix...
+            # to be sure, we remove it from both paths for comparison.
+            marker = '\\\\?\\'
+            if current_run.startswith(marker):
+                current_run = current_run[len(marker):]
+            if should_run.startswith(marker):
+                should_run = should_run[len(marker):]
 
-        if (realpath(os.path.abspath(sys.argv[0])) != should_run):
-            # On Windows, somehow '/sample-buildout/bin/buildout-script.py'
-            # is not equal to '/sample-buildout/bin/buildout-script.py'...
-            one = realpath(os.path.abspath(sys.argv[0]))
-            two = should_run
-            for index, item in enumerate([one, two]):
-                self._logger.warning("Path item %d: %r.", index, item)
-                self._logger.warning("Type %r.", type(item))
-                if isinstance(item, str):
-                    self._logger.warning("Encoded: %r.", item.encode("utf-8"))
-                print(item)
-                self._logger.warning("ord: %r.", [ord(char) for char in item])
-
-            self._logger.warning("Pure sys.argv[0]: %r.", sys.argv[0])
-            self._logger.warning("Absolute: %r.", os.path.abspath(sys.argv[0]))
-            self._logger.warning("Real Absolute: %r.", realpath(os.path.abspath(sys.argv[0])))
-            self._logger.warning("Running %r.", realpath(sys.argv[0]))
-            self._logger.warning("Local buildout is %r.", should_run)
+        if current_run != should_run:
+            self._logger.debug("Running %r.", realpath(sys.argv[0]))
+            self._logger.debug("Local buildout is %r.", should_run)
             self._logger.warning("Not upgrading because not running a local "
                                  "buildout command.")
             return
