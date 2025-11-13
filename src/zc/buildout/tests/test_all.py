@@ -3770,7 +3770,8 @@ def test_suite():
         doctest.DocFileSuite('testing_bugfix.txt'),
     ]
 
-    if not sys.platform.startswith('win'):
+    # if not sys.platform.startswith('win'):
+    if True:
         # In the update.txt tests on Windows, instead of
         #  "Upgraded: zc.buildout version NINETYNINE.NINETYNINE;"
         # we get:

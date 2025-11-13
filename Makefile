@@ -8,7 +8,7 @@ bin/test: bin/buildout buildout.cfg
 	bin/buildout || bin/buildout.exe
 
 test: bin/test
-	PYTHONWARNINGS=ignore bin/test -pvc
+	PYTHONWARNINGS=ignore bin/test -pvc -t update.txt
 
 test-recipe: bin/test
 	PYTHONWARNINGS=ignore bin/test-recipe

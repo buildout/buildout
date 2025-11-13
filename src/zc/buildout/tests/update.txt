@@ -1,6 +1,14 @@
 Automatic Buildout Updates
 ==========================
 
+Get some info about the system:
+
+  >>> import sys
+  >>> sys.platform
+  >>> import platform
+  >>> platform.system()
+  >>> platform.uname()
+
 When a buildout is run, one of the first steps performed is to check for
 updates to either zc.buildout or setuptools.  To
 demonstrate this, we've created some "new releases" of buildout and
