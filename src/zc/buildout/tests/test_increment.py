@@ -132,7 +132,6 @@ def default_cfg_extensions():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -169,7 +168,6 @@ def with_extends_increment_in_base():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -210,7 +208,6 @@ def with_extends_increment_in_base2():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -256,7 +253,6 @@ def with_extends_increment_in_base2_and_base3():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -295,7 +291,6 @@ def with_extends_increment_in_buildout():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -336,7 +331,6 @@ def with_extends_increment_in_buildout_with_base_and_root():
     ... ''')
     >>> env = dict(HOME=home, USERPROFILE=home)
     >>> print_(system(buildout+' annotate buildout', env=env), end='')
-    ... # doctest: +ELLIPSIS
     <BLANKLINE>
     Annotated sections
     ==================
@@ -373,7 +367,6 @@ def no_default_with_extends_increment_in_base2_and_base3():
     ... parts =
     ... ''')
     >>> print_(system(buildout+' annotate buildout'), end='')
-    ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     <BLANKLINE>
     Annotated sections
     ==================
@@ -430,7 +423,9 @@ def test_suite():
     return doctest.DocTestSuite(
         setUp=easy_install_SetUp,
         tearDown=zc.buildout.testing.buildoutTearDown,
+        optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
         checker=renormalizing.RENormalizing([
+            zc.buildout.testing.ignore_horse,
             zc.buildout.testing.normalize_path,
             zc.buildout.testing.normalize_endings,
             zc.buildout.testing.normalize_script,

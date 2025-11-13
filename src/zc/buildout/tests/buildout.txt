@@ -58,6 +58,7 @@ The ``eggs`` directory has installed distributions, now in a directory per forma
     >>> ls(sample_buildout, 'eggs')
     d  v5
     >>> ls(sample_buildout, 'eggs', 'v5')
+    -  horse-with-no-namespace.egg-link
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link

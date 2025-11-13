@@ -77,6 +77,7 @@ Now, if we look at the buildout eggs directory:
     >>> ls(sample_buildout, 'eggs', 'v5')
     d  demo-0.2-pyN.N.egg
     d  demoneeded-1.1-pyN.N.egg
+    -  horse-with-no-namespace.egg-link
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
@@ -274,6 +275,7 @@ Then we'll get a new demo egg:
     d  demo-0.2-pyN.N.egg
     d  demo-0.3-pyN.N.egg
     d  demoneeded-1.1-pyN.N.egg
+    -  horse-with-no-namespace.egg-link
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link

@@ -39,6 +39,7 @@ We also get other buildout artifacts::
 
     >>> _ = (ls(sample_bootstrapped, 'eggs', 'v5'),
     ...      ls(sample_bootstrapped, 'develop-eggs'))
+    -  horse-with-no-namespace.egg-link
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link

@@ -738,7 +738,7 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
     ...
     [foo]
     bar = 1
@@ -1010,6 +1010,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
     d  v5
     >>> ls('eggs', 'v5')
     -  foox-0.0.0-py2.4.egg
+    -  horse-with-no-namespace.egg-link
     -  packaging.egg-link
     -  pip.egg-link
     -  setuptools.egg-link
@@ -2243,7 +2244,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse_with_no_namespace'.
     ...
     Making editable install of /sample-buildout/pack0
     ...
@@ -3491,6 +3492,7 @@ def test_suite():
             manuel.doctest.Manuel(
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.ignore_horse,
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
                     zc.buildout.testing.normalize_script,
@@ -3546,6 +3548,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.ignore_horse,
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
@@ -3589,7 +3592,9 @@ def test_suite():
             'debugging.txt',
             setUp=zc.buildout.testing.buildoutSetUp,
             tearDown=zc.buildout.testing.buildoutTearDown,
+            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+                zc.buildout.testing.ignore_horse,
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
@@ -3615,6 +3620,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+                zc.buildout.testing.ignore_horse,
                 zc.buildout.testing.normalize_script,
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
@@ -3642,6 +3648,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+              zc.buildout.testing.ignore_horse,
               zc.buildout.testing.normalize_exception_type_for_python_2_and_3,
               zc.buildout.testing.not_found,
               zc.buildout.testing.adding_find_link,
@@ -3664,6 +3671,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+                zc.buildout.testing.ignore_horse,
                 zc.buildout.testing.normalize_path,
                 zc.buildout.testing.normalize_endings,
                 zc.buildout.testing.normalize_script,
@@ -3728,6 +3736,7 @@ def test_suite():
             tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.ignore_horse,
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
@@ -3775,6 +3784,7 @@ def test_suite():
                 tearDown=zc.buildout.testing.buildoutTearDown,
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.ignore_horse,
                     (re.compile(r'(zc.buildout|setuptools)-\d+[.]\d+\S*'
                                 r'-py\d.\d+.egg'),
                     '\\1.egg'),
@@ -3835,6 +3845,7 @@ def test_suite():
                 manuel.doctest.Manuel(
                     optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                     checker=renormalizing.RENormalizing([
+                        zc.buildout.testing.ignore_horse,
                         zc.buildout.testing.easyinstall_deprecated,
                         zc.buildout.testing.setuptools_deprecated,
                         zc.buildout.testing.pkg_resources_deprecated,

@@ -42,6 +42,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.ignore_horse,
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.normalize_script,
@@ -66,6 +67,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.ignore_horse,
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
@@ -92,6 +94,7 @@ def test_suite():
             setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
             checker=renormalizing.RENormalizing([
+               zc.buildout.testing.ignore_horse,
                zc.buildout.testing.normalize_path,
                zc.buildout.testing.normalize_endings,
                zc.buildout.testing.not_found,
@@ -106,6 +109,7 @@ def test_suite():
                 setUp=setUp, tearDown=zc.buildout.testing.buildoutTearDown,
                 optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS,
                 checker=renormalizing.RENormalizing([
+                    zc.buildout.testing.ignore_horse,
                     zc.buildout.testing.normalize_path,
                     zc.buildout.testing.normalize_endings,
                     zc.buildout.testing.not_found,
