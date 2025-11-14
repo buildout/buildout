@@ -738,7 +738,7 @@ def create_sections_on_command_line():
 
     >>> print_(system(buildout + ' foo:bar=1 -vv'), end='')
     ...        # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     [foo]
     bar = 1
@@ -2244,7 +2244,7 @@ def dealing_with_extremely_insane_dependencies():
     However, if we run in verbose mode, we can see why packages were included:
 
     >>> print_(system(buildout+' -v'), end='') # doctest: +ELLIPSIS
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Making editable install of /sample-buildout/pack0
     ...

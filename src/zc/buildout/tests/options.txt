@@ -744,7 +744,7 @@ database is shown::
     ... """)
 
     >>> print_(system([buildout, '-vv']), end='') # doctest: +NORMALIZE_WHITESPACE
-    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace'.
+    Installing 'zc.buildout', 'wheel', 'pip', 'setuptools'.
     ...
     Configuration data:
     [buildout]

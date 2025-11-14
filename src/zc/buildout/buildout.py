@@ -1173,7 +1173,10 @@ class Buildout(DictMixin):
         # the true `wheel` package and the one vendorized by `setuptools`.
         # See https://github.com/buildout/buildout/issues/691
         # We explicitly install all our dependencies here.
-        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools', 'horse-with-no-namespace')
+        # We don't add horse-with-no-namespace, as this does not work in an egg.
+        # See https://github.com/buildout/buildout/pull/729#discussion_r2525779870
+        # and further.
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
         ws = zc.buildout.easy_install.install(
             projects,
             self['buildout']['eggs-directory'],
