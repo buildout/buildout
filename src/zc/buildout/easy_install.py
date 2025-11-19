@@ -363,6 +363,7 @@ class Installer(object):
     _allow_picked_versions = True
     _store_required_by = False
     _allow_unknown_extras = False
+    _namespace_packages = {}
 
     def __init__(self,
                  dest=None,
@@ -1074,6 +1075,8 @@ def get_picked_versions():
     required_by = Installer._required_by
     return (picked_versions, required_by)
 
+def get_namespace_packages():
+    return sorted(Installer._namespace_packages.items())
 
 def install(specs, dest,
             links=(), index=None,
@@ -1948,7 +1951,8 @@ def call_pip_install(spec, dest, editable=False):
             spec)
         raise
 
-    distrib = metadata.Distribution.at(dest + "/" + distinfo_dir)
+    full_distinfo_dir = os.path.join(dest, distinfo_dir)
+    distrib = metadata.Distribution.at(full_distinfo_dir)
     # On Python 3.10 we could use `distrib.name`.
     name = distrib.metadata['Name']
     if not name:
@@ -1957,6 +1961,17 @@ def call_pip_install(spec, dest, editable=False):
             spec,
         )
         sys.exit(1)
+    if editable:
+        namespaces_file = os.path.join(full_distinfo_dir, "namespace_packages.txt")
+        if os.path.exists(namespaces_file):
+            logger.warning(
+                "WARNING: Package %s at %s is using old style namespace packages. "
+                "You should switch to native namespaces (PEP 420).",
+                name,
+                spec,
+            )
+            with open(namespaces_file) as myfile:
+                Installer._namespace_packages[name] = myfile.read()
 
     if not editable:
         # TODO: we should no longer make an egg, but we still need some of this.
