@@ -1290,6 +1290,13 @@ def develop(setup, dest,
         directory = setup
     else:
         directory = os.path.dirname(setup)
+    # We will be calling `pip install -e directory` later on.  This works when
+    # directory is `src/something`.  But if it is just `something`, pip will
+    # try to get `something` from PyPI, even if there is a sub directory
+    # `something`.  So let's make it `./something`.
+    # See https://github.com/buildout/buildout/issues/734
+    if os.sep not in directory:
+        directory = f".{os.sep}{directory}"
     logger.debug("Making editable install of %s", setup)
 
     undo = []

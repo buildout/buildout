@@ -1,0 +1,3 @@
+When installing packages in development, make sure the name is a path.
+``pip install -e directory`` will look on PyPI, but with ``./directory`` it looks in the relative directory.
+[maurits]
