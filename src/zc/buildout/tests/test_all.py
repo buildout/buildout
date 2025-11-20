@@ -975,7 +975,10 @@ a develop egg, we will also generate a warning.
     ...
     The following list shows the affected packages and their namespaces:
     <BLANKLINE>
-    * foox: stuff
+    * foox:...
+
+Depending on the pip and setuptools versions used, the last line may either
+be `foox: stuff` or `foox:`.
 
 Now, if we generate a working set using the egg link, we will get a warning
 and we will get setuptools included in the working set.
@@ -1077,7 +1080,7 @@ namespace package.
     ...
     The following list shows the affected packages and their namespaces:
     <BLANKLINE>
-    * foox: stuff
+    * foox:...
 
     >>> get_working_set('bar')
     ['bar', 'foox', 'setuptools']
