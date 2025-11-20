@@ -8,6 +8,26 @@ Change History
 
 .. towncrier release notes start
 
+5.1.0 (2025-11-20)
+------------------
+
+New features:
+
+
+- Support Python 3.14.  No changes were needed.
+  [maurits] (#314)
+- Warn when old-style namespaces are used in packages under development.
+  [maurits] (#729)
+
+
+Bug fixes:
+
+
+- Require ``setuptools<81``.
+  We need the ``pkg_resources`` module which is scheduled for removal in 81.
+  [maurits] (#81)
+
+
 5.0.0 (2025-11-12)
 ------------------
 

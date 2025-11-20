@@ -1,3 +1,0 @@
-Require ``setuptools<81``.
-We need the ``pkg_resources`` module which is scheduled for removal in 81.
-[maurits]
