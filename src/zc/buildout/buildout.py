@@ -1346,8 +1346,8 @@ from one of these namespaces, you can try this as a temporary workaround:
 
     pip install horse-with-no-namespace
 
-Note: installing it with buildout does not help.
-It must be installed in the virtualenv with pip (or uv).
+Note: installing horse-with-no-namespace with buildout will not work.
+You must install it into the virtualenv with pip (or uv) before running the buildout.
 
 The following list shows the affected packages and their namespaces:
 """
