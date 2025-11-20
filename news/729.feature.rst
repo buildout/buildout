@@ -1,0 +1,2 @@
+Warn when old-style namespaces are used in packages under development.
+[maurits]

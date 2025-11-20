@@ -967,6 +967,18 @@ a develop egg, we will also generate a warning.
 
     >>> print_(system(join('bin', 'buildout')), end='')
     Develop: '/sample-buildout/foo'
+    WARNING: Package foox at /sample-buildout/foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
+    ...
+    Some development packages are using old style namespace packages.
+    ...
+    pip install horse-with-no-namespace
+    ...
+    The following list shows the affected packages and their namespaces:
+    <BLANKLINE>
+    * foox:...
+
+Depending on the pip and setuptools versions used, the last line may either
+be `foox: stuff` or `foox:`.
 
 Now, if we generate a working set using the egg link, we will get a warning
 and we will get setuptools included in the working set.
@@ -1059,7 +1071,16 @@ namespace package.
 
     >>> print_(system(join('bin', 'buildout')), end='')
     Develop: '/sample-buildout/foo'
+    WARNING: Package foox at /sample-buildout/foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
     Develop: '/sample-buildout/bar'
+    ...
+    Some development packages are using old style namespace packages.
+    ...
+    pip install horse-with-no-namespace
+    ...
+    The following list shows the affected packages and their namespaces:
+    <BLANKLINE>
+    * foox:...
 
     >>> get_working_set('bar')
     ['bar', 'foox', 'setuptools']

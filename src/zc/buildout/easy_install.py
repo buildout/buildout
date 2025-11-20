@@ -363,6 +363,7 @@ class Installer(object):
     _allow_picked_versions = True
     _store_required_by = False
     _allow_unknown_extras = False
+    _namespace_packages = {}
 
     def __init__(self,
                  dest=None,
@@ -1074,6 +1075,8 @@ def get_picked_versions():
     required_by = Installer._required_by
     return (picked_versions, required_by)
 
+def get_namespace_packages():
+    return sorted(Installer._namespace_packages.items())
 
 def install(specs, dest,
             links=(), index=None,
@@ -1927,13 +1930,47 @@ def call_pip_install(spec, dest, editable=False):
     split_entries = [os.path.splitext(entry) for entry in os.listdir(dest)]
     if editable:
         # On setuptools 79 and earlier, the egg-link file is created.
+        package_name = ""
         for base, ext in split_entries:
             if ext == ".egg-link":
                 logger.debug(
                     "Found .egg-link file after successful pip install of %s",
                     spec,
                 )
-                return base
+                package_name = base
+                break
+        if package_name:
+            # For pkg_resources style namespaces a .pth file is created,
+            # for example `plone.app.something-nspkg.pth`.  We only need this
+            # if the name was found.  If name was not found, the namespaces
+            # will be checked in a different way further on.
+            for base, ext in split_entries:
+                if ext != ".pth" or not base.endswith("-nspkg"):
+                    continue
+                logger.debug(
+                    "Found -nspkg.pth file after successful pip install of %s",
+                    spec,
+                )
+                logger.warning(
+                    "WARNING: Package %s at %s is using old style namespace packages. "
+                    "You should switch to native namespaces (PEP 420).",
+                    package_name,
+                    spec,
+                )
+                # We don't want to analyze this file, so we can only make an
+                # educated guess about the namespaces.
+                # Assume at most two dots, that is enough info for our warning.
+                # `a.b` -> `a`
+                # `a.b.c` -> `a\na.b`
+                # `a.b.c.d` -> `a\na.b`
+                # Get all names except the last one, and then keep the first two:
+                names = package_name.split(".")[:-1][:2]
+                if len(names) > 1:
+                    names[1] = ".".join(names)
+                namespaces = "\n".join(names)
+                Installer._namespace_packages[package_name] = namespaces
+                break
+            return package_name
 
     # With normal (non-editable) installs, there won't be an egg-link file created.
     # The same is true for editable installs with setuptools 80+.
@@ -1948,7 +1985,8 @@ def call_pip_install(spec, dest, editable=False):
             spec)
         raise
 
-    distrib = metadata.Distribution.at(dest + "/" + distinfo_dir)
+    full_distinfo_dir = os.path.join(dest, distinfo_dir)
+    distrib = metadata.Distribution.at(full_distinfo_dir)
     # On Python 3.10 we could use `distrib.name`.
     name = distrib.metadata['Name']
     if not name:
@@ -1957,6 +1995,17 @@ def call_pip_install(spec, dest, editable=False):
             spec,
         )
         sys.exit(1)
+    if editable:
+        namespaces_file = os.path.join(full_distinfo_dir, "namespace_packages.txt")
+        if os.path.exists(namespaces_file):
+            logger.warning(
+                "WARNING: Package %s at %s is using old style namespace packages. "
+                "You should switch to native namespaces (PEP 420).",
+                name,
+                spec,
+            )
+            with open(namespaces_file) as myfile:
+                Installer._namespace_packages[name] = myfile.read()
 
     if not editable:
         # TODO: we should no longer make an egg, but we still need some of this.

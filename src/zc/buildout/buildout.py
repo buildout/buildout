@@ -921,6 +921,7 @@ class Buildout(DictMixin):
 
         if self.show_picked_versions or self.update_versions_file:
             self._print_picked_versions()
+        self._print_namespace_packages()
         self._unload_extensions()
 
     def _update_installed(self, **buildout_options):
@@ -1330,6 +1331,29 @@ class Buildout(DictMixin):
             f.close()
             print_("Picked versions have been written to " +
                    self.update_versions_file)
+
+    def _print_namespace_packages(self):
+        namespace_packages = zc.buildout.easy_install.get_namespace_packages()
+        if not namespace_packages:
+            # Don't print empty output.
+            return
+        print("""
+** WARNING **
+Some development packages are using old style namespace packages.
+You should switch to native namespaces (PEP 420).
+If you get a ModuleNotFound or an ImportError when importing a package
+from one of these namespaces, you can try this as a temporary workaround:
+
+    pip install horse-with-no-namespace
+
+Note: installing horse-with-no-namespace with buildout will not work.
+You must install it into the virtualenv with pip (or uv) before running the buildout.
+
+The following list shows the affected packages and their namespaces:
+"""
+)
+        for key, value in namespace_packages:
+            print(f"* {key}: {', '.join(value.splitlines())}")
 
     @command
     def setup(self, args):
