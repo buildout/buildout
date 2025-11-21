@@ -565,6 +565,7 @@ class Buildout(DictMixin):
             bool_option(options, 'prefer-final'))
         zc.buildout.easy_install.use_dependency_links(
             bool_option(options, 'use-dependency-links'))
+        zc.buildout.easy_install.index_url(options.get('index', '').strip())
         zc.buildout.easy_install.allow_picked_versions(
                 bool_option(options, 'allow-picked-versions'))
         self.show_picked_versions = bool_option(options,

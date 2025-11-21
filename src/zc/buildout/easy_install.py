@@ -365,6 +365,7 @@ class Installer(object):
     _store_required_by = False
     _allow_unknown_extras = False
     _namespace_packages = {}
+    _index_url = None
 
     def __init__(self,
                  dest=None,
@@ -398,7 +399,9 @@ class Installer(object):
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
 
-        self._index_url = index
+        if index:
+            self._index_url = index
+
         path = (path and path[:] or []) + buildout_and_setuptools_path
         self._path = path
         if self._dest is None:
@@ -1057,6 +1060,12 @@ def use_dependency_links(setting=None):
     old = Installer._use_dependency_links
     if setting is not None:
         Installer._use_dependency_links = bool(setting)
+    return old
+
+def index_url(setting=None):
+    old = Installer._index_url
+    if setting is not None:
+        Installer._index_url = setting
     return old
 
 def allow_picked_versions(setting=None):
@@ -1894,6 +1903,8 @@ def call_pip_install(spec, dest, editable=False):
     what needs to happen afterwards is very different for the two cases.
     """
     args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
+    if index_url():
+        args.extend(["--index-url", index_url()])
     level = logger.getEffectiveLevel()
     if level >= logging.INFO:
         args.append('-q')
