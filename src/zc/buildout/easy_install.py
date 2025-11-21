@@ -45,6 +45,7 @@ from importlib import metadata
 from packaging import specifiers
 from packaging.utils import canonicalize_name
 from packaging.utils import is_normalized_name
+from pathlib import Path
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
@@ -1293,10 +1294,10 @@ def develop(setup, dest,
     # We will be calling `pip install -e directory` later on.  This works when
     # directory is `src/something`.  But if it is just `something`, pip will
     # try to get `something` from PyPI, even if there is a sub directory
-    # `something`.  So let's make it `./something`.
+    # `something`.  So let's make it an absolute path.
     # See https://github.com/buildout/buildout/issues/734
-    if os.sep not in directory:
-        directory = f".{os.sep}{directory}"
+    # Let's also handle '~/'.
+    directory = Path(directory).expanduser().resolve()
     logger.debug("Making editable install of %s", setup)
 
     undo = []
@@ -1320,7 +1321,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
-        egg_name = call_pip_install(directory, tmp3, editable=True)
+        egg_name = call_pip_install(directory.as_uri(), tmp3, editable=True)
 
         # output = get_subprocess_output(args)
         # if log_level <= logging.DEBUG:

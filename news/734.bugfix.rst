@@ -1,3 +1,3 @@
-When installing packages in development, make sure the name is a path.
-``pip install -e directory`` will look on PyPI, but with ``./directory`` it looks in the relative directory.
+When installing packages in development, treat the name is a file uri.
+Otherwise ``pip install -e package_name`` will look on PyPI, instead of a local ``package_name`` directory.
 [maurits]
