@@ -967,7 +967,7 @@ a develop egg, we will also generate a warning.
 
     >>> print_(system(join('bin', 'buildout')), end='')
     Develop: '/sample-buildout/foo'
-    WARNING: Package foox at /sample-buildout/foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
+    WARNING: Package foox at .../foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
     ...
     Some development packages are using old style namespace packages.
     ...
@@ -1071,7 +1071,7 @@ namespace package.
 
     >>> print_(system(join('bin', 'buildout')), end='')
     Develop: '/sample-buildout/foo'
-    WARNING: Package foox at /sample-buildout/foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
+    WARNING: Package foox at .../foo is using old style namespace packages. You should switch to native namespaces (PEP 420).
     Develop: '/sample-buildout/bar'
     ...
     Some development packages are using old style namespace packages.

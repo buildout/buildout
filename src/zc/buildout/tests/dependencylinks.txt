@@ -59,9 +59,13 @@ Now we can run the buildout.
     Develop: '/sample-buildout/depdemo'
     Installing eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.1...
 
 Notice that the egg was retrieved from the logging server.
+The output may have extra lines like this, at least on setuptools 63, which we ignore:
+
+    Not found: /demoneeded/
+    Not found: /.VolumeIcon.icns
 
 Now let's change the egg so that it doesn't specify dependency links.
 
@@ -134,7 +138,7 @@ specify different places to look for the dependency egg.
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.1...
 
 So when both setuptools and buildout specify places to search for
 eggs, the dependency_links takes precedence over find-links.
@@ -189,4 +193,4 @@ before. The dependency's are looked for first in the logging server.
     Develop: '/sample-buildout/depdemo'
     Updating eggs.
     Getting distribution for 'demoneeded'.
-    Got demoneeded 1.1.
+    Got demoneeded 1.1...

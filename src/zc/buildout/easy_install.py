@@ -30,12 +30,12 @@ import pkg_resources
 import posixpath
 import re
 import setuptools.archive_util
-import setuptools.command.easy_install
 import setuptools.command.setopt
 import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import zc.buildout
 import zc.buildout.rmtree
 import zipfile
@@ -45,6 +45,7 @@ from importlib import metadata
 from packaging import specifiers
 from packaging.utils import canonicalize_name
 from packaging.utils import is_normalized_name
+from pathlib import Path
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
@@ -364,6 +365,7 @@ class Installer(object):
     _store_required_by = False
     _allow_unknown_extras = False
     _namespace_packages = {}
+    _index_url = None
 
     def __init__(self,
                  dest=None,
@@ -397,7 +399,9 @@ class Installer(object):
         if self._download_cache and (self._download_cache not in links):
             links.insert(0, self._download_cache)
 
-        self._index_url = index
+        if index:
+            self._index_url = index
+
         path = (path and path[:] or []) + buildout_and_setuptools_path
         self._path = path
         if self._dest is None:
@@ -1058,6 +1062,12 @@ def use_dependency_links(setting=None):
         Installer._use_dependency_links = bool(setting)
     return old
 
+def index_url(setting=None):
+    old = Installer._index_url
+    if setting is not None:
+        Installer._index_url = setting
+    return old
+
 def allow_picked_versions(setting=None):
     old = Installer._allow_picked_versions
     if setting is not None:
@@ -1290,6 +1300,13 @@ def develop(setup, dest,
         directory = setup
     else:
         directory = os.path.dirname(setup)
+    # We will be calling `pip install -e directory` later on.  This works when
+    # directory is `src/something`.  But if it is just `something`, pip will
+    # try to get `something` from PyPI, even if there is a sub directory
+    # `something`.  So let's make it an absolute path.
+    # See https://github.com/buildout/buildout/issues/734
+    # Let's also handle '~/'.
+    directory = Path(directory).expanduser().resolve()
     logger.debug("Making editable install of %s", setup)
 
     undo = []
@@ -1313,7 +1330,7 @@ def develop(setup, dest,
         tmp3 = tempfile.mkdtemp('build', dir=dest)
         undo.append(lambda : zc.buildout.rmtree.rmtree(tmp3))
 
-        egg_name = call_pip_install(directory, tmp3, editable=True)
+        egg_name = call_pip_install(directory.as_uri(), tmp3, editable=True)
 
         # output = get_subprocess_output(args)
         # if log_level <= logging.DEBUG:
@@ -1886,6 +1903,24 @@ def call_pip_install(spec, dest, editable=False):
     what needs to happen afterwards is very different for the two cases.
     """
     args = [sys.executable, '-m', 'pip', 'install', '--no-deps', '-t', dest]
+    package_index_url = index_url()
+    if package_index_url:
+        if not urllib.parse.urlsplit(package_index_url).scheme:
+            # pip 25+ does not accept a directory as index, which buildout
+            # does support.
+            package_index_url = Path(package_index_url)
+            if package_index_url.exists():
+                package_index_url = package_index_url.expanduser().resolve().as_uri()
+            else:
+                package_index_url = None
+        if package_index_url:
+            # We could pass the index in the '--index-url' parameter.
+            # But then some of our tests start failing when we pass an index
+            # with only a few zc.buildout distributions.  Reason is that pip
+            # will try to find setuptools there as well, as this is needed as
+            # build-system for most packages.  And this fails.
+            # So we pass the index as *extra* url.
+            args.extend(["--extra-index-url", package_index_url])
     level = logger.getEffectiveLevel()
     if level >= logging.INFO:
         args.append('-q')
