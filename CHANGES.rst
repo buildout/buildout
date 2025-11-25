@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+5.1.1 (2025-11-25)
+------------------
+
+Bug fixes:
+
+
+- Store buildout index url in the installer, so pip can use it.  [maurits] (#731)
+- When installing packages in development, treat the name as a file uri.
+  Otherwise ``pip install -e package_name`` will look on PyPI, instead of a local ``package_name`` directory.
+  [maurits] (#734)
+
+
 5.1.0 (2025-11-20)
 ------------------
 

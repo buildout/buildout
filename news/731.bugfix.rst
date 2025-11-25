@@ -1,1 +1,0 @@
-Store buildout index url in the installer, so pip can use it.  [maurits]

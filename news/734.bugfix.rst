@@ -1,3 +1,0 @@
-When installing packages in development, treat the name as a file uri.
-Otherwise ``pip install -e package_name`` will look on PyPI, instead of a local ``package_name`` directory.
-[maurits]
