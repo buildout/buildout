@@ -46,7 +46,7 @@ setup(
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
     install_requires = [
-        'setuptools>=61.0.0,<81',
+        'setuptools>=61.0.0,<82',
         'packaging>=23.2',
         'pip',
         'wheel',
