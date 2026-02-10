@@ -1,1 +1,0 @@
-Test with latest ``setuptools`` 80.10.2.
