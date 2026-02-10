@@ -8,6 +8,17 @@ Change History
 
 .. towncrier release notes start
 
+5.1.2 (2026-02-10)
+------------------
+
+Bug fixes:
+
+
+- Accept ``setuptools`` 81.
+  Require ``setuptools<82``.
+  [maurits]
+
+
 5.1.1 (2025-11-25)
 ------------------
 

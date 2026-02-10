@@ -1,3 +1,0 @@
-Accept ``setuptools`` 81.
-Require ``setuptools<82``.
-[maurits]
