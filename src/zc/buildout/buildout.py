@@ -855,7 +855,7 @@ class Buildout(DictMixin):
 
                 try:
                     installed_files = self[part]._call(update)
-                except:
+                except Exception:
                     installed_parts.remove(part)
                     self._uninstall(old_installed_files)
                     if installed_exists:
@@ -995,7 +995,7 @@ class Buildout(DictMixin):
                         self._logger.info("Develop: %r", setup)
                         __doing__ = 'Processing develop directory %r.', setup
                         zc.buildout.easy_install.develop(setup, dest)
-            except:
+            except Exception:
                 # if we had an error, we need to roll back changes, by
                 # removing any files we created.
                 self._sanity_check_develop_eggs_files(dest, old_files)
@@ -1733,7 +1733,7 @@ class Options(DictMixin):
             try:
                 os.chdir(buildout_directory)
                 return f()
-            except:
+            except Exception:
                 for p in self._created:
                     if os.path.isdir(p):
                         rmtree(p)

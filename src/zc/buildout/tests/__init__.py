@@ -187,7 +187,7 @@ def add_source_dist(test, version=1.4):
         write(tmp, 'README', "");
         write(tmp, 'MANIFEST.in', "include *.c\n");
         test.globs['sdist'](tmp, test.globs['sample_eggs'])
-    except:
+    except Exception:
         shutil.rmtree(tmp)
 
 
