@@ -280,6 +280,7 @@ _buildout_default_options = _annotate_section({
     'eggs-directory': 'eggs',
     'executable': sys.executable,
     'find-links': '',
+    'import-pkg-resources': 'true',
     'install-from-cache': 'false',
     'installed': '.installed.cfg',
     'log-format': '',
@@ -560,6 +561,8 @@ class Buildout(DictMixin):
         self.versions = versions
         zc.buildout.easy_install.default_versions(versions)
 
+        zc.buildout.easy_install.import_pkg_resources(
+            bool_option(options, 'import-pkg-resources'))
         zc.buildout.easy_install.prefer_final(
             bool_option(options, 'prefer-final'))
         zc.buildout.easy_install.use_dependency_links(

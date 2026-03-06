@@ -1,0 +1,5 @@
+Insert ``import pkg_resources`` in scripts if namespace packages are used.
+You can switch this off with the new buildout setting ``import-pkg-resources = false``.
+For reasoning, see `Zope issue 1288 <https://github.com/zopefoundation/Zope/issues/1288>`_.
+This setting is only useful for ``zc.buildout`` 4.x.  It will not be added to version 5.
+[maurits]
