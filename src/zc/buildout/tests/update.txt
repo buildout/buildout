@@ -84,6 +84,8 @@ Our buildout script has been updated to use the new eggs:
     ...
       ]
     <BLANKLINE>
+    import pkg_resources
+    <BLANKLINE>
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':
@@ -213,6 +215,8 @@ directory:
       join(base, 'eggs/zc.buildout-99.99-py3.3.egg'),
     ...
       ]
+    <BLANKLINE>
+    import pkg_resources
     <BLANKLINE>
     import zc.buildout.buildout
     <BLANKLINE>
