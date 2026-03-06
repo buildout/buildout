@@ -8,6 +8,16 @@ Change History
 
 .. towncrier release notes start
 
+5.1.3 (2026-03-06)
+------------------
+
+Bug fixes:
+
+
+- Replace 4 bare except clauses with except Exception.
+  [haosenwang1018]
+
+
 5.1.2 (2026-02-10)
 ------------------
 

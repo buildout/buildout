@@ -1,2 +1,0 @@
-Replace 4 bare except clauses with except Exception.
-[haosenwang1018]
