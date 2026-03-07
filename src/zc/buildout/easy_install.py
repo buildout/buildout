@@ -357,6 +357,7 @@ class Installer(object):
     _picked_versions = {}
     _download_cache = None
     _install_from_cache = False
+    _import_pkg_resources = True
     _prefer_final = True
     _use_dependency_links = True
     _allow_picked_versions = True
@@ -1040,6 +1041,12 @@ def install_from_cache(setting=None):
         Installer._install_from_cache = bool(setting)
     return old
 
+def import_pkg_resources(setting=None):
+    old = Installer._import_pkg_resources
+    if setting is not None:
+        Installer._import_pkg_resources = bool(setting)
+    return old
+
 def prefer_final(setting=None):
     old = Installer._prefer_final
     if setting is not None:
@@ -1438,6 +1445,22 @@ def scripts(reqs, working_set, executable, dest=None,
 
     if initialization:
         initialization = '\n'+initialization+'\n'
+    if import_pkg_resources():
+        logger.debug("import-pkg-resources is true: checking for namespace package in working set.")
+        for dist in working_set:
+            try:
+                namespace_packages = dist.get_metadata('namespace_packages.txt')
+            except Exception:
+                continue
+            if namespace_packages:
+                logger.debug(
+                    "Adding import of pkg_resources, because I found "
+                    "namespace packages %r for %s",
+                    namespace_packages.splitlines(),
+                    dist,
+                )
+                initialization = f'\nimport pkg_resources\n{initialization}'
+                break
 
     entry_points = []
     distutils_scripts = []

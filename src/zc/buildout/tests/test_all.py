@@ -3143,6 +3143,8 @@ def bootstrap_honors_relative_paths():
       ...
       ]
     <BLANKLINE>
+    import pkg_resources
+    <BLANKLINE>
     import zc.buildout.buildout
     <BLANKLINE>
     if __name__ == '__main__':

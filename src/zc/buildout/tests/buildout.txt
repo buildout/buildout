@@ -822,6 +822,8 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         DEFAULT_VALUE
     find-links=
         DEFAULT_VALUE
+    import-pkg-resources= true
+        DEFAULT_VALUE
     install-from-cache= false
         DEFAULT_VALUE
     installed= .installed.cfg
@@ -927,6 +929,11 @@ You get more information about the way values are computed::
     <BLANKLINE>
        AS DEFAULT_VALUE
        SET VALUE =
+    <BLANKLINE>
+    import-pkg-resources= true
+    <BLANKLINE>
+       AS DEFAULT_VALUE
+       SET VALUE = true
     <BLANKLINE>
     install-from-cache= false
     <BLANKLINE>
@@ -3059,6 +3066,7 @@ database is shown::
     eggs-directory = /sample-buildout/eggs
     executable = python
     find-links =
+    import-pkg-resources = true
     install-from-cache = false
     installed = /sample-buildout/.installed.cfg
     log-format =
