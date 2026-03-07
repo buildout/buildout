@@ -1,3 +1,0 @@
-Use older zope.testrunner, which still uses ``pkg_resources`` style namespace.
-This is needed for compatibility with other ``zope`` packages we use in testing.
-[maurits]

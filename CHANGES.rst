@@ -8,6 +8,35 @@ Change History
 
 .. towncrier release notes start
 
+4.2.0 (2026-03-07)
+------------------
+
+New features:
+
+
+- Insert ``import pkg_resources`` in scripts if namespace packages are used.
+  You can switch this off with the new buildout setting ``import-pkg-resources = false``.
+  For reasoning, see `Zope issue 1288 <https://github.com/zopefoundation/Zope/issues/1288>`_.
+  This setting is only useful for ``zc.buildout`` 4.x.  It will not be added to version 5.
+  [maurits]
+
+
+Bug fixes:
+
+
+- Require ``setuptools<82``.  [maurits]
+
+
+Tests
+
+
+- Fix zc.recipe.egg tests with pip 25.3.
+  [maurits]
+- Use older zope.testrunner, which still uses ``pkg_resources`` style namespace.
+  This is needed for compatibility with other ``zope`` packages we use in testing.
+  [maurits]
+
+
 4.1.12 (2025-06-11)
 -------------------
 

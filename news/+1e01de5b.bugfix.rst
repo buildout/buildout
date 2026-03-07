@@ -1,1 +1,0 @@
-Require ``setuptools<82``.  [maurits]
