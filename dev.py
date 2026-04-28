@@ -39,11 +39,10 @@ if buildout_script.exists():
     print(f"SUCCESS: Generated {buildout_script} script.")
     if platform.system() != "Windows":
         # On Windows you get a UnicodeDecodeError that I don't want to debug.
+        # Problem is that printing the binary `buildout.exe` won't work.
         print(buildout_script.read_text())
     else:
-        # Now there are problems, so I *do* want to see it...
-        for line in buildout_script.read_bytes().splitlines():
-            print(line)
+        os.listdir(bin)
 else:
     print(f"ERROR: Generating {buildout_script} failed.")
     sys.exit(1)
