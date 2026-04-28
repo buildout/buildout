@@ -1662,6 +1662,10 @@ def _create_script(contents, dest):
         if win32_exe.endswith('-script'):
             win32_exe = win32_exe[:-7] # remove "-script"
         win32_exe = win32_exe + '.exe' # add ".exe"
+        print(f"Creating script {win32_exe} with contents:")
+        print("\n")
+        print(contents)
+        print("\n")
         new_data = get_win_launcher('cli')
 
         if _file_changed(win32_exe, new_data, 'rb'):

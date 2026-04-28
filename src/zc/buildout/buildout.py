@@ -1184,14 +1184,10 @@ class Buildout(DictMixin):
             path = [self['buildout']['develop-eggs-directory']],
             allow_hosts = self._allow_hosts
             )
-        print("Called  zc.buildout.easy_install.install")
-        print("working set:")
-        print(ws)
 
         upgraded = []
 
         for project in projects:
-            print(project)
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
