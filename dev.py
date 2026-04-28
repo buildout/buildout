@@ -42,7 +42,7 @@ if buildout_script.exists():
         # Problem is that printing the binary `buildout.exe` won't work.
         print(buildout_script.read_text())
     else:
-        os.listdir(bin)
+        os.listdir("bin")
 else:
     print(f"ERROR: Generating {buildout_script} failed.")
     sys.exit(1)
