@@ -1,0 +1,1 @@
+Test with ``pip`` 26.1.  [maurits]
