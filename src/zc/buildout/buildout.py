@@ -1197,16 +1197,21 @@ class Buildout(DictMixin):
         upgraded = []
 
         for project in projects:
+            orig_project_name = project
+            print(f"{orig_project_name=}")
+            extra = ''
             if '<' in project:
-                project = project.split('<')[0]
+                project, extra = orig_project_name.split('<')
             canonicalized_name = packaging_utils.canonicalize_name(project)
-            req = pkg_resources.Requirement.parse(canonicalized_name)
+            req = pkg_resources.Requirement.parse(canonicalized_name + extra)
             dist = ws.find(req)
+            print(f"{dist=}")
             if dist is None and canonicalized_name != project:
                 # Try with the original project name.  Depending on which setuptools
                 # version is used, this is either useless or a life saver.
                 req = pkg_resources.Requirement.parse(project)
                 dist = ws.find(req)
+                print(f"{dist=}")
             importlib.import_module(project)
             if dist is None:
                 # This is unexpected.  This must be some problem with how we use
@@ -1214,10 +1219,13 @@ class Buildout(DictMixin):
                 # safe to ignore.
                 self._logger.warning(
                     "Could not find %s in working set during upgrade check. Ignoring.",
-                    project,
+                    orig_project_name,
                 )
                 continue
             if not inspect.getfile(sys.modules[project]).startswith(dist.location):
+                print(inspect.getfile(sys.modules[project]))
+                print(".  does not start with...")
+                print(dist.location)
                 upgraded.append(dist)
 
         if not upgraded:
