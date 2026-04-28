@@ -121,3 +121,7 @@ echo "Building source dist, so we get an egg-info directory."
 echo
 echo "Now calling 'python dev.py' to create 'bin/buildout' script in main directory."
 "$VENV_PYTHON" dev.py
+
+echo
+echo "Getting pip freeze output again:"
+"$VENV_PYTHON" -m pip freeze --all
