@@ -1183,7 +1183,7 @@ class Buildout(DictMixin):
         # We must install `wheel` before `setuptools`` to avoid confusion between
         # the true `wheel` package and the one vendorized by `setuptools`.
         # See https://github.com/buildout/buildout/issues/691
-        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
+        projects = ('zc.buildout', 'wheel', 'pip', 'setuptools<82')
         print("Calling  zc.buildout.easy_install.install")
         ws = zc.buildout.easy_install.install(
             projects,
@@ -1197,6 +1197,8 @@ class Buildout(DictMixin):
         upgraded = []
 
         for project in projects:
+            if '<' in project:
+                project == project.split('<')[0]
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
