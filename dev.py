@@ -41,8 +41,9 @@ if buildout_script.exists():
         # On Windows you get a UnicodeDecodeError that I don't want to debug.
         print(buildout_script.read_text())
     else:
-        # I still want to see it...
-        print(buildout_script.read_text())
+        # Now there are problems, so I *do* want to see it...
+        for line in buildout_script.read_bytes().splitlines():
+            print(line)
 else:
     print(f"ERROR: Generating {buildout_script} failed.")
     sys.exit(1)
