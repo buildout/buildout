@@ -352,6 +352,34 @@ def dist_needs_pkg_resources(dist):
     )
 
 
+class IncompatibleConstraintError(zc.buildout.UserError):
+    """A specified version is incompatible with a given requirement.
+    """
+
+IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
+
+
+def _constrained_requirement(constraint, requirement):
+    assert isinstance(requirement, pkg_resources.Requirement)
+    if constraint[0] not in '<>':
+        if constraint.startswith('='):
+            assert constraint.startswith('==')
+            version = constraint[2:]
+        else:
+            version = constraint
+            constraint = '==' + constraint
+        if version not in requirement:
+            msg = ("The requirement (%r) is not allowed by your [versions] "
+                   "constraint (%s)" % (str(requirement), version))
+            raise IncompatibleConstraintError(msg)
+        specifier = specifiers.SpecifierSet(constraint)
+    else:
+        specifier = requirement.specifier & constraint
+    constrained = copy.deepcopy(requirement)
+    constrained.specifier = specifier
+    return pkg_resources.Requirement.parse(str(constrained))
+
+
 class Installer(object):
 
     _versions = {}
@@ -1863,34 +1891,6 @@ class MissingDistribution(zc.buildout.UserError):
     def __str__(self):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
-
-def _constrained_requirement(constraint, requirement):
-    assert isinstance(requirement, pkg_resources.Requirement)
-    if constraint[0] not in '<>':
-        if constraint.startswith('='):
-            assert constraint.startswith('==')
-            version = constraint[2:]
-        else:
-            version = constraint
-            constraint = '==' + constraint
-        if version not in requirement:
-            msg = ("The requirement (%r) is not allowed by your [versions] "
-                   "constraint (%s)" % (str(requirement), version))
-            raise IncompatibleConstraintError(msg)
-        specifier = specifiers.SpecifierSet(constraint)
-    else:
-        specifier = requirement.specifier & constraint
-    constrained = copy.deepcopy(requirement)
-    constrained.specifier = specifier
-    return pkg_resources.Requirement.parse(str(constrained))
-
-
-class IncompatibleConstraintError(zc.buildout.UserError):
-    """A specified version is incompatible with a given requirement.
-    """
-
-IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
-
 
 def call_pip_install(spec, dest, editable=False):
     """
