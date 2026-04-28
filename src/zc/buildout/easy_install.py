@@ -824,6 +824,18 @@ class Installer(object):
             except IncompatibleConstraintError:
                 logger.info(self._version_conflict_information(canonical_name))
                 raise
+        elif requirement.project_name == "setuptools":
+            # Restrict setuptools to less than 82 if it is not pinned.
+            # Especially when zc.buildout checks if it should upgrade itself
+            # or setuptools, under some circumstances this could lead to a
+            # too new setuptools version getting installed.
+            # See https://github.com/buildout/buildout/issues/744
+            try:
+                requirement = _constrained_requirement('<82',
+                                                       requirement)
+            except IncompatibleConstraintError:
+                logger.info(self._version_conflict_information(canonical_name))
+                raise
 
         return requirement
 

@@ -1,0 +1,3 @@
+Restrict ``setuptools`` to less than 82 if it is not pinned.
+When ``zc.buildout`` checks if it should upgrade itself or ``setuptools``, under some circumstances this could lead to a too new ``setuptools`` version getting installed.
+[maurits]
