@@ -772,6 +772,7 @@ class Installer(object):
 
     def _maybe_add_setuptools(self, ws, dist):
         if dist_needs_pkg_resources(dist):
+            print("dist_needs_pkg_resources")
             # We have a namespace package but no requirement for setuptools
             if dist.precedence == pkg_resources.DEVELOP_DIST:
                 logger.warning(
@@ -806,15 +807,17 @@ class Installer(object):
             "Base installation request: %s" % repr(specs)[1:-1])
 
         for_buildout_run = bool(working_set)
-
+        print(f"{specs=}")
         requirements = [pkg_resources.Requirement.parse(spec)
                         for spec in specs]
+        print(f"{requirements=}")
 
         requirements = [
             self._constrain(requirement)
             for requirement in requirements
             if not requirement.marker or requirement.marker.evaluate()
         ]
+        print(f"{requirements=}")
 
         if working_set is None:
             ws = pkg_resources.WorkingSet([])
@@ -822,7 +825,9 @@ class Installer(object):
             ws = working_set
 
         for requirement in requirements:
+            print(f"{requirement=}")
             for dist in self._get_dist(requirement, ws):
+                print(f"{dist=}")
                 self._maybe_add_setuptools(ws, dist)
 
         # OK, we have the requested distributions and they're in the working
