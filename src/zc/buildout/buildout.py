@@ -41,6 +41,15 @@ import zc.buildout
 import zc.buildout.download
 
 
+import importlib.metadata
+try:
+    setuptools_dist = importlib.metadata.distribution("setuptools")
+    print(setuptools_dist)
+    print(setuptools_dist.version)
+except Exception as exc:
+    print("Exception getting info on setuptools dist:")
+    print(exc)
+
 try:
     hashed = md5_original(b'test')
     md5 = md5_original
