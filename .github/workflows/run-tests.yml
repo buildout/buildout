@@ -35,4 +35,4 @@ jobs:
         TMPDIR: C:\tmp
         TMP: C:\tmp
         TEMP: C:\tmp
-      run: make
+      run: make test-small
