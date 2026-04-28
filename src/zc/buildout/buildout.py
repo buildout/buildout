@@ -1175,6 +1175,7 @@ class Buildout(DictMixin):
         # the true `wheel` package and the one vendorized by `setuptools`.
         # See https://github.com/buildout/buildout/issues/691
         projects = ('zc.buildout', 'wheel', 'pip', 'setuptools')
+        print("Calling  zc.buildout.easy_install.install")
         ws = zc.buildout.easy_install.install(
             projects,
             self['buildout']['eggs-directory'],
@@ -1183,10 +1184,14 @@ class Buildout(DictMixin):
             path = [self['buildout']['develop-eggs-directory']],
             allow_hosts = self._allow_hosts
             )
+        print("Called  zc.buildout.easy_install.install")
+        print("working set:")
+        print(ws)
 
         upgraded = []
 
         for project in projects:
+            print(project)
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
