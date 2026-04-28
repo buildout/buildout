@@ -40,6 +40,9 @@ if buildout_script.exists():
     if platform.system() != "Windows":
         # On Windows you get a UnicodeDecodeError that I don't want to debug.
         print(buildout_script.read_text())
+    else:
+        # I still want to see it...
+        print(buildout_script.read_text())
 else:
     print(f"ERROR: Generating {buildout_script} failed.")
     sys.exit(1)
