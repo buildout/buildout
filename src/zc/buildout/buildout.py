@@ -1198,7 +1198,7 @@ class Buildout(DictMixin):
 
         for project in projects:
             if '<' in project:
-                project == project.split('<')[0]
+                project = project.split('<')[0]
             canonicalized_name = packaging_utils.canonicalize_name(project)
             req = pkg_resources.Requirement.parse(canonicalized_name)
             dist = ws.find(req)
