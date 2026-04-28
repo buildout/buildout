@@ -503,9 +503,11 @@ class Installer(object):
         # Note that dists are sorted from best to worst, as promised by
         # env.__getitem__
 
+        print(f"_satisfied? {req=}")
         for dist in dists:
+            print(f"{dist.precedence=} {dist=}")
             if (dist.precedence == pkg_resources.DEVELOP_DIST):
-                logger.debug('We have a develop egg: %s', dist)
+                logger.info('We have a develop egg: %s', dist)
                 return dist, None
 
         # Special common case, we have a specification for a single version:
