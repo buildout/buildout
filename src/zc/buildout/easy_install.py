@@ -824,6 +824,13 @@ class Installer(object):
             except IncompatibleConstraintError:
                 logger.info(self._version_conflict_information(canonical_name))
                 raise
+        elif requirement.project_name == "setuptools":
+            try:
+                requirement = _constrained_requirement('<82',
+                                                       requirement)
+            except IncompatibleConstraintError:
+                logger.info(self._version_conflict_information(canonical_name))
+                raise
 
         return requirement
 
