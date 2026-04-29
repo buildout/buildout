@@ -352,6 +352,34 @@ def dist_needs_pkg_resources(dist):
     )
 
 
+class IncompatibleConstraintError(zc.buildout.UserError):
+    """A specified version is incompatible with a given requirement.
+    """
+
+IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
+
+
+def _constrained_requirement(constraint, requirement):
+    assert isinstance(requirement, pkg_resources.Requirement)
+    if constraint[0] not in '<>':
+        if constraint.startswith('='):
+            assert constraint.startswith('==')
+            version = constraint[2:]
+        else:
+            version = constraint
+            constraint = '==' + constraint
+        if version not in requirement:
+            msg = ("The requirement (%r) is not allowed by your [versions] "
+                   "constraint (%s)" % (str(requirement), version))
+            raise IncompatibleConstraintError(msg)
+        specifier = specifiers.SpecifierSet(constraint)
+    else:
+        specifier = requirement.specifier & constraint
+    constrained = copy.deepcopy(requirement)
+    constrained.specifier = specifier
+    return pkg_resources.Requirement.parse(str(constrained))
+
+
 class Installer(object):
 
     _versions = {}
@@ -792,6 +820,18 @@ class Installer(object):
         if constraint:
             try:
                 requirement = _constrained_requirement(constraint,
+                                                       requirement)
+            except IncompatibleConstraintError:
+                logger.info(self._version_conflict_information(canonical_name))
+                raise
+        elif requirement.project_name == "setuptools":
+            # Restrict setuptools to less than 82 if it is not pinned.
+            # Especially when zc.buildout checks if it should upgrade itself
+            # or setuptools, under some circumstances this could lead to a
+            # too new setuptools version getting installed.
+            # See https://github.com/buildout/buildout/issues/744
+            try:
+                requirement = _constrained_requirement('<82',
                                                        requirement)
             except IncompatibleConstraintError:
                 logger.info(self._version_conflict_information(canonical_name))
@@ -1863,34 +1903,6 @@ class MissingDistribution(zc.buildout.UserError):
     def __str__(self):
         req, ws = self.data
         return "Couldn't find a distribution for %r." % str(req)
-
-def _constrained_requirement(constraint, requirement):
-    assert isinstance(requirement, pkg_resources.Requirement)
-    if constraint[0] not in '<>':
-        if constraint.startswith('='):
-            assert constraint.startswith('==')
-            version = constraint[2:]
-        else:
-            version = constraint
-            constraint = '==' + constraint
-        if version not in requirement:
-            msg = ("The requirement (%r) is not allowed by your [versions] "
-                   "constraint (%s)" % (str(requirement), version))
-            raise IncompatibleConstraintError(msg)
-        specifier = specifiers.SpecifierSet(constraint)
-    else:
-        specifier = requirement.specifier & constraint
-    constrained = copy.deepcopy(requirement)
-    constrained.specifier = specifier
-    return pkg_resources.Requirement.parse(str(constrained))
-
-
-class IncompatibleConstraintError(zc.buildout.UserError):
-    """A specified version is incompatible with a given requirement.
-    """
-
-IncompatibleVersionError = IncompatibleConstraintError # Backward compatibility
-
 
 def call_pip_install(spec, dest, editable=False):
     """
