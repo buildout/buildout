@@ -8,6 +8,23 @@ Change History
 
 .. towncrier release notes start
 
+5.2.0 (2026-04-29)
+------------------
+
+New features:
+
+
+- Restrict ``setuptools`` to less than 82 if it is not pinned.
+  When ``zc.buildout`` checks if it should upgrade itself or ``setuptools``, under some circumstances this could lead to a too new ``setuptools`` version getting installed.
+  [maurits]
+
+
+Tests:
+
+
+- Test with ``pip`` 26.1.  [maurits]
+
+
 5.1.3 (2026-03-06)
 ------------------
 
