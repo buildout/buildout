@@ -41,8 +41,10 @@ esac
 # There would especially be too many setuptools warnings.
 PYTHONWARNINGS="ignore"
 VENVS="$HERE/venvs"
+# The GitHub actions runners (and most other systems) have an OSTYPE env var.
+# We use this to check if we are on Windows, as this influences some paths.
 case "$OSTYPE" in
-  msys*)
+  msys*|cygwin*)
     # Windows
     PYTHON="python3.exe"
     VENV="$VENVS/python"

@@ -1,0 +1,1 @@
+Fix detecting Windows in our ``prepare.sh`` script.  [maurits]
