@@ -557,7 +557,7 @@ It will still be treated as a part::
 
     >>> cat('.installed.cfg') # doctest: +ELLIPSIS
     [buildout]
-    installed_develop_eggs = ...recipes.egg-link
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = data-dir debug
     ...
 
@@ -595,7 +595,7 @@ It will still be treated as a part::
 
     >>> cat('.installed.cfg') # doctest: +ELLIPSIS
     [buildout]
-    installed_develop_eggs = ...recipes.egg-link
+    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
     parts = data-dir debug
     ...
 

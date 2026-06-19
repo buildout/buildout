@@ -3466,6 +3466,8 @@ def test_suite():
                     (re.compile(r'Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
                     (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
                      'zc.\\1 = >=1.99'),
+                    (re.compile(r'installed_develop_eggs = (.*\n(\s+.*\n)*)'),
+                     lambda m: 'installed_develop_eggs = ' + ' '.join([f for f in m.group(1).split() if f.endswith('.egg-link')]) + '\n'),
                     ])
                 ) + manuel.capture.Manuel(),
             'buildout.txt',
@@ -3518,9 +3520,12 @@ def test_suite():
                 ),
                (re.compile('executable = %s' % re.escape(sys.executable)),
                 'executable = python'),
-               (re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}'),
-                'YYYY-MM-DD hh:mm:ss.dddddd'),
+                (re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}'),
+                 'YYYY-MM-DD hh:mm:ss.dddddd'),
+                (re.compile(r'installed_develop_eggs = (.*\n(\s+.*\n)*)'),
+                 lambda m: 'installed_develop_eggs = ' + ' '.join([f for f in m.group(1).split() if f.endswith('.egg-link')]) + '\n'),
                ]),
+
             ),
         doctest.DocFileSuite(
             'debugging.txt',
@@ -3689,11 +3694,14 @@ def test_suite():
                 'We have a develop egg: zc.buildout X.X.'),
                (re.compile(r'\\[\\]?'), '/'),
                (re.compile('WindowsError'), 'OSError'),
-               (re.compile(r'\[Error 17\] Cannot create a file '
-                           r'when that file already exists: '),
-                '[Errno 17] File exists: '
-                ),
+                (re.compile(r'\[Error 17\] Cannot create a file '
+                            r'when that file already exists: '),
+                 '[Errno 17] File exists: '
+                 ),
+                (re.compile(r'installed_develop_eggs = (.*\n(\s+.*\n)*)'),
+                 lambda m: 'installed_develop_eggs = ' + ' '.join([f for f in m.group(1).split() if f.endswith('.egg-link')]) + '\n'),
                ])
+
             ),
         doctest.DocFileSuite('testing_bugfix.txt'),
     ]
@@ -3737,6 +3745,8 @@ def test_suite():
                     (re.compile('[-d]  pip'), '-  pip'),
                     (re.compile('[-d]  wheel'), '-  wheel'),
                     (re.compile(re.escape(os.path.sep)+'+'), '/'),
+                    (re.compile(r'installed_develop_eggs = (.*\n(\s+.*\n)*)'),
+                     lambda m: 'installed_develop_eggs = ' + ' '.join([f for f in m.group(1).split() if f.endswith('.egg-link')]) + '\n'),
                 ])
             )
         )

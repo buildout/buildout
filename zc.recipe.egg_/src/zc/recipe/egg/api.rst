@@ -97,9 +97,9 @@ of extra requirements to be included in the working set.
 We can see that the options were augmented with additional data
 computed by the egg recipe by looking at .installed.cfg:
 
-    >>> cat(sample_buildout, '.installed.cfg') # doctest: +ELLIPSIS
+    >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
-    installed_develop_eggs = ...sample.egg-link
+    installed_develop_eggs = /sample-buildout/develop-eggs/sample.egg-link
     parts = sample-part
     <BLANKLINE>
     [sample-part]

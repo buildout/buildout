@@ -68,32 +68,45 @@ The installed zc.buildout version is in development mode, so it won't upgrade it
 
 But if we run the buildout and tell it to use version 50, the buildout will upgrade itself:
 
-    >>> print_(system(buildout + ' versions:zc.buildout=91.0'), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
-    zc.buildout ...
+    >>> print_(system(buildout + ' versions:zc.buildout=91.0'), end='')
+    Getting distribution for 'zc.buildout==91.0'.
+    Got zc.buildout V.V
+    Upgraded:
+      zc.buildout V.V
+    Restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout V.V
 
 Now if we run the buildout without explicit version, the buildout will upgrade itself to the
 newest version found in new releases:
 
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
-    zc.buildout ...
+    >>> print_(system(buildout), end='')
+    Got zc.buildout NINETYNINE.NINETYNINE.
+    Upgraded:
+      zc.buildout version NINETYNINE.NINETYNINE;
+    Restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout NINETYNINE.NINETYNINE
 
 Our buildout script has been updated to use the new eggs:
 
-    >>> cat(sample_buildout, 'bin', 'buildout') # doctest: +ELLIPSIS
-    #!...
+    >>> cat(sample_buildout, 'bin', 'buildout')
+    #!/usr/local/bin/python2.7
     <BLANKLINE>
     import sys
     sys.path[0:0] = [
-      ...
+      '/sample-buildout/eggs/v5/zc.buildout-NINETYNINE.NINETYNINE-pyN.N.egg',
+    ...
       ]
     <BLANKLINE>
     import zc.buildout.buildout
-    ...
-
+    <BLANKLINE>
+    if __name__ == '__main__':
+        sys.exit(zc.buildout.buildout.main())
 
 Now, let's recreate the sample buildout. If we specify constraints on
 the versions of zc.buildout and setuptools to use, running the buildout
@@ -116,10 +129,14 @@ will install earlier versions of these packages:
 
 Now we can see that we actually "upgrade" to an earlier version.
 
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
-    zc.buildout ...
+    >>> print_(system(buildout), end='')
+    Upgraded:
+      zc.buildout V.V
+    Restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout V.V
 
 There are a number of cases, described below, in which the updates
 don't happen.
@@ -138,17 +155,17 @@ We won't upgrade in offline mode:
     ... recipe = showversions
     ... """ % dict(new_releases=new_releases))
 
-    >>> print_(system(buildout+' -o'), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
-    zc.buildout ...
+    >>> print_(system(buildout+' -o'), end='')
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout 1.0.0
 
 Or in non-newest mode:
 
-    >>> print_(system(buildout+' -N'), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
-    zc.buildout ...
+    >>> print_(system(buildout+' -N'), end='')
+    Develop: '/sample-buildout/showversions'
+    Updating show-versions.
+    zc.buildout 1.0.0
 
 We also won't upgrade if the buildout script being run isn't in the
 buildouts bin directory.  To see this we'll create a new buildout
@@ -167,11 +184,14 @@ directory:
     ... """ % dict(new_releases=new_releases))
 
     >>> cd(sample_buildout2)
-    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
+    >>> print_(system(buildout), end='')
+    Creating directory '/sample_buildout2/eggs/v5'.
+    Creating directory '/sample_buildout2/bin'.
+    Creating directory '/sample_buildout2/parts'.
+    Creating directory '/sample_buildout2/develop-eggs'.
+    Getting distribution for 'zc.buildout==NINETYNINE.NINETYNINE'.
+    Got zc.buildout NINETYNINE.NINETYNINE.
     Not upgrading because not running a local buildout command.
-
 
     >>> ls('bin')
 
@@ -276,8 +296,11 @@ gives us a sys.exit:
 
 Run the buildout:
 
-    >>> print_(system(buildout, with_exit_code=True), end='') # doctest: +ELLIPSIS
-    <BLANKLINE>
-    ...
+    >>> print_(system(buildout, with_exit_code=True), end='')
+    Upgraded:
+      zc.buildout V.V
+    Restarting.
+    Generated script '/sample-buildout/bin/buildout'.
+    Develop: '/sample-buildout/failrecipe'
     recipe sys-exits
     EXIT CODE: 1
