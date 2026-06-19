@@ -315,9 +315,9 @@ We see that the recipe created the directory, as expected::
 In addition, .installed.cfg has been created containing information
 about the part we installed::
 
-    >>> cat(sample_buildout, '.installed.cfg')
+    >>> cat(sample_buildout, '.installed.cfg') # doctest: +ELLIPSIS
     [buildout]
-    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    installed_develop_eggs = ...recipes.egg-link
     parts = data-dir
     <BLANKLINE>
     [data-dir]

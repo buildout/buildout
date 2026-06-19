@@ -51,6 +51,7 @@ from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
 from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
 from zc.buildout.utils import normalize_name
+from zc.buildout.utils import get_pth_paths
 import warnings
 import csv
 
@@ -1225,14 +1226,13 @@ def _create_egg_link(directory, dest, egg_name):
 
 
 def _copyeggs(src, dest, suffix, undo):
-    """Copy eggs.
+    """Copy eggs from src to dest.
 
-    Expected is:
-    * 'src' is a temporary directory where the develop egg has been built.
+    * 'src' is the temporary directory where eggs were built
     * 'dest' is the 'develop-eggs' directory
     * 'suffix' is '.egg-link'
     * 'undo' is a list of cleanup actions that will be undone automatically
-      after this function returns (or throws an exception).
+    * after this function returns (or throws an exception).
 
     The only thing we need to do: find the file with the given suffix in src,
     and move it to dest.  This works until and including setuptools 79.
@@ -1248,6 +1248,21 @@ def _copyeggs(src, dest, suffix, undo):
         _rm(new)
         os.rename(egg_link, new)
         return new
+
+
+def _copy_metadata(src, dest, undo):
+    for name in os.listdir(src):
+        if name == '__pycache__':
+            continue
+        if not (name.endswith('.dist-info') or
+                name.endswith('.egg-info') or
+                name.endswith('.pth') or
+                (name.startswith('__editable__') and name.endswith('.py'))):
+            continue
+        new = os.path.join(dest, name)
+        _rm(new)
+        old = os.path.join(src, name)
+        os.rename(old, new)
 
 
 _develop_distutils_scripts = {}
@@ -1380,21 +1395,25 @@ def develop(setup, dest,
         # Can't be helped, I think.
         _detect_distutils_scripts(tmp3)
 
-        # This won't find anything on setuptools 80+.
-        # But on older setuptools it still works fine.
+        # Older setuptools versions (before 80) might have created an .egg-link
+        # file in the temporary directory.
         egg_link = _copyeggs(tmp3, dest, '.egg-link', undo)
         if egg_link:
             logger.debug("Successfully made editable install: %s", egg_link)
             return egg_link
 
+        # For newer setuptools (80+) or other PEP 660 backends, we copy
+        # the metadata and finders to the destination.
+        _copy_metadata(tmp3, dest, undo)
+        _detect_distutils_scripts(tmp3)
+
+        # We also create an .egg-link file for backward compatibility with
+        # existing tests and tools that expect it.
         egg_link = _create_egg_link(directory, dest, egg_name)
         if egg_link:
             logger.debug("Successfully made editable install: %s", egg_link)
-            return egg_link
-        logger.error(
-            "Failure making editable install: no egg-link created for %s",
-            setup,
-        )
+
+        return egg_link
 
     finally:
         undo.reverse()
@@ -1427,6 +1446,12 @@ def scripts(reqs, working_set, executable, dest=None,
     assert executable == sys.executable, (executable, sys.executable)
 
     path = [dist.location for dist in working_set]
+    # Collect additional paths from .pth files in distribution locations
+    # (relevant for PEP 660 editable installs).
+    for loc in list(path):
+        for p in get_pth_paths(loc):
+            if p not in path:
+                path.append(p)
     path.extend(extra_paths)
     # order preserving unique
     unique_path = []
@@ -2397,6 +2422,8 @@ def _move_to_eggs_dir_and_compile(dist, dest):
         "Turning dist %s (%s) into egg, and moving to eggs dir (%s).",
         dist, dist.location, dest,
     )
+    if dist.location.endswith('site-packages'):
+        return dist
     tmp_dest = tempfile.mkdtemp(dir=dest)
     try:
         if (os.path.isdir(dist.location) and

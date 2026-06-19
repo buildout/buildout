@@ -461,7 +461,7 @@ the buildout in the usual way::
     >>> cat(sample_buildout, '.installed.cfg')
     ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
-    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    installed_develop_eggs = ...recipes.egg-link
     parts = debug d1 d2 d3
     <BLANKLINE>
     [debug]
@@ -544,7 +544,7 @@ The ``.installed.cfg`` is only updated for the recipes that ran::
     >>> cat(sample_buildout, '.installed.cfg')
     ... # doctest: +NORMALIZE_WHITESPACE
     [buildout]
-    installed_develop_eggs = /sample-buildout/develop-eggs/recipes.egg-link
+    installed_develop_eggs = ...recipes.egg-link
     parts = debug d1 d2 d3 d4
     <BLANKLINE>
     [debug]

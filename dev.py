@@ -20,6 +20,7 @@ if not os.path.exists(EGG_INFO_PATH):
 os.makedirs('bin', exist_ok=True)
 
 # zc.buildout must be importable in the current session.
+sys.path.insert(0, 'src')
 pkg_resources.working_set.add_entry('src')
 
 # Now this import should work.
