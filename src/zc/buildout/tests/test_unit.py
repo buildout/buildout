@@ -138,21 +138,31 @@ class TestVendoredPkgResources(unittest.TestCase):
 
     def test_alias_in_fresh_process(self):
         # In a fresh process, importing zc.buildout installs the vendored
-        # copy as `pkg_resources` (nothing else imported it before).
+        # copy as `pkg_resources` - unless a real pkg_resources was
+        # imported before, which old setuptools versions (< 66) do
+        # themselves during `import setuptools`; then the guard keeps
+        # that copy to preserve module identity.
         import os
         import subprocess
         import sys
+        import textwrap
 
         import zc.buildout.easy_install
         env = dict(os.environ)
         env['PYTHONPATH'] = os.pathsep.join(
             zc.buildout.easy_install.buildout_and_setuptools_path)
-        code = (
-            "import zc.buildout, sys; "
-            "assert sys.modules['pkg_resources'].__name__ == "
-            "'zc.buildout._vendor.pkg_resources', "
-            "sys.modules['pkg_resources'].__name__"
-        )
+        code = textwrap.dedent("""
+            import sys
+            import setuptools
+            pre_imported = 'pkg_resources' in sys.modules
+            import zc.buildout
+            import pkg_resources
+            name = sys.modules['pkg_resources'].__name__
+            if pre_imported:
+                assert name == 'pkg_resources', name
+            else:
+                assert name == 'zc.buildout._vendor.pkg_resources', name
+        """)
         subprocess.check_call([sys.executable, '-c', code], env=env)
 
     def test_resource_string_finds_setuptools_cli_exe(self):
