@@ -342,6 +342,14 @@ def patch_pkg_resources_working_set_find():
 
     Alternatively, we could drop support.  That is fine with me.
     """
+    import pkg_resources
+    if pkg_resources.__name__.startswith('zc.buildout._vendor'):
+        # The pkg_resources copy vendored by zc.buildout comes from
+        # setuptools 81.0.0, so the 75.8.2 `find` fix is built in.  The
+        # setuptools version check below only makes sense when
+        # pkg_resources was pre-imported from an installed setuptools.
+        return
+
     try:
         from importlib.metadata import version
         from packaging.version import parse

@@ -99,12 +99,13 @@ if test $WHEEL_VERSION; then
   # Use a specific version:
 	PIP_ARGS="$PIP_ARGS==$WHEEL_VERSION"
 fi
-# packaging is already a dependency of zc.buildout, but we explicitly add it.
+# packaging and platformdirs are dependencies of zc.buildout, but we
+# explicitly add them because zc.buildout itself is not pip-installed here.
 # We add 'build' so we can build a source dist of zc.buildout,
 # which has a side effect we need: generate 'src/zc.buildout.egg-info'
-# This is needed so in Python we can do:
-# >>> pkg_resources.working_set.add_entry('src')
-PIP_ARGS="$PIP_ARGS packaging build"
+# This is needed so dev.py can find the zc.buildout distribution after
+# putting 'src' on sys.path.
+PIP_ARGS="$PIP_ARGS packaging platformdirs build"
 echo
 echo "Using arguments for pip install: $PIP_ARGS"
 # "$VENV_PYTHON" -m pip install -e .[test] -e zc.recipe.egg_[test] $PIP_ARGS

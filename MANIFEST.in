@@ -7,6 +7,7 @@ recursive-include specifications *.txt
 recursive-include src/zc *.test
 recursive-include src/zc *.txt
 recursive-include src/zc *.py
+recursive-include src/zc *.rst
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
