@@ -612,7 +612,10 @@ normalize_exception_type_for_python_2_and_3 = (
 normalize_open_in_generated_script = (
     re.compile(r"open\(__file__, 'U'\)"), 'open(__file__)')
 
-not_found = (re.compile(r'Not found: [^\n]+/(\w|\.|-)+/\r?\n'), '')
+# Remove the complete line: a partial match would leave the line prefix
+# (e.g. a "root: " logging prefix) glued to the following line, where a
+# later normalizer like ignore_root_logger could then eat that line too.
+not_found = (re.compile(r'.*Not found: [^\n]+/(\w|\.|-)+/\r?\n'), '')
 
 easyinstall_deprecated = (re.compile(r'.*EasyInstallDeprecationWarning.*\n'),'')
 setuptools_deprecated = (re.compile(r'.*SetuptoolsDeprecationWarning.*\n'),'')
