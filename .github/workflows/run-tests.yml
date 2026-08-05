@@ -15,7 +15,9 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
         python-version: ["3.10"]
-        setuptools-version: ["63.0.0", "65.7.0", "69.5.1", "74.1.3", "75.9.1", "79.0.1", "80.2.0", "80.10.2", "81.0.0"]
+        # 82.0.1 and later no longer contain pkg_resources;
+        # buildout uses its own vendored copy on all versions.
+        setuptools-version: ["63.0.0", "65.7.0", "69.5.1", "74.1.3", "75.9.1", "79.0.1", "80.2.0", "80.10.2", "81.0.0", "82.0.1", "83.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2
@@ -75,6 +77,15 @@ jobs:
         # Use the last setuptools version that is still supported by all Python versions.
         python-version: ["3.9", "3.11", "3.12", "3.13", "3.14"]
         setuptools-version: ["75.6.0"]
+        include:
+          # setuptools 82.0.1 is the newest version supporting Python 3.9.
+          - os: ubuntu-24.04
+            python-version: "3.9"
+            setuptools-version: "82.0.1"
+          # Newest Python with newest setuptools (requires Python >= 3.10).
+          - os: ubuntu-24.04
+            python-version: "3.14"
+            setuptools-version: "83.0.0"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2
@@ -128,7 +139,7 @@ jobs:
       matrix:
         os: [macos-latest]
         python-version: ["3.10"]
-        setuptools-version: ["75.8.2"]
+        setuptools-version: ["83.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2
@@ -156,7 +167,9 @@ jobs:
       matrix:
         os: [windows-latest]
         python-version: ["3.10"]
-        setuptools-version: ["75.8.2"]
+        # The newest setuptools exercises the Windows script generation
+        # (cli.exe) with a setuptools that no longer ships pkg_resources.
+        setuptools-version: ["83.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2

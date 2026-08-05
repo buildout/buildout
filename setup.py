@@ -51,7 +51,7 @@ setup(
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
     install_requires = [
-        'setuptools>=61.0.0,<82',
+        'setuptools>=61.0.0',
         'packaging>=23.2',
         'pip',
         # platformdirs is used by the vendored pkg_resources copy, see
