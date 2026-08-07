@@ -29,12 +29,26 @@ except ImportError:
 
 import pip  # NOQA
 
+import sys
+
+# zc.buildout ships its own copy of pkg_resources, taken from setuptools
+# 81.0.0 (the last release that contained it).  Make it importable as
+# plain `pkg_resources` for buildout's own code and for recipes and
+# extensions running inside the buildout process.  If some other code
+# already imported pkg_resources before us (only possible with
+# setuptools < 82), keep using that copy to preserve module identity
+# (isinstance checks etc.).
+# See src/zc/buildout/_vendor/README.rst and
+# https://github.com/buildout/buildout/issues/685
+if 'pkg_resources' not in sys.modules:
+    from zc.buildout._vendor import pkg_resources as _vendored_pkg_resources
+    sys.modules['pkg_resources'] = _vendored_pkg_resources
+
 import warnings
 from pkg_resources import PkgResourcesDeprecationWarning
 warnings.filterwarnings('ignore', category=PkgResourcesDeprecationWarning)
 warnings.filterwarnings('ignore', message='Setuptools is replacing distutils.')
 
-import sys
 import zc.buildout.patches  # NOQA
 
 

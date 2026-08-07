@@ -992,6 +992,7 @@ On the other hand, if we have a zipped egg, rather than a develop egg:
     -  foox-0.0.0-py2.4.egg
     -  packaging.egg-link
     -  pip.egg-link
+    -  platformdirs.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
     -  zc.buildout.egg-link
