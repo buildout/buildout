@@ -60,16 +60,16 @@ built only once.
     >>> ws_args_2['distributions'] = ['demoneeded']
     >>> recipe._working_set(**ws_args_1)
     Building working set.
-    <pkg_resources.WorkingSet object at ...>
+    <...WorkingSet object at ...>
     >>> recipe._working_set(**ws_args_1)
-    <pkg_resources.WorkingSet object at ...>
+    <...WorkingSet object at ...>
     >>> recipe._working_set(**ws_args_2)
     Building working set.
-    <pkg_resources.WorkingSet object at ...>
+    <...WorkingSet object at ...>
     >>> recipe._working_set(**ws_args_1)
-    <pkg_resources.WorkingSet object at ...>
+    <...WorkingSet object at ...>
     >>> recipe._working_set(**ws_args_2)
-    <pkg_resources.WorkingSet object at ...>
+    <...WorkingSet object at ...>
 
 Undo monkey patch:
 

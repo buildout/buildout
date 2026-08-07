@@ -42,13 +42,21 @@ setup(
     license = "ZPL 2.1",
     keywords = "development build",
     url='http://buildout.org',
-    packages = ['zc', 'zc.buildout'],
+    packages = [
+        'zc',
+        'zc.buildout',
+        'zc.buildout._vendor',
+        'zc.buildout._vendor.pkg_resources',
+    ],
     package_dir = {'': 'src'},
     python_requires = '>=3.9',
     install_requires = [
         'setuptools>=61.0.0,<82',
         'packaging>=23.2',
         'pip',
+        # platformdirs is used by the vendored pkg_resources copy, see
+        # src/zc/buildout/_vendor/README.rst
+        'platformdirs',
         'wheel',
     ],
     include_package_data = True,

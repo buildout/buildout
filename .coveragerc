@@ -1,6 +1,8 @@
 [run]
 source = zc.buildout
 parallel = true
+omit =
+    */zc/buildout/_vendor/*
 
 [report]
 exclude_lines =
