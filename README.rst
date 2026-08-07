@@ -64,7 +64,10 @@ Namespaces can be implemented in three ways:
 native namespaces (PEP 420, since Python 3.3), pkg_resources style (with ``__init__.py`` files that call ``pkg_resources.declare_namespace``) and pkgutil style (with ``__init__.py`` files that call ``pkgutil.extend_path``).
 
 Native namespaces are the modern way to do it. They work better with pip and other modern tools.
-The pkg_resources style depends on setuptools and is considered deprecated: setuptools is scheduled to drop support for it at the end of 2025, removing its foundational ``pkg_resources`` module.
+The pkg_resources style depends on setuptools and is considered deprecated: setuptools 82 dropped support for it, removing its foundational ``pkg_resources`` module.
+``zc.buildout`` ships its own copy of ``pkg_resources`` (taken from setuptools 81, see ``src/zc/buildout/_vendor/README.rst``), so buildout itself, recipes and extensions can keep using it inside a buildout run with any setuptools version.
+Scripts generated for distributions that use pkg_resources-style namespaces still need a real ``pkg_resources`` at script run time, so buildout prefers adding ``setuptools < 82`` to their working set (unless you pin setuptools yourself).
+When no such setuptools version can be found or installed, buildout falls back to the available setuptools; if that is 82 or later, those scripts will not find ``pkg_resources`` at run time.
 
 Problems start when you have multiple packages in the same namespace, that use different implementations.
 But it depends on what you use to install the packages.

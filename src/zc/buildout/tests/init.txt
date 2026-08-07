@@ -41,6 +41,7 @@ We also get other buildout artifacts::
     ...      ls(sample_bootstrapped, 'develop-eggs'))
     -  packaging.egg-link
     -  pip.egg-link
+    -  platformdirs.egg-link
     -  setuptools.egg-link
     -  wheel.egg-link
     -  zc.buildout.egg-link

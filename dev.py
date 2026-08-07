@@ -3,9 +3,8 @@
 # dependencies already installed.
 from pathlib import Path
 
-import build
+import build  # NOQA: assert the build dependency is installed
 import os
-import pkg_resources
 import platform
 import sys
 
@@ -19,13 +18,16 @@ if not os.path.exists(EGG_INFO_PATH):
 # The 'bin' directory must exist.
 os.makedirs('bin', exist_ok=True)
 
-# zc.buildout must be importable in the current session.
-sys.path.insert(0, 'src')
-pkg_resources.working_set.add_entry('src')
+# zc.buildout must be importable in the current session.  Put 'src' on the
+# path *before* importing it: importing zc.buildout also makes its vendored
+# pkg_resources available as plain `pkg_resources` (setuptools >= 82 no
+# longer provides it), and the pkg_resources working set is built from
+# sys.path at import time, so this way it includes src/zc.buildout.egg-info.
+sys.path.insert(0, "src")
 
-# Now this import should work.
-# Important note: isort must NOT move this line.
+# Important note: isort must NOT move these lines.
 import zc.buildout.easy_install
+import pkg_resources
 
 # And then Buildout can install its own script.
 zc.buildout.easy_install.scripts(

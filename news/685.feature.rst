@@ -1,0 +1,6 @@
+Vendor ``pkg_resources`` from setuptools 81.0.0 (the last release that
+contained it) as ``zc.buildout._vendor.pkg_resources`` and install it as
+``sys.modules['pkg_resources']`` when ``zc.buildout`` is imported.
+Buildout, recipes and extensions keep using the ``pkg_resources`` API
+inside a buildout run without needing setuptools to provide it.
+See `issue 685 <https://github.com/buildout/buildout/issues/685>`_.
