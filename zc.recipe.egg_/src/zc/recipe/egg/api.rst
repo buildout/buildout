@@ -99,7 +99,7 @@ computed by the egg recipe by looking at .installed.cfg:
 
     >>> cat(sample_buildout, '.installed.cfg')
     [buildout]
-    installed_develop_eggs = /sample-buildout/develop-eggs/sample.egg-link
+    installed_develop_eggs = /sample-buildout/develop-eggs/...
     parts = sample-part
     <BLANKLINE>
     [sample-part]

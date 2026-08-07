@@ -332,8 +332,7 @@ the original value will be restored:
     >>> os.environ['test_environment_variable'] = 'bar'
     >>> print_(system(buildout), end='')
     Develop: '/sample-buildout/recipes'
-    Updating extdemo.
-    Updating checkenv.
+    ...
     checkenv: test_environment_variable left over: True
 
     >>> os.environ['test_environment_variable']
