@@ -340,14 +340,18 @@ def dist_needs_pkg_resources(dist):
         * It has namespace packages declared with:
         - `pkg_resources.declare_namespace()`
         * Those namespace packages don't fall back to `pkgutil`
+
+    Until and including zc.buildout 5.x we had an extra condition:
+
         * It doesn't have `setuptools/pkg_resources` as requirement already
+
+    But this does not catch the case where a distribution *does* depend on
+    setuptools, but we have a too new one (82+) which does not actually have
+    the pkg_resources module anymore.  So we removed this condition.
     """
 
     return (
         dist.has_metadata('namespace_packages.txt') and
-        # This will need to change when `pkg_resources` gets its own
-        # project:
-        'setuptools' not in {r.project_name for r in dist.requires()} and
         namespace_packages_need_pkg_resources(dist)
     )
 
