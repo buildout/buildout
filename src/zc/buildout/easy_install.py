@@ -810,6 +810,30 @@ class Installer(object):
             requirement = self._constrain(
                 pkg_resources.Requirement.parse('setuptools')
                 )
+            if not requirement.specs:
+                # The user did not pin setuptools.  Scripts using
+                # pkg_resources-style namespace packages run
+                # `import pkg_resources` at script run time, outside the
+                # buildout process where the copy vendored by zc.buildout
+                # is not importable, so prefer a setuptools version that
+                # still ships pkg_resources (it was removed in 82).
+                preferred = _constrained_requirement('<82', requirement)
+                if ws.find(preferred) is not None:
+                    return
+                try:
+                    self._get_dist(preferred, ws)
+                    return
+                except zc.buildout.UserError:
+                    # No setuptools < 82 available, for example offline
+                    # with only a newer setuptools installed.  Fall back
+                    # to any setuptools version: better a working set
+                    # with a pkg_resources-less setuptools than an
+                    # error.  Buildout already warns loudly about
+                    # old-style namespace packages elsewhere.
+                    logger.debug(
+                        "Could not get setuptools<82 (the last version "
+                        "that ships pkg_resources) for %s; falling back "
+                        "to any setuptools version.", dist)
             if ws.find(requirement) is None:
                 self._get_dist(requirement, ws)
 
@@ -824,19 +848,6 @@ class Installer(object):
             except IncompatibleConstraintError:
                 logger.info(self._version_conflict_information(canonical_name))
                 raise
-        elif requirement.project_name == "setuptools":
-            # Restrict setuptools to less than 82 if it is not pinned.
-            # Especially when zc.buildout checks if it should upgrade itself
-            # or setuptools, under some circumstances this could lead to a
-            # too new setuptools version getting installed.
-            # See https://github.com/buildout/buildout/issues/744
-            try:
-                requirement = _constrained_requirement('<82',
-                                                       requirement)
-            except IncompatibleConstraintError:
-                logger.info(self._version_conflict_information(canonical_name))
-                raise
-
         return requirement
 
     def install(self, specs, working_set=None):

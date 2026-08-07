@@ -1,0 +1,12 @@
+Lifted the ``setuptools < 82`` restriction: both the ``setuptools``
+requirement of ``zc.buildout`` and the automatic constraint applied to an
+unpinned ``setuptools`` during installs are gone, thanks to the vendored
+``pkg_resources`` copy.  Environments can now use setuptools 82 and later,
+including 83.0.0 which fixes the published vulnerability PYSEC-2026-3447
+(GHSA-h35f-9h28-mq5c).  Exception: distributions using
+pkg_resources-style namespace packages preferably get ``setuptools < 82``
+added to their working set (unless setuptools is pinned), because their
+generated scripts import ``pkg_resources`` at script run time.  When no
+such setuptools version is available, buildout falls back to the
+installed one.
+See `issue 750 <https://github.com/buildout/buildout/issues/750>`_.

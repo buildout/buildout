@@ -201,3 +201,46 @@ class TestVendoredPkgResources(unittest.TestCase):
         self.assertEqual(
             list(yield_lines(['foo\nbar', 'baz', 'bing\n\n\n'])),
             ['foo', 'bar', 'baz', 'bing'])
+
+
+class TestSetuptoolsConstraint(unittest.TestCase):
+    """Tests for how an unpinned setuptools requirement is constrained.
+
+    Since zc.buildout vendors its own pkg_resources copy, an unpinned
+    setuptools is no longer restricted for regular installs.  Only
+    distributions with pkg_resources-style namespace packages still get
+    setuptools<82 (the last version shipping pkg_resources) added to
+    their working set, because their scripts import pkg_resources at
+    script run time.  See https://github.com/buildout/buildout/issues/750
+    """
+
+    def test_constrain_leaves_unpinned_setuptools_alone(self):
+        import pkg_resources
+
+        from zc.buildout.easy_install import Installer
+        installer = Installer()
+        requirement = installer._constrain(
+            pkg_resources.Requirement.parse('setuptools'))
+        self.assertEqual(list(requirement.specs), [])
+
+    def test_constrain_applies_user_pin_to_setuptools(self):
+        import pkg_resources
+
+        from zc.buildout.easy_install import Installer
+        installer = Installer(versions={'setuptools': '81.0.0'})
+        requirement = installer._constrain(
+            pkg_resources.Requirement.parse('setuptools'))
+        self.assertEqual(str(requirement), 'setuptools==81.0.0')
+
+    def test_namespace_dists_get_setuptools_below_82(self):
+        # The building block used by Installer._maybe_add_setuptools when
+        # the user did not pin setuptools.
+        import pkg_resources
+
+        from zc.buildout.easy_install import _constrained_requirement
+        requirement = _constrained_requirement(
+            '<82', pkg_resources.Requirement.parse('setuptools'))
+        self.assertEqual(str(requirement), 'setuptools<82')
+        self.assertIn('81.0.0', requirement)
+        self.assertNotIn('82.0.0', requirement)
+        self.assertNotIn('83.0.0', requirement)
