@@ -24,7 +24,6 @@ os.makedirs('bin', exist_ok=True)
 # longer provides it), and the pkg_resources working set is built from
 # sys.path at import time, so this way it includes src/zc.buildout.egg-info.
 sys.path.insert(0, "src")
-pkg_resources.working_set.add_entry('src')
 
 # Important note: isort must NOT move these lines.
 import zc.buildout.easy_install
