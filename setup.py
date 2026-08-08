@@ -64,7 +64,7 @@ setup(
     extras_require = dict(
         test=['zope.testing', 'manuel',
               'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe',
-              'zc.recipe.deployment']),
+              'zc.recipe.deployment', 'hatchling', 'build']),
     zip_safe=False,
     classifiers = [
        'Development Status :: 6 - Mature',
