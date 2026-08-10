@@ -1,0 +1,10 @@
+Require ``setuptools >= 75.8.2``, up from ``61.0.0``.
+That release fixed ``pkg_resources.WorkingSet.find`` to consider several
+spellings of a requirement name, which is what most of buildout's remaining
+``setuptools`` compatibility code worked around.
+Consequently the following patches are gone from ``zc.buildout.patches``:
+``patch_pkg_resources_working_set_find`` (back-ported the 75.8.2 fix),
+``patch_interpret_distro_name`` (only needed below setuptools 70, and
+already inoperative because it imported a module that had been renamed)
+and ``patch_Distribution`` (disabled for years).
+See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.

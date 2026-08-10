@@ -49,7 +49,6 @@ from pathlib import Path
 from pkg_resources import Distribution
 from setuptools.wheel import Wheel
 from zc.buildout import WINDOWS
-from zc.buildout.utils import IS_SETUPTOOLS_80_PLUS
 from zc.buildout.utils import normalize_name
 from zc.buildout.utils import get_pth_paths
 import warnings

@@ -77,28 +77,12 @@ if test $PIP_VERSION; then
     # Make this '-U pip==version'.
 	PIP_ARGS="$PIP_ARGS==$PIP_VERSION"
 fi
-WHEEL_VERSION=""
 PIP_ARGS="$PIP_ARGS setuptools"
 if test $SETUPTOOLS_VERSION; then
 	PIP_ARGS="$PIP_ARGS==$SETUPTOOLS_VERSION"
-  # wheel is a dependency of zc.buildout, but we may need a specific version.
-  # If we use setuptools older than 70.1.0, we must use at most wheel 0.45.1,
-  # otherwise the bdist_wheel command is not present.
-  # Take the major and minor version and remove the dot: 69.5.1 -> 695
-  SV=$(echo $SETUPTOOLS_VERSION | cut -d "." -f-2 | sed "s/\.//")
-  # Do the same transformation on the target version: 70.1.0 -> 701.
-  # Check if the SETUPTOOLS_VERSION is lighter than the target.
-  if test $SV -lt 701; then
-    WHEEL_VERSION="0.45.1"
-    echo "Pinning wheel to $WHEEL_VERSION for compat with older setuptools."
-  fi
 fi
-# Always include wheel:
+# wheel is a dependency of zc.buildout, so always include it:
 PIP_ARGS="$PIP_ARGS wheel"
-if test $WHEEL_VERSION; then
-  # Use a specific version:
-	PIP_ARGS="$PIP_ARGS==$WHEEL_VERSION"
-fi
 # packaging and platformdirs are dependencies of zc.buildout, but we
 # explicitly add them because zc.buildout itself is not pip-installed here.
 # We add 'build' so we can build a source dist of zc.buildout,
