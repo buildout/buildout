@@ -11,4 +11,8 @@ and ``patch_Distribution`` (disabled for years).
 Require ``pip >= 25.0``, and test only against the latest pip release of
 each year.
 
+Require Python 3.10 as a minimum; 3.9 is out of security support.
+Use Python 3.13 instead of 3.10 for the CI jobs that vary something other
+than the Python version.
+
 See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.

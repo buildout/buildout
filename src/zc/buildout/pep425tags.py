@@ -67,7 +67,6 @@ def get_abi_tag():
     if not soabi and impl in ('cp', 'pp') and hasattr(sys, 'maxunicode'):
         d = ''
         m = ''
-        u = ''
         if get_flag('Py_DEBUG',
                     lambda: hasattr(sys, 'gettotalrefcount'),
                     warn=(impl == 'cp')):
@@ -76,14 +75,7 @@ def get_abi_tag():
                     lambda: impl == 'cp',
                     warn=(impl == 'cp')):
             m = 'm'
-        if get_flag('Py_UNICODE_SIZE',
-                    lambda: sys.maxunicode == 0x10ffff,
-                    expected=4,
-                    warn=(impl == 'cp' and
-                          sys.version_info < (3, 3))) \
-                and sys.version_info < (3, 3):
-            u = 'u'
-        abi = '%s%s%s%s%s' % (impl, get_impl_ver(), d, m, u)
+        abi = '%s%s%s%s' % (impl, get_impl_ver(), d, m)
     elif soabi and soabi.startswith('cpython-'):
         abi = 'cp' + soabi.split('-')[1]
     elif soabi:

@@ -34,10 +34,13 @@ The help text explains this::
    An empty version means: use whatever is already available, or install latest.
    Extra arguments for pip install: -U (override with PIP_ARGS environment variable)
 
-We support the following versions.
+We support the following Python versions.
 
+- 3.14
 - 3.13
 - 3.12
 - 3.11
 - 3.10
-- 3.9
+
+The minimum ``setuptools`` version is 75.8.2, the minimum ``pip`` version
+is 25.0.
