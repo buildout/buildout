@@ -85,7 +85,9 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
         python-version: ["3.10"]
-        pip-version: ["21.3.1", "22.3.1", "23.3.2", "24.3.1", "25.3", "26.1.2"]
+        # Only the latest release of each year, so we do not go hunting for
+        # bugs that pip fixed later in the same year.
+        pip-version: ["25.3", "26.1.2"]
         setuptools-version: ["75.8.2", "83.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
