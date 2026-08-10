@@ -40,7 +40,17 @@ import sys
 # (isinstance checks etc.).
 # See src/zc/buildout/_vendor/README.rst and
 # https://github.com/buildout/buildout/issues/685
+_replace_pkg_resources = False
 if 'pkg_resources' not in sys.modules:
+    _replace_pkg_resources = True
+else:
+    try:
+        from pkg_resources import PkgResourcesDeprecationWarning
+        del PkgResourcesDeprecationWarning
+    except ImportError:
+        # This may be a bare bones pkg_resources from horse-with-no-namespace
+        _replace_pkg_resources = True
+if _replace_pkg_resources:
     from zc.buildout._vendor import pkg_resources as _vendored_pkg_resources
     sys.modules['pkg_resources'] = _vendored_pkg_resources
 
