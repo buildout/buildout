@@ -750,17 +750,6 @@ class Buildout(DictMixin):
             for p in reversed(new_paths):
                 sys.path.insert(0, p)
 
-            # Update pkg_resources working set so it finds the new distributions
-            pkg_resources.working_set.add_entry(dev_eggs_dir)
-            for p in new_paths:
-                pkg_resources.working_set.add_entry(p)
-
-            # Force a rescan of the newly added entries
-            for entry in [dev_eggs_dir] + new_paths:
-                pkg_resources.working_set.find_plugins(
-                    pkg_resources.Environment([entry])
-                )
-
     @command
     def install(self, install_args):
         __doing__ = 'Installing.'
