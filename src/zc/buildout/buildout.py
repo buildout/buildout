@@ -727,7 +727,6 @@ class Buildout(DictMixin):
         # for eggs:
         dev_eggs_dir = self['buildout']['develop-eggs-directory']
         if os.path.exists(dev_eggs_dir):
-            import pkg_resources
             import site
 
             # site.addsitedir adds to the end of sys.path, and processes .pth files.
