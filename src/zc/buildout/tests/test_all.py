@@ -1056,8 +1056,10 @@ namespace package.
     >>> get_working_set('bar') # doctest: +ELLIPSIS
     ['bar'...]
 
-    >>> print_(handler, end='') # doctest: +ELLIPSIS
-    ...
+Strangely, on pip version 24.3.1 and older the handler shows a warning,
+but on newer versions not.  It is just a warning, so let's ignore it.
+
+    >>> handler.clear()
 
 On the other hand, if the distribution uses ``pkgutil.extend_path()`` to
 implement its namespaces, even if just as fallback from the absence of
