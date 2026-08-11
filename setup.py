@@ -12,7 +12,7 @@
 #
 ##############################################################################
 name = "zc.buildout"
-version = "5.2.1.dev0"
+version = "6.0.0a1.dev0"
 
 import os
 from setuptools import setup
