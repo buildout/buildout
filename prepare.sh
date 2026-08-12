@@ -100,8 +100,9 @@ echo "Using arguments for pip install: $PIP_ARGS"
 echo "Using $VENV_PYTHON"
 # Showing contents of bin dir, so we have a clue in case
 # the python script cannot be found.
-echo dir "$VENV_BIN_DIR"
-dir "$VENV_BIN_DIR"
+# Use ls, not dir: dir is GNU coreutils only, it is missing on macOS.
+echo ls "$VENV_BIN_DIR"
+ls "$VENV_BIN_DIR"
 # "$VENV_PYTHON" -m pip install -e .[test] -e zc.recipe.egg_[test] $PIP_ARGS
 "$VENV_PYTHON" -m pip install $PIP_ARGS
 echo
