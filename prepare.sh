@@ -58,7 +58,7 @@ case "$OSTYPE" in
     PYTHON="python$PYTHON_VERSION"
     VENV="$VENVS/$PYTHON"
     VENV_BIN_DIR="$VENV/bin"
-    VENV_PYTHON="$VENV_BIN_DIR/bin/python"
+    VENV_PYTHON="$VENV_BIN_DIR/python"
     ;;
 esac
 echo
