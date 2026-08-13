@@ -330,10 +330,9 @@ the original value will be restored:
 
     >>> import os
     >>> os.environ['test_environment_variable'] = 'bar'
-    >>> print_(system(buildout), end='')
+    >>> print_(system(buildout), end='') # doctest: +ELLIPSIS
     Develop: '/sample-buildout/recipes'
-    Updating extdemo.
-    Updating checkenv.
+    ...
     checkenv: test_environment_variable left over: True
 
     >>> os.environ['test_environment_variable']

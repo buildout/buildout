@@ -21,6 +21,7 @@ from packaging import utils as packaging_utils
 from zc.buildout.rmtree import rmtree
 
 import zc.buildout.easy_install
+import zc.buildout.utils
 import zc.buildout.configparser
 import copy
 import datetime
@@ -721,16 +722,40 @@ class Buildout(DictMixin):
         if args:
             self.install(())
 
+    def _update_sys_path(self):
+        # Add develop-eggs directory to path so that it gets searched
+        # for eggs:
+        dev_eggs_dir = self['buildout']['develop-eggs-directory']
+        if os.path.exists(dev_eggs_dir):
+            import site
+
+            # site.addsitedir adds to the end of sys.path, and processes .pth files.
+            # We want the resulting paths at the beginning of sys.path to maintain
+            # buildout's priority (develop eggs first).
+
+            # Ensure dev_eggs_dir is in sys.path so that .pth files in it can
+            # import finders from the same directory.
+            if dev_eggs_dir not in sys.path:
+                sys.path.insert(0, dev_eggs_dir)
+
+            old_path = list(sys.path)
+            site.addsitedir(dev_eggs_dir)
+            new_paths = [p for p in sys.path if p not in old_path]
+
+            # Move newly added paths to the front
+            for p in new_paths:
+                if p in sys.path:
+                    sys.path.remove(p)
+            for p in reversed(new_paths):
+                sys.path.insert(0, p)
+
     @command
     def install(self, install_args):
         __doing__ = 'Installing.'
 
+        self._update_sys_path()
         self._load_extensions()
         self._setup_directories()
-
-        # Add develop-eggs directory to path so that it gets searched
-        # for eggs:
-        sys.path.insert(0, self['buildout']['develop-eggs-directory'])
 
         # Check for updates. This could cause the process to be restarted
         self._maybe_upgrade()
@@ -747,6 +772,9 @@ class Buildout(DictMixin):
 
         # Build develop eggs
         installed_develop_eggs = self._develop()
+        # Update sys.path again in case new develop eggs were created
+        self._update_sys_path()
+
         installed_part_options['buildout']['installed_develop_eggs'
                                            ] = installed_develop_eggs
 
@@ -1008,10 +1036,12 @@ class Buildout(DictMixin):
 
             else:
                 self._sanity_check_develop_eggs_files(dest, old_files)
-                return '\n'.join([os.path.join(dest, f)
-                                  for f in os.listdir(dest)
-                                  if f not in old_files
-                                  ])
+                res = [os.path.join(dest, f)
+                       for f in os.listdir(dest)
+                       if f not in old_files
+                       ]
+                res.sort()
+                return '\n'.join(res)
 
         finally:
             os.chdir(here)
@@ -1019,10 +1049,13 @@ class Buildout(DictMixin):
 
     def _sanity_check_develop_eggs_files(self, dest, old_files):
         for f in os.listdir(dest):
-            if f in old_files:
+            if f in old_files or f == '__pycache__':
                 continue
             if not (os.path.isfile(os.path.join(dest, f))
-                    and f.endswith('.egg-link')):
+                    and (f.endswith('.egg-link') or f.endswith('.pth')
+                         or (f.startswith('__editable__') and f.endswith('.py')))
+                    or (os.path.isdir(os.path.join(dest, f))
+                        and (f.endswith('.dist-info') or f.endswith('.egg-info')))):
                 self._logger.warning(
                     "Unexpected entry, %r, in develop-eggs directory.", f)
 

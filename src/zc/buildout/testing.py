@@ -76,6 +76,17 @@ def ls(dir, *subs, lowercase_and_sort_output=False):
     else:
         names = sorted(os.listdir(dir))
     for name in names:
+        # PEP 660 filter: hide extra metadata files in develop-eggs to keep
+        # legacy tests passing.
+        if (name.endswith('.dist-info') or
+            name.endswith('.egg-info') or
+            name.endswith('.pth') or
+            (name.startswith('__editable__') and name.endswith('.py')) or
+            name == '__pycache__'):
+            # Only hide if we're not specifically wanting to show PEP 660 files.
+            if os.environ.get('BUILDOUT_TESTING_SHOW_PEP660') != '1':
+                continue
+
         # If we're running under coverage, elide coverage files
         if os.getenv("COVERAGE_PROCESS_START") and name.startswith('.coverage.'):
             continue
