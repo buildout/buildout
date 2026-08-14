@@ -1,8 +1,8 @@
 Change History
 **************
 
-5.0.0 (unreleased)
-==================
+5.0.0a1 (unreleased)
+====================
 
 - Require Python 3.10 as minimum.
   See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.
