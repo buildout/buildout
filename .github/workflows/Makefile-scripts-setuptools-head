@@ -3,11 +3,10 @@
 # (e.g. twine 7 needs packaging>=26.1), and buildout cannot upgrade a
 # distribution that is already active in the sandbox.
 sandbox/bin/python:
-	pip install virtualenv
-	virtualenv --no-setuptools sandbox
-	sandbox/bin/pip install -e "git+https://github.com/pypa/setuptools.git#egg=setuptools"
+	python -mvenv sandbox
+	sandbox/bin/python -mpip install -e "git+https://github.com/pypa/setuptools.git#egg=setuptools"
 	sandbox/bin/pip install --upgrade packaging
 
 sandbox/bin/buildout: sandbox/bin/python
 	sandbox/bin/python setup.py develop
-
+	sandbox/bin/python -mpip install -e .
