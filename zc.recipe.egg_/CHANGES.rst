@@ -1,7 +1,7 @@
 Change History
 **************
 
-4.0.1 (unreleased)
+5.0.0 (unreleased)
 ==================
 
 - Nothing changed yet.
