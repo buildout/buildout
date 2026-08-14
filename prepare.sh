@@ -48,12 +48,17 @@ case "$OSTYPE" in
     # Windows
     PYTHON="python3.exe"
     VENV="$VENVS/python"
-    VENV_PYTHON="$VENV/Scripts/$PYTHON"
+    VENV_BIN_DIR="$VENV/Scripts"
+    # Depending on the Python version you may get python3.exe or python.exe.
+    # Since 3.13 it is python.exe, though this may be a bug and could change.
+    # VENV_PYTHON="$VENV_BIN_DIR/$PYTHON"
+    VENV_PYTHON="$VENV_BIN_DIR/python.exe"
     ;;
   *)
     PYTHON="python$PYTHON_VERSION"
     VENV="$VENVS/$PYTHON"
-    VENV_PYTHON="$VENV/bin/$PYTHON"
+    VENV_BIN_DIR="$VENV/bin"
+    VENV_PYTHON="$VENV_BIN_DIR/python"
     ;;
 esac
 echo
@@ -92,6 +97,12 @@ PIP_ARGS="$PIP_ARGS wheel"
 PIP_ARGS="$PIP_ARGS packaging platformdirs build"
 echo
 echo "Using arguments for pip install: $PIP_ARGS"
+echo "Using $VENV_PYTHON"
+# Showing contents of bin dir, so we have a clue in case
+# the python script cannot be found.
+# Use ls, not dir: dir is GNU coreutils only, it is missing on macOS.
+echo ls "$VENV_BIN_DIR"
+ls "$VENV_BIN_DIR"
 # "$VENV_PYTHON" -m pip install -e .[test] -e zc.recipe.egg_[test] $PIP_ARGS
 "$VENV_PYTHON" -m pip install $PIP_ARGS
 echo

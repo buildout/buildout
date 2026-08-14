@@ -47,14 +47,14 @@ You can call ``make clean`` to remove everything that was created.
 You can use environment variables to influence used versions:
 
 * Python, for example: ``PYTHON_VERSION=3.12``
-* pip, for example: ``PIP_VERSION=24.2``
-* setuptools, for example: ``SETUPTOOLS_VERSION=70.0.0``
+* pip, for example: ``PIP_VERSION=25.3``
+* setuptools, for example: ``SETUPTOOLS_VERSION=75.8.2``
 * Use ``PIP_ARGS`` for extra arguments.
   The default is ``PIP_ARGS=-U``, so upgrade packages to the latest available version.
 
 So you can use this on the command line::
 
-    PYTHON_VERSION=3.12 PIP_VERSION=24.2 SETUPTOOLS_VERSION=70.0.0 make
+    PYTHON_VERSION=3.12 PIP_VERSION=25.3 SETUPTOOLS_VERSION=75.8.2 make
 
 
 Releases: zc.buildout, zc.recipe.egg
@@ -84,8 +84,8 @@ Roadmap
 
 Currently, there are two active branches:
 
-- master (development branch for the upcoming version 4)
-- 3.x (development branch for the current version 3)
+- master (development branch for the upcoming version 6)
+- 5.x (maintenance branch for the current version 5)
 
 Active feature development and bug fixes only happen on the **master** branch.
 
@@ -97,8 +97,11 @@ We align the support of Python versions with
 `Zope <https://www.zope.dev/releases.html>`_ and
 `Plone <https://plone.org/download/release-schedule>`_ development.
 
-This means, the upcoming version 4 will support Python 3.8-3.13.
+This means, the upcoming version 6 will support Python 3.10-3.14.
+If you need support for Python 3.9, use version 5.
 If you need support for Python 2.7 or older Python 3 versions, use version 3.
+
+Version 6 also requires ``setuptools >= 75.8.2`` and ``pip >= 25.0``.
 
 
 Licensing

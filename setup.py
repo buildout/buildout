@@ -49,7 +49,7 @@ setup(
         'zc.buildout._vendor.pkg_resources',
     ],
     package_dir = {'': 'src'},
-    python_requires = '>=3.9',
+    python_requires = '>=3.10',
     install_requires = [
         'setuptools>=75.8.2',
         'packaging>=23.2',
@@ -71,7 +71,6 @@ setup(
        'Intended Audience :: Developers',
        'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
-       'Programming Language :: Python :: 3.9',
        'Programming Language :: Python :: 3.10',
        'Programming Language :: Python :: 3.11',
        'Programming Language :: Python :: 3.12',

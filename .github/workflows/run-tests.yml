@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04]
-        python-version: ["3.10"]
+        python-version: ["3.13"]
         # 75.8.2 is our minimum.  The other versions mark behaviour
         # boundaries: 79.0.1 is the last one with 'setup.py develop',
         # 80.2.0 still has setuptools.command.easy_install (removed in
@@ -48,17 +48,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04]
-        # Skip "3.10" because it is already checked above.
+        # Skip "3.13" because it is already checked above.
         # The setuptools matrix above covers the version range, so here we
         # only use the newest setuptools, which supports every Python we test.
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.14"]
         setuptools-version: ["83.0.0"]
-        include:
-          # 3.9 is listed here and not above, because setuptools 82.0.1 is
-          # the newest version supporting it.
-          - os: ubuntu-24.04
-            python-version: "3.9"
-            setuptools-version: "82.0.1"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2
@@ -84,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04]
-        python-version: ["3.10"]
+        python-version: ["3.13"]
         # Only the latest release of each year, so we do not go hunting for
         # bugs that pip fixed later in the same year.
         pip-version: ["25.3", "26.1.2"]
@@ -113,7 +107,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest]
-        python-version: ["3.10"]
+        python-version: ["3.13"]
         setuptools-version: ["83.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -141,7 +135,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ["3.10"]
+        python-version: ["3.13"]
         # The newest setuptools exercises the Windows script generation
         # (cli.exe) with a setuptools that no longer ships pkg_resources.
         setuptools-version: ["83.0.0"]
@@ -173,7 +167,7 @@ jobs:
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     steps:

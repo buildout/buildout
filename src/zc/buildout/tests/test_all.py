@@ -1633,7 +1633,7 @@ def internal_errors():
     recipe being used:
     Traceback (most recent call last):
     ...
-    NameError: global name 'os' is not defined...
+    NameError: name 'os' is not defined...
     """
 
 def whine_about_unused_options():
@@ -3658,8 +3658,6 @@ def test_suite():
                 # bootstrap_crashes_with_egg_recipe_in_buildout_section
                 (re.compile(r"Unused options for buildout: 'eggs' 'scripts'\."),
                  "Unused options for buildout: 'scripts' 'eggs'."),
-                # Python 3.4 changed the wording of NameErrors
-                (re.compile('NameError: global name'), 'NameError: name'),
                 # fix for test_distutils_scripts_using_import_are_properly_parsed
                 # and test_distutils_scripts_using_from_are_properly_parsed
                 # win32 apparently adds a " around sys.executable

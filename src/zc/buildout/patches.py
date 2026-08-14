@@ -105,11 +105,7 @@ def patch_PackageIndex():
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
             else:
-                try:
-                    charset = f.headers.get_param('charset') or 'latin-1'
-                except AttributeError:
-                    # Python 2
-                    charset = f.headers.getparam('charset') or 'latin-1'
+                charset = f.headers.get_param('charset') or 'latin-1'
 
         try:
             content_type = f.getheader('content-type')

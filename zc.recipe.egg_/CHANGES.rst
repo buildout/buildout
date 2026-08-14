@@ -4,7 +4,10 @@ Change History
 5.0.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Require Python 3.10 as minimum.
+  See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.
+
+- Add support for Python 3.14.
 
 
 4.0.0 (2025-11-12)
