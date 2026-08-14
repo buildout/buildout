@@ -63,7 +63,15 @@ case "$OSTYPE" in
 esac
 echo
 echo "Python version:"
-$PYTHON --version
+if test "$USE_UV"; then
+    # This looks weird with all the double dashes and pythons, so let's explain.
+    # Call `uv run` with an option like `--python 3.15`.
+    # Then use `--` to signal an end to the command line options.
+    # Then follows the command we want uv to run: `python --version`.
+    uv run --python $PYTHON_VERSION -- python --version
+else
+    $PYTHON --version
+fi
 
 echo
 echo "Creating virtual environment in $VENV"
