@@ -12,6 +12,8 @@ Change History
 - Jump the ``zc.recipe.egg`` version from 4 to 6, skipping 5.
   We will keep this in sync with the major ``zc.buildout`` version from now on.
 
+- Require ``zc.buildout`` 6.0.0a1 or higher.
+
 
 4.0.0 (2025-11-12)
 ==================
