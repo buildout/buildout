@@ -8,6 +8,70 @@ Change History
 
 .. towncrier release notes start
 
+6.0.0a1 (2026-08-14)
+--------------------
+
+Breaking changes:
+
+
+- Require ``setuptools >= 75.8.2``, up from ``61.0.0``.
+  That release fixed ``pkg_resources.WorkingSet.find`` to consider several
+  spellings of a requirement name, which is what most of buildout's remaining
+  ``setuptools`` compatibility code worked around.
+  Consequently the following patches are gone from ``zc.buildout.patches``:
+  ``patch_pkg_resources_working_set_find`` (back-ported the 75.8.2 fix),
+  ``patch_interpret_distro_name`` (only needed below setuptools 70, and
+  already inoperative because it imported a module that had been renamed)
+  and ``patch_Distribution`` (disabled for years).
+
+  Require ``pip >= 25.0``, and test only against the latest pip release of
+  each year.
+
+  Require Python 3.10 as a minimum; 3.9 is out of security support.
+  Use Python 3.13 instead of 3.10 for the CI jobs that vary something other
+  than the Python version.
+
+  See `issue 755 <https://github.com/buildout/buildout/issues/755>`_. (#755)
+
+
+New features:
+
+
+- Vendor ``pkg_resources`` from setuptools 81.0.0 (the last release that
+  contained it) as ``zc.buildout._vendor.pkg_resources`` and install it as
+  ``sys.modules['pkg_resources']`` when ``zc.buildout`` is imported.
+  Buildout, recipes and extensions keep using the ``pkg_resources`` API
+  inside a buildout run without needing setuptools to provide it.
+  See `issue 685 <https://github.com/buildout/buildout/issues/685>`_. (#685)
+- Lifted the ``setuptools < 82`` restriction: both the ``setuptools``
+  requirement of ``zc.buildout`` and the automatic constraint applied to an
+  unpinned ``setuptools`` during installs are gone, thanks to the vendored
+  ``pkg_resources`` copy.  Environments can now use setuptools 82 and later,
+  including 83.0.0 which fixes the published vulnerability PYSEC-2026-3447
+  (GHSA-h35f-9h28-mq5c).  Exception: distributions using
+  pkg_resources-style namespace packages preferably get ``setuptools < 82``
+  added to their working set (unless setuptools is pinned), because their
+  generated scripts import ``pkg_resources`` at script run time.  When no
+  such setuptools version is available, buildout falls back to the
+  installed one.
+  See `issue 750 <https://github.com/buildout/buildout/issues/750>`_. (#750)
+
+
+Bug fixes:
+
+
+- Fix support for PEP 660 develop packages (pyproject.toml only) by preserving .dist-info and processing .pth files. (pep660)
+
+
+Tests:
+
+
+- Fix detecting Windows in our ``prepare.sh`` script.  [maurits]
+- Fix script tests.  [maurits]
+- Test with ``pip`` 26.1.2.  [maurits]
+- Update GitHub workflow action versions.  [maurits]
+
+
 5.2.0 (2026-04-29)
 ------------------
 

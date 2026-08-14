@@ -1,1 +1,0 @@
-Fix support for PEP 660 develop packages (pyproject.toml only) by preserving .dist-info and processing .pth files.
