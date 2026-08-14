@@ -1,7 +1,7 @@
 Change History
 **************
 
-6.0.0a1 (unreleased)
+6.0.0a1 (2026-08-14)
 ====================
 
 - Require Python 3.10 as minimum.
