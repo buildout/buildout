@@ -1,13 +1,16 @@
 Change History
 **************
 
-5.0.0a1 (unreleased)
+6.0.0a1 (unreleased)
 ====================
 
 - Require Python 3.10 as minimum.
   See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.
 
 - Add support for Python 3.14.
+
+- Jump the ``zc.recipe.egg`` version from 4 to 6, skipping 5.
+  We will keep this in sync with the major ``zc.buildout`` version from now on.
 
 
 4.0.0 (2025-11-12)

@@ -51,6 +51,51 @@ To learn more about buildout, including how to use it, see
 https://www.buildout.org/.
 
 
+Major changes in 6.x
+********************
+
+* Require ``setuptools >= 75.8.2``.
+* Require ``pip >= 25.0``.
+* Require Python 3.10 as a minimum.
+* Vendor ``pkg_resources`` from setuptools 81.0.0 (the last release that contained it).
+* Lifted the ``setuptools < 82`` restriction.  This was there because we need
+  ``pkg_resources``, but we now have our own copy.
+* Fix support for PEP 660 develop packages (``pyproject.toml`` only).
+
+See the change history below for more details.
+
+What does this mean in practice?
+
+* You can now develop packages that use other build systems than ``setuptools``.
+  This means for example:
+  `hatchling <https://hatch.pypa.io>`_,
+  `flit <https://flit.pypa.io>`_,
+  `pdm <https://pdm-project.org>`_.
+  ``setuptools`` as build system still works of course
+  And since ``zc.buildout`` 5 you already don't need a ``setup.py``,
+  but can use ``pyproject.toml`` for all your package configuration.
+* This comes at a cost: packages that still use the deprecated ``pkg_resources`` style namespaces can cause problems:
+
+  * When installed as standard package, all should still be well.
+  * When used in development as package that simply gets pulled in by a recipe, it should still work.
+  * But if it shares a namespace (for example ``collective.*``) with another package,
+    and the other package uses the modern native namespaces,
+    and one or both of the packages is a buildout extension or buildout recipe,
+    then Buildout will most likely quit with a ``ModuleNotFound`` error.
+
+  In that case, you should migrate the package to use native namespaces,
+  or go back to ``zc.buildout`` 5, and maybe install ``horse-with-no-namespace``.
+  See the next section.
+
+Since ``zc.buildout`` is used a lot in Plone, as one of the ways to install it:
+
+* Plone 6.2 will keep using ``zc.buildout`` 5 by default.
+* Plone 6.3 will most likely use ``zc.buildout`` 6.
+* In your own projects you are free to use ``zc.buildout`` 6 on Plone 6.2 already.
+* But beware: if you use ``collective.recipe.omelette`` and you develop a ``collective`` package that still uses ``pkg_resources`` namespaces,
+  you will run into the problems described above.
+
+
 Native namespaces and breaking changes in 5.x
 *********************************************
 
