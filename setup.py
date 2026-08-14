@@ -53,7 +53,7 @@ setup(
     install_requires = [
         'setuptools>=75.8.2',
         'packaging>=23.2',
-        'pip',
+        'pip>=25.0',
         # platformdirs is used by the vendored pkg_resources copy, see
         # src/zc/buildout/_vendor/README.rst
         'platformdirs',

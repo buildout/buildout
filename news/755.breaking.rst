@@ -7,4 +7,8 @@ Consequently the following patches are gone from ``zc.buildout.patches``:
 ``patch_interpret_distro_name`` (only needed below setuptools 70, and
 already inoperative because it imported a module that had been renamed)
 and ``patch_Distribution`` (disabled for years).
+
+Require ``pip >= 25.0``, and test only against the latest pip release of
+each year.
+
 See `issue 755 <https://github.com/buildout/buildout/issues/755>`_.
