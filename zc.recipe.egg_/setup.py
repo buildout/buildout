@@ -14,7 +14,7 @@
 """Setup for zc.recipe.egg package
 """
 
-version = '6.0.0a1'
+version = '6.0.0a2.dev0'
 
 import os
 from setuptools import setup
