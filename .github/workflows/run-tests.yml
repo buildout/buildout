@@ -188,7 +188,9 @@ jobs:
       run: |
         sandbox/bin/buildout -v -c .github/workflows/scripts-${PYTHON_VERSION}.cfg annotate buildout
         sandbox/bin/buildout -c .github/workflows/scripts-${PYTHON_VERSION}.cfg
+    - name: Check downloads
+      run: |
+        ls -al sandbox/downloads/dist
     - name: Check eggs
       run: |
-        ls -al sandbox/eggs
-        ls -al sandbox/downloads/dist
+        ls -al sandbox/eggs/v5
