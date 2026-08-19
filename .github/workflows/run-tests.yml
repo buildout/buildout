@@ -19,11 +19,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6.0.2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6.2.0
+    - name: Install uv + caching
+      uses: astral-sh/setup-uv@v10.0.0
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
     - name: Run project buildouts
       env:
         # When you install packages, you see far too many setuptools warnings.
