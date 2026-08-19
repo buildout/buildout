@@ -45,7 +45,8 @@ Each sub directory has a `buildout.cfg` that does the following:
 
 ### Current buildouts
 
-* `simple`: `hatchdemo`
+* `simple`: `hatchdemo` and `setuptoolsdemo` packages
+* `namespaces`: `ns.hat` and `ns.tools` packages
 
 
 ## Packages
@@ -62,6 +63,9 @@ I want to focus on modern packaging methods:
 ### Current packages:
 
 * `hatchdemo`: basic package using `hatchling`
+* `setuptoolsdemo`: basic package using `setuptools`
+* `ns.hat`: namespace package using `hatchling`
+* `ns.tools`: namespace package using `setuptools`
 
 
 ### New package

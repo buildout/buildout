@@ -1,0 +1,2 @@
+-e packages/ns.hat
+-e packages/ns.tools
