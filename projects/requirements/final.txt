@@ -1,4 +1,5 @@
 packages/hatchdemo
 packages/setuptoolsdemo
+packages/ns.ancient
 packages/ns.hat
 packages/ns.tools

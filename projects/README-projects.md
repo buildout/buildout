@@ -46,8 +46,12 @@ Each sub directory has a `buildout.cfg` that does the following:
 ### Current buildouts
 
 * `simple`: `hatchdemo` and `setuptoolsdemo` packages
-* `namespaces`: `ns.hat` and `ns.tools` packages
+* `namespaces`: `ns.ancient`, `ns.hat` and `ns.tools` packages
 * `final`: all packages in final form, installed from a wheel
+* `mixed`: all namespace packages, some in development, some final
+
+The buildout that I most expect to fail, is the mixed one.
+But so far it works.
 
 
 ## Packages
@@ -67,6 +71,7 @@ I want to focus on modern packaging methods:
 * `setuptoolsdemo`: basic package using `setuptools`
 * `ns.hat`: namespace package using `hatchling`
 * `ns.tools`: namespace package using `setuptools`
+* `ns.ancient`: namespace package using `setuptools`, and still a `setup.py`
 
 
 ### New package
