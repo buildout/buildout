@@ -31,6 +31,7 @@ jobs:
         PYTHON_VERSION: ${{matrix.python-version}}
         # PIP_VERSION: ${{matrix.pip-version}}
         SETUPTOOLS_VERSION: ${{matrix.setuptools-version}}
+        USE_UV: true
       run: make test-projects
 
   setuptools:
