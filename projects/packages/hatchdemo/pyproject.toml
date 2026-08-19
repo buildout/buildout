@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hatchdemo"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Maurits van Rees", email = "maurits@vanrees.org" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/Maurits van Rees/hatchdemo#readme"
+Issues = "https://github.com/Maurits van Rees/hatchdemo/issues"
+Source = "https://github.com/Maurits van Rees/hatchdemo"
+
+[project.scripts]
+hatchdemo = "hatchdemo:main"
+
+[tool.hatch.version]
+path = "src/hatchdemo/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/hatchdemo tests}"
+
+[tool.coverage.run]
+source_pkgs = ["hatchdemo", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/hatchdemo/__about__.py",
+]
+
+[tool.coverage.paths]
+hatchdemo = ["src/hatchdemo", "*/hatchdemo/src/hatchdemo"]
+tests = ["tests", "*/hatchdemo/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]

@@ -16,6 +16,9 @@ test-recipe: bin/test
 test-small: bin/test
 	PYTHONWARNINGS=ignore bin/test -pvc -t buildout.txt
 
+test-projects: bin/buildout
+	$(MAKE) -C "./projects/"
+
 help:
 	./prepare.sh --help
 
