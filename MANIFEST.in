@@ -11,6 +11,6 @@ recursive-include src/zc *.rst
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
-recursive-exclude news *
 exclude .deepsource.toml
-exclude news
+prune news
+prune projects
