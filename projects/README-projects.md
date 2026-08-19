@@ -47,6 +47,7 @@ Each sub directory has a `buildout.cfg` that does the following:
 
 * `simple`: `hatchdemo` and `setuptoolsdemo` packages
 * `namespaces`: `ns.hat` and `ns.tools` packages
+* `final`: all packages in final form, installed from a wheel
 
 
 ## Packages
@@ -104,9 +105,3 @@ If any scripts don't work there, there is not much point in trying to get this t
 ```
 make pips
 ```
-
-## Ideas
-
-* Run `pyproject-build` on the packages and put those in a directory that I add to `find-links` or use as `index`.
-  Then we can try combinations of final and development packages.
-  This is also useful to check that our packages are actually valid.
