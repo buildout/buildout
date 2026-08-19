@@ -1,9 +1,9 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "hatchdemo"
+name = "setuptoolsdemo"
 version = "1.0.0"
 description = "Demo package"
 readme = "README.md"
@@ -26,4 +26,4 @@ dependencies = []
 Documentation = "https://buildout.org"
 
 [project.scripts]
-hatchdemo = "hatchdemo:main"
+setuptoolsdemo = "setuptoolsdemo:main"
