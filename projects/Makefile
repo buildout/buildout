@@ -1,5 +1,5 @@
-.PHONY: all clean simple namespaces downloads final pips
-all: simple namespaces final
+.PHONY: all clean simple namespaces downloads final mixed pips
+all: simple namespaces final mixed
 
 clean:
 	# Remove files and directories that are ignored by git.
@@ -37,6 +37,12 @@ final: ../bin/buildout downloads
 	buildouts/final/bin/setuptoolsdemo
 	buildouts/final/bin/ns_hat
 	buildouts/final/bin/ns_tools
+
+mixed: ../bin/buildout downloads
+	cd buildouts/mixed && ../../../bin/buildout
+	@echo "Buildout has finished. Running the scripts."
+	buildouts/mixed/bin/ns_hat
+	buildouts/mixed/bin/ns_tools
 
 # For comparing with pip/uv:
 pips:
