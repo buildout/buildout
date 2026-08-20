@@ -1,0 +1,2 @@
+-e packages/hatchdemo
+-e packages/setuptoolsdemo

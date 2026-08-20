@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ns.tools"
+version = "1.0.0"
+description = "Demo package"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["test", "buildout"]
+authors = [
+  { name = "Maurits van Rees", email = "maurits@vanrees.org" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://buildout.org"
+
+[project.scripts]
+ns_tools = "ns.tools:main"
