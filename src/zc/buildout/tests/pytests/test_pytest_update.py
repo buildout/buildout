@@ -1,4 +1,10 @@
-"""Pytest port of update.txt — no DocTestRunner."""
+"""Pytest port of update.txt — no DocTestRunner.
+
+Skipped on Windows: the doctest suite does not run update.txt there
+either (test_all.py) — instead of "Upgraded: ..." / "Restarting.",
+Windows produces "Not upgrading because not running a local buildout
+command."
+"""
 import os
 import re
 import shutil
@@ -6,6 +12,7 @@ import sys
 import textwrap
 
 import pkg_resources
+import pytest
 import zc.buildout.easy_install
 import zc.buildout.buildout
 import zc.buildout.testing
@@ -15,6 +22,10 @@ from zc.buildout.tests.pytests.conftest import (
     capture_print,
     NORMALIZERS_BUILDOUT,
 )
+
+pytestmark = pytest.mark.skipif(
+    sys.platform.startswith('win'),
+    reason='update.txt is not run on Windows in the doctest suite either')
 
 N = NORMALIZERS_BUILDOUT + [
     (re.compile(r'(zc\.buildout|setuptools|pip)( version)? \d+[.]\d+\S*'), r'\1 V.V'),

@@ -102,7 +102,10 @@ NORMALIZERS_BUILDOUT = [
     (re.compile(r'pip-\S+-'), 'pip.egg'),
     (re.compile(r'setuptools-\S+-'), 'setuptools.egg'),
     (re.compile(r'zc\.buildout-\S+-'), 'zc.buildout.egg'),
-    (re.compile(r'executable = %s' % re.escape(sys.executable)),
+    # Loosely match any interpreter path, like the doctest suite does:
+    # the exact sys.executable string need not appear in subprocess output
+    # (on Windows e.g. python3.exe vs python.exe).
+    (re.compile(r'executable = [\S ]+python\S*', re.I),
      'executable = python'),
     (re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}'),
      'YYYY-MM-DD hh:mm:ss.dddddd'),

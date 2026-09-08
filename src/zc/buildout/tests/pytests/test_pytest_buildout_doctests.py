@@ -8,6 +8,7 @@ import sys
 import textwrap
 
 import pkg_resources
+import pytest
 import zc.buildout.easy_install
 import zc.buildout.buildout
 import zc.buildout.testing
@@ -1997,6 +1998,9 @@ def test_buildout_section_shorthand_for_command_line_assignments(easy_install_en
     write('buildout.cfg', '')
     print_(system(buildout + ' parts='), end='')
 
+@pytest.mark.skipif(sys.platform == 'win32',
+                    reason='umask on Windows is academic '
+                           '(test_all.py deletes this test there too)')
 def test_buildout_honors_umask(easy_install_env):
     os = easy_install_env['os']
 
