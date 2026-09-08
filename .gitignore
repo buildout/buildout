@@ -15,3 +15,6 @@ dist
 .coverage
 .coverage.*
 .vscode/
+.venv-grammar/
+tree-sitter-buildout/*.dylib
+tree-sitter-buildout/*.so

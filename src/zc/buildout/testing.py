@@ -593,6 +593,21 @@ normalize_path = (
 
 normalize_endings = re.compile('\r\n'), '\n'
 
+
+def ignore_buildout_lint(text):
+    """Drop output lines about the buildout-lint console script.
+
+    zc.buildout grew a second console script (buildout-lint, used with
+    the 'linter' extra). It shows up next to the buildout script in
+    'Generated script' lines and bin/ directory listings; ignore it so
+    those doctests stay focused on what they document.
+    """
+    text = re.sub(r"^Generated script '[^']*buildout-lint[^']*'\.\n",
+                  '', text, flags=re.M)
+    text = re.sub(r'^-  buildout-lint(-script\.py|\.exe)?\n',
+                  '', text, flags=re.M)
+    return text
+
 normalize_script = (
     re.compile('(\n?)-  ([a-zA-Z_.-]+)-script.py\n-  \\2.exe\n'),
     '\\1-  \\2\n')

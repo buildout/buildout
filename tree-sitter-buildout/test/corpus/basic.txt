@@ -1,0 +1,129 @@
+================================================================================
+single section with one option
+================================================================================
+
+[buildout]
+parts = demo
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+comment lines at column zero
+================================================================================
+
+# hash comment
+; semicolon comment
+[s]
+a = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (comment)
+  (comment)
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+value text may contain hash and semicolon (no inline comments)
+================================================================================
+
+[s]
+a = 1 # not a comment
+b = 2 ; also not a comment
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+multiline value via indented continuation
+================================================================================
+
+[s]
+a = one
+    two
+    three
+b = single
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value)
+      (continuation)
+      (continuation))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+empty value followed by block continuation
+================================================================================
+
+[s]
+a =
+    line one
+
+    line two
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment)
+      (continuation)
+      (continuation))))
+
+================================================================================
+blank lines between and inside statements
+================================================================================
+
+[s]
+
+a = 1
+
+
+b = 2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+comment and blank lines do not close an open option
+================================================================================
+
+[s]
+l2 =
+    a
+
+# a column-0 comment
+; another
+
+    b
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment)
+      (continuation)
+      (comment)
+      (comment)
+      (continuation))))

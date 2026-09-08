@@ -1,0 +1,103 @@
+================================================================================
+plain assignment and spaced assignment
+================================================================================
+
+[s]
+a=1
+b = 2
+c	=	3
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+plus-equals in both spellings
+================================================================================
+
+[s]
+a += 1
+b+= 2
+c    += 3
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+minus-equals
+================================================================================
+
+[s]
+a -= 1
+b-= 2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+macro reference is an option named <
+================================================================================
+
+[myfiles]
+<= with_file1
+   with_file2
+path = mydata
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value)
+      (continuation))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+dependency annotation arrow
+================================================================================
+
+[s]
+a = 1
+=> dep1 dep2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (dependency_annotation)))
+
+================================================================================
+dependency annotation with indented continuation
+================================================================================
+
+[s]
+a = 1
+=> [alias]
+    run = x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))
+    (dependency_annotation
+      (continuation))))

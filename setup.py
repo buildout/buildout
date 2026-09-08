@@ -26,6 +26,7 @@ long_description= read('README.rst') + '\n' + read('CHANGES.rst')
 entry_points = """
 [console_scripts]
 buildout = %(name)s.buildout:main
+buildout-lint = %(name)s.lint:main
 
 [zc.buildout]
 debug = %(name)s.testrecipes:Debug
@@ -56,7 +57,10 @@ setup(
     extras_require = dict(
         test=['zope.testing', 'manuel',
               'bobo ==2.3.0', 'zdaemon', 'zc.zdaemonrecipe',
-              'zc.recipe.deployment']),
+              'zc.recipe.deployment'],
+        # py-tree-sitter 0.23.2 is the last release with Python 3.9
+        # wheels; 0.26 still supports the vendored ABI-14 parser.
+        linter=['tree-sitter>=0.23.2,<0.27']),
     zip_safe=False,
     classifiers = [
        'Development Status :: 6 - Mature',

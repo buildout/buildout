@@ -1,0 +1,37 @@
+name: Lint buildout configs
+
+on:
+  push:
+  pull_request:
+  # Allow to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  buildout-lint:
+    name: buildout-lint
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6.0.2
+    - name: Set up Python
+      uses: actions/setup-python@v6.2.0
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+    - name: Install zc.buildout with the linter extra
+      run: pip install -e '.[linter]'
+    - name: Lint the repository's own configs
+      run: PYTHONWARNINGS=ignore buildout-lint buildout.cfg .github/workflows/scripts*.cfg
+    - name: Run the linter and corpus tests
+      run: PYTHONWARNINGS=ignore python -m unittest discover -s tree-sitter-buildout/linter -p 'test_*.py'
+    - name: Run the tree-sitter grammar corpus
+      run: |
+        npm install -g tree-sitter-cli@0.27
+        cd tree-sitter-buildout
+        tree-sitter generate --abi=14
+        tree-sitter test
+    - name: Check the vendored parser is in sync
+      # src/zc/buildout/grammar/ must match tree-sitter-buildout/src/;
+      # run 'make sync-grammar' after regenerating the parser.
+      run: |
+        make sync-grammar
+        git diff --exit-code

@@ -1,0 +1,99 @@
+================================================================================
+section header with trailing comment
+================================================================================
+
+[buildout] # trailing
+parts = x
+
+[s2] ; another
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name) (comment))
+    (option (option_name) (assignment) (value)))
+  (section
+    (section_header (section_name) (comment))))
+
+================================================================================
+conditional section header
+================================================================================
+
+[s: python_version == "3"]
+a = 1
+
+[s2: sys.platform == 'linux' and bits64]
+b = 2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name) (condition))
+    (option (option_name) (assignment) (value)))
+  (section
+    (section_header (section_name) (condition))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+section name character set is permissive
+================================================================================
+
+[my-section.v2_<weird>]
+a = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+substitutions in values
+================================================================================
+
+[s]
+a = ${other:opt}
+b = ${:same-section}
+c = literal $$ dollar
+d = ${a:b} and ${c:d} twice
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name))
+    (option (option_name) (assignment) (value (substitution)))
+    (option (option_name) (assignment) (value (substitution)))
+    (option (option_name) (assignment) (value (escape)))
+    (option (option_name) (assignment) (value (substitution) (substitution)))))
+
+================================================================================
+conditional header with brackets inside the expression
+================================================================================
+
+[g:2 in map(lambda i:i*2, [i for i in range(10)])]
+b = 1
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name) (condition))
+    (option (option_name) (assignment) (value))))
+
+================================================================================
+comment attached directly after closing bracket
+================================================================================
+
+[s3]; comment
+x = a b
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (section
+    (section_header (section_name) (comment))
+    (option (option_name) (assignment) (value))))

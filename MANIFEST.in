@@ -7,6 +7,8 @@ recursive-include specifications *.txt
 recursive-include src/zc *.test
 recursive-include src/zc *.txt
 recursive-include src/zc *.py
+recursive-include src/zc *.c *.h
+recursive-include tree-sitter-buildout/linter/corpus *.cfg
 prune doc
 prune old-tutorial
 prune zc.recipe.egg_
