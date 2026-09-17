@@ -585,6 +585,22 @@ rather than a PEP 503 simple index, is also routed to uv as a
 find-links source.  Only a real PEP 503 simple index is passed to uv,
 as its default index.
 
+Offline mode and install-from-cache under uv
+--------------------------------------------
+
+With ``buildout -o`` (offline mode), buildout passes ``--offline`` to
+uv.  uv then serves every resolve from its local cache alone: no
+network access happens, and no index page is scanned.  Cached index
+metadata is what lets uv serve a distribution from the cache, so a
+cache entry exists only for distributions an earlier online resolve
+already fetched.  A distribution missing from the cache fails the
+build with buildout's offline error.
+
+The ``install-from-cache`` option maps onto the same mechanism: uv
+serves the build from its own cache.  The pip-mode restriction to a
+prepared download cache has no uv equivalent, because uv's cache is
+content-addressed and cannot be pointed at a directory of files.
+
 Configuration file syntax
 =========================
 
