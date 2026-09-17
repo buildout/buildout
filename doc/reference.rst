@@ -445,7 +445,8 @@ installer, default: 'pip'
   ``pip install`` in a subprocess.  With ``uv``, packages are installed
   by running ``uv pip install`` instead.  This applies to all installs
   buildout performs, including sources listed in the ``develop``
-  option.
+  option.  See :ref:`uv-installer` for how buildout options map onto
+  uv.
 
   Requires the ``uv`` executable to be available, which it normally is
   because ``uv`` is a declared dependency of zc.buildout.
@@ -559,6 +560,30 @@ use-dependency-links, default: true
 
 versions, default 'versions'
   The name of a section that contains :ref:`version pins <pinned-versions>`.
+
+.. _uv-installer:
+
+The uv installer
+================
+
+Setting ``installer = uv`` switches package resolution and installation
+from pip to `uv <https://docs.astral.sh/uv/>`_.  uv mode is an opt-in:
+with the default ``installer = pip``, nothing in this section applies
+and behavior is unchanged.  uv mode requires uv 0.12 or newer.
+
+Index and find-links under uv
+-----------------------------
+
+uv does not scan arbitrary HTML index pages the way pip's index client
+does.  This changes how the ``index`` and ``find-links`` options map
+onto uv.
+
+A ``find-links`` entry naming a directory, or a directory served over
+HTTP, stays a find-links source: buildout passes it to uv as
+``--find-links``.  An ``index`` value naming a plain directory tree,
+rather than a PEP 503 simple index, is also routed to uv as a
+find-links source.  Only a real PEP 503 simple index is passed to uv,
+as its default index.
 
 Configuration file syntax
 =========================
