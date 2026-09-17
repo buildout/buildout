@@ -641,6 +641,24 @@ raises a ``UserError`` before any resolution starts.
 - A URL carrying an ``#egg=`` or ``#md5=`` fragment.  The error names
   the fragment.
 
+The uv environment scrub
+------------------------
+
+Buildout configuration files, not the process environment, decide
+where uv looks for distributions.  Before spawning uv, buildout
+removes ``UV_INDEX_URL``, ``UV_DEFAULT_INDEX``, ``UV_EXTRA_INDEX_URL``,
+``UV_FIND_LINKS``, ``UV_PRERELEASE``, ``UV_OFFLINE``, ``UV_NO_CACHE``,
+and ``UV_INSECURE_HOST`` from the child environment.  ``UV_CACHE_DIR``
+survives, so the cache location stays configurable.
+
+Deprecations and the uv-deprecated tag
+--------------------------------------
+
+Regions kept only for pip-mode compatibility carry the literal tag
+``uv-deprecated`` in section headers, code comments, docstrings, and
+news fragments.  When pip mode is retired, ``grep -rn uv-deprecated``
+lists every region to remove.
+
 Configuration file syntax
 =========================
 
