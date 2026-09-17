@@ -621,6 +621,26 @@ keep working through uv's own cache.
 To find where uv's cache sits, run ``uv cache dir``.  To move it, set
 the ``UV_CACHE_DIR`` environment variable.
 
+Authentication under uv: .pypirc to .netrc
+------------------------------------------
+
+setuptools reads index credentials from ``~/.pypirc``; uv does not.
+When ``installer = uv`` and a ``~/.pypirc`` file exists, buildout logs
+a warning advising you to move the credentials to ``~/.netrc``.  The
+check is an existence check only: buildout does not parse the file.
+
+Mercurial URLs and URL fragments under uv
+-----------------------------------------
+
+Two ``find-links`` shapes that pip accepts are errors under uv.  Each
+raises a ``UserError`` before any resolution starts.
+
+- An ``hg:`` or ``hg+`` URL.  uv does not fetch Mercurial
+  repositories.  The error names the entry and advises publishing a
+  wheel or an sdist instead.
+- A URL carrying an ``#egg=`` or ``#md5=`` fragment.  The error names
+  the fragment.
+
 Configuration file syntax
 =========================
 
