@@ -601,6 +601,26 @@ serves the build from its own cache.  The pip-mode restriction to a
 prepared download cache has no uv equivalent, because uv's cache is
 content-addressed and cannot be pointed at a directory of files.
 
+allow-hosts under uv
+--------------------
+
+uv has no host allow-list, so the ``allow-hosts`` option has no uv
+equivalent.  (uv's ``--allow-insecure-host`` flag is TLS policy, not
+host filtering.)  A non-default ``allow-hosts`` value in uv mode logs
+a warning naming the option, and resolution proceeds unfiltered.
+
+download-cache under uv (uv-deprecated)
+---------------------------------------
+
+uv stores downloads in its own content-addressed cache, so uv mode
+does not populate the ``download-cache`` directory.  Setting the
+option logs a deprecation warning.  A populated directory is still
+consulted as a find-links source, and ``install-from-cache`` builds
+keep working through uv's own cache.
+
+To find where uv's cache sits, run ``uv cache dir``.  To move it, set
+the ``UV_CACHE_DIR`` environment variable.
+
 Configuration file syntax
 =========================
 
