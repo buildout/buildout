@@ -18,7 +18,7 @@ cd "$(dirname "$0")/.."
 baseline=etc/any-burndown-baseline.txt
 
 if ! command -v mypy >/dev/null 2>&1; then
-    echo "typecheck-any: mypy not on PATH; install mypy==2.3.1 (not devenv-provided)" >&2
+    echo "typecheck-any: mypy not on PATH; enter the devenv shell (devenv-provided)" >&2
     exit 2
 fi
 

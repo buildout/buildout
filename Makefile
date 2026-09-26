@@ -121,7 +121,7 @@ lint:
 
 typecheck-any:
 	# Explicit-Any burndown gate: no new `Any` annotation enters
-	# src/zc/buildout. mypy (not devenv-provided; install mypy==2.3.1)
+	# src/zc/buildout. mypy (devenv-provided)
 	# runs with disallow_any_explicit from [tool.mypy] in pyproject.toml.
 	# The gate script compares reported sites against
 	# etc/any-burndown-baseline.txt and fails only on sites the baseline

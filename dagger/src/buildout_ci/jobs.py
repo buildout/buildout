@@ -103,6 +103,15 @@ def _build_jobs() -> tuple[Job, ...]:
             pip_install=("radon==6.0.1",),
         ),
         Job(
+            name="mypy",
+            python="3.12",
+            commands=(("make", "typecheck-any"),),
+            family="static",
+            # pin to the devenv-provided mypy (devenv.lock nixpkgs rev),
+            # so the local gate matches CI exactly
+            pip_install=("mypy==2.1.0",),
+        ),
+        Job(
             name="setuptools-61-test-small",
             python="3.10",
             commands=(("make", "test-small"),),

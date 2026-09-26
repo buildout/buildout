@@ -35,6 +35,8 @@
   #   pyproject.toml)
   # - radon: cyclomatic-complexity measurements behind the budget gate
   #   (`make complexity`; baseline etc/complexity-baseline.json)
+  # - mypy: explicit-Any burndown gate (`make typecheck-any`; config
+  #   [tool.mypy] in pyproject.toml, baseline etc/any-burndown-baseline.txt)
   packages = with pkgs; [
     git
     gnumake
@@ -46,6 +48,7 @@
     python3Packages.towncrier
     ruff
     python3Packages.radon
+    mypy
   ];
 
   # MonkeyType and autotyping are not in nixpkgs, and they must share

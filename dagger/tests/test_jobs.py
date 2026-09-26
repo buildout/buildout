@@ -123,6 +123,9 @@ def _workflow_cells(data):
     steps = {step["name"]: step for step in wf["complexity"]["steps"] if "name" in step}
     python, command = _devenv_run(steps["Run complexity gate"]["run"])
     cells["radon"] = {"python": python, "commands": (command,), "family": "static"}
+    steps = {step["name"]: step for step in wf["typecheck-any"]["steps"] if "name" in step}
+    python, command = _devenv_run(steps["Run mypy"]["run"])
+    cells["mypy"] = {"python": python, "commands": (command,), "family": "static"}
 
     # coverage variants
     for wf_name, job_name in (
@@ -255,7 +258,7 @@ def test_jobs_module_imports_nothing_from_dagger():
 
 def test_workflow_cells_match_job_table(workflow, uv_workflow):
     cells = _workflow_cells(workflow) | _uv_workflow_cells(uv_workflow)
-    assert len(cells) == 81
+    assert len(cells) == 82
     by_name = {job.name: job for job in jobs.JOBS}
     missing = set(cells) - set(by_name)
     assert not missing, f"workflow cells without a Job row: {sorted(missing)}"
@@ -293,14 +296,14 @@ def test_family_invariants():
         "python": 6,
         "pip": 14,
         "scripts": 34,
-        "static": 3,
+        "static": 4,
         "coverage": 3,
         "uv": 21,
         "module": 1,
     }
     names = [job.name for job in jobs.JOBS]
     assert len(names) == len(set(names)), "duplicate job names"
-    assert len(jobs.JOBS) == 92
+    assert len(jobs.JOBS) == 93
 
 
 def test_select_jobs_pip():

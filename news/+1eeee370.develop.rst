@@ -1,0 +1,1 @@
+CI now enforces the explicit-Any burndown: mypy is devenv-provided, a typecheck-any job runs make typecheck-any in the workflow, and a matching mypy cell joins the dagger static family, so no new explicit Any annotation can enter src/zc/buildout on a green CI. [Fizz]

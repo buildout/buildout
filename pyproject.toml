@@ -10,8 +10,9 @@ exclude = ["src/zc/buildout/_vendor", "etc/tracing", "dagger"]
 
 [tool.mypy]
 # Explicit-Any burndown gate (make typecheck-any; separate from the ty
-# static tier, which has no Any rule). mypy is not devenv-provided:
-# install mypy==2.3.1 into an environment on PATH. python_version
+# static tier, which has no Any rule). mypy is devenv-provided, and the
+# dagger static cell pip-installs the same version, so the local gate
+# and CI agree by construction. python_version
 # matches the support floor (setup.py python_requires >=3.9). mypy maps
 # this src layout to `buildout.*` module names (src/zc has no
 # __init__.py), so the overrides below use those names.

@@ -129,6 +129,27 @@ jobs:
         PYTHONWARNINGS: ignore
       run: devenv shell -- make typecheck
 
+  typecheck-any:
+    # Explicit-Any burndown gate, parallel to the test matrix like ruff:
+    # mypy needs no bootstrap and comes from the devenv, so CI and a
+    # local `make typecheck-any` agree by construction (config:
+    # [tool.mypy] in pyproject.toml; baseline etc/any-burndown-baseline.txt;
+    # gate script: etc/check_any_burndown.sh).
+    name: mypy
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6.0.2
+    - uses: ./.github/actions/devenv-setup
+      with:
+        # Project cachix cache (optional): set the CACHIX_CACHE_NAME
+        # variable and CACHIX_AUTH_TOKEN secret to activate; both empty
+        # means this step is skipped entirely.
+        cachix-cache: ${{ vars.CACHIX_CACHE_NAME }}
+        cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+    - name: Run mypy
+      run: devenv shell -- make typecheck-any
+
   setuptools61:
     # setuptools 61 is much slower, so we do not run all tests on it.
     name: setuptools 61
