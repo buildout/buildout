@@ -41,7 +41,7 @@ setup(
     author_email = "jim@zope.com",
     description = "System for managing development buildouts",
     long_description=long_description,
-    license = "ZPL 2.1",
+    license = "ZPL-2.1",
     keywords = "development build",
     url='http://buildout.org',
     packages = ['zc', 'zc.buildout'],
@@ -68,7 +68,6 @@ setup(
     classifiers = [
        'Development Status :: 6 - Mature',
        'Intended Audience :: Developers',
-       'License :: OSI Approved :: Zope Public License',
        'Programming Language :: Python',
        'Programming Language :: Python :: 3.9',
        'Programming Language :: Python :: 3.10',
