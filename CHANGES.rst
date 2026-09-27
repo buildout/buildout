@@ -8,6 +8,170 @@ Change History
 
 .. towncrier release notes start
 
+5.3.0a1 (2026-09-27)
+--------------------
+
+Breaking changes:
+
+
+- The ``installer = uv`` mode tightens several legacy behaviors.
+  ``find-links`` entries pointing at a Mercurial repository (``hg:`` or
+  ``hg+``) or carrying ``#egg=``/``#md5=`` URL fragments now raise a clear
+  ``UserError`` naming the entry, instead of surfacing uv's own parse error.
+  Offline mode (``buildout -o``) now forwards ``--offline`` to uv, so resolves
+  are served by uv's local cache alone and builds that relied on network
+  access during offline runs must warm the cache first.
+  The ``download-cache`` option is deprecated: uv keeps downloads in its own
+  cache and the download cache is not populated; setting the option logs a
+  deprecation warning, and the directory is still consulted as a find-links
+  location.  [gotcha]
+
+
+New features:
+
+
+- New ``--interpolated`` option on the ``query`` and ``annotate`` commands:
+  print values with ``${...}`` substitutions applied, the way recipes see
+  them.  Raw values remain the default output.  [gotcha]
+- New ``installer`` option in the ``[buildout]`` section: set it to ``uv``
+  to run package resolution and installation through
+  `uv <https://docs.astral.sh/uv/>`_ instead of pip, overridable on the
+  command line with the usual assignment syntax, for example
+  ``bin/buildout buildout:installer=uv``.
+  Package discovery and version resolution run through ``uv pip compile``
+  instead of the vendored setuptools package index: everything still open
+  after the environment check resolves in a single compile, with the
+  buildout's develop projects riding as overrides, and installs in one
+  batched ``uv pip install`` — the per-requirement pip subprocess fan-out
+  is gone.
+  Requires uv 0.12.11 or newer; ``uv`` is now a declared dependency of
+  zc.buildout.  The pip mode code path is unchanged.  [gotcha]
+- Repeated buildout runs are faster: sources listed in the ``develop``
+  option are no longer reinstalled (``pip install -e``) on every run.
+  An editable install is only redone when its ``setup.py``, ``setup.cfg``
+  or ``pyproject.toml`` is newer than its egg-link, when its egg-info is
+  missing, or when the develop-eggs directory changed; verbose output tells
+  the cases apart with ``Making editable install`` versus
+  ``Keeping editable install of ...: its packaging metadata ... is
+  unchanged``.  [gotcha]
+- The ``installer = uv`` mode adapts buildout semantics to uv with clear
+  errors and warnings instead of tracebacks.
+  Ambient ``UV_*`` environment variables no longer leak into resolves — only
+  the buildout configuration decides sources — while ``UV_CACHE_DIR`` is
+  kept so offline resolves find their store.
+  ``install-from-cache = true`` maps onto uv's own cache via ``--offline``
+  resolves, and dependency links found in distribution metadata keep working
+  through iterative per-requirement compiles.
+  Invalid ``[versions]`` pins raise the pip-parity
+  ``IncompatibleConstraintError`` (pins for other projects are skipped with
+  a warning), a malformed ``pylock.toml`` from uv is reported as a
+  resolution error with context, ``MissingDistribution`` carries uv's stderr
+  tail, requiring a project that find-links only offer as legacy ``.egg``
+  artifacts explains that uv cannot install eggs, an existing ``~/.pypirc``
+  warns that uv reads ``~/.netrc`` instead, and a non-default ``allow-hosts``
+  warns that uv has no host allow-list.  [gotcha]
+
+
+Bug fixes:
+
+
+- Fixed spurious uninstall/reinstall cycles of parts whose recipe resolves
+  to a develop egg: a packaging run on the develop source tree regenerates
+  setuptools' ``SOURCES.txt``, which moved the directory hash, so
+  ``_dir_hash`` now excludes it.
+  Offline mode (``buildout -o``) now reuses distributions that were
+  installed from wheels, whose dist-info layout was invisible to the offline
+  environment scan.
+  Fixed a ``TypeError`` that made zc.buildout unimportable on Python 3.9.
+  ``query`` rejects malformed arguments (for example ``:port`` or
+  ``a:b:c``) with a clear message stating the expected ``section:option``
+  format.
+  With ``installer = uv``, old-style wheels whose ``.dist-info`` directory
+  keeps the unescaped project name install correctly, and the uv floor is
+  0.12.11 because earlier 0.12.x served their own cache on ``--offline``
+  resolves.  [gotcha]
+- Windows fixes: a local package index spelled as a drive path
+  (``C:\index``) no longer reaches pip misread as a URL — drive paths are
+  converted to ``file://`` URIs like any other local index — and with
+  ``installer = uv`` a ``file://`` index spelled as a native Windows path no
+  longer crashes resolution, while the fallback lookup for the uv executable
+  next to the Python interpreter now finds the ``uv.exe`` console script.
+  [gotcha]
+
+
+Development:
+
+
+- Adopted ruff with a ``make lint`` gate and completed the tree-wide lint
+  burndown: the classic pyflakes/pycodestyle rules, import sorting,
+  pyupgrade within the Python 3.9 floor, comprehension construction,
+  blind-except and the bugbear/simplify/misc judgment sets are all selected
+  with an empty global ignore list, and deliberate exceptions carry scoped
+  noqa reasons.  The code tree modernized along the way: PEP 604 unions,
+  PEP 585 builtin generics, f-strings and the mechanical pyupgrade fixes,
+  with load-bearing import orders preserved.  [gotcha]
+- All implementation modules now carry full type annotations.
+  ``make typecheck`` gates on Astral's ``ty`` with zero diagnostics over the
+  checkout, and ``make typecheck-any`` (mypy, ``disallow_any_explicit``)
+  blocks new explicit ``Any`` annotations against a burndown baseline; the
+  uv lock, ``pkg_resources``, config-data and recipe-seam boundaries are
+  typed precisely.  The test-support modules ``testing.py`` and
+  ``testrecipes.py`` remain unannotated by design.  [gotcha]
+- CI and the development environment were rebuilt around devenv and Dagger.
+  GitHub jobs bootstrap only Nix and take every tool — Python, uv, ruff, ty —
+  from the repository-owned ``devenv.nix`` (optionally shared across jobs via
+  a cachix cache), so CI and local shells use the same toolchain.
+  A repository-owned dagger module runs the whole CI job table locally or in
+  containers (``dagger call ci``, per-family matrices, per-Python pip/uv
+  cache volumes, transient-fetch retries that still fail fast on genuine
+  failures, and failure-debug tooling), replacing the flaked devpi proxy.
+  The Windows leg lives in its own reusable workflow with a dispatch-only
+  iteration loop, both suites gained coverage jobs that upload HTML reports,
+  and ``etc/bump_ci_versions.py`` keeps the CI version matrices current.
+  The test suites run hermetically: ``prepare.sh`` seeds
+  ``downloads/test-seed/`` so spawned pip/uv builds resolve offline.
+  Agent skills and in-tree planning documents — including the phased plan to
+  remove ``pkg_resources`` and ``setuptools`` from the uv path — are
+  maintained alongside the code.  [gotcha]
+- Structural refactoring under a new complexity gate: ``make complexity``
+  (radon) fails when a function grows beyond the checked-in baseline or when
+  new code exceeds grade B.  The high-complexity cores of ``Buildout``
+  (initialization, install, develop, query, upgrade, ``main``) and of
+  ``easy_install.Installer`` were decomposed into module-level helpers
+  pinned by unit tests, several functions dropping from cyclomatic
+  complexity 20–60 to grade A or B without behavior change.
+  The monolithic modules split into focused ones — ``cli``, ``configfiles``,
+  ``configsetup``, ``parts``, ``annotations``, ``scripts``, ``develop``,
+  ``install_backend`` and ``errors`` — with the original modules
+  re-exporting for compatibility, and the frame-local ``__doing__``
+  error-context mechanism was replaced by a portable context manager, with
+  unchanged ``While:`` error output.  [gotcha]
+
+
+Tests:
+
+
+- CI gains a parallel uv test set: the legacy suite reruns through the uv
+  install pipeline (``make test-uv``) across the platform matrix including
+  Windows, against a uv version matrix spanning the earliest supported
+  0.12.x and the latest releases.  Most of the legacy doctest corpus runs
+  green under ``installer = uv`` — recipe and extension fixtures build
+  wheels instead of eggs and egg-only doctests are marked ``uv-deprecated``
+  — and picked-versions reporting parity between the uv and pip installers
+  is pinned by unit tests.  [gotcha]
+- Test maintenance: test with pip 26.1.2, updated GitHub workflow action
+  versions, fixed script tests and Windows detection in ``prepare.sh``,
+  restored the propagate flags of ``zc.buildout*`` loggers after each pytest
+  so later ``caplog`` captures are not starved, and made the test harness's
+  index URLs, file server and output normalizers Windows- and uv-proof.
+  [maurits, gotcha]
+- The test suite was ported from legacy doctests to pytest: the ported suite
+  runs in parallel via pytest-xdist (``make pytest``) and is wired into CI
+  across the full Python and platform matrix, and the dagger CI module
+  gained its own test harness that pins the job table against the GitHub
+  workflows.  [gotcha]
+
+
 5.2.0 (2026-04-29)
 ------------------
 
