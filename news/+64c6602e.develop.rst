@@ -1,1 +1,0 @@
-Type the pkg_resources boundary precisely: Environment.__getitem__ returns list[pkg_resources.Distribution] (the Any union arm absorbed the union), _best_matching_dist takes the real name-to-dist mapping, and the patches.py monkeypatch shims type self/item as the patched classes. [gotcha]

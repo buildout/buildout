@@ -1,1 +1,0 @@
-With installer = uv, package discovery and version resolution now run through uv pip compile instead of the vendored setuptools package index: uv picks the distribution and its artifact URL, and the install step fetches that URL through uv's content-addressed cache. The pip mode code path is unchanged. [gotcha]

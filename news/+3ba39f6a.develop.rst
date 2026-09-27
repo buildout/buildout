@@ -1,1 +1,0 @@
-Refactor ``call_pip_install`` (CC 14 to 9): extracted ``_maybe_add_no_python_version_warning`` and ``_editable_scan_result`` as free functions, each pinned by new unit tests in ``tests/pytests/test_easy_install_helpers.py``. [gotcha]

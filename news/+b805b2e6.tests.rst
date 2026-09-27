@@ -1,7 +1,0 @@
-Spell the harness's dead ``UV_INDEX_URL`` as a native ``file:`` URI built
-with ``Path.as_uri``: uv converts the index URL back with ``to_file_path``
-and rejects a drive-letterless path outright on Windows, aborting every
-resolution with ``Expected a file URL``.  The seam fallback index
-(``buildout_testing_seam_index_url``) reaches the same conversion as the
-``--default-index`` fallback of in-process resolves, so it gets the same
-native spelling. [gotcha]

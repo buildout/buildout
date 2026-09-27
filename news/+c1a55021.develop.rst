@@ -1,1 +1,0 @@
-Apply ``ruff --fix`` safe fixes (60 findings: dead imports, ``import a, b`` splits, trailing semicolons, ``not x in``) and tighten the lint baseline: E401/E703/E713 now enforced, F401 scoped to per-file ignores for availability probes and re-exports.  [gotcha]

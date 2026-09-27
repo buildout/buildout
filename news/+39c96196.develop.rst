@@ -1,7 +1,0 @@
-Coverage reports measure the library only: ``omit = */tests/*`` keeps
-the legacy harness modules, the ported pytests and the
-``gen_pytest``/``inject_prose`` helpers out of both reports, and
-pytest now imports the ported tests under their real
-``zc.buildout.tests`` name (``consider_namespace_packages``), fixing
-the alias copy that showed every ``test_pytest_*`` module at 0% and
-hid ``zc/buildout/__init__.py`` from the pytest report.  [gotcha]

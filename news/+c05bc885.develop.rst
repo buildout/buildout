@@ -1,3 +1,0 @@
-``installer = uv`` now passes ``--default-index`` instead of the deprecated
-``--index-url`` to ``uv pip compile``; the replacement exists at the pinned
-uv 0.12 floor (verified against the uv 0.12.0 binary). [gotcha]

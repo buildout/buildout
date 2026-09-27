@@ -1,5 +1,0 @@
-Extract the stale-part uninstall phase of ``Buildout.install`` into
-module-level helpers (``_split_parts``, ``_print_configuration_data``,
-``_part_is_up_to_date``, ``_log_part_option_changes``,
-``_uninstall_stale_parts``) with unit tests, cutting its cyclomatic
-complexity from 49 to 28 without behavior change.  [gotcha]

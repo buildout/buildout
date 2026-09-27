@@ -1,1 +1,0 @@
-The daggerized CI gains a radon cell in its static family: the module's Job table mirrors the workflow's complexity job (make complexity) with radon pip-pinned to the devenv version, the drift test derives the new cell from the workflow, and the smoke set covers it. [gotcha]

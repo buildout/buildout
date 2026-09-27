@@ -1,1 +1,0 @@
-With ``installer = uv``, a ``find-links`` entry pointing at a Mercurial repository (``hg:`` or ``hg+``) now raises a ``UserError`` naming the entry and advising a wheel or sdist, instead of surfacing uv's own parse error. [gotcha]

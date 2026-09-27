@@ -1,4 +1,0 @@
-Add ``ruff`` to the devenv environment with a ``make lint`` target and a
-pragmatic pinned baseline in ``pyproject.toml`` (classic ``E4``/``E7``/
-``E9``/``F`` set minus the rules the legacy tree violates wholesale);
-the ``verify-buildout`` skill documents the gate.  [gotcha]

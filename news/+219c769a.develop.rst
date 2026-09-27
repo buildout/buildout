@@ -1,7 +1,0 @@
-Cleaned the remaining ruff smalls tree-wide (SIM, B, RUF, PIE, FURB, PLC,
-PLE, PLW, TRY, EXE, YTT, DTZ, S110, T100 families): context managers for
-file opens, ``.items()`` iteration, collapsed nested ifs/withs, tuple-ized
-startswith/endswith chains, version-tuple comparisons, unused-unpacked
-renames, and dead comparisons restored as real checks. Deliberate patterns
-keep scoped noqa reasons (lazy-unfriendly logging call, dynamic setattr
-markers, fp handoff, two-stage template, pdb entry points). [gotcha]

@@ -1,1 +1,0 @@
-Fix a TypeError that made zc.buildout unimportable on Python 3.9: the ConfigData alias in zc.buildout.buildout is a plain assignment, evaluated at import time even under from __future__ import annotations, so the PEP 604 | union spelling raised unsupported operand type(s) for | on 3.9; the alias keeps the Union spelling (CI run 35026564516). [gotcha]

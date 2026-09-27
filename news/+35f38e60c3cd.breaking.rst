@@ -1,1 +1,0 @@
-With ``installer = uv``, offline mode (``buildout -o``) now forwards ``--offline`` to uv, so resolves are served by uv's local cache alone and builds that relied on the previous network access during offline runs must warm the cache first. [gotcha]

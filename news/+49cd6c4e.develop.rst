@@ -1,9 +1,0 @@
-Add coverage variants of both test suites: ``make coverage`` (legacy)
-and ``make coverage-pytest`` trace the suite process and every spawned
-interpreter (``bin/buildout`` drives, pip, xdist workers) through a new
-``etc/coverage/sitecustomize.py`` hook, then combine and report via
-``bin/coverage``; CI runs both as jobs in parallel with the windows job
-and uploads the HTML reports. The broken ``RUN_COVERAGE`` machinery
-(``zc.buildout.testing.setup_coverage`` and the sample ``bin/buildout``
-script patching in ``buildoutSetUp``) is removed — the sitecustomize
-hook replaces it.  [gotcha]

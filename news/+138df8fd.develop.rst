@@ -1,1 +1,0 @@
-Extract ``_cache_links_and_index``, ``_prepare_links`` and ``_initial_path`` helpers from ``Installer.__init__`` in ``zc.buildout.easy_install``, reducing its cyclomatic complexity from 13 to 7.  [gotcha]

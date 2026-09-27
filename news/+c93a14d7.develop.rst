@@ -1,1 +1,0 @@
-Extracted ``_run_pip``, ``_scan_editable_install``, ``_dist_info_dirname`` and ``_installed_dist_name`` from ``call_pip_install`` in ``zc.buildout.easy_install``, reducing its cyclomatic complexity from 24 to 14, with unit tests pinning the new helpers. [gotcha]

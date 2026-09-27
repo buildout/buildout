@@ -1,1 +1,0 @@
-Split the config-data type states: RawSection (plain strings) and AnnotatedSection (SectionKey values) aliases replace the dict[Any, Any] arms, and ConfigData now means annotated data, which is every consumer outside the parse-to-annotate seam in configfiles.  The in-place annotation mutation keeps its identity and pays one cast per level. [gotcha]

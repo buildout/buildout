@@ -1,1 +1,0 @@
-Sort all imports (I001). The load-bearing import-order dances (setuptools hook in ``__init__.py``, sys.path inserts, packaging entry points) keep their order; three ``# ty: ignore`` suppressions detached by import re-wrapping were re-anchored to their statement lines. [gotcha]

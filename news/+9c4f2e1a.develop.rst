@@ -1,1 +1,0 @@
-Add a cyclomatic-complexity budget gate: radon joins the devenv, ``make complexity`` fails when a function or method exceeds the checked-in baseline in ``etc/complexity-baseline.json`` or when new code exceeds grade B, CI runs the gate in parallel with ruff and ty, and the verify-buildout skill documents the tier. [gotcha]

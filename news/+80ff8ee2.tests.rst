@@ -1,1 +1,0 @@
-The uv CI set gains a Windows leg, the script-generation jobs through the uv installer, and a uv version matrix (earliest supported 0.12.x plus the five most recent) pinned via UV_VERSION. [gotcha]

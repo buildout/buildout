@@ -1,1 +1,0 @@
-CI can now use a project cachix binary cache: set the CACHIX_CACHE_NAME repo variable (and CACHIX_AUTH_TOKEN secret for pushing) and the devenv-setup action shares the devenv toolchain closure across jobs. Unset, the step is skipped.  [gotcha]

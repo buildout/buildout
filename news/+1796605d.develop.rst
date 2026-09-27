@@ -1,1 +1,0 @@
-Add make typecheck-any, a mypy-based gate (disallow_any_explicit) that blocks new explicit Any annotations in src/zc/buildout; the nine deliberate sites are suppressed per line with written reasons, and the burndown baseline lives in etc/any-burndown-baseline.txt. [gotcha]

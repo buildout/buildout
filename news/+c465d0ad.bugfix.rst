@@ -1,4 +1,0 @@
-Fix ``installer = uv`` crashing with ``ValueError: relative path can't be
-expressed as a file URI`` when the package index is a ``file://`` URL spelled
-as a native Windows path (``file://C:\...``), the spelling the test harness
-exports in ``buildout_testing_index_url``. [gotcha]

@@ -1,9 +1,0 @@
-Completed the ruff burndown end state: ``[tool.ruff.lint]`` now selects the
-explicit list of burned rule codes (pyflakes/pycodestyle defaults, import
-sorting, pyupgrade within the py39 floor, comprehension construction, blind
-except, and the bugbear/simplify/ruff/misc judgment sets) instead of the
-temporary pinned probes, with the burned noqa comments now load-bearing
-under the final selection. The load-bearing import dance in
-``zc/buildout/__init__.py`` gained a per-file I001 exemption, and one
-generator-expression site moved to a list comprehension so the generated
-port avoids UP034. [gotcha]

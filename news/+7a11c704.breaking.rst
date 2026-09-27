@@ -1,1 +1,0 @@
-With ``installer = uv``, the ``download-cache`` option is deprecated: uv keeps downloads in its own cache and the download cache is not populated. Setting the option logs a deprecation warning; the directory is still consulted as a find-links location. Tests pinning the old behavior are tagged ``uv-deprecated`` and are removed together with the feature. [gotcha]

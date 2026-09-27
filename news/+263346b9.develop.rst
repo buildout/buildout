@@ -1,7 +1,0 @@
-Resolved all blind ``except Exception`` catches (BLE001): the generator's
-traceback branch now emits a reasoned noqa where the class and message are
-pinned by the assertion right below, ports updated in lockstep, the
-literal_eval probe narrowed to its documented exceptions, and the
-deliberate broad catches (top-level error funnel, version-parse tolerance,
-CI failure aggregation, tracing bootstrap) carry scoped noqa reasons.
-[gotcha]

@@ -1,1 +1,0 @@
-Fixed Windows fragility in the new pytest helper tests: portable path expectations, bytes-level script fixtures, and the ``-script.py`` console-script suffix in the upgrade-restart pin. [gotcha]

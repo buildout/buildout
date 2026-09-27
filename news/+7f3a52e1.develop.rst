@@ -1,1 +1,0 @@
-Extracted ``_parse_requirements``, ``_working_set_or_default`` and ``_resolve_extra_requirements`` from ``Installer.install`` in ``zc.buildout.easy_install``, reducing its cyclomatic complexity from 22 to 14, with unit tests pinning the new helpers. [gotcha]

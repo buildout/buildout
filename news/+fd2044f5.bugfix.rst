@@ -1,1 +1,0 @@
-Fix the installer = uv pipeline on Windows: the fallback lookup for a uv executable next to the Python interpreter only tried the bare name, but pip installs the console script as uv.exe, so the install aborted with a no-uv-found error. [gotcha]

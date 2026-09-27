@@ -1,7 +1,0 @@
-Replace the ``__doing__`` frame-local error-context mechanism with
-``zc.buildout._activity``, a context manager that attaches activity records
-to the propagating exception object (read back via the ``__context__`` chain
-when ``main()`` reports an error). The old mechanism read frame locals
-post-mortem through traceback introspection — a CPython interpreter internal
-that does not port, e.g. to a future Rust implementation. The ``While:``
-error output is unchanged.  [gotcha]

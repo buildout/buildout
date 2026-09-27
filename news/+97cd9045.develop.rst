@@ -1,1 +1,0 @@
-Extract the pip/uv install backend and egg-reconstruction layer into the new zc.buildout.install_backend module; easy_install keeps re-exporting it. [gotcha]

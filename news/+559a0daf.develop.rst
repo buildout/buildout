@@ -1,6 +1,0 @@
-Extract the file-opening, parsing and extends-processing seams of
-``_open`` into module-level helpers (``_open_config_file``,
-``_parse_config_file``, ``_extends_results``,
-``_optional_extends_results``) with unit tests, cutting its cyclomatic
-complexity from 20 to 6 (radon grade B) without behavior
-change.  [gotcha]

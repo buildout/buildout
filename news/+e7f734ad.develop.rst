@@ -1,3 +1,0 @@
-Add ``towncrier`` to the devenv environment so the news entries required
-by the ``develop-buildout`` skill can be created and draft-rendered
-without any extra install.  [gotcha]

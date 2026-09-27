@@ -1,1 +1,0 @@
-Lock picked-versions reporting parity between the uv and pip installers with unit tests: Picked: lines, allow-picked-versions = false guidance, and the pinned and develop exclusions now fail loudly if the uv seam stops reporting picks. [gotcha]

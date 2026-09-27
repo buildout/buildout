@@ -1,4 +1,0 @@
-Extracted the Windows CI job into its own workflow file
-(``windows.yml``). ``run-tests.yml`` calls it as a reusable workflow so
-Windows stays in the push gate, and ``workflow_dispatch`` enables
-Windows-only debugging runs without burning the full matrix. [gotcha]

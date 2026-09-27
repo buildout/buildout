@@ -1,1 +1,0 @@
-Extracted pure helpers (``_validated_extends_cache``, ``_resolve_config_location``, ``_filename_for_logging``, ``_merge_config_data``) from ``_open``, reducing its cyclomatic complexity from 26 to 20. [gotcha]

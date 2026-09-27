@@ -1,1 +1,0 @@
-Make the uv-mode doctests independent of the host's Rust logging environment: uv's leveled internal log lines (``DEBUG ...``, ``WARN ...``) drop with the install chatter, and the hermetic test environment strips ``RUST_LOG``, after a flooded ``-v`` transcript failed easy_install.txt on the GH Actions runner (GH run 35850441947). [gotcha]

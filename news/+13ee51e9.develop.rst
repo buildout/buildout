@@ -1,3 +1,0 @@
-Extract line-filter and declaration-scan helpers from
-``zc.buildout.easy_install.check_namespace_init_file`` to reduce cyclomatic
-complexity.  [gotcha]

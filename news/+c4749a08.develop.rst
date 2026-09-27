@@ -1,6 +1,0 @@
-Extract the part install/update phase of ``Buildout.install`` into
-module-level helpers (``_update_recipe_callable``, ``_merged_updated_files``,
-``_update_part``, ``_normalize_installed_files``, ``_record_installed_part``,
-``_save_or_update_installed``, ``_finalize_installed_options``) with unit
-tests, cutting its cyclomatic complexity from 28 to 10 (radon grade B)
-without behavior change.  [gotcha]

@@ -1,8 +1,0 @@
-Fix the failing Python 3.14 CI leg: the devenv shell leaks its profile's
-site-packages onto the ``sys.path`` of spawned test children via
-``NIX_PYTHONPATH`` (nixpkgs sitecustomize), and ambient distributions there —
-``six``, pulled in by radon's ``mando`` dependency — hijacked dependency
-resolution away from the eggs pinned in ``eggs/v5``, so the getting-started
-tutorial failed while trying to pip-install the profile's site-packages
-directory. All Makefile test targets now clear ``NIX_PYTHONPATH`` so the
-suites run hermetically.  [gotcha]

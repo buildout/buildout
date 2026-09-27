@@ -1,5 +1,0 @@
-Extract the argument parsing and raw value lookup of
-``Buildout.query`` into module-level helpers (``_parse_query_args``,
-``_split_query_option``, ``_raw_query_value``) with unit tests, cutting
-its cyclomatic complexity from 15 to 3 (radon grade A) without behavior
-change.  [gotcha]

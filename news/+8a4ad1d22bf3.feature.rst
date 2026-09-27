@@ -1,1 +1,0 @@
-With ``installer = uv``, an invalid ``[versions]`` entry no longer aborts unrelated resolutions: entries for other projects are skipped with a warning, and an invalid pin for the project being resolved raises the pip-parity ``IncompatibleConstraintError`` instead of a bare ``InvalidSpecifier`` traceback. [gotcha]

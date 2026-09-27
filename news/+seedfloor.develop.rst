@@ -1,1 +1,0 @@
-The hermetic test seed now carries a ``setuptools`` floor (75.8.2) next to the pinned version: spawned build environments resolve the highest find-links version while the suites' expectations match modern ``setuptools`` (PEP 660 ``build_editable``, normalized wheel filenames), so the old-setuptools dagger cells broken in GH run 34977253833 pass offline again. [gotcha]

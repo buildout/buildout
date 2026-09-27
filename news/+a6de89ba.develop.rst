@@ -1,1 +1,0 @@
-Finish the ruff burndown of the classic ruleset. ``E701``, ``E702``, ``E722``, ``E731``, and ``E741`` are re-selected, and the global ignore list is now empty: doctest try/except clusters and one-liner with-blocks rewritten multi-line, ambiguous ``l`` loop variables renamed, one lambda converted to a def, one semicolon split. [gotcha]

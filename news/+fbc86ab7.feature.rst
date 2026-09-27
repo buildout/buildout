@@ -1,1 +1,0 @@
-With ``installer = uv``, requiring a project that local find-links offer only as legacy ``.egg`` artifacts now fails with a clear error explaining that uv cannot install eggs, instead of a bare Couldn't-find-a-distribution. [gotcha]

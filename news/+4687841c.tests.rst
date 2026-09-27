@@ -1,1 +1,0 @@
-Split six long pytest tests (``test_configuration_macros``, ``test_init``, ``test_extending_multiple_configuration_files``, ``test_easy_install_distribution_installation``, ``test_easy_install_build_options``, ``test_exit_codes``) into per-scenario tests along their narrative boundaries.  [gotcha]

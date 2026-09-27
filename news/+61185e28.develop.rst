@@ -1,1 +1,0 @@
-Type the uv lock boundary in uv_resolve: _LockData/_LockPackage/_LockArtifact/_LockDirectory/_LockHashes TypedDicts (all total=False, 3.9 floor) replace Any in the four parser signatures, with one cast at the tomllib boundary and the runtime shape validation unchanged. [gotcha]

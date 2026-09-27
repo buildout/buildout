@@ -1,4 +1,0 @@
-Dagger module ``buildout-ci`` (``dagger/`` + ``dagger.json``) to run the
-GitHub Actions jobs locally inside ``devenv shell``: ``dagger call jobs``
-lists them, ``dagger call job --name <job>`` runs one, ``dagger call ci``
-runs all. Per-Python pip and uv cache volumes keep reruns fast. [gotcha]

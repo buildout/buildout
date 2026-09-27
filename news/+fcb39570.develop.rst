@@ -1,6 +1,0 @@
-Extract the command-line parsing and error handling of ``main`` into
-module-level helpers (``_apply_letter_flag``, ``_consume_letter_flags``,
-``_valued_option``, ``_long_option``, ``_option_assignment``,
-``_pop_command``, ``_handle_buildout_error``) with unit tests, cutting its
-cyclomatic complexity from 34 to 10 (radon grade B) without behavior
-change.  [gotcha]

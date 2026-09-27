@@ -1,1 +1,0 @@
-Refresh the complexity baseline for the rebased devenv base: re-pin line numbers in _package_index.py after its coverage pragma additions, and record the easy_install.install/working_set simplifications (CC 4 to 2 and 5 to 3) that the dead-parameter removal landed. No block grew. [gotcha]

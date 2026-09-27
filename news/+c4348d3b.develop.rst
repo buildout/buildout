@@ -1,7 +1,0 @@
-Extract ``_remove_namespace_init_files``, ``_remove_pip_bin_dir``,
-``_read_project_name``, ``_read_top_levels``, ``_move_top_levels``,
-``_read_record_entries`` and ``_move_record_leftovers`` helpers from
-``make_egg_after_pip_install`` in ``zc.buildout.easy_install``, reducing
-its cyclomatic complexity from 21 to 3, with unit tests pinning the
-bin-directory removal, top-level moving and RECORD leftover branches.
-[gotcha]

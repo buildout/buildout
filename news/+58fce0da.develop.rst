@@ -1,1 +1,0 @@
-CI and the dagger module gain a ``coverage unittests`` job: it runs only the unit tests, the pytest tests that take no integration fixture from the pytests conftest (new ``--unittests-only`` flag), under coverage and uploads the HTML report as ``coverage-unittests-html``. [gotcha]

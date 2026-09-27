@@ -1,1 +1,0 @@
-Apply the mechanical pyupgrade smalls tree-wide (UP004, UP008, UP009, UP010, UP012, UP024, UP032, UP034): no coding declarations, no ``object`` bases, modern super(), os error aliases, f-strings, byte literals. ``gen_pytest.py`` learns not to double-parenthesize already-parenthesized literal checks, so regeneration cannot reintroduce UP034. [gotcha]

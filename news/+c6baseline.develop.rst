@@ -1,1 +1,0 @@
-Refresh the complexity baseline for the Any-burndown line drift: annotations.py entries re-pin +3 (C6 aliases), uv_resolve ResolutionError.__init__ re-pins to L113 (C4 TypedDicts), and the C5 recipe-seam Protocol methods gain their first entries. [gotcha]

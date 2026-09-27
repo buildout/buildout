@@ -1,6 +1,0 @@
-Modernized printf-style ``%`` formatting to f-strings and
-``.format_map()`` tree-wide (UP031, UP030, FLY002), including doctest
-sources and generated pytest ports. Logging calls keep lazy comma-arg
-form; three eager ``%`` sites inside logging calls became lazy instead
-of eagerly formatted. Two two-stage templates keep printf with scoped
-reasons. [gotcha]

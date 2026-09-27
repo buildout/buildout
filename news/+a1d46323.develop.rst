@@ -1,6 +1,0 @@
-Extract ``_matching_dists``, ``_develop_dist``, ``_final_dists`` and
-``_select_newer_dist`` helpers from ``Installer._satisfied`` in
-``zc.buildout.easy_install``, reducing its cyclomatic complexity from 21
-to 8, with unit tests pinning the develop-egg, final-release filtering
-and newer-version selection branches.
-[gotcha]

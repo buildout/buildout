@@ -1,1 +1,0 @@
-CI gains a parallel uv test set (``.github/workflows/test-uv.yml``): the setuptools, Python, and macOS jobs rerun the legacy suite through the uv install pipeline via ``make test-uv``, and the daggerized mirror grows a ``uv`` family. [gotcha]

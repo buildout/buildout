@@ -1,6 +1,0 @@
-Extract the option and directory setup of ``Buildout.__init__`` into
-module-level helpers (``_links_and_hosts``, ``_absolutize_standard_dirs``,
-``_version_eggs_directory``, ``_create_cache_dirs``, ``_setup_download_cache``,
-``_check_install_from_cache``, ``_use_default_options``) with unit tests,
-cutting its cyclomatic complexity from 30 to 9 (radon grade B) without
-behavior change.  [gotcha]

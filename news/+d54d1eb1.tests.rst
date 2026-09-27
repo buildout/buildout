@@ -1,1 +1,0 @@
-The test corpus's static file server answers HEAD requests (uv probes artifact metadata with HEAD before downloading), and the hermetic installer environment pins uv hermeticity with a dead UV_INDEX_URL instead of UV_OFFLINE, which blocked the localhost link server once uv does the resolving. [gotcha]

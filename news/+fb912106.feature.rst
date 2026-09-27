@@ -1,5 +1,0 @@
-New ``installer`` option in the ``[buildout]`` section: set it to ``uv``
-to run every package install through `uv <https://docs.astral.sh/uv/>`_
-instead of ``pip``. Overridable on the command line with the usual
-assignment syntax, for example ``bin/buildout buildout:installer=uv``.
-``uv`` is now a declared dependency of zc.buildout. [gotcha]

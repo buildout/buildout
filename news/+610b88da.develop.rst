@@ -1,1 +1,0 @@
-Keep the seed's setuptools floor wheel out of the uv resolve seam: prepare.sh snapshots downloads/test-seam-seed before the floor lands, so cells pinning an older setuptools no longer upgrade the toolchain past their pin during the upgrade check (GH run 36030422312). [gotcha]

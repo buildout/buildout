@@ -1,1 +1,0 @@
-Refactor ``configparser.parse`` (CC 36 to 24): extracted ``_merge_option``, ``_evaluate_section_condition``, ``_append_continuation`` and ``_finalize_sections`` as free functions, each pinned by new unit tests in ``tests/pytests/test_configparser_helpers.py``. [gotcha]

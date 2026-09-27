@@ -1,1 +1,0 @@
-Modernize to PEP 604 unions (UP045, UP007, UP037): ``Optional[X]`` and ``Union[X, Y]`` become ``X | None`` and ``X | Y``. Eight modules gain ``from __future__ import annotations`` so the new syntax stays lazy and Python 3.9-safe (verified in a 3.9 shell). [gotcha]

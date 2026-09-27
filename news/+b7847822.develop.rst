@@ -1,1 +1,0 @@
-Type the recipe seam in parts.py: a Recipe union of two Protocols (_InstallOnly/_Updatable, so install-only and update-only recipes both type-check) replaces recipe: Any, and the _update_installed callback gets a __call__ Protocol matching its str-valued keyword signature. [gotcha]

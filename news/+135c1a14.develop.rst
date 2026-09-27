@@ -1,1 +1,0 @@
-Extract the script-generation cluster and interpreter templates into the new zc.buildout.scripts module; easy_install keeps re-exporting them. [gotcha]

@@ -1,1 +1,0 @@
-Remove dead backward-compat parameters ``include_site_packages`` and ``allowed_eggs_from_site_packages`` from ``easy_install.install`` and ``easy_install.working_set``: both were shims that asserted ``None``. [gotcha]

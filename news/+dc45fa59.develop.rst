@@ -1,6 +1,0 @@
-Extract ``_script_paths``, ``_find_req_dist``, ``_dist_entry_points``,
-``_dist_distutils_scripts``, ``_collect_req_scripts``, ``_script_target``
-and ``_warn_missing_scripts`` helpers from ``scripts`` in
-``zc.buildout.easy_install``, reducing its cyclomatic complexity from 38
-to 10, with unit tests pinning the requirement-resolution, scripts
-metadata and script-target branches. [gotcha]

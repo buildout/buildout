@@ -1,3 +1,0 @@
-Extract unpack/locate and build-ext config helpers from
-``zc.buildout.easy_install.Installer.build`` to reduce cyclomatic
-complexity.  [gotcha]

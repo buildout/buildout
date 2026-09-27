@@ -1,4 +1,0 @@
-``installer = uv`` now passes ``--prerelease if-necessary`` explicitly when
-``prefer-final = true`` instead of relying on uv's default, pinning the
-mapping against uv default drift; ``prefer-final = false`` keeps
-``--prerelease allow``. [gotcha]

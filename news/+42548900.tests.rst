@@ -1,1 +1,0 @@
-Accept both setuptools-generation legacy errors in the pip-mode junk-specifier pin: 69.5.1 raises the containment IncompatibleConstraintError where other pins escape InvalidSpecifier, and give the bare test fixture the attribute the error path logs. [gotcha]

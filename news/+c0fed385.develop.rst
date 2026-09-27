@@ -1,1 +1,0 @@
-Fix the uv-mode install-chatter dropper on Windows: the relayed argv line starts with a quoted drive-letter path there, which the continuation rule's posix-only spelling missed, leaking the argv into doctest transcripts (GH run 35921276587). [gotcha]

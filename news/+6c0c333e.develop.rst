@@ -1,1 +1,0 @@
-Modernize annotations to PEP 585 builtins tree-wide (UP006, UP035): ``typing.List/Dict/Set/Tuple/Type`` become ``list/dict/set/tuple/type``, abstract protocols move to ``collections.abc``, and orphaned typing import names are pruned. Runtime-safe on Python 3.9 (verified in a 3.9 shell). [gotcha]

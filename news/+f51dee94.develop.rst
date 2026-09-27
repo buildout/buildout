@@ -1,1 +1,0 @@
-Re-select ruff ``E402`` for the whole tree. The ten deliberate module-level import sites move to per-file ignores with reason comments (packaging entry points, the load-bearing import order in ``zc/buildout/__init__.py`` and ``dev.py``, and ``inject_prose.py``'s ``sys.path`` dance). [gotcha]

@@ -1,1 +1,0 @@
-Type stringified varargs precisely: *args: object in print_, _activity, and Buildout._error; the module-level _error keeps Any with a reason (join raising TypeError on a list argument is a preserved quirk, cli.py:244). [gotcha]

@@ -1,1 +1,0 @@
-Fix uv-mode installation of old-style wheels whose .dist-info directory keeps the unescaped project name (e.g. ``zc.recipe.egg`` wheels built by older setuptools): the batched install now discovers the dist-info directory from the installed distribution instead of computing the escaped spelling (GH run 35850441994). [gotcha]

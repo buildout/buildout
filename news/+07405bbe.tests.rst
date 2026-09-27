@@ -1,1 +1,0 @@
-The legacy doctest corpus runs green under ``buildout_testing_installer = uv``: mode-conditional normalizers drop uv-only request transcripts, version chatter, and download-cache lines, and sections pinning the deprecated download cache are marked uv-deprecated. [gotcha]

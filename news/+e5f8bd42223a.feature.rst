@@ -1,1 +1,0 @@
-With ``installer = uv``, ``install-from-cache = true`` maps onto uv's own cache: resolves run with ``--offline`` and uv serves them from its cache, so the pip-mode download-cache restriction (a configured ``download-cache`` as the only source) has no uv equivalent. [gotcha]

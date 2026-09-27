@@ -1,1 +1,0 @@
-Remove ``pep425tags.get_supported``: it had no callers and its ``import imp`` fallback is broken on Python 3.12+. [gotcha]

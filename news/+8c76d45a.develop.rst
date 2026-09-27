@@ -1,1 +1,0 @@
-Add a dispatch-only windows-iter workflow: the static trio (ruff, radon, ty) followed by the Windows leg, so Windows-only fixes iterate without waiting on the full matrix (gh workflow run windows-iter.yml --ref <branch>). [gotcha]

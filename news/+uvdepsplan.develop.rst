@@ -1,1 +1,0 @@
-Add PLAN_UV_DEP_REMOVAL.md: a phased plan to remove pkg_resources and setuptools from the installer=uv path, vendoring pkg_resources so the legacy test suite stays green with newer setuptools under both installer modes. [gotcha]

@@ -1,1 +1,0 @@
-Fold the uv.exe console-script name to uv in the pytest output normalizers, so the uv installer debug-line assertion holds on Windows. [gotcha]

@@ -1,1 +1,0 @@
-Extracted ``_previous_develop_links``, ``_develop_source_dir`` and ``_new_develop_eggs`` from ``Buildout._develop`` in ``zc.buildout.buildout``, reducing its cyclomatic complexity from 23 to 12, with unit tests pinning the new helpers. [gotcha]

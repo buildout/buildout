@@ -1,1 +1,0 @@
-Extract ``_ensure_dest_dir``, ``_unpack_dist_to_tmp`` and ``_move_dist_into_place`` helpers from ``_move_to_eggs_dir_and_compile`` in ``zc.buildout.easy_install``, reducing its cyclomatic complexity from 13 to 1.  [gotcha]

@@ -1,1 +1,0 @@
-Development environment: integrate the devenv-dagger module. devenv up now brings up a Podman machine and a Dagger engine, and the dagger CLI is available in the shell, a first step toward running the CI jobs locally in containers. [gotcha]

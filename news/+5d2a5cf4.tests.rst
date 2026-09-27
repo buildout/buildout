@@ -1,4 +1,0 @@
-The ``extends-cache`` corpus test now expects the uv-mode behavior of
-``install-from-cache`` (the resolve proceeds through the uv cache, no
-``download-cache`` requirement) when running with ``installer = uv``.
-[gotcha]

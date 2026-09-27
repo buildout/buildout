@@ -1,1 +1,0 @@
-The uv install pipeline requires uv >= 0.12.11: earlier 0.12.x serve their own cache on --offline resolves, so install-from-cache-only installs found distributions the download cache never held. [gotcha]

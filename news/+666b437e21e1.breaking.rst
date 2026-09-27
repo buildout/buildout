@@ -1,1 +1,0 @@
-With ``installer = uv``, a ``find-links`` entry carrying an ``#egg=`` or ``#md5=`` URL fragment now raises a ``UserError`` naming the fragment, instead of surfacing uv's own parse error. [gotcha]

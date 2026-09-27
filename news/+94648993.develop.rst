@@ -1,1 +1,0 @@
-CI jobs now run inside the repository-owned devenv: GitHub actions only bootstrap Nix and the devenv CLI (pinned by devenv.lock), and every tool — Python, uv, ruff, ty — comes from devenv.nix, so CI and local shells use the same toolchain. The Windows job keeps actions/setup-python (no Nix on Windows runners).  [gotcha]

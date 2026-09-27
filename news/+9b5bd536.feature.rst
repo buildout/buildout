@@ -1,1 +1,0 @@
-With ``installer = uv``, dependency links found in distribution metadata keep working: the seam now compiles one requirement at a time (``--no-deps``), matching the iterative resolution of the pip mode, so links discovered mid-run feed the next resolution. [gotcha]

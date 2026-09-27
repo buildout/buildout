@@ -1,5 +1,0 @@
-Replaced ``dict(...)`` calls with dict literals and comprehension-style
-construction tree-wide (C408, C402, C404), in production code, doctest
-sources and generated pytest ports. Restored source statement order in one
-hand-ported test where an import sort had broken the positional prose
-anchors. [gotcha]

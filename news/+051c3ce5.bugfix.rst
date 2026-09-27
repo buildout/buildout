@@ -1,5 +1,0 @@
-Fixed ``pip install`` argument assembly misreading a Windows drive path
-(``C:\index``) as a URL. ``urlsplit`` parses the drive letter as a
-one-letter scheme, so a local directory package index reached pip
-unconverted, and pip 25+ rejects bare directories. Drive paths are now
-converted to ``file://`` URIs like any other local index. [gotcha]

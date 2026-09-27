@@ -1,1 +1,0 @@
-With ``installer = uv``, a malformed or unexpected ``pylock.toml`` from uv is reported as a resolution error with context instead of a raw ``TOMLDecodeError``/``KeyError`` traceback, and ``MissingDistribution`` now carries the tail of uv's stderr so the cause class stays visible. [gotcha]

@@ -1,1 +1,0 @@
-Extract the user-facing exception types (VersionConflict, MissingDistribution, IncompatibleConstraintError) into the new zc.buildout.errors module; easy_install keeps re-exporting them. [gotcha]

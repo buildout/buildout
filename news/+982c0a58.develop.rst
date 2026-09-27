@@ -1,1 +1,0 @@
-Extract ``_fetch_new_dists`` helper from ``Installer._get_dist`` in ``zc.buildout.easy_install``, reducing its cyclomatic complexity from 13 to 6.  [gotcha]

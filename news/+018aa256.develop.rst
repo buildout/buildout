@@ -1,1 +1,0 @@
-Refactor ``Installer.install`` (CC 14 to 9): extracted ``_fetch_requested_dists`` and ``_best_matching_dist`` as free functions, each pinned by new unit tests in ``tests/pytests/test_easy_install_helpers.py``. [gotcha]

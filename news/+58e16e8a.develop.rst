@@ -1,1 +1,0 @@
-Extract _pip_install_args from easy_install.call_pip_install (CC 30 to 24): pip argument assembly, including the local-directory index to file:// URI conversion, is now a pure function pinned by unit tests in tests/pytests/test_easy_install_helpers.py. [gotcha]

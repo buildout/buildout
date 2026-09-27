@@ -1,5 +1,0 @@
-Extract the upgrade-check loop and the script-regeneration/restart
-block of ``Buildout._maybe_upgrade`` into module-level helpers
-(``_find_upgraded_dists``, ``_upgrade_and_restart``) with unit tests,
-cutting its cyclomatic complexity from 15 to 4 (radon grade A) without
-behavior change.  [gotcha]

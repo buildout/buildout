@@ -1,5 +1,0 @@
-All functions and methods in the implementation modules (``buildout.py``,
-``easy_install.py``, ``_package_index.py``, ``download.py``, ``configparser.py``,
-``patches.py``, ``pep425tags.py``, ``rmtree.py``, ``__init__.py``) now carry
-full type annotations; the test-support modules ``testing.py`` and
-``testrecipes.py`` remain unannotated by design.  [gotcha]

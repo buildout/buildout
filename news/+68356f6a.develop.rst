@@ -1,5 +1,0 @@
-Extract the config-data assembly of ``Buildout.__init__`` into module-level
-helpers (``_resolve_config_file``, ``_cloptions_dict``, ``_load_user_defaults``,
-``_load_config``, ``_apply_cl_extends``, ``_default_versions``,
-``_pin_buildout_version``, ``_absolutize_cache_dirs``) with unit tests, cutting
-its cyclomatic complexity from 61 to 30 without behavior change.  [gotcha]

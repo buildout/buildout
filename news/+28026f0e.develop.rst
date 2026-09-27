@@ -1,1 +1,0 @@
-Fix the uv-installer suite on Python < 3.11: seed tomli in downloads/test-seed so compiles carrying the zc.buildout develop override find the marker dependency, and drop uv resolve chatter before the getting/got keep-rule so the While-replayed fetch line survives (GH run 35833561014). [gotcha]

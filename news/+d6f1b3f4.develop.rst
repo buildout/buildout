@@ -1,1 +1,0 @@
-Refactor ``configparser.parse`` (CC 23 to 10): extracted ``_handle_continuation``, ``_expression_context``, ``_start_section``, ``_handle_preamble_line`` and ``_handle_option_line`` as free functions, each pinned by new unit tests in ``tests/pytests/test_configparser_helpers.py``. [gotcha]

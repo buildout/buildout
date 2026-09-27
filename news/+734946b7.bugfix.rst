@@ -1,4 +1,0 @@
-``query`` now rejects malformed arguments (for example ``:port``, ``values:``
-or ``a:b:c``) with a clear ``Invalid query argument`` message stating the
-expected ``section:option`` format, instead of confusing errors with empty
-section or option names.  [gotcha]
