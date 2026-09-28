@@ -9,7 +9,10 @@ import pytest
 import zc.buildout
 from zc.buildout import easy_install
 from zc.buildout.easy_install import _uv_install_args
-from zc.buildout.install_backend import install_pinned_dists
+from zc.buildout.install_backend import (
+    install_pinned_dists,
+    make_egg_after_pip_install,
+)
 from zc.buildout.uv_resolve import PinnedDist
 
 
@@ -27,7 +30,10 @@ def _pin(name, version):
 def _write_dist_tree(dest, project_name, version, module):
     """Materialize a fake install: a top-level module and its .dist-info.
 
-    METADATA, top_level.txt and RECORD are the minimum
+    ``module`` may name a package inside a shared namespace
+    (``zope/annotation``): the namespace directory is then shared with
+    the other fake dists, the layout a batched ``uv pip install``
+    produces.  METADATA, top_level.txt and RECORD are the minimum
     make_egg_after_pip_install reads; RECORD in particular must exist,
     it is read unconditionally after the dist-info moves into the egg.
     """
@@ -39,10 +45,17 @@ def _write_dist_tree(dest, project_name, version, module):
                 f'Name: {project_name}\n'
                 f'Version: {version}\n')
     with open(os.path.join(distinfo, 'top_level.txt'), 'w') as f:
-        f.write(module + '\n')
+        f.write(module.split('/')[0] + '\n')
+    if '/' in module:
+        entry = module + '/__init__.py'
+    else:
+        entry = module + '.py'
     with open(os.path.join(distinfo, 'RECORD'), 'w') as f:
-        f.write(f'{module}.py,,\n')
-    with open(os.path.join(dest, module + '.py'), 'w') as f:
+        f.write(entry + ',,\n')
+    target = os.path.join(dest, entry)
+    if '/' in module:
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+    with open(target, 'w') as f:
         f.write('# written by the fake uv subprocess\n')
 
 
@@ -147,6 +160,71 @@ def test_wheel_built_with_unescaped_dist_info_installs(
     newdists = install_pinned_dists(pins, dest)
     assert [d.project_name for d in newdists] == ['zc.recipe.egg']
     assert [d.version for d in newdists] == ['4.0.1']
+
+
+def test_batched_namespace_dists_reconstruct_their_own_files(
+        monkeypatch, tmp_path):
+    """Two dists sharing a namespace must each keep only their own files.
+
+    A batched ``uv pip install`` unpacks every wheel into one shared
+    directory, so ``zope.annotation`` and ``zope.interface`` both live
+    under a single ``zope/`` tree.  Moving the whole top-level
+    directory into the first reconstructed egg leaves the second egg
+    metadata-only: it cannot be imported from its own egg, the failure
+    seen with real Plone pins (zope.interface 8.5 next to
+    zope.annotation 6.0).
+    """
+    pins = [_pin('zope.annotation', '6.0'), _pin('zope.interface', '8.5')]
+    _record_uv_install(monkeypatch, materialize=[
+        ('zope.annotation', '6.0', 'zope/annotation'),
+        ('zope.interface', '8.5', 'zope/interface'),
+    ])
+    dest = str(tmp_path / 'eggs')
+    install_pinned_dists(pins, dest)
+    eggs = [e for e in os.listdir(dest) if e.endswith('.egg')]
+    assert len(eggs) == 2
+    for prefix, subpackage in [('zope.annotation-6.0', 'annotation'),
+                               ('zope.interface-8.5', 'interface')]:
+        egg = next(e for e in eggs if e.startswith(prefix))
+        zope_dir = os.path.join(dest, egg, 'zope')
+        assert os.path.isdir(zope_dir)
+        assert os.listdir(zope_dir) == [subpackage]
+        assert os.path.isfile(
+            os.path.join(zope_dir, subpackage, '__init__.py'))
+
+
+def test_single_install_moves_top_level_files_beyond_record(tmp_path):
+    """The single-install path keeps whole top-level moves.
+
+    RECORD can lag the actual tree (a c extension left over, a file
+    pip failed to list), so when ``dest`` holds one install the files
+    named by top_level.txt move wholesale and RECORD only picks up
+    leftovers.  Only batched callers share ``dest`` between dists and
+    must reconstruct file-precise.
+    """
+    dest = tmp_path / 'dest'
+    dest.mkdir()
+    _write_dist_tree(str(dest), 'demo', '1.0', 'demo')
+    # A file present on disk but missing from RECORD.
+    (dest / 'demo-1.0.dist-info' / 'RECORD').write_text('')
+    [egg_dir] = make_egg_after_pip_install(str(dest), 'demo-1.0.dist-info')
+    assert os.path.isfile(os.path.join(egg_dir, 'demo.py'))
+
+
+def test_batched_reconstruction_requires_record(tmp_path):
+    """A batched dist without RECORD must fail loudly.
+
+    The shared install directory leaves no safe way to pick the dist's
+    own files without RECORD; a metadata-only egg would be broken at
+    import time while pkg_resources still reports it as installed.
+    """
+    dest = tmp_path / 'dest'
+    dest.mkdir()
+    _write_dist_tree(str(dest), 'demo', '1.0', 'demo')
+    os.remove(str(dest / 'demo-1.0.dist-info' / 'RECORD'))
+    distro = next(iter(pkg_resources.find_distributions(str(dest))))
+    with pytest.raises(zc.buildout.UserError):
+        make_egg_after_pip_install(str(dest), 'demo-1.0.dist-info', distro)
 
 
 def test_missing_dist_info_raises_user_error_naming_pin(
