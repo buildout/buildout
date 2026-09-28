@@ -117,6 +117,10 @@ Trying to download a file in offline mode will result in an error:
 >>> download(server_url+'foo.txt')
 Traceback (most recent call last):
 UserError: Couldn't download 'http://localhost/foo.txt' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 As an exception to this rule, file system paths and URLs in the ``file``
 scheme will still work:

@@ -45,6 +45,10 @@ of the required configuration:
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 Trying the same online, we can:
 
@@ -59,6 +63,10 @@ nothing gets cached. Offline mode will still cause the buildout to fail:
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 Let's now specify a cache for base configuration files. This cache is
 different from the download cache used by recipes for caching distributions
@@ -293,6 +301,10 @@ the remote configuration file needed by the user's defaults:
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 Let's now successively turn on offline mode by different parts of the
 configuration and see when buildout applies this setting in each case:
@@ -306,6 +318,10 @@ configuration and see when buildout applies this setting in each case:
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('home', '.buildout', 'default.cfg', """\
 ... [buildout]
@@ -320,6 +336,10 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('home', '.buildout', 'fancy_default.cfg', f"""\
 ... [buildout]
@@ -334,6 +354,10 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('buildout.cfg', """\
 ... [buildout]
@@ -359,6 +383,10 @@ The ``install-from-cache`` option is treated accordingly:
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('home', '.buildout', 'default.cfg', """\
 ... [buildout]
@@ -373,6 +401,10 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('home', '.buildout', 'fancy_default.cfg', f"""\
 ... [buildout]
@@ -387,6 +419,10 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 
 >>> write('buildout.cfg', """\
 ... [buildout]

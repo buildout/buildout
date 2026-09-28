@@ -2431,7 +2431,11 @@ def test_download(easy_install_env):
         assert False, "Expected UserError not raised"
     except Exception as _exc:  # noqa: BLE001 - the class
         # and message are pinned by the assertion below
-        assert_output(str(_exc), "Couldn't download 'http://localhost/foo.txt' in offline mode.", N)
+        assert_output(str(_exc), "Couldn't download 'http://localhost/foo.txt' in offline mode.\n"
+                      "Run buildout once in online mode with a cache directory\n"
+                      "configured: 'extends-cache' for configuration files,\n"
+                      "'download-cache' for other files; the download is then\n"
+                      "reused from the cache while offline.", N)
     # As an exception to this rule, file system paths and URLs in the ``file``
     # scheme will still work:
     assert_output(capture_print(cat, download(join(server_data, 'foo.txt'))[0]), 'This is a foo text.', N)
@@ -2819,6 +2823,10 @@ def test_extends_cache(easy_install_env):
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     # Trying the same online, we can:
     assert_output(system(buildout), """
@@ -2831,6 +2839,10 @@ This may be an indication for either a typo in the option's name or a bug in the
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     # Let's now specify a cache for base configuration files. This cache is
     # different from the download cache used by recipes for caching distributions
@@ -3037,6 +3049,10 @@ offline = false
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     # Let's now successively turn on offline mode by different parts of the
     # configuration and see when buildout applies this setting in each case:
@@ -3049,6 +3065,10 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('home', '.buildout', 'default.cfg', """\
     [buildout]
@@ -3063,6 +3083,10 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('home', '.buildout', 'fancy_default.cfg', f"""\
     [buildout]
@@ -3077,6 +3101,10 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('buildout.cfg', """\
     [buildout]
@@ -3101,6 +3129,10 @@ This may be an indication for either a typo in the option's name or a bug in the
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('home', '.buildout', 'default.cfg', """\
     [buildout]
@@ -3115,6 +3147,10 @@ Error: Couldn't download 'http://localhost/base_default.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('home', '.buildout', 'fancy_default.cfg', f"""\
     [buildout]
@@ -3129,6 +3165,10 @@ Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
 While:
   Initializing.
 Error: Couldn't download 'http://localhost/base.cfg' in offline mode.
+Run buildout once in online mode with a cache directory
+configured: 'extends-cache' for configuration files,
+'download-cache' for other files; the download is then
+reused from the cache while offline.
 """, N)
     write('buildout.cfg', """\
     [buildout]
