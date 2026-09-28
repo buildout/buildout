@@ -1817,3 +1817,14 @@ def test_eggify_offline_dist_tolerates_path_spelling_differences(tmp_path):
 
     [dist] = env['recipe']
     assert dist.precedence == pkg_resources.EGG_DIST
+
+
+def test_get_subprocess_output_failure_is_user_error_with_output():
+    with pytest.raises(zc.buildout.UserError) as excinfo:
+        easy_install.get_subprocess_output([
+            sys.executable, '-c',
+            'import sys; sys.stdout.write("the build said boom\\n");'
+            ' sys.exit(3)'])
+    message = str(excinfo.value)
+    assert "Failed to run command" in message
+    assert "the build said boom" in message
