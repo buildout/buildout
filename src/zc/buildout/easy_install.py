@@ -434,11 +434,14 @@ def get_subprocess_output(args: list[str], **kw: Any) -> str:  # type: ignore[ex
     )
     stdout = result.stdout.decode("utf-8")
     if result.returncode:
+        # A failed install is an environment or dependency problem, not a
+        # bug in buildout or a recipe: carry the command's own output in a
+        # UserError so the top level prints it in a clean error report
+        # instead of the internal-error template and a traceback.
         cmd = repr(args)[1:-1]
-        msg = f"Failed to run command:\n{cmd}"
-        logger.error(msg + "\nError output follows:")
-        print(stdout)
-        raise Exception(msg)  # noqa: TRY002 - legacy error contract
+        msg = f"Failed to run command:\n{cmd}\nError output follows:\n{stdout}"
+        logger.error(msg)
+        raise zc.buildout.UserError(msg)
     return stdout
 
 
