@@ -592,7 +592,10 @@ def make_egg_after_pip_install(
     omitted, the first distribution found in ``dest`` is picked — the
     historical behavior, unambiguous as long as ``dest`` holds a single
     install.  Callers that installed several distributions into ``dest``
-    with one subprocess pass the one matching ``distinfo_dir``.
+    with one subprocess pass the one matching ``distinfo_dir``; the egg
+    is then reconstructed file-precise from the dist's RECORD entries,
+    because the shared ``dest`` makes whole-directory moves ambiguous;
+    a batched dist without RECORD is reported as a user error.
     """
     logger.debug('Making egg in %s from pip installation in %s', dest, distinfo_dir)
 
@@ -603,6 +606,7 @@ def make_egg_after_pip_install(
     project_name = _read_project_name(dest, distinfo_dir)
 
     # Make properly named new egg dir
+    batched = distro is not None
     if distro is None:
         distro = next(iter(pkg_resources.find_distributions(dest)))
     if project_name:
@@ -619,13 +623,27 @@ def make_egg_after_pip_install(
         os.path.join(egg_dir, new_distinfo_dir)
     )
 
-    top_levels = _read_top_levels(egg_dir, new_distinfo_dir)
-
-    _move_top_levels(dest, egg_dir, top_levels)
-
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
     if os.path.isfile(record_file):
         all_files = _read_record_entries(record_file)
+    elif batched:
+        # The shared ``dest`` leaves no safe way to pick this dist's
+        # own files without RECORD.
+        raise zc.buildout.UserError(
+            f"Cannot reconstruct an egg for {distro.project_name}:"
+            f" no RECORD file in {distinfo_dir} after installation.")
+    else:
+        all_files = []
+
+    if not batched:
+        # ``dest`` holds this single install, so moving the whole
+        # top-level modules and packages named by top_level.txt is
+        # unambiguous.  Batched callers share ``dest`` between
+        # distributions, where grabbing a whole top-level directory
+        # would move a sibling's files into this egg; only this dist's
+        # RECORD entries belong in it.
+        top_levels = _read_top_levels(egg_dir, new_distinfo_dir)
+        _move_top_levels(dest, egg_dir, top_levels)
 
     _move_record_leftovers(dest, egg_dir, all_files)
 
