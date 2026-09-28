@@ -285,6 +285,12 @@ def _open(
     download = zc.buildout.download.Download(
         raw_download_options, cache=extends_cache,
         fallback=fallback, hash_name=True)
+    cache_dir = download.download_cache
+    if cache_dir and not os.path.exists(cache_dir):
+        # Extends are downloaded while the configuration is read, which
+        # is before _create_cache_dirs runs; create the cache here so
+        # setting the option suffices on the first online run.
+        os.makedirs(cache_dir, exist_ok=True)
     (filename, base, fp, is_temp,
      downloaded_filename) = _open_config_file(
         base, filename, seen, download, downloaded)

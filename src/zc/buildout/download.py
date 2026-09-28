@@ -172,7 +172,11 @@ class Download:
 
         if self.offline:
             raise zc.buildout.UserError(
-                f"Couldn't download {url!r} in offline mode.")
+                f"Couldn't download {url!r} in offline mode.\n"
+                "Run buildout once in online mode with a cache directory\n"
+                "configured: 'extends-cache' for configuration files,\n"
+                "'download-cache' for other files; the download is then\n"
+                "reused from the cache while offline.")
 
         self.logger.info('Downloading %s', url)
         handle, tmp_path = tempfile.mkstemp(prefix='buildout-')
