@@ -387,13 +387,39 @@ def buildout_txt_env(_buildout_txt_index_cache):
     zc.buildout.testing.buildoutTearDown(fake)
 
 
-@pytest.fixture
-def update_env():
-    """Sandbox for update.txt: buildoutSetUp + new zc.buildout releases."""
+def _build_new_release(location, original_ver, version, new_releases):
+    """Build one fake zc.buildout release wheel into new_releases."""
     import subprocess as _sp
     import tarfile
     import tempfile
 
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        _sp.check_output(
+            [sys.executable, '-m', 'build', '--sdist', str(location), '--outdir', str(tmpdir)],
+            stderr=_sp.STDOUT,
+        )
+        tarball = os.listdir(tmpdir)[0]
+        with tarfile.open(tmpdir / tarball) as tar:
+            tar.extractall(path=tmpdir)
+        os.remove(tmpdir / tarball)
+        extracted = tmpdir / os.listdir(tmpdir)[0]
+        setup_py = extracted / 'setup.py'
+        info = setup_py.read_text()
+        old_line = f'version = "{original_ver}"'
+        new_line = f'version = "{version}"'
+        if old_line in info:
+            info = info.replace(old_line, new_line)
+        setup_py.write_text(info)
+        _sp.check_output(
+            [sys.executable, '-m', 'build', '--wheel', str(extracted), '--outdir', new_releases],
+            stderr=_sp.STDOUT,
+        )
+
+
+@pytest.fixture
+def update_env():
+    """Sandbox for update.txt: buildoutSetUp + new zc.buildout releases."""
     fake = _FakeTest()
     zc.buildout.testing.buildoutSetUp(fake)
 
@@ -409,31 +435,8 @@ def update_env():
     if location.name == 'src':
         location = location.parent
 
-    original_ver = old_ver
-    versions = ['91.0', '99.99']
-    for version in versions:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmpdir = Path(tmpdir)
-            _sp.check_output(
-                [sys.executable, '-m', 'build', '--sdist', str(location), '--outdir', str(tmpdir)],
-                stderr=_sp.STDOUT,
-            )
-            tarball = os.listdir(tmpdir)[0]
-            with tarfile.open(tmpdir / tarball) as tar:
-                tar.extractall(path=tmpdir)
-            os.remove(tmpdir / tarball)
-            extracted = tmpdir / os.listdir(tmpdir)[0]
-            setup_py = extracted / 'setup.py'
-            info = setup_py.read_text()
-            old_line = f'version = "{original_ver}"'
-            new_line = f'version = "{version}"'
-            if old_line in info:
-                info = info.replace(old_line, new_line)
-            setup_py.write_text(info)
-            _sp.check_output(
-                [sys.executable, '-m', 'build', '--wheel', str(extracted), '--outdir', new_releases],
-                stderr=_sp.STDOUT,
-            )
+    for version in ['91.0', '99.99']:
+        _build_new_release(location, old_ver, version, new_releases)
 
     fake.globs['write'] = _dedenting_write(fake.globs['write'])
     yield fake.globs

@@ -317,3 +317,39 @@ Develop: '/sample-buildout/failrecipe'
 recipe sys-exits
 EXIT CODE: 1
 """, N)
+
+
+def _snapshot_tree(root):
+    return {
+        str(path): (path.stat().st_mtime_ns, path.stat().st_size)
+        for path in sorted(root.rglob('*'))
+        if path.is_file()
+    }
+
+
+def test_update_env_build_leaves_source_tree_untouched(tmp_path):
+    """Building the fake new releases must not mutate the checkout tree.
+
+    Every sample buildout in the suite develops zc.buildout from this
+    checkout, so part signatures hash src/ (via _dists_sig). Building
+    the sdist in place rewrites src/zc.buildout.egg-info mid-suite and
+    flips those signatures in concurrently running tests, the
+    test_dependencylinks_option flake: "Uninstalling eggs." where
+    "Updating eggs." was expected.
+    """
+    from pathlib import Path
+
+    import pkg_resources
+
+    from zc.buildout.tests.pytests.conftest import _build_new_release
+
+    dist = pkg_resources.working_set.find(
+        pkg_resources.Requirement.parse('zc.buildout'))
+    assert dist is not None and dist.location is not None
+    location = Path(dist.location)
+    if location.name == 'src':
+        location = location.parent
+
+    before = _snapshot_tree(location / 'src')
+    _build_new_release(location, dist.version, '91.0', str(tmp_path))
+    assert _snapshot_tree(location / 'src') == before
