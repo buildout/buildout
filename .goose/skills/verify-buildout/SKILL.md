@@ -183,6 +183,15 @@ the suites and never substitute for them.
 
 ## Daggerized CI axis (use it first)
 
+Filesystem-semantics changes are the case this axis exists for.
+macOS and Linux disagree on directory-listing order and case
+sensitivity, so a green local suite proves nothing about code that
+reads directories positionally (`os.listdir(...)[0]`), globs, or
+reasons about path case. Such a change is not verified until the
+matching `dagger call job --name <cell>` passes in the Linux
+container, whatever the local suite said.
+
+
 The repo's CI matrix is mirrored by a Dagger module in `dagger/`:
 `dagger call jobs` lists the cells, `dagger call job --name <cell>`
 runs one, `dagger call ci [--family <name>]` runs a family or all,

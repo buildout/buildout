@@ -83,6 +83,44 @@ defect: they tangle review order and break the clean `git log` story.
   `user.email` identity and match the surrounding commit-message style
   (plain messages, no trailers, unless the repo asks otherwise).
 
+## Pre-push gate: the static tier is three gates, not one
+
+CI runs the static tier as separate legs (`ruff`, `ty`, `radon`, and
+the dagger `static` family mirroring them). A green `make lint` says
+nothing about the other two. Before any push, all three must pass on
+the exact tree being pushed:
+
+```sh
+make lint        # ruff
+make typecheck   # ty, zero diagnostics
+make complexity  # radon budget gate against etc/complexity-baseline.json
+```
+
+A line-shifting edit to any file with baseline-pinned functions (the
+gate pins same-named functions by line number) drifts the complexity
+baseline: pinned functions read as "gone" plus "new code over the
+ceiling". Refresh with `make complexity-baseline` as its own commit,
+and only after the gate output shows line drift alone, with no real
+"exceeds baseline" or "new code" entries left. A real CC increase is
+not drift: extract a free function (paired with unit tests) to get
+back within the pinned budget instead of bumping it.
+
+## Filesystem semantics: macOS green can hide a Linux red
+
+Code that depends on filesystem behavior (directory-listing order,
+case sensitivity, path separators) is not verified by a local macOS
+run. The canonical case: `os.listdir(tmpdir)[0]` picked the built
+sdist correctly on APFS for every local run, then picked a directory
+on CI's Linux overlayfs and failed eight setuptools legs at once.
+Directory order is arbitrary on every filesystem; the platforms just
+disagree on which arbitrary order you get. Never select positionally
+from a listing of a directory that can hold more than one entry.
+Select by pattern (`glob('*.tar.gz')`) or by exclusion. When a change
+does touch filesystem semantics, run the matching dagger cell before
+pushing (the verify-buildout dagger axis runs the CI cell's Linux
+container locally); that is the only pre-push surface where the
+ordering matches CI.
+
 ## Rebase and verification evidence
 
 A rebase produces new commits; prior test evidence applies only if the
