@@ -398,6 +398,11 @@ regular cadence and route real failures to a subagent.
   failures live in shared code, not in the test: path vs URL
   classification, `sys.platform` branches, line endings, shell
   quoting, case-insensitive filesystems.
+- **Iterate on the fast loop, not the full matrix.** Pushing any
+  tree to the `windows-iter` scratch branch runs only the static
+  trio and the Windows leg; the full matrix stays off that branch.
+  The ref is disposable and any push recreates it. See
+  `windows-iteration.md`.
 
 ## Static tier (ty)
 
