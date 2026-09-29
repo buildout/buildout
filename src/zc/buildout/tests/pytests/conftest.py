@@ -420,11 +420,16 @@ def _build_new_release(location, original_ver, version, new_releases):
             [sys.executable, '-m', 'build', '--sdist', str(build_src), '--outdir', str(tmpdir)],
             stderr=_sp.STDOUT,
         )
-        tarball = os.listdir(tmpdir)[0]
-        with tarfile.open(tmpdir / tarball) as tar:
+        # ``os.listdir`` order is arbitrary, so select by pattern: CI's
+        # Linux filesystem listed ``checkout`` first and tarfile opened
+        # the directory (IsADirectoryError), while APFS happened to deal
+        # the tarball first on every local run.
+        tarball, = tmpdir.glob('*.tar.gz')
+        with tarfile.open(tarball) as tar:
             tar.extractall(path=tmpdir)
-        os.remove(tmpdir / tarball)
-        extracted = tmpdir / os.listdir(tmpdir)[0]
+        tarball.unlink()
+        extracted, = (d for d in tmpdir.iterdir()
+                      if d.is_dir() and d != build_src)
         setup_py = extracted / 'setup.py'
         info = setup_py.read_text()
         old_line = f'version = "{original_ver}"'
