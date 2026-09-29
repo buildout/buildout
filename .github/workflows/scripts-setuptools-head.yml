@@ -16,7 +16,7 @@ jobs:
         package: [zest.releaser, pyspf]
 
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:

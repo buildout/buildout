@@ -18,7 +18,7 @@ jobs:
         setuptools-version: ["84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Install uv + caching
       uses: astral-sh/setup-uv@v10.0.0
       with:
@@ -52,7 +52,7 @@ jobs:
         setuptools-version: ["75.8.2", "79.0.1", "80.2.0", "80.10.2", "81.0.0", "82.0.1", "83.0.0", "84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
@@ -83,7 +83,7 @@ jobs:
         setuptools-version: ["84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
@@ -113,7 +113,7 @@ jobs:
         setuptools-version: ["75.8.2", "84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
@@ -139,7 +139,7 @@ jobs:
         setuptools-version: ["84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
@@ -169,7 +169,7 @@ jobs:
         setuptools-version: ["84.0.0"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
@@ -199,7 +199,7 @@ jobs:
         os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@v7.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.2.0
       with:
