@@ -265,6 +265,18 @@ def _optional_extends_results(
             eresults.extend(next_extend)
     return user_defaults
 
+def _ensure_download_cache(download: zc.buildout.download.Download) -> None:
+    """Create the resolved extends/download cache on first use.
+
+    Extends are downloaded while the configuration is read, which is
+    before _create_cache_dirs runs; create the cache here so setting
+    the option suffices on the first online run.
+    """
+    cache_dir = download.download_cache
+    if cache_dir and not os.path.exists(cache_dir):
+        os.makedirs(cache_dir, exist_ok=True)
+
+
 def _open(
         base: str, filename: str, seen: list[str], download_options: dict[str, SectionKey],
         override: dict[str, SectionKey], downloaded: set[str], user_defaults: dict[str, dict[str, SectionKey]]
@@ -285,12 +297,7 @@ def _open(
     download = zc.buildout.download.Download(
         raw_download_options, cache=extends_cache,
         fallback=fallback, hash_name=True)
-    cache_dir = download.download_cache
-    if cache_dir and not os.path.exists(cache_dir):
-        # Extends are downloaded while the configuration is read, which
-        # is before _create_cache_dirs runs; create the cache here so
-        # setting the option suffices on the first online run.
-        os.makedirs(cache_dir, exist_ok=True)
+    _ensure_download_cache(download)
     (filename, base, fp, is_temp,
      downloaded_filename) = _open_config_file(
         base, filename, seen, download, downloaded)

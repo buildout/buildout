@@ -3,7 +3,7 @@ import pytest
 
 import zc.buildout
 from zc.buildout.annotations import SectionKey
-from zc.buildout.configfiles import _open
+from zc.buildout.configfiles import _ensure_download_cache, _open
 from zc.buildout.download import Download
 
 
@@ -15,6 +15,16 @@ def test_offline_download_error_advises_extends_cache():
     assert "in offline mode" in message
     assert "extends-cache" in message
     assert "online mode" in message
+
+
+def test_ensure_download_cache_noop_without_cache():
+    _ensure_download_cache(Download({}))
+
+
+def test_ensure_download_cache_creates_configured_dir(tmp_path):
+    cache = tmp_path / 'cache'
+    _ensure_download_cache(Download({'download-cache': str(cache)}))
+    assert cache.is_dir()
 
 
 def test_extends_cache_directory_is_created_on_first_use(tmp_path):
@@ -36,6 +46,9 @@ def test_extends_cache_directory_is_created_on_first_use(tmp_path):
         'parts =\n')
     result, _user_defaults = _open(
         str(tmp_path), str(root), [], {}, {}, set(), {})
+    # A top-level _open call returns the merged config dict; the union's
+    # other member (recursive call) is a list of per-file dicts.
+    assert isinstance(result, dict)
     assert cache.is_dir()
     assert len(list(cache.iterdir())) == 1
     assert result['buildout']['foo'].value == 'bar'
@@ -64,6 +77,7 @@ def test_relative_extends_cache_resolves_like_download(
         str(project), str(project / 'buildout.cfg'), [],
         {'directory': SectionKey(str(project), 'COMPUTED_VALUE')},
         {}, set(), {})
+    assert isinstance(result, dict)
     assert (project / 'cache').is_dir()
     assert not (tmp_path / 'cache').exists()
     assert result['buildout']['foo'].value == 'bar'
