@@ -388,15 +388,36 @@ def buildout_txt_env(_buildout_txt_index_cache):
 
 
 def _build_new_release(location, original_ver, version, new_releases):
-    """Build one fake zc.buildout release wheel into new_releases."""
+    """Build one fake zc.buildout release wheel into new_releases.
+
+    The sdist is built from a private copy of the source tree: building
+    in the shared checkout rewrites src/zc.buildout.egg-info in place,
+    which flips the zc.buildout develop-dist hash that part signatures
+    pick up via _dists_sig in every concurrently running sample-buildout
+    subprocess (pytest-xdist workers share the filesystem).  That flip
+    is the intermittent test_dependencylinks_option failure.
+    """
     import subprocess as _sp
     import tarfile
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
+        build_src = tmpdir / 'checkout'
+        shutil.copytree(
+            location, build_src,
+            ignore=shutil.ignore_patterns(
+                '.git', '.devenv', '.direnv', '.pytest_cache', '.ruff_cache',
+                '.tox', '.venv', '__pycache__', '*.pyc', '*.egg-info',
+                '.coverage', '.coverage.*', '.installed.cfg', 'htmlcov',
+                'bin', 'build', 'dagger', 'develop-eggs', 'dist', 'doc',
+                'downloads', 'eggs', 'include', 'lib', 'mutation-testing',
+                'news', 'old-tutorial', 'parts', 'python_builds', 'pythons',
+                'venvs', 'zc_buildout-*',
+            ),
+        )
         _sp.check_output(
-            [sys.executable, '-m', 'build', '--sdist', str(location), '--outdir', str(tmpdir)],
+            [sys.executable, '-m', 'build', '--sdist', str(build_src), '--outdir', str(tmpdir)],
             stderr=_sp.STDOUT,
         )
         tarball = os.listdir(tmpdir)[0]
