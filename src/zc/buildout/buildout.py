@@ -1880,9 +1880,11 @@ def _default_globals():
                          'python3': major_python_versions[0] == '3'})
 
     # minor python major_python_versions as python24, python25 ... python39
-    minor_python_versions = ('24', '25', '26', '27',
-                             '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
-                             '310', '311', '312', '313', '314', '315')
+    minor_python_versions = (
+        '24', '25', '26', '27',
+        '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
+        '310', '311', '312', '313', '314', '315', '316', '317', '318', '319',
+    )
     for v in minor_python_versions:
         globals_defs['python' + v] = ''.join(major_python_versions[:2]) == v
 
