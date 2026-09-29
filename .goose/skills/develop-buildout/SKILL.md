@@ -85,15 +85,16 @@ defect: they tangle review order and break the clean `git log` story.
 
 ## Pre-push gate: the static tier is three gates, not one
 
-CI runs the static tier as separate legs (`ruff`, `ty`, `radon`, and
-the dagger `static` family mirroring them). A green `make lint` says
-nothing about the other two. Before any push, all three must pass on
-the exact tree being pushed:
+CI runs the static tier as separate legs (`ruff`, `ty`, `radon`, the
+explicit-Any burndown, and the dagger `static` family mirroring
+them). A green `make lint` says nothing about the others. Before any
+push, all four must pass on the exact tree being pushed:
 
 ```sh
-make lint        # ruff
-make typecheck   # ty, zero diagnostics
-make complexity  # radon budget gate against etc/complexity-baseline.json
+make lint          # ruff
+make typecheck     # ty, zero diagnostics
+make typecheck-any # mypy explicit-Any burndown against etc/any-burndown-baseline.txt
+make complexity    # radon budget gate against etc/complexity-baseline.json
 ```
 
 A line-shifting edit to any file with baseline-pinned functions (the
