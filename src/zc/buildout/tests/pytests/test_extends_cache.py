@@ -41,7 +41,7 @@ def test_extends_cache_directory_is_created_on_first_use(tmp_path):
     root = tmp_path / 'buildout.cfg'
     root.write_text(
         '[buildout]\n'
-        f'extends = file://{extended}\n'
+        f'extends = {extended.as_uri()}\n'
         f'extends-cache = {cache}\n'
         'parts =\n')
     result, _user_defaults = _open(
@@ -69,7 +69,7 @@ def test_relative_extends_cache_resolves_like_download(
     extended.write_text('[buildout]\nfoo = bar\n')
     (project / 'buildout.cfg').write_text(
         '[buildout]\n'
-        f'extends = file://{extended}\n'
+        f'extends = {extended.as_uri()}\n'
         'extends-cache = cache\n'
         'parts =\n')
     monkeypatch.chdir(tmp_path)
