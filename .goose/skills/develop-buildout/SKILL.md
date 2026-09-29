@@ -305,4 +305,6 @@ All new code carries type annotations. The checkout gates on
 `make typecheck` (ty at zero diagnostics over the tree), and
 unannotated additions erode that static tier. Annotate signatures
 when creating or extracting functions, and keep ty green before
-committing.
+committing. Annotating existing modules is a different job: load
+the `annotate-from-traces` skill, which drives MonkeyType traced
+suites and the human-review pass the tracer output needs.
