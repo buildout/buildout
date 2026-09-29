@@ -10,6 +10,7 @@ import zc.buildout
 from zc.buildout import easy_install
 from zc.buildout.easy_install import _uv_install_args
 from zc.buildout.install_backend import (
+    _read_record_or_raise,
     install_pinned_dists,
     make_egg_after_pip_install,
 )
@@ -209,6 +210,27 @@ def test_single_install_moves_top_level_files_beyond_record(tmp_path):
     (dest / 'demo-1.0.dist-info' / 'RECORD').write_text('')
     [egg_dir] = make_egg_after_pip_install(str(dest), 'demo-1.0.dist-info')
     assert os.path.isfile(os.path.join(egg_dir, 'demo.py'))
+
+
+def test_read_record_or_raise_reads_entries(tmp_path):
+    record = tmp_path / 'RECORD'
+    record.write_text('demo.py,sha256=abc,9\ndemo-1.0.dist-info/METADATA,,\n')
+    assert _read_record_or_raise(
+        str(record), True, 'demo', 'demo-1.0.dist-info') == [
+        'demo.py', 'demo-1.0.dist-info/METADATA']
+
+
+def test_read_record_or_raise_batched_without_record_fails(tmp_path):
+    with pytest.raises(zc.buildout.UserError) as excinfo:
+        _read_record_or_raise(
+            str(tmp_path / 'RECORD'), True, 'demo', 'demo-1.0.dist-info')
+    assert 'demo' in str(excinfo.value)
+    assert 'RECORD' in str(excinfo.value)
+
+
+def test_read_record_or_raise_single_without_record_is_empty(tmp_path):
+    assert _read_record_or_raise(
+        str(tmp_path / 'RECORD'), False, 'demo', 'demo-1.0.dist-info') == []
 
 
 def test_batched_reconstruction_requires_record(tmp_path):

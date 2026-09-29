@@ -559,6 +559,27 @@ def _read_record_entries(record_file: str) -> list[str]:
         return [row[0] for row in csv.reader(f)]
 
 
+def _read_record_or_raise(
+        record_file: str,
+        batched: bool,
+        project_name: str,
+        distinfo_dir: str,
+        ) -> list[str]:
+    """Read the freshly installed dist's RECORD entries.
+
+    A batched install shares its destination between distributions, so
+    without RECORD there is no safe way to pick this dist's own files;
+    that must fail loudly instead of producing a metadata-only egg.
+    """
+    if os.path.isfile(record_file):
+        return _read_record_entries(record_file)
+    if batched:
+        raise zc.buildout.UserError(
+            f"Cannot reconstruct an egg for {project_name}:"
+            f" no RECORD file in {distinfo_dir} after installation.")
+    return []
+
+
 def _move_record_leftovers(
         dest: str,
         egg_dir: str,
@@ -624,16 +645,8 @@ def make_egg_after_pip_install(
     )
 
     record_file = os.path.join(egg_dir, new_distinfo_dir, 'RECORD')
-    if os.path.isfile(record_file):
-        all_files = _read_record_entries(record_file)
-    elif batched:
-        # The shared ``dest`` leaves no safe way to pick this dist's
-        # own files without RECORD.
-        raise zc.buildout.UserError(
-            f"Cannot reconstruct an egg for {distro.project_name}:"
-            f" no RECORD file in {distinfo_dir} after installation.")
-    else:
-        all_files = []
+    all_files = _read_record_or_raise(
+        record_file, batched, distro.project_name, distinfo_dir)
 
     if not batched:
         # ``dest`` holds this single install, so moving the whole
