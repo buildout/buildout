@@ -208,137 +208,12 @@ runners have docker only). The proof ladder for a CI change lives in
 the verify-buildout skill (`features/ci.md`); a CI change still
 carries a towncrier entry like any other.
 
-## Dagger CI module
-
-The workflow matrix is mirrored by a Dagger module in `dagger/`
-(`dagger.json` pins the engine; code in `dagger/src/buildout_ci/`),
-so CI also runs locally via `dagger call ci`. Rules for changing it:
-
-- The Job table lives in `dagger/src/buildout_ci/jobs.py` as pure
-  data (no dagger import). Every matrix edit in `run-tests.yml` must
-  keep that table — and the workflow's dagger family matrix — in
-  sync; `dagger/tests/test_jobs.py` fails on drift.
-- A cell whose make target needs a devenv-provided tool pip-installs
-  it pinned to the devenv version (`pip_install` on the Job row:
-  ruff, ty, radon), so the container gate matches the local gate by
-  construction.
-- The module's own harness runs via `dagger call ci --family module`
-  (or plain pytest over `dagger/tests/` for the fast loop). Run it
-  before committing module changes; it is also a family in the
-  workflow's dagger matrix, so CI runs it too.
-- Module (`dagger/src/`) and `news/` edits do not invalidate the job
-  cells' engine cache by design — keep it that way.
-- Cells fetch from PyPI directly; there is no proxy container. The
-  per-command 3-attempt retry on transient fetch signatures (both
-  "No matching distribution" wordings, connection resets, timeouts) is
-  PyPI-outage tolerance — keep it, and add newly observed transient
-  wordings to `TRANSIENT_SIGNATURES` when CI shows one.
-- Verify with the dagger axis first when the result must match CI
-  (module, workflow, or bootstrap-path changes): `dagger call smoke`
-  before the suites when `prepare.sh`/`Makefile`/`devenv.nix` moved,
-  after the suites on the push candidate otherwise. The full reasoning
-  and the cache expectations live in verify-buildout ("Daggerized CI
-  axis").
-- When a cell fails, an exec error's `str()` is only `exit code: N`;
-  the real output lives on the exception's `stdout` / `stderr`
-  attributes. The module's `_exec_output` helper extracts them — keep
-  any change to failure handling going through it, or diagnosis loses
-  the output.
-- `ReturnType.ANY` on an exec caches its result *including a nonzero
-  exit*. A retry loop must issue a fresh exec per attempt; reusing an
-  ANY-typed call replays the cached failure. (This is why the
-  transient-retry loop in `main.py` builds each attempt separately.)
-
-## Running dagger locally: devenv shell, podman engine
-
-The `dagger` CLI is not on the ambient PATH — the devenv provides it
-and wires it to a local engine. Invoke it through the shell from the
-checkout root: `devenv shell -- dagger version`. The moving parts:
-
-- The engine runs as a container on the devenv's podman machine
-  (machine `devenv`, engine container `devenv-dagger`, image pinned by
-  `dagger.json`'s `engineVersion`). The shell exports the runner host
-  (`container+podman://...`) that points the CLI at it.
-- **Start sequence after a reboot or sleep:**
-  `podman machine start devenv`, then
-  `podman --connection devenv start devenv-dagger`. Read the symptoms
-  in order: `connection refused` on the podman socket → the machine is
-  down; machine up but `dagger call` errors → the engine container has
-  exited (`podman --connection devenv ps -a` shows it — start it).
-- **Name the connection explicitly.** The default podman connection
-  can point at a *different* machine than the one hosting the engine
-  (observed: default connection to a stopped `podman-machine-default`
-  while the engine lives on `devenv`), so bare `podman ps` fails or
-  looks at the wrong machine. Always `podman --connection devenv ...`;
-  check `podman system connection list` when in doubt.
-
-Reproducing one CI leg locally:
-
-- `dagger call families` lists the families; the cell names are the
-  Job table in `dagger/src/buildout_ci/jobs.py`. Run one cell with
-  `dagger --progress=plain call job --name setuptools-65.7.0`
-  (`--progress=plain` keeps the log greppable; a suite cell takes
-  10-25 min and is cached until its inputs change).
-- `dagger call debug --name <cell> terminal` drops you into the
-  container in its failed state — poke the exact CI environment
-  instead of guessing at it.
-- In CI logs and `--progress=plain` output, numbered cells map to
-  their pins via the `withEnvVariable SETUPTOOLS_VERSION=...` /
-  `withEnvVariable PIP_VERSION=...` lines — grep those to identify
-  what a failing numbered leg actually ran.
-- **Never background a dagger call from an agent shell.** When the
-  shell session ends, its children get SIGTERM and the engine
-  connection dies mid-run (`podman exec ... dial-stdio ... signal:
-  terminated`). macOS has no `setsid`, and `nohup` does not help. Run
-  it foreground in one long-lived call with a generous timeout, or
-  hand it to a subagent whose turn exists for that purpose — and post
-  the result the moment it exists (see "Turn budget").
-
-## Pre-test CI locally before pushing
-
-Pushing to learn what CI thinks costs a runner round-trip per
-iteration. The dagger mirror replays the same matrix in local
-containers, so the cheap loop is: iterate with the native `make`
-targets, commit, run the dagger cells on the committed tree, push
-only what they pass. Two days of CI debugging on the uv-installer
-branch (2026-09-23/24) measured the boundary:
-
-- **What local cells catch.** Container-axis and version-matrix
-  bugs. The old-style-wheel `.dist-info` discovery bug failed the
-  dagger uv cells while macOS-native runs and the GHA ubuntu legs
-  stayed green; the py3.10-only `tomli` seed gap was invisible from
-  the py3.12 native surface, and the local python-matrix cells span
-  3.9–3.14. The `static` family replays lint, typecheck, and
-  complexity in-container.
-- **What they cannot catch.** The GHA runner's ambient environment
-  (the `RUST_LOG=debug` flood lived on the runner, in no container),
-  the Windows legs (the module builds Linux containers only), the
-  macOS leg's devenv evaluation, and network flakes. Green local
-  cells narrow the push risk; for those axes the runner run stays
-  the only proof.
-
-Two rules make the gate trustworthy:
-
-- **Static gates on the committed tree.** A green `make typecheck`
-  on a pre-commit tree says nothing about the push candidate: a
-  commit that adds a type error after the gates last ran pushes red
-  (observed: `e2dd3541` failed the ty leg and the dagger static leg;
-  fixed in `233658dc`). Run the static gates — or `dagger call
-  smoke`, which includes the static family — against the exact
-  commit you will push, never against uncommitted state.
-- **Exploit the caches instead of paying cold start.** The engine
-  caches at two levels (measured numbers in verify-buildout,
-  "Daggerized CI axis"): an unchanged cell reruns in seconds on the
-  exec-layer cache, and per-Python pip/uv cache volumes carry the
-  bootstrap fetches across cells and runs. `news/` and
-  `dagger/src/` edits do not invalidate job cells, so a news-only
-  commit reuses the whole previous run. The payoff inverts when the
-  engine is cold: after days idle the engine container is often
-  stopped, and the cold start once ate five minutes of a turn
-  before the first cell ran — check the engine first (see "Running
-  dagger locally"), so the turn budget goes to cells, not to the
-  engine waking up.
-
+## Dagger (CI module, local engine, pre-push replay)
+The dagger material lives in `dagger.md`, loaded on demand: the
+module's invariants and how to add cells, the local podman engine
+mechanics, and replaying the CI matrix on the committed tree
+before a push. Load it before touching `dagger/` or pre-testing
+CI locally.
 ## Reproducing CI failures: match the CI surface
 
 CI jobs run inside `devenv shell`, and the shell is part of the
@@ -405,76 +280,10 @@ regular cadence and route real failures to a subagent.
   `windows-iteration.md`.
 
 ## Static tier (ty)
-
-`make typecheck` gates on Astral's `ty` (provided by the devenv) at zero
-diagnostics over the checkout, with the test eggs on its search path.
-Run it before committing typing-adjacent work and keep the gate at zero.
-
-Clearing diagnostics, in order of preference:
-
-- Narrow truthfully. Optional producers (`working_set.find`, Popen
-  pipes, `options.get`) get real guards in library code and
-  `assert x is not None` in tests. `self.assertIsNotNone` does not
-  narrow for ty — add the bare `assert` where the value is consumed.
-- Fix the call when the call is wrong. A shifted positional call in a
-  test patch once survived only because a cache fallback swallowed the
-  TypeError; the diagnostic exposed a latent bug, not a typing gap.
-- Scoped `# ty: ignore[rule]` with the reason inline is the convention
-  for corners that cannot be typed truthfully: version-compat branches
-  behind runtime guards (old-pip signatures), platform-only attributes
-  (`sys.pypy_version_info`), deliberate instance shadows. Name the
-  guard or the version in the comment.
-
-Generated pytest ports (`test_pytest_*.py`) come from `gen_pytest.py`
-over doctest sources (`.txt` files, `test_all.py` docstrings):
-
-- Edit doctest source and generated port in lockstep, so a regen
-  reproduces the port.
-- Trailing comments in doctest code do not survive generation, so a
-  line-level suppression cannot come from the source. Prefer truthful
-  fixes in ported code; a suppression hand-added to a port is lost on
-  the next regen.
-- Every regeneration pairs with an `inject_prose.py` re-run, and
-  `inject_prose.py --check` anchored and unplaced counts must hold or
-  improve against the pre-edit baseline. The prose comments in the
-  ports preserve the doctest narrative for readers; a dropped or
-  displaced prose block is a regeneration defect, not cosmetic loss.
-  If an edit moves an anchor (an example's first emitted statement),
-  fix the anchor, never delete the prose.
-
-### Regenerating (or lockstep-editing) a port, in practice
-
-There is no regen driver: `gen_pytest.py` has no CLI despite its
-docstring, and its emitters (`emit_fn_from_txt`,
-`emit_fn_from_docstring`) produce single-line `{expected!r}` literals
-while the committed ports are hand-polished (triple-quoted expected
-blocks, prose comments, `capture_print(ls, x)` call shapes). So today
-a byte-exact regen of a committed port does NOT reproduce it. The
-workflow that keeps the invariant, smallest first:
-
-- **Small expected-output change** (the common case, e.g. a listing
-  gains a line): edit the doctest source AND the same block in the
-  port, by hand, in the same commit. Then run the affected ported
-  tests plus the legacy file, and finish with `inject_prose.py
-  --check` (run from `src/zc/buildout/tests/pytests/` with `bin/py`)
-  against baseline counts captured before the edit.
-- **Structural change** (examples added/removed/moved): regenerate
-  the single function with the emitter and diff it against the port
-  function with its prose comment lines stripped; every drift line is
-  either a lockstep miss or known formatting drift. Apply the
-  semantic part to the port, keep the hand polish.
-- Some legacy examples have no live port counterpart: an
-  unexpressible assertion (e.g. the tuple-assigned `ls()` pair in
-  init.txt) lives on as a `# TODO assert:` comment in the port.
-  Editing such a source spot changes no port code; say so in the
-  commit message.
-- One legacy source can map to several port functions
-  (`split-long-pytests` split the big ones), so grep the port for the
-  expected text to find the right function; do not trust the
-  `test_<stem>` naming the emitter would use.
-- The port-to-source mapping for `inject_prose.py` lives in its
-  `SPECS` table. New ported files join that table in the same commit.
-
+The rules for clearing ty diagnostics live in `ty-tier.md`,
+loaded on demand: dialect, preference order for resolving
+findings, and the generated pytest-port rules. The gate itself
+(`make typecheck`) is one of the pre-push static legs above.
 ## Reducing complexity
 
 When a change reduces cyclomatic complexity, extract free functions
