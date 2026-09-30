@@ -64,3 +64,21 @@ The two double-survivors are the instructive part:
    go red.
 4. If systematized: mutmut scoped via `paths_to_mutate` per module,
    nightly CI, never per-commit.
+
+## Harness lessons (2026-09-30 scoped rounds)
+
+- Write the harness in Python with mutants as data (a list of
+  (name, old, new) pairs), not as generated bash. Nested shell quoting
+  (`${...}` in patterns, macOS `sed -i ''` argument order) silently ate
+  four rounds of mutants in one day. Bash glues the runs; it must never
+  carry the mutant payloads.
+- Guard against vacuous runs: assert the legacy selector matched >0
+  tests before trusting a "survive". zope.testrunner prints
+  "Total: 0 tests" for a misspelled `-t` name and exits 0. Strip ANSI
+  color codes before grepping the summary, and note the wording differs:
+  real runs say "Ran N tests", empty runs say "Total: 0 tests".
+- Classify every survivor before writing tests: gap (assert it),
+  equivalent (record it), or dead/defensive (delete or justify it).
+  The 2026-09-30 configfiles.py round survived 6/6 mutants against 78
+  real extends tests; the working hypothesis is unreachable
+  bugfix-era branches, to be settled by a full-suite coverage run.
