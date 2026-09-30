@@ -106,6 +106,12 @@ Preconditions:
   dead port is a valid hermeticity probe. Missing seed dir (suites run
   without `make bin/buildout`) silently restores the ambient-index
   behavior — when hermeticity matters, check the seed exists first.
+  The seed download happens BEFORE the leg's pinned pip lands: pip
+  < 24 misreads current PyPI metadata (observed: a pip 23.3.2 leg
+  could not see a current platformdirs at all), so prepare.sh brings
+  pip current right after venv creation, downloads the seeds under
+  it, and only then installs `$PIP_VERSION`. Preserve that ordering
+  when touching the bootstrap.
 - Hand-invoking pytest WITHOUT the `PYTHONPATH=eggs/v5/*.egg` line
   breaks xdist workers (they are bare interpreters and do not inherit
   `bin/py`'s baked sys.path) — the Makefile comment says exactly this.

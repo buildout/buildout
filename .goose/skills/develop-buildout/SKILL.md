@@ -106,6 +106,14 @@ and only after the gate output shows line drift alone, with no real
 not drift: extract a free function (paired with unit tests) to get
 back within the pinned budget instead of bumping it.
 
+Re-run the whole bundle after ANY `src/` touch, however small — the
+gates evaluate the committed tree, not the tree you last measured.
+An amend that adds one branch to a baseline-pinned function grows its
+CC between the last green and the push candidate (observed: a
+one-line ignore-prefix guard took its helper from CC 2 to 3 after the
+gates had run; the committed state was red). The baseline re-anchor
+is part of the change, not a follow-up.
+
 ## Filesystem semantics: macOS green can hide a Linux red
 
 Code that depends on filesystem behavior (directory-listing order,
@@ -251,8 +259,10 @@ regular cadence and route real failures to a subagent.
   (`gh run view <run-id> --json jobs`). A scheduled Buzz workflow
   trigger gives true periodicity. The check is the same however
   the turn starts.
-- **Classify before fixing.** Nix store errors, runner
-  provisioning failures, and network timeouts are flakes. Re-run
+- **Classify before fixing.** Nix store errors (substituter
+  `could not be realised`, cache.nixos.org / cachix download
+  failures), runner provisioning failures, and network timeouts
+  are flakes. Re-run
   them (`gh run rerun <run-id> --failed`) and move on. Only a
   real test or build failure earns a fix.
 - **One failure, one subagent.** Before delegating, check the
@@ -298,6 +308,33 @@ same-named sibling functions by line number, so even a comment-only
 edit above a pinned function drifts it — a pure line-drift refresh is
 its own commit; the mechanism and gate rule live in verify-buildout's
 complexity feature.
+
+## Vendored pkg_resources: two copies, one alias
+
+`src/zc/buildout/_vendor/pkg_resources` vendors setuptools'
+pkg_resources; `zc/buildout/__init__.py` installs it as
+`sys.modules['pkg_resources']` when the interpreter's setuptools no
+longer ships one. Which copy is live is a runtime measurement
+(vintage setuptools keeps its own), and objects from BOTH copies
+cross paths in one process — code and tests must hold under either.
+
+- **Duck-type, never isinstance, across the boundary.** An isinstance
+  gate written against one copy's classes silently misroutes objects
+  of the other (observed: the `__contains__` patch fell through to
+  `SpecifierSet.contains(object)` for facade dists — a TypeError on
+  old vendored packagings, misreported as not-contained). Gate on the
+  attributes actually used (`key`, `version`).
+- **Never compare Version objects across packaging copies.** Each
+  pkg_resources vendors its own packaging, and cross-implementation
+  comparisons raise TypeError. Re-parse from `str(version)` with the
+  local packaging first.
+- **Old packagings iterate SpecifierSet in hash order** — per-process
+  unstable. Assertions over requirement/spec strings compare sorted
+  sets, never iteration order.
+- **The alias boundary is probed, not hard-coded.** Tests decide
+  which semantics apply from the copy the running interpreter
+  actually resolved, never from a baked-in setuptools version — the
+  boundary moves as setuptools evolves.
 
 ## Type annotations for new code
 

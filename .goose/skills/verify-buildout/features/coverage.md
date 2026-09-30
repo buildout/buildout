@@ -133,3 +133,20 @@ the repo root, see repo-test-suites).
 - The sitecustomize hook is import-tolerant on purpose: a Python
   process that has the env vars but no coverage egg importable runs
   untraced instead of crashing the suite.
+- The CI `coverage pytest` job reproduces locally as-is:
+  `make coverage-pytest` is the same sitecustomize instrumentation
+  under the same `-n auto`. A failure that appears only on that CI
+  job (observed: the order-dependent `prefer_final` doctest failure)
+  is reproducible here — no runner round-trip needed.
+- Parallel data files land in the repo root THROUGHOUT the run: every
+  traced interpreter writes its `.coverage.<host>.<pid>.<rand>` at
+  exit, including mid-narrative of another test. Code under test that
+  hashes directory contents (the develop-dist `_dir_hash` signatures)
+  sees them appear and flips — spurious Uninstalling/Installing where
+  Updating was expected. `_dir_hash_file_ignored` carries the
+  `.coverage*` prefix; any new tooling that drops files into the
+  suite's working tree extends that ignore list in the same change.
+- `_dir_hash` caches by path string: two tests hashing the same
+  directory name inside one xdist worker share the cache entry. Give
+  each test a private directory name (the regression tests mirror the
+  SOURCES.txt pattern).

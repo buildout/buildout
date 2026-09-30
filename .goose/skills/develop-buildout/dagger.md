@@ -49,12 +49,17 @@ checkout root: `devenv shell -- dagger version`. The moving parts:
   (machine `devenv`, engine container `devenv-dagger`, image pinned by
   `dagger.json`'s `engineVersion`). The shell exports the runner host
   (`container+podman://...`) that points the CLI at it.
-- **Start sequence after a reboot or sleep:**
-  `podman machine start devenv`, then
-  `podman --connection devenv start devenv-dagger`. Read the symptoms
-  in order: `connection refused` on the podman socket → the machine is
-  down; machine up but `dagger call` errors → the engine container has
-  exited (`podman --connection devenv ps -a` shows it — start it).
+- **Start sequence after a reboot or sleep:** `devenv up -d`.
+  The repo declares `services.dagger` (auto-enabling
+  `services.podman-machine`), so the native devenv services converge
+  the machine AND the engine container in one detached command
+  (measured 16.8s from fully-down). The manual podman ladder remains
+  the surgical fallback when you know exactly which piece died:
+  `connection refused` on the podman socket →
+  `podman machine start devenv`; machine up but `dagger call` errors
+  → the engine container has exited
+  (`podman --connection devenv ps -a` shows it — start it with
+  `podman --connection devenv start devenv-dagger`).
 - **Name the connection explicitly.** The default podman connection
   can point at a *different* machine than the one hosting the engine
   (observed: default connection to a stopped `podman-machine-default`
@@ -83,6 +88,17 @@ Reproducing one CI leg locally:
   it foreground in one long-lived call with a generous timeout, or
   hand it to a subagent whose turn exists for that purpose — and post
   the result the moment it exists (see "Turn budget").
+- **A killed run costs only its unfinished legs.** Host sleep stops
+  the podman machine mid-family; a session end SIGTERMs the CLI.
+  Either way the exec-layer cache holds every completed leg, so the
+  recovery is: revive the engine (above), re-issue the exact same
+  `dagger call ci --family <name>` — cached legs report PASS in
+  seconds and only the interrupted legs re-execute.
+- **A call's workspace freezes at call time.** `Directory` arguments
+  upload once when the call starts: a running family sees exactly the
+  tree it was launched on, even if the worktree goes dirty mid-run.
+  Record `git rev-parse HEAD` at launch and the run is attributable
+  to that commit; edits made during a run wait for the next call.
 
 ## Pre-test CI locally before pushing
 

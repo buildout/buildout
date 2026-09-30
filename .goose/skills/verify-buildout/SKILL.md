@@ -191,6 +191,17 @@ reasons about path case. Such a change is not verified until the
 matching `dagger call job --name <cell>` passes in the Linux
 container, whatever the local suite said.
 
+The same blindness covers interpreter and platform facts. The local
+cell is one Python on one OS; a fixture that hard-codes what the
+interpreter could tell it — py3.12 egg tags, an unconditional
+macOS-only platform egg — passes every local gate and fails on every
+other matrix cell (observed: six IndexError failures across CI's
+non-3.12 legs, invisible to the local py3.12 gates). Derive
+interpreter facts from the running interpreter
+(`sys.implementation.cache_tag`, sysconfig's platform), condition
+platform-specific expectations, and let the dagger matrix — not the
+local run — be the proof for any test module that embeds such facts.
+
 
 The repo's CI matrix is mirrored by a Dagger module in `dagger/`:
 `dagger call jobs` lists the cells, `dagger call job --name <cell>`
