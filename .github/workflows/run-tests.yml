@@ -195,6 +195,8 @@ jobs:
     strategy:
       matrix:
         package: [zest.releaser, pyspf]
+        # If you add a Python version here, make sure scripts-3.x.cfg exists.
+        # Currently all are symlinks to scripts.cfg, but that could change.
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
         os: ["ubuntu-22.04"]
     runs-on: ${{ matrix.os }}
