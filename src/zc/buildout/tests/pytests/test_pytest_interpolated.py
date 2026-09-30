@@ -228,6 +228,9 @@ def test_annotate_verbose_shows_removal_history(buildout_env):
 
     write('buildout.cfg', VALUES_CONFIG)
     out = system([buildout, '-v', 'annotate', 'values'])
+    # Windows text-mode stdout renders \n as \r\n; the assertions pin
+    # the logical lines, not the platform line ending.
+    out = out.replace('\r\n', '\n')
 
     assert 'letters -= a\n\n   IN buildout.cfg' in out
     assert 'letters += b\n\n   IN buildout.cfg' in out
