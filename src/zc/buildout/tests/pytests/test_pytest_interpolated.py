@@ -199,3 +199,54 @@ message= hello world
 ''',
         N,
     )
+
+
+VALUES_CONFIG = """
+[buildout]
+parts =
+
+[base]
+letters = a
+
+[values]
+<= base
+letters += b
+letters -= a
+"""
+
+
+def test_annotate_verbose_shows_removal_history(buildout_env):
+    """Verbose annotate keeps the -= entry's history block.
+
+    Mutation round 2026-09-30: dropping the REMOVE HistoryItem survived
+    both suites. The directive line survives regardless (it is value
+    text); the kill lives in the sub-block layer beneath it.
+    """
+    buildout = buildout_env['buildout']
+    system = buildout_env['system']
+    write = buildout_env['write']
+
+    write('buildout.cfg', VALUES_CONFIG)
+    out = system([buildout, '-v', 'annotate', 'values'])
+
+    assert 'letters -= a\n\n   IN buildout.cfg' in out
+    assert 'letters += b\n\n   IN buildout.cfg' in out
+
+
+def test_annotate_verbose_history_order(buildout_env):
+    """Multi-item histories print oldest operation last.
+
+    The ``bin-directory`` option carries AS DEFAULT_VALUE and SET VALUE
+    items; a history-reversal mutant flips their print order.
+    """
+    buildout = buildout_env['buildout']
+    system = buildout_env['system']
+    write = buildout_env['write']
+
+    write('buildout.cfg', VALUES_CONFIG)
+    out = system([buildout, '-v', 'annotate', 'buildout'])
+
+    block = out[out.index('bin-directory='):]
+    block = block[:block.index('develop-eggs-directory')]
+    assert 'AS DEFAULT_VALUE' in block
+    assert block.index('AS DEFAULT_VALUE') < block.index('SET VALUE')
