@@ -82,3 +82,19 @@ The two double-survivors are the instructive part:
   The 2026-09-30 configfiles.py round survived 6/6 mutants against 78
   real extends tests; the working hypothesis is unreachable
   bugfix-era branches, to be settled by a full-suite coverage run.
+
+## Scoped-round outcome (2026-09-30)
+
+Full-suite coverage (both suites combined, statement mode) settles the
+survivor classification for annotations.py, cli.py and configfiles.py:
+
+- No dead code: every mutated line executes under at least one suite.
+- Legacy-only gaps (cli.py error paths, configfiles corners) are covered
+  by the pytest mirror: combined, both modules reach 99%.
+- The pytest-only gap (verbose annotate history order, `-=` rendering)
+  was closed by tests landing as part of the round.
+- The only statements neither suite executes: the two `__repr__` debug
+  helpers in annotations.py. Ignored deliberately.
+- Remaining class, executed-but-unasserted: configfiles corner branches
+  and annotate history rendering. Candidates for a deliberate
+  pin-or-prune decision, not blind test-writing.

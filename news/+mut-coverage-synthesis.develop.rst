@@ -1,0 +1,1 @@
+Recorded the coverage-based survivor classification in ``mutation-testing/NOTES.md``: the two suites are complementary (99% combined on cli/configfiles), no dead code found, shared blind spot reduced to two ``__repr__`` debug helpers.
