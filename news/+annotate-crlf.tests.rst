@@ -1,0 +1,1 @@
+Fixed test_annotate_verbose_shows_removal_history on Windows: the test asserted multi-line annotate output with LF while text-mode stdout emits CRLF there; it now normalizes line endings before asserting. [gotcha]
