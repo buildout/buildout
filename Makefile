@@ -12,8 +12,16 @@ all: test
 # directory. Keep the suites hermetic by clearing NIX_PYTHONPATH.
 HERMETIC_ENV = NIX_PYTHONPATH=
 
-bin/buildout: setup.py prepare.sh dev.py
+# prepare.sh's product name differs per platform (on Windows only
+# bin/buildout.exe is created), so track the run with a stamp file: a
+# missing extensionless target would rerun prepare.sh on every make
+# invocation, and the rerun re-resolves the venv with pip -U, flipping
+# part signatures mid-pipeline (GH runs 36628308426, 36639308916).
+bin/.prepare-stamp: setup.py prepare.sh dev.py
 	./prepare.sh
+	touch $@
+
+bin/buildout: bin/.prepare-stamp
 
 bin/test: bin/buildout buildout.cfg
 	bin/buildout || bin/buildout.exe

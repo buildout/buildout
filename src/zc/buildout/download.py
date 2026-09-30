@@ -24,7 +24,7 @@ import sys
 import tempfile
 from hashlib import md5
 from urllib.parse import urlparse
-from urllib.request import urlretrieve
+from urllib.request import url2pathname, urlretrieve
 
 import zc.buildout
 from zc.buildout.easy_install import realpath
@@ -163,6 +163,9 @@ class Download:
         parsed_url = urlparse(url, 'file')
         url_scheme, _, url_path = parsed_url[:3]
         if url_scheme == 'file':
+            # urlparse leaves '/C:/...' for file:///C:/... URLs; turn the
+            # URL path into a local filesystem path for this platform.
+            url_path = url2pathname(url_path)
             self.logger.debug('Using local resource %s', url)
             if not check_md5sum(url_path, md5sum):
                 raise ChecksumError(

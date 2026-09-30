@@ -189,21 +189,3 @@ echo "Building source dist, so we get an egg-info directory."
 echo
 echo "Now calling 'python dev.py' to create 'bin/buildout' script in main directory."
 "$VENV_PYTHON" dev.py
-
-# On Windows, dev.py generates only bin\buildout.exe, so the Makefile's
-# extensionless bin/buildout target never materializes and every make
-# invocation reruns this script.  A rerun re-resolves the venv with
-# pip -U; any release published between two runs (uv 0.12.20 -> 0.12.21
-# between the two make steps of GH run 36628308426) changes the py
-# part's recipe closure, flips its signature, and the resulting
-# uninstall tries to delete the very bin\buildout.exe that is running,
-# which Windows forbids (WinError 32).  Give make the file it tracks.
-case "$OSTYPE" in
-  msys*|cygwin*)
-    cat > "$HERE/bin/buildout" <<'SH'
-#!/bin/sh
-exec "$(dirname "$0")/buildout.exe" "$@"
-SH
-    echo "Wrote bin/buildout shim so make sees the bin/buildout target."
-    ;;
-esac
