@@ -59,5 +59,8 @@ Reading a failure:
   across ruff upgrades.
 - Only `ruff check` is wired. `ruff format` is deliberately NOT
   enforced — this tree predates it and is not formatted.
+- Do not run `ruff --fix --unsafe-fixes` on this tree: a 2026-09-12
+  probe found it breaks the `While:` reporting code. Safe `--fix`
+  output still needs review hunk by hunk before committing.
 - `.ruff_cache/` is gitignored; stale cache is never a failure mode,
   but `ruff check --no-cache .` rules it out when triaging weirdness.
