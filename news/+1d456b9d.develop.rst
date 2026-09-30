@@ -1,1 +1,0 @@
-Extracted the ``_read_record_or_raise`` and ``_ensure_download_cache`` helpers to keep ``make_egg_after_pip_install`` and ``_open`` within their pinned complexity budgets, and refreshed the line-pinned complexity baseline after the line drift from the recent easy_install changes. [gotcha]

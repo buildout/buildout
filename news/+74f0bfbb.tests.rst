@@ -1,1 +1,0 @@
-Fixed the ``update_env`` fixture's fake-release builder picking the wrong entry on filesystems with a different directory-listing order than macOS, which failed ``test_update`` and its contract test on Linux CI. [gotcha]

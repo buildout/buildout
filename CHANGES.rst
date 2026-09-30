@@ -8,6 +8,115 @@ Change History
 
 .. towncrier release notes start
 
+5.3.0a2 (1980-01-01)
+--------------------
+
+Bug fixes:
+
+
+- A failing ``pip``/``uv`` install subprocess is now reported as a clean
+  user error whose message ends with the command's own output, so the
+  actual diagnostic (for example a missing system header while building an
+  sdist) is the last thing on screen.  Previously the captured output went
+  to a detached ``print`` that could surface after the report or not at
+  all, and the failure was mislabeled "An internal error occurred due to a
+  bug in either zc.buildout or in a recipe being used", followed by a
+  traceback.  [gotcha]
+- Fixed egg reconstruction after a batched ``uv`` install of distributions
+  sharing a namespace package (``zope.*``, ``zc.*``, ...).  The whole shared
+  top-level directory was moved into the first reconstructed egg, leaving the
+  sibling distributions' eggs with metadata only; their code was importable
+  solely from the wrong egg, and broke at runtime as soon as the winning egg
+  was not on ``sys.path`` (``ModuleNotFoundError: No module named
+  'zc.lockfile'``).  Each egg is now reconstructed file-precise from its own
+  RECORD entries.  [gotcha]
+- Made the offline-mode error for a configuration file that cannot be
+  downloaded actionable: it now advises setting ``extends-cache`` to a cache
+  directory in the root configuration and running buildout once in online
+  mode, after which the download is reused from the cache.  A configured
+  ``extends-cache`` directory is now created on first use, as the
+  documentation always promised; previously even the first *online* run
+  failed with "to be used as a download cache doesn't exist" unless the
+  directory was created by hand.  [gotcha]
+- Windows: ``make`` no longer reruns ``prepare.sh`` on every invocation.  ``dev.py`` generates only ``bin\\buildout.exe`` there, so the extensionless Makefile target never materialized; the rerun re-resolved the venv with ``pip -U``, and any release published between two runs flipped the ``py`` part signature.  The resulting uninstall tried to delete the running ``bin\\buildout.exe`` and died with ``WinError 32``.  The Makefile now tracks the prepare run with a stamp file instead of the script name. [gotcha]
+
+
+Development:
+
+
+- CI now enforces the explicit-Any burndown: mypy is devenv-provided, a typecheck-any job runs make typecheck-any in the workflow, and a matching mypy cell joins the dagger static family, so no new explicit Any annotation can enter src/zc/buildout on a green CI. [Fizz]
+- Document the Windows iteration loop in ``doc/running-tests.rst`` and in
+  the ``develop-buildout`` skill: pushing a tree to the ``windows-iter``
+  scratch branch runs only the static trio and the Windows leg, while the
+  full matrix stays off that branch. The scratch ref is disposable; any
+  push recreates it. [gotcha]
+- Documented the pre-push static gate (``make lint``, ``make typecheck``, ``make complexity``) and the filesystem-ordering trap in the repo skills: directory-listing order differs between macOS and Linux CI, so pattern-select instead of positional indexing, and verify such changes on the dagger CI axis before pushing. [gotcha]
+- Extracted the ``_read_record_or_raise`` and ``_ensure_download_cache`` helpers to keep ``make_egg_after_pip_install`` and ``_open`` within their pinned complexity budgets, and refreshed the line-pinned complexity baseline after the line drift from the recent easy_install changes. [gotcha]
+- Point the ``develop-buildout`` skill's annotation section at the
+  ``annotate-from-traces`` skill, so annotating existing modules reaches
+  the MonkeyType traced-suite pipeline instead of improvising. [gotcha]
+- Record in the verify-buildout lint feature that ``ruff --fix
+  --unsafe-fixes`` breaks the ``While:`` reporting code, a finding from
+  the 2026-09-12 ruff-fix probes whose branch is being retired. [gotcha]
+- Recorded the coverage-based survivor classification in ``mutation-testing/NOTES.md``: the two suites are complementary (99% combined on cli/configfiles), no dead code found, shared blind spot reduced to two ``__repr__`` debug helpers.
+- Recorded the scoped-round harness lessons in ``mutation-testing/NOTES.md``: mutants as data in Python instead of generated bash, a vacuous-suite guard (testrunner exits 0 on a misspelled selector), ANSI stripping, and the gap/equivalent/dead classification of survivors.
+- Split the ``develop-buildout`` skill's dagger and ty sections into
+  on-demand supporting files (``dagger.md``, ``ty-tier.md``), shrinking
+  the always-loaded skill body from 499 to 308 lines. Content moved
+  verbatim; pointer sections keep discovery. [gotcha]
+- The ``develop-buildout`` and ``verify-buildout`` skills absorb the
+  uv-dep-removal verification lessons: ``devenv up -d`` as the engine
+  bring-up (native devenv services; the manual podman ladder stays as
+  the surgical fallback), cheap family re-issue after a killed run,
+  call-time workspace freeze as run attribution, the four-gate bundle
+  re-run after any ``src/`` touch, duck-typing and Version re-parsing
+  rules for the two pkg_resources copies, hash-ordered SpecifierSet
+  iteration on old packagings, interpreter-derived fixtures versus the
+  blind local cell, the CI coverage job's local repro and its
+  parallel-file dir-hash poisoning, and the seed-before-pip-pin
+  bootstrap ordering.  [Fizz]
+- ``annotate-from-traces`` skill documents the MonkeyType traced-suite
+  pipeline for annotating existing modules: subprocess tracing via
+  ``make test-traced``, purging test-double traces before the libcst
+  apply, the human pass over tracer blind spots, repo typing precedents
+  (``TextIO`` over ``TextIOWrapper``, ``Mapping`` versus invariant
+  ``Dict``, documented escape hatches), the modern-syntax dialect behind
+  ``from __future__ import annotations``, and the before/after ``ty``
+  log evidence discipline.
+  [gotcha]
+- ``develop-buildout`` documents dagger as the local pre-push CI gate:
+  replay cells on the committed tree (static gates included), the
+  measured boundary of what container cells catch versus what still
+  needs the runner, and how the engine's caches make the gate cheap on
+  a warm engine; plus the running-dagger-locally mechanics and two
+  module rules (exec-error output, ``ReturnType.ANY`` caching).
+  [gotcha]
+
+
+Tests:
+
+
+- Extend the pytest mirror with verbose ``annotate`` coverage: the
+  ``-=`` directive's history sub-block and history print order are now
+  asserted. The 2026-09-30 mutation round confirmed the corresponding
+  mutants (dropped REMOVE history entry, reversed history) are not
+  reachable through the annotate CLI rendering in either suite; they are
+  recorded as an equivalent-mutant class. [gotcha]
+- Fixed test_annotate_verbose_shows_removal_history on Windows: the test asserted multi-line annotate output with LF while text-mode stdout emits CRLF there; it now normalizes line endings before asserting. [gotcha]
+- Fixed the ``update_env`` fixture's fake-release builder picking the wrong entry on filesystems with a different directory-listing order than macOS, which failed ``test_update`` and its contract test on Linux CI. [gotcha]
+- Fixed the extends-cache unit tests building a malformed ``file://`` URL on Windows (``file://C:/...`` parses to an empty path); they now use ``Path.as_uri()``. [gotcha]
+- Fixed the test-suite flake behind the intermittent
+  ``test_dependencylinks_option`` failure under pytest-xdist: the
+  ``update_env`` fixture built fake zc.buildout releases with
+  ``python -m build --sdist`` directly on the shared checkout, and
+  setuptools rewrote ``src/zc.buildout.egg-info`` in place.  Sample
+  buildouts develop zc.buildout from that checkout, so part signatures
+  hash ``src/``; a concurrent worker hashing the tree during the rewrite
+  window computed a different signature and parts flipped from
+  "Updating" to "Uninstalling/Installing".  The fake releases are now
+  built from a private copy of the tree.  [gotcha]
+
+
 5.3.0a1 (2026-09-27)
 --------------------
 

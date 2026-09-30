@@ -1,1 +1,0 @@
-Recorded the scoped-round harness lessons in ``mutation-testing/NOTES.md``: mutants as data in Python instead of generated bash, a vacuous-suite guard (testrunner exits 0 on a misspelled selector), ANSI stripping, and the gap/equivalent/dead classification of survivors.

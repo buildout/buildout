@@ -1,1 +1,0 @@
-Documented the pre-push static gate (``make lint``, ``make typecheck``, ``make complexity``) and the filesystem-ordering trap in the repo skills: directory-listing order differs between macOS and Linux CI, so pattern-select instead of positional indexing, and verify such changes on the dagger CI axis before pushing. [gotcha]
