@@ -30,6 +30,7 @@ except ImportError:
 import pip  # NOQA
 
 import sys
+import warnings
 
 # zc.buildout ships its own copy of pkg_resources, taken from setuptools
 # 81.0.0 (the last release that contained it).  Make it importable as
@@ -45,7 +46,11 @@ if 'pkg_resources' not in sys.modules:
     _replace_pkg_resources = True
 else:
     try:
-        from pkg_resources import PkgResourcesDeprecationWarning
+        with warnings.catch_warnings():
+            # Don't show warnings from importing pkg_resources.
+            # We know it is deprecated, but we have vendorized it.
+            warnings.simplefilter("ignore")
+            from pkg_resources import PkgResourcesDeprecationWarning
         del PkgResourcesDeprecationWarning
     except ImportError:
         # This may be a bare bones pkg_resources from horse-with-no-namespace
@@ -54,8 +59,11 @@ if _replace_pkg_resources:
     from zc.buildout._vendor import pkg_resources as _vendored_pkg_resources
     sys.modules['pkg_resources'] = _vendored_pkg_resources
 
-import warnings
-from pkg_resources import PkgResourcesDeprecationWarning
+with warnings.catch_warnings():
+    # Don't show warnings from importing pkg_resources.
+    # We know it is deprecated, but we have vendorized it.
+    warnings.simplefilter("ignore")
+    from pkg_resources import PkgResourcesDeprecationWarning
 warnings.filterwarnings('ignore', category=PkgResourcesDeprecationWarning)
 warnings.filterwarnings('ignore', message='Setuptools is replacing distutils.')
 
