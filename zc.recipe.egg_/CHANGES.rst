@@ -1,8 +1,8 @@
 Change History
 **************
 
-6.0.0a2 (unreleased)
-====================
+6.0.0 (2026-10-06)
+==================
 
 - Add support for Python 3.15.
 
