@@ -8,6 +8,30 @@ Change History
 
 .. towncrier release notes start
 
+6.0.0 (2026-10-06)
+------------------
+
+New features:
+
+
+- Add support for python316-319 in conditional section expressions.  [maurits]
+- Test on Python 3.15 and setuptools 84.0.0.  [maurits]
+
+
+Bug fixes:
+
+
+- Don't show warnings from importing ``pkg_resources``.
+  We know it is deprecated, but we have vendorized it.
+  [maurits]
+
+
+Tests:
+
+
+- Add simple but real test projects.  [maurits]
+
+
 6.0.0a1 (2026-08-14)
 --------------------
 

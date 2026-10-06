@@ -1,3 +1,0 @@
-Don't show warnings from importing ``pkg_resources``.
-We know it is deprecated, but we have vendorized it.
-[maurits]
