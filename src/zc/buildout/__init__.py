@@ -55,14 +55,14 @@ else:
     except ImportError:
         # This may be a bare bones pkg_resources from horse-with-no-namespace
         _replace_pkg_resources = True
-if _replace_pkg_resources:
-    from zc.buildout._vendor import pkg_resources as _vendored_pkg_resources
-    sys.modules['pkg_resources'] = _vendored_pkg_resources
-
 with warnings.catch_warnings():
     # Don't show warnings from importing pkg_resources.
     # We know it is deprecated, but we have vendorized it.
     warnings.simplefilter("ignore")
+    if _replace_pkg_resources:
+        from zc.buildout._vendor import (
+            pkg_resources as _vendored_pkg_resources)
+        sys.modules['pkg_resources'] = _vendored_pkg_resources
     from pkg_resources import PkgResourcesDeprecationWarning
 warnings.filterwarnings('ignore', category=PkgResourcesDeprecationWarning)
 warnings.filterwarnings('ignore', message='Setuptools is replacing distutils.')
