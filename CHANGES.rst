@@ -8,6 +8,18 @@ Change History
 
 .. towncrier release notes start
 
+6.0.1 (2026-10-15)
+------------------
+
+Bug fixes:
+
+
+- Also hide the deprecation warning when importing the vendored ``pkg_resources``.
+  [icemac]
+- Fix ``DeprecationWarning`` about ``setDaemon()`` in ``zc.buildout.testing``.
+  [icemac]
+
+
 6.0.0 (2026-10-06)
 ------------------
 
