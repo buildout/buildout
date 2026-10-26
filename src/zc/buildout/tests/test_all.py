@@ -2595,7 +2595,7 @@ def wont_downgrade_due_to_prefer_final():
 
     >>> [v] = [l.split('= >=', 1)[1].strip()
     ...        for l in system(buildout+' -vv').split('\n')
-    ...        if l.startswith('zc.buildout = >=')]
+    ...        if l.startswith('zc-buildout = >=')]
     >>> v == pkg_resources.working_set.find(
     ...         pkg_resources.Requirement.parse('zc.buildout')
     ...         ).version
@@ -2610,7 +2610,7 @@ def wont_downgrade_due_to_prefer_final():
     ... ''')
     >>> [str(l.split('= >', 1)[1].strip())
     ...        for l in system(buildout+' -vv').split('\n')
-    ...        if l.startswith('zc.buildout =')]
+    ...        if l.startswith('zc-buildout =')]
     ['0.1']
 
     >>> write('buildout.cfg',
@@ -3467,8 +3467,8 @@ def test_suite():
                      ),
                     (re.compile('setuptools'), 'setuptools'),
                     (re.compile(r'Got zc.recipe.egg \S+'), 'Got zc.recipe.egg'),
-                    (re.compile(r'zc\.(buildout|recipe\.egg)\s*= >=\S+'),
-                     'zc.\\1 = >=1.99'),
+                    (re.compile(r'zc-(buildout|recipe-egg)\s*= >=\S+'),
+                     'zc-\\1 = >=1.99'),
                     (re.compile(r'installed_develop_eggs = (.*\n(\s+.*\n)*)'),
                      lambda m: 'installed_develop_eggs = ' + ' '.join([f for f in m.group(1).split() if f.endswith('.egg-link')]) + '\n'),
                     ])

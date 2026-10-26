@@ -288,9 +288,9 @@ operations::
     -=  IMPLICIT_VALUE
     <BLANKLINE>
     [versions]
-    zc.buildout= >=1.99
+    zc-buildout= >=1.99
         DEFAULT_VALUE
-    zc.recipe.egg= >=1.99
+    zc-recipe-egg= >=1.99
         DEFAULT_VALUE
     <BLANKLINE>
 

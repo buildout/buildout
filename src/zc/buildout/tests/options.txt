@@ -775,8 +775,8 @@ database is shown::
     verbosity = 20
     versions = versions
     [versions]
-    zc.buildout = >=1.99
-    zc.recipe.egg = >=1.99
+    zc-buildout = >=1.99
+    zc-recipe-egg = >=1.99
     <BLANKLINE>
 
 All of these options can be overridden by configuration files or by
