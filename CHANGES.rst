@@ -8,6 +8,16 @@ Change History
 
 .. towncrier release notes start
 
+6.0.2 (2026-10-28)
+------------------
+
+Bug fixes:
+
+
+- Use the normalized package name (PEP 503) to compare versions.
+  [@ale-rt] (#775)
+
+
 6.0.1 (2026-10-15)
 ------------------
 
