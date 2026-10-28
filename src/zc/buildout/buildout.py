@@ -403,10 +403,15 @@ class Buildout(DictMixin):
         # Default versions:
         versions_section_name = data['buildout']['versions'].value
         if versions_section_name:
-            versions = data[versions_section_name]
+            versions = {
+                packaging_utils.canonicalize_name(key): value
+                for key, value in data[versions_section_name].items()
+            }
+            # Reset the dictionary keys after normalization
+            data[versions_section_name] = versions
         else:
             versions = {}
-        if 'zc.buildout' not in versions:
+        if 'zc-buildout' not in versions:
             # Prevent downgrading of zc.buildout itself due to prefer-final.
             ws = pkg_resources.working_set
             dist = ws.find(
@@ -424,8 +429,8 @@ class Buildout(DictMixin):
                         "Could not find distribution for zc.buildout in working set."
                     )
             minimum = dist.version
-            versions['zc.buildout'] = SectionKey(f'>={minimum}', 'DEFAULT_VALUE')
-        if 'zc.recipe.egg' not in versions:
+            versions['zc-buildout'] = SectionKey(f'>={minimum}', 'DEFAULT_VALUE')
+        if 'zc-recipe-egg' not in versions:
             # zc.buildout and zc.recipe egg are closely linked, but zc.buildout
             # does NOT depend on it: we do not want to add it to our
             # install_requires.  (One could debate why, although one answer
@@ -444,7 +449,7 @@ class Buildout(DictMixin):
             # are unlikely to even be installable by supported Python versions.
             # But if we ever really need a more recent minimum version,
             # it is easy to update a version here.
-            versions['zc.recipe.egg'] = SectionKey('>=2.0.6', 'DEFAULT_VALUE')
+            versions['zc-recipe-egg'] = SectionKey('>=2.0.6', 'DEFAULT_VALUE')
 
         # Absolutize some particular directory, handling also the ~/foo form,
         # and considering the location of the configuration file that generated

@@ -1,0 +1,2 @@
+Use the normalized package name (PEP 503) to compare versions.
+[@ale-rt]

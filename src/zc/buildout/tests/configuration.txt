@@ -160,9 +160,9 @@ the origin of the value (file name or ``COMPUTED_VALUE``, ``DEFAULT_VALUE``,
         DEFAULT_VALUE
     <BLANKLINE>
     [versions]
-    zc.buildout = >=1.99
+    zc-buildout = >=1.99
         DEFAULT_VALUE
-    zc.recipe.egg = >=1.99
+    zc-recipe-egg = >=1.99
         DEFAULT_VALUE
 
 The ``annotate`` command is sensitive to the verbosity flag.
@@ -321,9 +321,9 @@ You can restrict the output to some sections by passing section names as argumen
     ==================
     <BLANKLINE>
     [versions]
-    zc.buildout= >=1.99
+    zc-buildout= >=1.99
         DEFAULT_VALUE
-    zc.recipe.egg= >=1.99
+    zc-recipe-egg= >=1.99
         DEFAULT_VALUE
     <BLANKLINE>
 
