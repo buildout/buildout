@@ -392,7 +392,11 @@ def _dist_sort_key(dist):
     platform wheel over a ``py3-none-any`` wheel.  Fall back to the
     regular ``Distribution`` ordering.
     """
-    return (dist.precedence, -getattr(dist, 'wheel_tag_rank', 0), dist)
+    return (
+        dist.precedence,
+        -getattr(dist, 'wheel_tag_rank', float('inf')),
+        dist,
+    )
 
 
 class Installer(object):

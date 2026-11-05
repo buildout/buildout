@@ -273,7 +273,7 @@ class TestWheelSelection(unittest.TestCase):
         self.assertEqual(
             self._dists("http://x/foo-1.0-py2-none-no_such_platform.whl"), [])
 
-    def test_obtain_prefers_most_specific_wheel(self):
+    def test_dist_sort_key_prefers_most_specific_wheel(self):
         from zc.buildout.easy_install import _dist_sort_key
 
         # The URLs are chosen so that sorting by URL, as buildout did
@@ -284,7 +284,7 @@ class TestWheelSelection(unittest.TestCase):
             best = sorted(self._dists(*urls), key=_dist_sort_key)[-1]
             self.assertEqual(best.location, platform_url)
 
-    def test_obtain_still_prefers_wheel_over_sdist(self):
+    def test_dist_sort_key_still_prefers_wheel_over_sdist(self):
         from zc.buildout.easy_install import _dist_sort_key
 
         any_url = "http://x/aaa/foo-1.0-py3-none-any.whl"

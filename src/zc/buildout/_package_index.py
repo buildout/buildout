@@ -284,10 +284,8 @@ def wheel_tag_rank(wheel):
     Return ``None`` if the wheel is not compatible at all.
     """
     ranks = _supported_tag_ranks()
-    matches = [ranks[tag] for tag in wheel.tags() if tag in ranks]
-    if not matches:
-        return None
-    return min(matches)
+    return min(
+        (ranks[tag] for tag in wheel.tags() if tag in ranks), default=None)
 
 
 def distros_for_location(location, basename, metadata=None):
