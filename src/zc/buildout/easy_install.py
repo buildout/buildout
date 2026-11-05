@@ -700,7 +700,9 @@ class Installer(object):
 
         if self._download_cache:
             # Prefer a dist from the download cache, but only if it is as
-            # good as the best available one, see #780.
+            # good as the best available one, see #780.  So a wheel on the
+            # index wins over a cached sdist or a cached less specific
+            # wheel.  As downloads go into the cache, it is used next time.
             best_preference = _dist_preference(best[-1])
             for dist in best:
                 if (realpath(os.path.dirname(dist.location))

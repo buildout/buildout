@@ -325,3 +325,26 @@ class TestWheelSelection(unittest.TestCase):
             best = self._obtain(
                 cache, self._dists(platform_url) + [cached_any_dist])
             self.assertEqual(best.location, platform_url)
+
+    def test_obtain_prefers_index_wheel_over_cached_sdist(self):
+        import os
+        from zc.buildout._package_index import distros_for_filename
+
+        with tempfile.TemporaryDirectory() as cache:
+            cached_sdist_dist, = distros_for_filename(
+                os.path.join(cache, "foo-1.0.tar.gz"))
+            any_url = "http://x/foo-1.0-py3-none-any.whl"
+
+            # A wheel on the index wins over a cached sdist:
+            best = self._obtain(
+                cache, self._dists(any_url) + [cached_sdist_dist])
+            self.assertEqual(best.location, any_url)
+
+            # Once the wheel is in the cache (downloads go there), the
+            # cached wheel is used:
+            cached_any_dist, = distros_for_filename(
+                os.path.join(cache, "foo-1.0-py3-none-any.whl"))
+            best = self._obtain(
+                cache,
+                self._dists(any_url) + [cached_sdist_dist, cached_any_dist])
+            self.assertEqual(best.location, cached_any_dist.location)
