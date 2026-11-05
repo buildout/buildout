@@ -7,6 +7,7 @@ from zc.buildout._package_index import distros_for_url
 from zc.buildout._package_index import wheel_tag_rank
 from zc.buildout.easy_install import _dist_sort_key
 from zc.buildout.easy_install import Installer
+from zc.buildout.easy_install import realpath
 
 import os
 import tempfile
@@ -272,7 +273,8 @@ class TestWheelSelection(unittest.TestCase):
 
         installer = object.__new__(Installer)
         installer._index = FakeIndex(foo=dists)
-        installer._download_cache = os.path.realpath(download_cache)
+        # Same normalization as `zc.buildout.easy_install.download_cache()`:
+        installer._download_cache = realpath(download_cache)
         return installer._obtain(Requirement.parse("foo"))
 
     def test_wheel_tag_rank(self):
