@@ -244,3 +244,50 @@ class TestSetuptoolsConstraint(unittest.TestCase):
         self.assertIn('81.0.0', requirement)
         self.assertNotIn('82.0.0', requirement)
         self.assertNotIn('83.0.0', requirement)
+
+
+class TestWheelSelection(unittest.TestCase):
+    """Test choosing the most specific wheel of several compatible ones."""
+
+    def _dists(self, *urls):
+        from zc.buildout._package_index import distros_for_url
+
+        return [dist for url in urls for dist in distros_for_url(url)]
+
+    def _platform_wheel(self):
+        from packaging.tags import sys_tags
+
+        tag = next(iter(sys_tags()))
+        return f"foo-1.0-{tag.interpreter}-{tag.abi}-{tag.platform}.whl"
+
+    def test_wheel_tag_rank(self):
+        from zc.buildout._package_index import wheel_tag_rank
+        from setuptools.wheel import Wheel
+
+        self.assertEqual(wheel_tag_rank(Wheel(self._platform_wheel())), 0)
+        self.assertGreater(wheel_tag_rank(Wheel("foo-1.0-py3-none-any.whl")), 0)
+        self.assertIsNone(
+            wheel_tag_rank(Wheel("foo-1.0-py2-none-no_such_platform.whl")))
+
+    def test_distros_for_location_skips_incompatible_wheels(self):
+        self.assertEqual(
+            self._dists("http://x/foo-1.0-py2-none-no_such_platform.whl"), [])
+
+    def test_obtain_prefers_most_specific_wheel(self):
+        from zc.buildout.easy_install import _dist_sort_key
+
+        # The URLs are chosen so that sorting by URL, as buildout did
+        # before, would pick the `any` wheel.
+        platform_url = "http://x/aaa/" + self._platform_wheel()
+        any_url = "http://x/zzz/foo-1.0-py3-none-any.whl"
+        for urls in [(platform_url, any_url), (any_url, platform_url)]:
+            best = sorted(self._dists(*urls), key=_dist_sort_key)[-1]
+            self.assertEqual(best.location, platform_url)
+
+    def test_obtain_still_prefers_wheel_over_sdist(self):
+        from zc.buildout.easy_install import _dist_sort_key
+
+        any_url = "http://x/aaa/foo-1.0-py3-none-any.whl"
+        sdist_url = "http://x/zzz/foo-1.0.tar.gz"
+        best = sorted(self._dists(any_url, sdist_url), key=_dist_sort_key)[-1]
+        self.assertEqual(best.location, any_url)

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import base64
 import configparser
+import functools
 import hashlib
 import html
 import http.client
@@ -48,6 +49,7 @@ from functools import wraps
 from typing import NamedTuple
 
 import setuptools
+from packaging.tags import sys_tags
 from pkg_resources import (
     BINARY_DIST,
     CHECKOUT_DIST,
@@ -262,6 +264,32 @@ def distros_for_url(url, metadata=None):
             )
 
 
+@functools.cache
+def _supported_tag_ranks():
+    """Map each supported (interpreter, abi, platform) tag to its position.
+
+    ``packaging.tags.sys_tags()`` lists the most specific tags first.
+    """
+    ranks = {}
+    for rank, tag in enumerate(sys_tags()):
+        ranks.setdefault((tag.interpreter, tag.abi, tag.platform), rank)
+    return ranks
+
+
+def wheel_tag_rank(wheel):
+    """Return how specific ``wheel`` is for the running interpreter.
+
+    The result is the position of the wheel's best tag in
+    ``packaging.tags.sys_tags()``, so lower means more specific.
+    Return ``None`` if the wheel is not compatible at all.
+    """
+    ranks = _supported_tag_ranks()
+    matches = [ranks[tag] for tag in wheel.tags() if tag in ranks]
+    if not matches:
+        return None
+    return min(matches)
+
+
 def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
@@ -271,17 +299,21 @@ def distros_for_location(location, basename, metadata=None):
         return [Distribution.from_location(location, basename, metadata)]
     if basename.endswith('.whl') and '-' in basename:
         wheel = Wheel(basename)
-        if not wheel.is_compatible():
+        rank = wheel_tag_rank(wheel)
+        if rank is None:
             return []
-        return [
-            Distribution(
-                location=location,
-                project_name=wheel.project_name,
-                version=wheel.version,
-                # Increase priority over eggs.
-                precedence=EGG_DIST + 1,
-            )
-        ]
+        dist = Distribution(
+            location=location,
+            project_name=wheel.project_name,
+            version=wheel.version,
+            # Increase priority over eggs.
+            precedence=EGG_DIST + 1,
+        )
+        # Remember how specific the wheel is for the running interpreter,
+        # so that `_obtain` can prefer e.g. a platform wheel over a
+        # `py3-none-any` wheel of the same version.
+        dist.wheel_tag_rank = rank
+        return [dist]
     if basename.endswith('.exe'):
         win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:

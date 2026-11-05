@@ -384,6 +384,17 @@ def _constrained_requirement(constraint, requirement):
     return pkg_resources.Requirement.parse(str(constrained))
 
 
+def _dist_sort_key(dist):
+    """Sort key for choosing between dists of the same version.
+
+    Prefer the higher precedence (wheel over egg over sdist) and, among
+    wheels, the most specific one for the running interpreter, e.g. a
+    platform wheel over a ``py3-none-any`` wheel.  Fall back to the
+    regular ``Distribution`` ordering.
+    """
+    return (dist.precedence, -getattr(dist, 'wheel_tag_rank', 0), dist)
+
+
 class Installer(object):
 
     _versions = {}
@@ -678,7 +689,7 @@ class Installer(object):
                     ):
                     return dist
 
-        best.sort()
+        best.sort(key=_dist_sort_key)
         return best[-1]
 
     def _fetch(self, dist, tmp, download_cache):
