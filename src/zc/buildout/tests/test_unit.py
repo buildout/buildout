@@ -291,3 +291,37 @@ class TestWheelSelection(unittest.TestCase):
         sdist_url = "http://x/zzz/foo-1.0.tar.gz"
         best = sorted(self._dists(any_url, sdist_url), key=_dist_sort_key)[-1]
         self.assertEqual(best.location, any_url)
+
+    def _obtain(self, download_cache, dists):
+        import os
+        from zc.buildout.easy_install import Installer
+        from pkg_resources import Requirement
+
+        class FakeIndex(dict):
+            def obtain(self, requirement):
+                return True
+
+        installer = object.__new__(Installer)
+        installer._index = FakeIndex(foo=dists)
+        installer._download_cache = os.path.realpath(download_cache)
+        return installer._obtain(Requirement.parse("foo"))
+
+    def test_obtain_prefers_download_cache_only_if_as_specific(self):
+        import os
+        from zc.buildout._package_index import distros_for_filename
+
+        with tempfile.TemporaryDirectory() as cache:
+            cached_any = os.path.join(cache, "foo-1.0-py3-none-any.whl")
+            cached_any_dist, = distros_for_filename(cached_any)
+            any_url = "http://x/foo-1.0-py3-none-any.whl"
+            platform_url = "http://x/" + self._platform_wheel()
+
+            # The cached `any` wheel wins over the same wheel on the index:
+            best = self._obtain(
+                cache, self._dists(any_url) + [cached_any_dist])
+            self.assertEqual(best.location, cached_any_dist.location)
+
+            # But a more specific wheel on the index wins over the cache:
+            best = self._obtain(
+                cache, self._dists(platform_url) + [cached_any_dist])
+            self.assertEqual(best.location, platform_url)
