@@ -384,6 +384,32 @@ def _constrained_requirement(constraint, requirement):
     return pkg_resources.Requirement.parse(str(constrained))
 
 
+def _dist_preference(dist):
+    """How much to prefer ``dist`` over other dists of the same version.
+
+    Higher is better: prefer the higher precedence (wheel over egg over
+    sdist) and, among wheels, the most specific one for the running
+    interpreter, e.g. a platform wheel over a ``py3-none-any`` wheel.
+
+    The wheel specificity is the ``wheel_tag_rank`` attribute which
+    ``zc.buildout._package_index.distros_for_location`` sets on wheel
+    dists only.  It is not a regular ``Distribution`` attribute, so
+    ``Distribution.clone()`` drops it and reading it on other dists goes
+    through ``Distribution.__getattr__`` to the metadata provider, hence
+    the ``getattr`` with a default.
+    """
+    return (dist.precedence, -getattr(dist, 'wheel_tag_rank', float('inf')))
+
+
+def _dist_sort_key(dist):
+    """Sort key for choosing between dists of the same version.
+
+    Use ``_dist_preference`` and fall back to the regular ``Distribution``
+    ordering.
+    """
+    return (_dist_preference(dist), dist)
+
+
 class Installer(object):
 
     _versions = {}
@@ -670,15 +696,21 @@ class Installer(object):
         if len(best) == 1:
             return best[0]
 
+        best.sort(key=_dist_sort_key)
+
         if self._download_cache:
-            for dist in best:
+            # Prefer a dist from the download cache, but only if it is as
+            # good as the best available one, see #780.  So a wheel on the
+            # index wins over a cached sdist or a cached less specific
+            # wheel.  As downloads go into the cache, it is used next time.
+            best_preference = _dist_preference(best[-1])
+            for dist in reversed(best):
+                if _dist_preference(dist) != best_preference:
+                    break
                 if (realpath(os.path.dirname(dist.location))
-                    ==
-                    self._download_cache
-                    ):
+                        == self._download_cache):
                     return dist
 
-        best.sort()
         return best[-1]
 
     def _fetch(self, dist, tmp, download_cache):

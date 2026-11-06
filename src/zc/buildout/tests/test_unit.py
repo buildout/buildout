@@ -1,5 +1,15 @@
+from packaging.tags import sys_tags
 from pathlib import Path
+from pkg_resources import Requirement
+from setuptools.wheel import Wheel
+from zc.buildout._package_index import distros_for_filename
+from zc.buildout._package_index import distros_for_url
+from zc.buildout._package_index import wheel_tag_rank
+from zc.buildout.easy_install import _dist_sort_key
+from zc.buildout.easy_install import Installer
+from zc.buildout.easy_install import realpath
 
+import os
 import tempfile
 import unittest
 
@@ -244,3 +254,93 @@ class TestSetuptoolsConstraint(unittest.TestCase):
         self.assertIn('81.0.0', requirement)
         self.assertNotIn('82.0.0', requirement)
         self.assertNotIn('83.0.0', requirement)
+
+
+class TestWheelSelection(unittest.TestCase):
+    """Test choosing the most specific wheel of several compatible ones."""
+
+    def _dists(self, *urls):
+        return [dist for url in urls for dist in distros_for_url(url)]
+
+    def _platform_wheel(self):
+        tag = next(iter(sys_tags()))
+        return f"foo-1.0-{tag.interpreter}-{tag.abi}-{tag.platform}.whl"
+
+    def _obtain(self, download_cache, dists):
+        class FakeIndex(dict):
+            def obtain(self, requirement):
+                return True
+
+        installer = object.__new__(Installer)
+        installer._index = FakeIndex(foo=dists)
+        # Same normalization as `zc.buildout.easy_install.download_cache()`:
+        installer._download_cache = realpath(download_cache)
+        return installer._obtain(Requirement.parse("foo"))
+
+    def test_wheel_tag_rank(self):
+        """It ranks the most specific wheel 0 and incompatible ones None."""
+        self.assertEqual(wheel_tag_rank(Wheel(self._platform_wheel())), 0)
+        self.assertGreater(wheel_tag_rank(Wheel("foo-1.0-py3-none-any.whl")), 0)
+        self.assertIsNone(
+            wheel_tag_rank(Wheel("foo-1.0-py2-none-no_such_platform.whl")))
+
+    def test_distros_for_location_skips_incompatible_wheels(self):
+        """It does not return a dist for a wheel with an unsupported tag."""
+        self.assertEqual(
+            self._dists("http://x/foo-1.0-py2-none-no_such_platform.whl"), [])
+
+    def test_dist_sort_key_prefers_most_specific_wheel(self):
+        """It sorts a platform wheel after an `any` wheel regardless of URL."""
+        # The URLs are chosen so that sorting by URL, as buildout did
+        # before, would pick the `any` wheel.
+        platform_url = "http://x/aaa/" + self._platform_wheel()
+        any_url = "http://x/zzz/foo-1.0-py3-none-any.whl"
+        for urls in [(platform_url, any_url), (any_url, platform_url)]:
+            best = sorted(self._dists(*urls), key=_dist_sort_key)[-1]
+            self.assertEqual(best.location, platform_url)
+
+    def test_dist_sort_key_still_prefers_wheel_over_sdist(self):
+        """It sorts a wheel after an sdist."""
+        any_url = "http://x/aaa/foo-1.0-py3-none-any.whl"
+        sdist_url = "http://x/zzz/foo-1.0.tar.gz"
+        best = sorted(self._dists(any_url, sdist_url), key=_dist_sort_key)[-1]
+        self.assertEqual(best.location, any_url)
+
+    def test_obtain_prefers_download_cache_only_if_as_specific(self):
+        """It uses a cached wheel unless the index has a more specific one."""
+        with tempfile.TemporaryDirectory() as cache:
+            cached_any = os.path.join(cache, "foo-1.0-py3-none-any.whl")
+            cached_any_dist, = distros_for_filename(cached_any)
+            any_url = "http://x/foo-1.0-py3-none-any.whl"
+            platform_url = "http://x/" + self._platform_wheel()
+
+            # The cached `any` wheel wins over the same wheel on the index:
+            best = self._obtain(
+                cache, self._dists(any_url) + [cached_any_dist])
+            self.assertEqual(best.location, cached_any_dist.location)
+
+            # But a more specific wheel on the index wins over the cache:
+            best = self._obtain(
+                cache, self._dists(platform_url) + [cached_any_dist])
+            self.assertEqual(best.location, platform_url)
+
+    def test_obtain_prefers_index_wheel_over_cached_sdist(self):
+        """It uses a wheel from the index over a cached sdist."""
+        with tempfile.TemporaryDirectory() as cache:
+            cached_sdist_dist, = distros_for_filename(
+                os.path.join(cache, "foo-1.0.tar.gz"))
+            any_url = "http://x/foo-1.0-py3-none-any.whl"
+
+            # A wheel on the index wins over a cached sdist:
+            best = self._obtain(
+                cache, self._dists(any_url) + [cached_sdist_dist])
+            self.assertEqual(best.location, any_url)
+
+            # Once the wheel is in the cache (downloads go there), the
+            # cached wheel is used:
+            cached_any_dist, = distros_for_filename(
+                os.path.join(cache, "foo-1.0-py3-none-any.whl"))
+            best = self._obtain(
+                cache,
+                self._dists(any_url) + [cached_sdist_dist, cached_any_dist])
+            self.assertEqual(best.location, cached_any_dist.location)

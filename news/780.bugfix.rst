@@ -1,0 +1,6 @@
+Prefer the most specific compatible wheel (e.g. a platform wheel over a
+``py3-none-any`` wheel of the same version) instead of choosing by download URL.
+A dist from the download cache is now only used if it is as good as the best
+available one, so a wheel on the index wins over a cached sdist; the wheel is
+then cached and used on the next run.
+[icemac]
