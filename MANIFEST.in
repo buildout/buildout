@@ -2,6 +2,7 @@ include *.py
 include *.rst
 include *.txt
 include .coveragerc
+include AGENTS.md
 include pyproject.toml
 recursive-include specifications *.txt
 recursive-include src/zc *.test
