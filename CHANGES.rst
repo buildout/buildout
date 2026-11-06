@@ -8,6 +8,27 @@ Change History
 
 .. towncrier release notes start
 
+6.1.0 (2026-11-06)
+------------------
+
+Bug fixes:
+
+
+- Prefer the most specific compatible wheel (e.g. a platform wheel over a
+  ``py3-none-any`` wheel of the same version) instead of choosing by download URL.
+  A dist from the download cache is now only used if it is as good as the best
+  available one, so a wheel on the index wins over a cached sdist; the wheel is
+  then cached and used on the next run.
+  [icemac] (#780)
+
+
+Tests:
+
+
+- Test with latest pip 26.3.  [maurits]
+- Test with setuptools 84.2.1.  [maurits]
+
+
 6.0.2 (2026-10-28)
 ------------------
 
