@@ -704,10 +704,11 @@ class Installer(object):
             # index wins over a cached sdist or a cached less specific
             # wheel.  As downloads go into the cache, it is used next time.
             best_preference = _dist_preference(best[-1])
-            for dist in best:
+            for dist in reversed(best):
+                if _dist_preference(dist) != best_preference:
+                    break
                 if (realpath(os.path.dirname(dist.location))
-                        == self._download_cache
-                        and _dist_preference(dist) == best_preference):
+                        == self._download_cache):
                     return dist
 
         return best[-1]
