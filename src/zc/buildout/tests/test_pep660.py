@@ -70,5 +70,50 @@ parts =
             if 'BUILDOUT_TESTING_SHOW_PEP660' in os.environ:
                 del os.environ['BUILDOUT_TESTING_SHOW_PEP660']
 
+    def test_develop_setuptools_script_path(self):
+        """Scripts get the source checkout on sys.path, not develop-eggs.
+
+        See https://github.com/buildout/buildout/issues/782
+        The directory name sorts before 'develop-eggs' on purpose: we used
+        to pick the dist with the alphabetically higher location.
+        """
+        zc.buildout.testing.install_develop('zc.recipe.egg', self)
+        self.mkdir('aaa_pkg')
+        self.mkdir('aaa_pkg', 'aaa_pkg')
+        self.write('aaa_pkg', 'aaa_pkg', '__init__.py',
+                   'def main(): print("Hello from aaa_pkg")\n')
+        self.write('aaa_pkg', 'setup.py', """
+from setuptools import setup
+setup(
+    name='aaa_pkg',
+    version='1.0',
+    packages=['aaa_pkg'],
+    entry_points={'console_scripts': ['aaa = aaa_pkg:main']},
+)
+""")
+        self.write('buildout.cfg', """
+[buildout]
+develop = aaa_pkg
+parts = aaa
+
+[aaa]
+recipe = zc.recipe.egg
+eggs = aaa_pkg
+""")
+        output = self.system(os.path.join('bin', 'buildout'))
+        self.assertIn("Generated script", output)
+
+        with open(os.path.join('bin', 'aaa')) as f:
+            script = f.read()
+        self.assertIn(os.path.realpath('aaa_pkg'), script)
+        self.assertNotIn(os.path.realpath('develop-eggs'), script)
+        self.assertIn('Hello from aaa_pkg',
+                      self.system(os.path.join('bin', 'aaa')))
+
+        dist_infos = [d for d in os.listdir('develop-eggs')
+                      if d.endswith('.dist-info')]
+        self.assertEqual(dist_infos, [])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1448,16 +1448,21 @@ def develop(setup, dest,
             logger.debug("Successfully made editable install: %s", egg_link)
             return egg_link
 
-        # For newer setuptools (80+) or other PEP 660 backends, we copy
-        # the metadata and finders to the destination.
-        _copy_metadata(tmp3, dest, undo)
-        _detect_distutils_scripts(tmp3)
-
-        # We also create an .egg-link file for backward compatibility with
-        # existing tests and tools that expect it.
+        # For newer setuptools (80+) or other PEP 660 backends, we create an
+        # .egg-link file ourselves.
         egg_link = _create_egg_link(directory, dest, egg_name)
-        if egg_link:
-            logger.debug("Successfully made editable install: %s", egg_link)
+        logger.debug("Successfully made editable install: %s", egg_link)
+
+        # setuptools leaves an .egg-info in the source directory, so the
+        # .egg-link is enough.  Other backends (like hatchling) don't, so we
+        # need the metadata and finders in the destination.  Never copy them
+        # when the .egg-link works: we would get the same develop dist twice
+        # and might pick the one in `dest`, which scripts cannot import.
+        # See https://github.com/buildout/buildout/issues/782
+        with open(egg_link) as f:
+            egg_path = f.readline().strip()
+        if not any(pkg_resources.find_distributions(egg_path, only=True)):
+            _copy_metadata(tmp3, dest, undo)
 
         return egg_link
 
