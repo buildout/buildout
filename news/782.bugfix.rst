@@ -1,0 +1,3 @@
+Fix generated scripts having ``develop-eggs`` instead of the source checkout
+in ``sys.path`` for some develop eggs.
+[icemac]
